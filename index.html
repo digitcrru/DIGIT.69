@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DIGIT.69 | Registration</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Prompt', 'sans-serif'],
+                    },
+                    colors: { 
+                        brand: '#E05D0F',
+                        brandDark: '#B84A0A',
+                        brandLight: '#F57831',
+                        surfaceLight: '#FFFFFF',
+                        surfaceDark: '#121214',
+                    },
+                    boxShadow: {
+                        'premium': '0 20px 40px -15px rgba(0,0,0,0.05)',
+                        'premium-hover': '0 30px 60px -15px rgba(224, 93, 15, 0.15)',
+                        'premium-dark': '0 20px 40px -15px rgba(0,0,0,0.5)',
+                    },
+                    animation: { 
+                        'fade-in': 'fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                        'slide-up': 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: { 
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Fonts & Libraries -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-is@18/umd/react-is.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prop-types/15.8.1/prop-types.min.js"></script>
+    <script src="https://unpkg.com/recharts@2.1.12/umd/Recharts.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        body { 
+            font-family: 'Prompt', sans-serif; 
+            margin: 0; padding: 0; 
+            overflow-x: hidden; 
+            -webkit-font-smoothing: antialiased; 
+            background-color: #F7F7F9;
+            background-image: 
+                radial-gradient(at 100% 0%, hsla(28, 100%, 74%, 0.12) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, hsla(250, 20%, 70%, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #1A1A1E;
+        }
+        .dark body {
+            background-color: #0A0A0C;
+            background-image: 
+                radial-gradient(at 100% 0%, hsla(28, 80%, 40%, 0.1) 0px, transparent 40%),
+                radial-gradient(at 0% 100%, hsla(250, 30%, 30%, 0.05) 0px, transparent 40%);
+            color: #F9FAFB;
+        }
+        
+        .glass-panel { 
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(24px) saturate(1.5); 
+            -webkit-backdrop-filter: blur(24px) saturate(1.5); 
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 20px 40px -15px rgba(0,0,0,0.03), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+        }
+        .dark .glass-panel { 
+            background: rgba(18, 18, 20, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.04); 
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+        }
+
+        .input-modern { 
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); 
+            outline: none; 
+            background: #F9FAFB;
+            border: 1px solid #E5E7EB;
+            color: #111827;
+        }
+        .input-modern:focus { border-color: #E05D0F; box-shadow: 0 0 0 3px rgba(224, 93, 15, 0.1); background: #FFFFFF; }
+        .dark .input-modern { background: #18181B; border: 1px solid #27272A; color: #F9FAFB; }
+        .dark .input-modern:focus { border-color: #E05D0F; box-shadow: 0 0 0 3px rgba(224, 93, 15, 0.15); background: #1F1F22; }
+
+        .brand-gradient { background: linear-gradient(135deg, #F57831 0%, #E05D0F 100%); }
+        .brand-gradient-hover { background: linear-gradient(135deg, #FA8A4A 0%, #E86A1F 100%); }
+        
+        /* Scrollbar styles */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #3F3F46; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .btn-interactive { transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+        .btn-interactive:active:not(:disabled) { transform: scale(0.97); }
+        .btn-interactive:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* SweetAlert */
+        div:where(.swal2-container) div:where(.swal2-popup) { border-radius: 1.5rem !important; padding: 2rem 1.5rem !important; }
+        .dark div:where(.swal2-container) div:where(.swal2-popup) { background: #18181B !important; color: #F9FAFB !important; border: 1px solid rgba(255,255,255,0.05) !important; }
+        div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm { background: linear-gradient(135deg, #F57831 0%, #E05D0F 100%) !important; border-radius: 0.75rem !important; font-weight: 600 !important; }
+
+        @media print { .no-print { display: none !important; } }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef } = React;
+        const Recharts = window.Recharts || {};
+        const { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } = Recharts;
+
+        // ==========================================
+        // ⚙️ตั้งค่า API
+        // ==========================================
+        const API_URL = "https://script.google.com/macros/s/AKfycbwviBRd_BbtvGyEpZSq5ab5A0iEpXkG9iMwAUQyGyZb-nDI2R5-x8GE5ZEI3gpmzA3zug/exec";
+        const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1MoZpnDniVF5pKr0tEgmYwlPO3wZdA7DaO_MvZjbC-ec/gviz/tq?tqx=out:csv&sheet=Registration";
+        
+        const MAJOR_LIST = [
+            "เทคโนโลยีดิจิทัลเพื่อธุรกิจ", "เทคโนโลยีดิจิทัลเพื่อธุรกิจ (เทียบโอน)",
+            "เทคโนโลยีปัญญาประดิษฐ์", "เทคโนโลยีสารสนเทศ", "เทคโนโลยีสารสนเทศ (เทียบโอน)",
+            "วิทยาการคอมพิวเตอร์", "กราฟิกดีไซน์เทคโนโลยีสื่อดิจิทัล",
+            "กราฟิกดีไซน์สื่อศิลปะและการออกแบบ", "กราฟิกดีไซน์สื่อศิลปะและการออกแบบ (เทียบโอน)",
+            "วิศวกรรมคอมพิวเตอร์"
+        ];
+
+        const cleanMajor = (str) => str ? str.replace(/\s*\([a-zA-Z\s]+\)/g, '').trim() : '';
+
+        const submitToAPI = async (action, payload) => {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action, payload })
+                });
+                return await response.json();
+            } catch (err) {
+                throw new Error("ระบบเซิร์ฟเวอร์ขัดข้อง กรุณาลองใหม่อีกครั้ง");
+            }
+        };
+
+        // UI Components
+        const Icon = ({ name, size = 20, className = '' }) => {
+            const containerRef = useRef(null);
+            useEffect(() => {
+                if (containerRef.current) {
+                    containerRef.current.innerHTML = `<i data-lucide="${name}" class="${className}" style="width:${size}px; height:${size}px; stroke-width: 2;"></i>`;
+                    if (window.lucide) lucide.createIcons({ root: containerRef.current });
+                }
+            }, [name, size, className]);
+            return <span ref={containerRef} className="inline-flex items-center justify-center shrink-0" />;
+        };
+
+        const TogglePill = ({ options, value, onChange, isWarningType }) => {
+            return (
+                <div className="flex flex-col sm:flex-row flex-wrap gap-2 p-1.5 bg-gray-100/80 dark:bg-zinc-800/80 rounded-2xl border border-gray-200/50 dark:border-zinc-700/50 w-full">
+                    {options.map(opt => {
+                        const isActive = value === opt.value;
+                        const isAlert = isWarningType && opt.value !== 'ไม่มี' && opt.value !== 'ไม่แพ้';
+                        return (
+                            <button key={opt.value} type="button" onClick={() => onChange(opt.value)}
+                                className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base btn-interactive
+                                    ${isActive 
+                                        ? isAlert 
+                                            ? 'bg-red-500 text-white shadow-lg shadow-red-500/25 border border-red-600/50' 
+                                            : 'brand-gradient text-white shadow-lg shadow-brand/25 border border-brand/50'
+                                        : 'bg-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-transparent hover:bg-white/50 dark:hover:bg-zinc-700/50'}`}
+                            >
+                                {isActive && <Icon name={isAlert ? "alert-triangle" : "check"} size={18} />}
+                                {opt.label}
+                            </button>
+                        )
+                    })}
+                </div>
+            );
+        };
+
+        const SectionHeader = ({ icon, title, description }) => {
+            return (
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6 md:mb-8">
+                    <div className="p-3.5 rounded-2xl bg-brand/10 dark:bg-brand/20 text-brand shadow-sm border border-brand/10 shrink-0">
+                        <Icon name={icon} size={24}/>
+                    </div>
+                    <div>
+                        <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white tracking-tight leading-tight">{title}</h3>
+                        {description && <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{description}</p>}
+                    </div>
+                </div>
+            );
+        };
+
+        // PDPA Modal
+        const PdpaModal = ({ onAccept, isDarkMode }) => {
+            const [isChecked, setIsChecked] = useState(false);
+            const handleDecline = () => Swal.fire({ icon: 'info', title: 'แจ้งเตือน', text: 'จำเป็นต้องให้ความยินยอมเพื่อสิทธิประโยชน์และความปลอดภัยของคุณ', confirmButtonText: 'ตกลง', confirmButtonColor: '#E05D0F' });
+
+            return (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white dark:bg-zinc-900 rounded-[2rem] max-w-2xl w-full shadow-2xl border border-gray-100 dark:border-zinc-800 animate-slide-up flex flex-col max-h-[95vh] md:max-h-[90vh]">
+                        <div className="p-6 md:p-8 border-b border-gray-100 dark:border-zinc-800 shrink-0 relative overflow-hidden">
+                            <div className="absolute -right-6 -top-6 text-brand/5 rotate-12"><Icon name="shield" size={100}/></div>
+                            <div className="relative z-10 flex items-center gap-4">
+                                <div className="p-3 bg-brand/10 rounded-xl text-brand"><Icon name="shield-check" size={24} /></div>
+                                <div><h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">นโยบายความเป็นส่วนตัว</h2><p className="text-xs md:text-sm text-gray-500 mt-1">PDPA Consent</p></div>
+                            </div>
+                        </div>
+                        
+                        <div className="p-6 md:p-8 overflow-y-auto flex-1 text-sm text-gray-600 dark:text-gray-300 leading-relaxed bg-gray-50/50 dark:bg-zinc-900/50">
+                            <p className="mb-6">เรามีความจำเป็นต้องจัดเก็บและประมวลผลข้อมูลของท่านเพื่อใช้ในกิจกรรม ดังนี้:</p>
+                            <div className="space-y-3 mb-6">
+                                <div className="flex gap-3 p-4 bg-white dark:bg-zinc-800/80 rounded-2xl border border-gray-100 dark:border-zinc-700/50 shadow-sm"><div className="text-blue-500 mt-0.5"><Icon name="user" size={18}/></div><div><h4 className="font-semibold text-gray-900 dark:text-white">ข้อมูลส่วนตัว</h4><p className="text-xs text-gray-500">ชื่อ, รหัส นศ., สาขา, เบอร์โทร เพื่อใช้ตรวจสอบสิทธิ์</p></div></div>
+                                <div className="flex gap-3 p-4 bg-white dark:bg-zinc-800/80 rounded-2xl border border-gray-100 dark:border-zinc-700/50 shadow-sm"><div className="text-orange-500 mt-0.5"><Icon name="utensils" size={18}/></div><div><h4 className="font-semibold text-gray-900 dark:text-white">ข้อมูลโภชนาการ</h4><p className="text-xs text-gray-500">ประวัติแพ้อาหาร เพื่อจัดเตรียมมื้ออาหารที่ปลอดภัย</p></div></div>
+                                <div className="flex gap-3 p-4 bg-white dark:bg-zinc-800/80 rounded-2xl border border-gray-100 dark:border-zinc-700/50 shadow-sm"><div className="text-red-500 mt-0.5"><Icon name="heart-pulse" size={18}/></div><div><h4 className="font-semibold text-gray-900 dark:text-white">ข้อมูลการแพทย์</h4><p className="text-xs text-gray-500">โรคประจำตัว, ประวัติแพ้ยา เพื่อวางแผนปฐมพยาบาล</p></div></div>
+                            </div>
+                            <p className="text-xs text-gray-400 bg-gray-100 dark:bg-zinc-800 p-4 rounded-xl">ข้อมูลจะถูกเก็บเป็นความลับและเข้าถึงได้เฉพาะผู้เกี่ยวข้องเท่านั้น</p>
+                        </div>
+                        
+                        <div className="p-6 md:p-8 border-t border-gray-100 dark:border-zinc-800 shrink-0 bg-white dark:bg-zinc-900">
+                            <label className="flex items-start md:items-center gap-3 cursor-pointer group mb-6 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 dark:bg-zinc-800/50 dark:hover:bg-zinc-800 transition-colors border border-transparent">
+                                <input type="checkbox" checked={isChecked} onChange={e => setIsChecked(e.target.checked)} className="hidden" />
+                                <div className={`w-5 h-5 mt-0.5 md:mt-0 rounded border flex items-center justify-center transition-all shrink-0 ${isChecked ? 'bg-brand border-brand' : 'border-gray-300 dark:border-gray-600'}`}>
+                                    {isChecked && <Icon name="check" size={14} className="text-white"/>}
+                                </div>
+                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">ฉันได้อ่านและยินยอมให้ประมวลผลข้อมูลส่วนบุคคลดังกล่าว</span>
+                            </label>
+                            <div className="flex flex-col sm:flex-row justify-end gap-3">
+                                <button onClick={handleDecline} className="w-full sm:w-auto px-6 py-3 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors btn-interactive">ปฏิเสธ</button>
+                                <button onClick={() => isChecked ? onAccept() : null} disabled={!isChecked} className={`w-full sm:w-auto px-8 py-3 rounded-xl text-sm font-medium transition-all duration-300 btn-interactive ${isChecked ? 'brand-gradient text-white shadow-lg shadow-brand/20' : 'bg-gray-100 dark:bg-zinc-800 text-gray-400 cursor-not-allowed'}`}>ยินยอมและดำเนินการต่อ</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Admin Dashboard
+        const AdminDashboard = ({ goBack, isDarkMode }) => {
+            const [data, setData] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [activeTab, setActiveTab] = useState('overview');
+            const [drilldownData, setDrilldownData] = useState({ title: '', list: [], type: '' });
+            const [currentPage, setCurrentPage] = useState(1);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [executiveMajor, setExecutiveMajor] = useState('ทั้งหมด');
+
+            const loadData = () => {
+                setLoading(true);
+                Papa.parse(`${SHEET_CSV_URL}&_cb=${new Date().getTime()}`, {
+                    download: true, header: true,
+                    complete: (res) => { setData(res.data.filter(row => row.StudentID).map(r => ({ ...r, Major: cleanMajor(r.Major) }))); setLoading(false); },
+                    error: () => { Swal.fire('Error', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้', 'error'); setLoading(false); }
+                });
+            };
+            useEffect(() => { loadData(); }, []);
+
+            const executiveBaseMajors = useMemo(() => {
+                const mSet = new Set();
+                data.forEach(r => { if(r.Major) mSet.add(r.Major.replace(/\s*\(เทียบโอน\)/g, '').trim()); });
+                return Array.from(mSet).sort();
+            }, [data]);
+
+            const filteredData = useMemo(() => {
+                let result = data;
+                if (searchTerm) {
+                    const s = searchTerm.toLowerCase();
+                    result = result.filter(r => (r.FullName || '').toLowerCase().includes(s) || (r.StudentID || '').toLowerCase().includes(s) || (r.Major || '').toLowerCase().includes(s) || (r.StudentPhone || '').includes(s));
+                }
+                if (activeTab === 'executive' && executiveMajor !== 'ทั้งหมด') result = result.filter(r => (r.Major ? r.Major.replace(/\s*\(เทียบโอน\)/g, '').trim() : '') === executiveMajor);
+                return result;
+            }, [data, searchTerm, activeTab, executiveMajor]);
+
+            const stats = useMemo(() => {
+                let total = filteredData.length, normalCount = 0, transferCount = 0, foodAlert = 0, healthAlert = 0;
+                let majorCount = {}, dietStats = { 'ฮาลาล': 0, 'มังสวิรัติ': 0, 'เจ': 0 }, foodAllergies = [], diseases = [], drugAllergies = [];
+                let surveillanceList = [];
+
+                filteredData.forEach(s => {
+                    if(s.Major) { majorCount[s.Major] = (majorCount[s.Major] || 0) + 1; s.Major.includes("เทียบโอน") ? transferCount++ : normalCount++; }
+                    let hasF = s.FoodAllergy !== 'ไม่แพ้' || (s.SpecificDiet && s.SpecificDiet !== 'ไม่มี');
+                    let hasH = s.Disease !== 'ไม่มี' || s.DrugAllergy !== 'ไม่แพ้';
+                    if (hasF) foodAlert++; if (hasH) healthAlert++;
+                    if (s.FoodAllergy && s.FoodAllergy !== 'ไม่แพ้') foodAllergies.push(s);
+                    if (s.SpecificDiet) { if (s.SpecificDiet.includes('ฮาลาล')) dietStats['ฮาลาล']++; else if (s.SpecificDiet.includes('มังสวิรัติ')) dietStats['มังสวิรัติ']++; else if (s.SpecificDiet.includes('เจ')) dietStats['เจ']++; }
+                    if (s.Disease && s.Disease !== 'ไม่มี') diseases.push(s);
+                    if (s.DrugAllergy && s.DrugAllergy !== 'ไม่แพ้') drugAllergies.push(s);
+
+                    if (hasF || hasH) {
+                        let risks = [];
+                        if(s.FoodAllergy && s.FoodAllergy !== 'ไม่แพ้') risks.push({ type: 'food', text: `แพ้อาหาร: ${s.FoodAllergy}` });
+                        if(s.SpecificDiet && s.SpecificDiet !== 'ไม่มี') risks.push({ type: 'food', text: `อาหาร: ${s.SpecificDiet}` });
+                        if(s.Disease && s.Disease !== 'ไม่มี') risks.push({ type: 'health', text: `โรค: ${s.Disease}` });
+                        if(s.DrugAllergy && s.DrugAllergy !== 'ไม่แพ้') risks.push({ type: 'health', text: `แพ้ยา: ${s.DrugAllergy}` });
+                        surveillanceList.push({ ...s, risks });
+                    }
+                });
+                
+                let sortedPieData = Object.keys(majorCount).map(k=>({name:k, value:majorCount[k]})).sort((a,b)=>b.value-a.value);
+                return { total, pieData: sortedPieData, foodAlert, healthAlert, normalCount, transferCount, dietStats, foodAllergies, diseases, drugAllergies, surveillanceList };
+            }, [filteredData]);
+
+            const exportExcel = () => {
+                if (filteredData.length === 0) return;
+                const exportData = filteredData.map(r => ({ 'วันที่': r.Timestamp||'', 'รหัสนักศึกษา': r.StudentID||'', 'ชื่อ-นามสกุล': r.FullName||'', 'สาขาวิชา': r.Major||'', 'เบอร์ นศ.': r.StudentPhone||'', 'เบอร์ ผปค.': r.ParentPhone||'', 'ปฐมนิเทศ นศ.': r.StudentOrientation||'', 'ปฐมนิเทศ ผปค.': r.ParentOrientation||'', 'แพ้อาหาร': r.FoodAllergy||'', 'อาหารเฉพาะ': r.SpecificDiet||'', 'โรคประจำตัว': r.Disease||'', 'แพ้ยา': r.DrugAllergy||'' }));
+                const ws = window.XLSX.utils.json_to_sheet(exportData);
+                const wb = window.XLSX.utils.book_new(); window.XLSX.utils.book_append_sheet(wb, ws, "Students");
+                window.XLSX.writeFile(wb, `DIGIT_Export_${new Date().toISOString().slice(0,10)}.xlsx`);
+            };
+
+            const handleDrilldown = (title, type, listData) => setDrilldownData({ title, type, list: listData });
+
+            if (loading) return (
+                <div className="flex flex-col justify-center items-center h-[60vh] animate-pulse-slow">
+                    <Icon name="loader-2" size={32} className="text-brand animate-spin mb-4" />
+                    <p className="text-gray-500 font-medium text-sm">กำลังโหลดข้อมูลระบบ...</p>
+                </div>
+            );
+
+            const TABS = [ 
+                { id: 'overview', icon: 'layout-dashboard', label: 'ภาพรวม' }, 
+                { id: 'majors', icon: 'book-open', label: 'สาขาวิชา' },
+                { id: 'nutrition', icon: 'pizza', label: 'โภชนาการ' },
+                { id: 'health', icon: 'heart-pulse', label: 'สุขภาพ' },
+                { id: 'surveillance', icon: 'shield-alert', label: 'กลุ่มเฝ้าระวัง' },
+                { id: 'executive', icon: 'bar-chart-2', label: 'รายงานผู้บริหาร' } 
+            ];
+
+            return (
+                <div className="flex flex-col xl:flex-row gap-6 animate-fade-in pb-20">
+                    {/* Responsive Sidebar */}
+                    <div className="w-full xl:w-64 shrink-0 no-print">
+                        <div className="glass-panel p-4 md:p-6 rounded-[1.5rem] xl:rounded-[2rem] xl:sticky xl:top-24">
+                            <div className="hidden xl:block mb-6 px-2">
+                                <h3 className="font-bold text-gray-900 dark:text-white text-lg">Admin Console</h3>
+                            </div>
+                            <div className="flex flex-row xl:flex-col overflow-x-auto hide-scrollbar gap-2">
+                                {TABS.map(tab => (
+                                    <button key={tab.id} onClick={() => { setActiveTab(tab.id); setCurrentPage(1); }} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-medium whitespace-nowrap btn-interactive ${activeTab === tab.id ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-md' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800'}`}>
+                                        <Icon name={tab.icon} size={18} className={activeTab === tab.id ? 'opacity-100' : 'opacity-50'}/> {tab.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Main Content */}
+                    <div className="flex-1 w-full space-y-6 print-area min-w-0">
+                        {/* Action Bar */}
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 no-print bg-white/50 dark:bg-black/20 p-4 md:p-5 rounded-2xl md:rounded-[2rem] border border-gray-200/50 dark:border-zinc-800/50">
+                            <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{(TABS.find(t=>t.id===activeTab) || {}).label}</h2>
+                            <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-3 items-center">
+                                <div className="relative w-full sm:w-64">
+                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400"><Icon name="search" size={16}/></div>
+                                    <input type="text" placeholder="ค้นหาข้อมูล..." value={searchTerm} onChange={(e) => {setSearchTerm(e.target.value); setCurrentPage(1);}} className="w-full pl-10 pr-4 py-2.5 rounded-xl input-modern text-sm" />
+                                </div>
+                                <div className="flex gap-2 w-full sm:w-auto justify-end">
+                                    <button onClick={exportExcel} className="p-2.5 flex-1 sm:flex-none justify-center bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl text-gray-600 dark:text-gray-300 hover:text-green-600 btn-interactive shadow-sm flex items-center"><Icon name="download" size={18} /></button>
+                                    <button onClick={loadData} className="p-2.5 flex-1 sm:flex-none justify-center bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl text-gray-600 dark:text-gray-300 hover:text-brand btn-interactive shadow-sm flex items-center"><Icon name="refresh-cw" size={18}/></button>
+                                    <button onClick={goBack} className="p-2.5 flex-1 sm:flex-none justify-center bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 text-red-500 rounded-xl hover:bg-red-500 hover:text-white btn-interactive shadow-sm flex items-center"><Icon name="log-out" size={18}/></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* --- TAB: OVERVIEW --- */}
+                        {activeTab === 'overview' && (
+                            <div className="space-y-6 animate-fade-in">
+                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                                    {[
+                                        {l:'ทั้งหมด', v:stats.total, i:'users', c:'text-brand', bg:'bg-brand/10'}, 
+                                        {l:'สาขาวิชา', v:stats.pieData.length, i:'book', c:'text-blue-500', bg:'bg-blue-500/10'}, 
+                                        {l:'เฝ้าระวังสุขภาพ', v:stats.healthAlert, i:'activity', c:'text-red-500', bg:'bg-red-500/10'}, 
+                                        {l:'โภชนาการเฉพาะ', v:stats.foodAlert, i:'utensils', c:'text-orange-500', bg:'bg-orange-500/10'}
+                                    ].map((card, i) => (
+                                        <div key={i} className="glass-panel p-5 md:p-6 rounded-2xl md:rounded-[1.5rem] relative overflow-hidden group hover:scale-[1.02] transition-transform">
+                                            <div className={`p-3 rounded-xl w-max mb-3 md:mb-4 ${card.bg} ${card.c}`}><Icon name={card.i} size={20} /></div>
+                                            <h3 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-1">{card.v}</h3>
+                                            <p className="text-xs md:text-sm font-medium text-gray-500">{card.l}</p>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="glass-panel rounded-2xl md:rounded-[2rem] overflow-hidden">
+                                    <div className="overflow-x-auto w-full custom-scrollbar">
+                                        <table className="w-full text-sm text-left min-w-[700px]">
+                                            <thead className="text-xs text-gray-500 uppercase tracking-wider bg-gray-50/80 dark:bg-zinc-800/80 border-b border-gray-100 dark:border-zinc-800">
+                                                <tr><th className="px-6 py-4 font-medium">ชื่อ-นามสกุล</th><th className="px-6 py-4 font-medium">สาขาวิชา</th><th className="px-6 py-4 font-medium">สถานะความเสี่ยง</th><th className="px-6 py-4 font-medium">ติดต่อ (นศ.)</th></tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/50">
+                                                {(() => {
+                                                    const currentItems = [...filteredData].reverse().slice((currentPage - 1) * 20, currentPage * 20);
+                                                    if (currentItems.length === 0) return <tr><td colSpan="4" className="text-center py-12 text-gray-400">ไม่พบข้อมูล</td></tr>;
+                                                    return currentItems.map((row, i) => {
+                                                        const isRisk = (row.FoodAllergy && row.FoodAllergy !== 'ไม่แพ้') || (row.SpecificDiet && row.SpecificDiet !== 'ไม่มี') || (row.Disease && row.Disease !== 'ไม่มี') || (row.DrugAllergy && row.DrugAllergy !== 'ไม่แพ้');
+                                                        return (
+                                                            <tr key={i} className="hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
+                                                                <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{row.FullName}</td>
+                                                                <td className="px-6 py-4 text-xs text-gray-500">{row.Major}</td>
+                                                                <td className="px-6 py-4">
+                                                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-medium border ${isRisk ? 'bg-red-50 text-red-600 border-red-100 dark:bg-red-500/10 dark:border-red-500/20' : 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:border-emerald-500/20'}`}>
+                                                                        <Icon name={isRisk ? "alert-circle" : "check"} size={10}/> {isRisk ? 'ควรเฝ้าระวัง' : 'ปกติ'}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-xs font-mono text-gray-500">{row.StudentPhone || '-'}</td>
+                                                            </tr>
+                                                        );
+                                                    });
+                                                })()}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div className="flex flex-col sm:flex-row justify-between items-center px-6 py-4 border-t border-gray-100 dark:border-zinc-800 text-sm gap-4">
+                                        <span className="text-gray-500">รวม {filteredData.length} รายการ</span>
+                                        <div className="flex gap-2">
+                                            <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 disabled:opacity-30 border border-gray-200 dark:border-zinc-700">ก่อนหน้า</button>
+                                            <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage * 20 >= filteredData.length} className="px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 disabled:opacity-30 border border-gray-200 dark:border-zinc-700">ถัดไป</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* --- TAB: MAJORS --- */}
+                        {activeTab === 'majors' && (
+                            <div className="space-y-6 animate-fade-in">
+                                <div className="glass-panel p-6 md:p-8 rounded-2xl md:rounded-[2rem]">
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">ข้อมูลจำแนกตามสาขาวิชา</h3>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {stats.pieData.map((m, i) => (
+                                            <div key={i} className="p-4 md:p-5 rounded-xl bg-gray-50 dark:bg-zinc-800/50 flex flex-col cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors group" onClick={() => handleDrilldown(m.name, 'major', filteredData.filter(s => s.Major === m.name))}>
+                                                <div className="flex justify-between items-center mb-3">
+                                                    <span className="font-medium text-sm md:text-base text-gray-700 dark:text-gray-300 group-hover:text-brand transition-colors">{m.name}</span>
+                                                    <span className="font-bold text-lg md:text-xl text-gray-900 dark:text-white">{m.value}</span>
+                                                </div>
+                                                <div className="w-full bg-gray-200 dark:bg-zinc-700 h-2 rounded-full overflow-hidden">
+                                                    <div className="bg-brand h-full" style={{width: `${stats.total ? (m.value/stats.total*100) : 0}%`}}></div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* --- TAB: NUTRITION --- */}
+                        {activeTab === 'nutrition' && (
+                            <div className="space-y-6 animate-fade-in">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
+                                    {[
+                                        { label: 'ฮาลาล', val: stats.dietStats['ฮาลาล'], icon: 'check-circle', color: 'text-blue-500', bg: 'bg-blue-100 dark:bg-blue-500/20' },
+                                        { label: 'มังสวิรัติ', val: stats.dietStats['มังสวิรัติ'], icon: 'leaf', color: 'text-emerald-500', bg: 'bg-emerald-100 dark:bg-emerald-500/20' },
+                                        { label: 'เจ', val: stats.dietStats['เจ'], icon: 'sun', color: 'text-yellow-500', bg: 'bg-yellow-100 dark:bg-yellow-500/20' }
+                                    ].map((d, i) => (
+                                        <div key={i} className="glass-panel p-6 rounded-2xl md:rounded-[2rem] text-center cursor-pointer hover:scale-[1.02] transition-transform flex flex-col items-center" onClick={() => handleDrilldown(`อาหารเฉพาะทาง: ${d.label}`, 'diet', filteredData.filter(s => s.SpecificDiet && s.SpecificDiet.includes(d.label)))}>
+                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${d.bg} ${d.color}`}><Icon name={d.icon} size={24}/></div>
+                                            <h4 className="font-bold text-2xl md:text-3xl text-gray-900 dark:text-white mb-1">{d.val}</h4>
+                                            <p className="text-sm font-medium text-gray-500">{d.label}</p>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="glass-panel rounded-2xl md:rounded-[2rem] overflow-hidden">
+                                    <div className="p-6 md:p-8 border-b border-gray-100 dark:border-zinc-800">
+                                        <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                            <span className="w-2 h-6 bg-orange-500 rounded-full inline-block"></span> ประวัติการแพ้อาหาร ({stats.foodAllergies.length} คน)
+                                        </h3>
+                                    </div>
+                                    <div className="overflow-x-auto max-h-[400px] custom-scrollbar">
+                                        <table className="w-full text-sm text-left">
+                                            <thead className="text-xs text-gray-500 uppercase bg-gray-50 dark:bg-zinc-800/50 sticky top-0">
+                                                <tr><th className="px-6 py-4">ชื่อ-นามสกุล</th><th className="px-6 py-4">อาหารที่แพ้</th><th className="px-6 py-4">ติดต่อ</th></tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/50">
+                                                {stats.foodAllergies.length === 0 ? (
+                                                    <tr><td colSpan="3" className="text-center py-8 text-gray-400">ไม่มีข้อมูลผู้แพ้อาหาร</td></tr>
+                                                ) : stats.foodAllergies.map((row, i) => (
+                                                    <tr key={i} className="hover:bg-gray-50 dark:hover:bg-zinc-800/50">
+                                                        <td className="px-6 py-4 font-medium">{row.FullName}</td>
+                                                        <td className="px-6 py-4 text-orange-600 font-semibold">{row.FoodAllergy}</td>
+                                                        <td className="px-6 py-4 font-mono text-xs">{row.StudentPhone}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* --- TAB: HEALTH --- */}
+                        {activeTab === 'health' && (
+                            <div className="space-y-6 animate-fade-in">
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    <div className="glass-panel rounded-2xl md:rounded-[2rem] overflow-hidden flex flex-col">
+                                        <div className="p-6 border-b border-gray-100 dark:border-zinc-800">
+                                            <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2"><span className="w-2 h-6 bg-red-500 rounded-full inline-block"></span> โรคประจำตัว ({stats.diseases.length})</h3>
+                                        </div>
+                                        <div className="overflow-x-auto flex-1 max-h-[400px] custom-scrollbar">
+                                            <table className="w-full text-sm text-left">
+                                                <thead className="text-xs text-gray-500 uppercase bg-gray-50 dark:bg-zinc-800/50 sticky top-0">
+                                                    <tr><th className="px-4 py-3">รายชื่อ</th><th className="px-4 py-3">โรคประจำตัว</th></tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/50">
+                                                    {stats.diseases.length === 0 ? <tr><td colSpan="2" className="text-center py-8 text-gray-400">ไม่มีข้อมูล</td></tr> : stats.diseases.map((r, i) => (
+                                                        <tr key={i} className="hover:bg-gray-50 dark:hover:bg-zinc-800/50"><td className="px-4 py-3 font-medium">{r.FullName}</td><td className="px-4 py-3 text-red-500 font-semibold">{r.Disease}</td></tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <div className="glass-panel rounded-2xl md:rounded-[2rem] overflow-hidden flex flex-col">
+                                        <div className="p-6 border-b border-gray-100 dark:border-zinc-800">
+                                            <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2"><span className="w-2 h-6 bg-pink-500 rounded-full inline-block"></span> ประวัติแพ้ยา ({stats.drugAllergies.length})</h3>
+                                        </div>
+                                        <div className="overflow-x-auto flex-1 max-h-[400px] custom-scrollbar">
+                                            <table className="w-full text-sm text-left">
+                                                <thead className="text-xs text-gray-500 uppercase bg-gray-50 dark:bg-zinc-800/50 sticky top-0">
+                                                    <tr><th className="px-4 py-3">รายชื่อ</th><th className="px-4 py-3">ยาที่แพ้</th></tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/50">
+                                                    {stats.drugAllergies.length === 0 ? <tr><td colSpan="2" className="text-center py-8 text-gray-400">ไม่มีข้อมูล</td></tr> : stats.drugAllergies.map((r, i) => (
+                                                        <tr key={i} className="hover:bg-gray-50 dark:hover:bg-zinc-800/50"><td className="px-4 py-3 font-medium">{r.FullName}</td><td className="px-4 py-3 text-pink-500 font-semibold">{r.DrugAllergy}</td></tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* --- TAB: SURVEILLANCE --- */}
+                        {activeTab === 'surveillance' && (
+                            <div className="space-y-6 animate-fade-in">
+                                <div className="glass-panel rounded-2xl md:rounded-[2rem] overflow-hidden">
+                                    <div className="p-6 md:p-8 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center">
+                                        <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                            <span className="w-2 h-6 bg-brand rounded-full inline-block"></span> กลุ่มเฝ้าระวังพิเศษ ({stats.surveillanceList.length} คน)
+                                        </h3>
+                                    </div>
+                                    <div className="overflow-x-auto w-full custom-scrollbar">
+                                        <table className="w-full text-sm text-left min-w-[700px]">
+                                            <thead className="text-xs text-gray-500 uppercase tracking-wider bg-gray-50/80 dark:bg-zinc-800/80">
+                                                <tr><th className="px-6 py-4">ชื่อ-นามสกุล</th><th className="px-6 py-4">สาขาวิชา</th><th className="px-6 py-4">ความเสี่ยง / ข้อควรระวัง</th><th className="px-6 py-4">ติดต่อ</th></tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/50">
+                                                {stats.surveillanceList.length === 0 ? (
+                                                    <tr><td colSpan="4" className="text-center py-12 text-gray-400">ไม่พบรายชื่อในกลุ่มเฝ้าระวัง</td></tr>
+                                                ) : stats.surveillanceList.map((row, i) => (
+                                                    <tr key={i} className="hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
+                                                        <td className="px-6 py-4 font-medium">{row.FullName}</td>
+                                                        <td className="px-6 py-4 text-xs text-gray-500">{row.Major}</td>
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex flex-wrap gap-1.5">
+                                                                {row.risks.map((risk, idx) => (
+                                                                    <span key={idx} className={`px-2 py-1 rounded-md text-[10px] font-medium border ${risk.type === 'food' ? 'bg-orange-50 text-orange-600 border-orange-100 dark:bg-orange-500/10 dark:border-orange-500/20' : 'bg-red-50 text-red-600 border-red-100 dark:bg-red-500/10 dark:border-red-500/20'}`}>
+                                                                        {risk.text}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 font-mono text-xs text-gray-500">นศ: {row.StudentPhone}<br/>ผปค: {row.ParentPhone}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* --- TAB: EXECUTIVE --- */}
+                        {activeTab === 'executive' && (
+                            <div className="space-y-6 animate-fade-in">
+                                <div className="glass-panel p-6 md:p-10 rounded-2xl md:rounded-[2rem] bg-gradient-to-br from-white to-orange-50/30 dark:from-zinc-900 dark:to-zinc-900/80">
+                                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                                        <div>
+                                            <p className="text-brand font-semibold text-xs tracking-widest uppercase mb-2">Executive Summary</p>
+                                            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4 md:mb-6">รายงานภาพรวมสถิติ</h2>
+                                            <select className="w-full md:w-64 input-modern rounded-xl px-4 py-2 text-sm font-medium bg-white/50 backdrop-blur-md" value={executiveMajor} onChange={(e) => setExecutiveMajor(e.target.value)}>
+                                                <option value="ทั้งหมด">วิเคราะห์ทุกสาขาวิชา</option>
+                                                {executiveBaseMajors.map(m => <option key={m} value={m}>{m}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="text-left md:text-right mt-4 md:mt-0 p-4 md:p-0 bg-white/50 md:bg-transparent rounded-2xl dark:bg-black/20 md:dark:bg-transparent">
+                                            <p className="text-gray-500 text-sm font-medium mb-1">ยอดขึ้นทะเบียนสะสม</p>
+                                            <div className="text-5xl md:text-7xl font-bold text-gray-900 dark:text-white tracking-tighter">{stats.total} <span className="text-xl text-gray-400 font-normal">คน</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                    <div className="glass-panel p-6 md:p-8 rounded-2xl md:rounded-[2rem] flex flex-col">
+                                        <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-6">สัดส่วนประชากร</h3>
+                                        <div className="flex-1 flex flex-col justify-center gap-4 md:gap-6">
+                                            <div className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-100 transition-colors cursor-pointer" onClick={() => handleDrilldown('นศ. ปกติ', 'demographics', filteredData.filter(s => s.Major && !s.Major.includes('เทียบโอน')))}>
+                                                <div className="flex items-center gap-3"><div className="w-1.5 h-6 bg-blue-500 rounded-full"></div><span className="font-medium text-sm text-gray-700 dark:text-gray-300">นศ. ปกติ</span></div>
+                                                <span className="text-xl font-bold">{stats.normalCount}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 dark:bg-zinc-800/50 hover:bg-gray-100 transition-colors cursor-pointer" onClick={() => handleDrilldown('นศ. เทียบโอน', 'demographics', filteredData.filter(s => s.Major && s.Major.includes('เทียบโอน')))}>
+                                                <div className="flex items-center gap-3"><div className="w-1.5 h-6 bg-indigo-500 rounded-full"></div><span className="font-medium text-sm text-gray-700 dark:text-gray-300">นศ. เทียบโอน</span></div>
+                                                <span className="text-xl font-bold">{stats.transferCount}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                        <div className="glass-panel p-6 md:p-8 rounded-2xl md:rounded-[2rem] border-t-4 border-t-red-500">
+                                            <div className="flex justify-between items-start mb-6">
+                                                <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white">การแพทย์</h3>
+                                                <span className="px-2.5 py-1 bg-red-100 dark:bg-red-500/20 text-red-600 text-xs font-bold rounded-lg">{stats.healthAlert} เคส</span>
+                                            </div>
+                                            <div className="space-y-4 md:space-y-5">
+                                                <div onClick={() => handleDrilldown('โรคประจำตัว', 'disease', stats.diseases)} className="cursor-pointer group p-2 -m-2 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
+                                                    <div className="flex justify-between text-sm mb-2 text-gray-600 dark:text-gray-400 group-hover:text-red-500"><span className="font-medium">โรคประจำตัว</span><span className="font-bold">{stats.diseases.length}</span></div>
+                                                    <div className="w-full bg-gray-100 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden"><div className="bg-red-400 h-full" style={{width: `${stats.total ? (stats.diseases.length/stats.total*100) : 0}%`}}></div></div>
+                                                </div>
+                                                <div onClick={() => handleDrilldown('ประวัติแพ้ยา', 'drug_allergy', stats.drugAllergies)} className="cursor-pointer group p-2 -m-2 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
+                                                    <div className="flex justify-between text-sm mb-2 text-gray-600 dark:text-gray-400 group-hover:text-pink-500"><span className="font-medium">ประวัติแพ้ยา</span><span className="font-bold">{stats.drugAllergies.length}</span></div>
+                                                    <div className="w-full bg-gray-100 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden"><div className="bg-pink-400 h-full" style={{width: `${stats.total ? (stats.drugAllergies.length/stats.total*100) : 0}%`}}></div></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="glass-panel p-6 md:p-8 rounded-2xl md:rounded-[2rem] border-t-4 border-t-orange-500">
+                                            <div className="flex justify-between items-start mb-6">
+                                                <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white">โภชนาการพิเศษ</h3>
+                                                <span className="px-2.5 py-1 bg-orange-100 dark:bg-orange-500/20 text-orange-600 text-xs font-bold rounded-lg">{stats.foodAlert} เคส</span>
+                                            </div>
+                                            <div className="space-y-4 text-sm">
+                                                {[
+                                                    {l:'ฮาลาล', v:stats.dietStats['ฮาลาล'], c:'bg-blue-400', data: filteredData.filter(s => s.SpecificDiet && s.SpecificDiet.includes('ฮาลาล'))},
+                                                    {l:'มังสวิรัติ', v:stats.dietStats['มังสวิรัติ'], c:'bg-emerald-400', data: filteredData.filter(s => s.SpecificDiet && s.SpecificDiet.includes('มังสวิรัติ'))},
+                                                    {l:'เจ', v:stats.dietStats['เจ'], c:'bg-yellow-400', data: filteredData.filter(s => s.SpecificDiet && s.SpecificDiet.includes('เจ'))},
+                                                    {l:'แพ้อาหาร', v:stats.foodAllergies.length, c:'bg-orange-400', data: stats.foodAllergies}
+                                                ].map((itm, i) => (
+                                                    <div key={i} onClick={() => handleDrilldown(itm.l, 'diet', itm.data)} className="flex items-center justify-between cursor-pointer p-2 -m-2 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
+                                                        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 font-medium"><div className={`w-1.5 h-1.5 rounded-full ${itm.c}`}></div> {itm.l}</div>
+                                                        <span className="font-bold text-gray-900 dark:text-white">{itm.v}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* Modal: Drilldown */}
+                        {drilldownData.list.length > 0 && (
+                            <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm animate-fade-in">
+                                <div className="bg-white dark:bg-zinc-900 p-6 md:p-8 rounded-2xl md:rounded-[2rem] w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl border border-gray-100 dark:border-zinc-800 animate-slide-up">
+                                    <div className="flex justify-between items-start mb-6">
+                                        <div>
+                                            <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">{drilldownData.title}</h3>
+                                            <p className="text-xs md:text-sm text-gray-500 mt-1">พบ {drilldownData.list.length} รายการ</p>
+                                        </div>
+                                        <button onClick={() => setDrilldownData({ title: '', list: [], type: '' })} className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors bg-gray-100 dark:bg-zinc-800 rounded-full"><Icon name="x" size={20}/></button>
+                                    </div>
+                                    <div className="overflow-auto w-full flex-1 custom-scrollbar">
+                                        <table className="w-full text-sm text-left min-w-[500px]">
+                                            <thead className="text-xs text-gray-500 uppercase bg-gray-50 dark:bg-zinc-800/50 sticky top-0">
+                                                <tr><th className="px-4 py-3">ชื่อ-นามสกุล</th><th className="px-4 py-3">สาขาวิชา</th><th className="px-4 py-3">ติดต่อ</th></tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100 dark:divide-zinc-800">
+                                                {drilldownData.list.map((row, idx) => (
+                                                    <tr key={idx} className="hover:bg-gray-50/50 dark:hover:bg-zinc-800/30">
+                                                        <td className="px-4 py-3 font-medium">{row.FullName}</td>
+                                                        <td className="px-4 py-3 text-xs text-gray-500">{row.Major}</td>
+                                                        <td className="px-4 py-3 text-xs font-mono text-gray-500">{row.StudentPhone}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [isAdmin, setIsAdmin] = useState(false);
+            const [agreedPDPA, setAgreedPDPA] = useState(false);
+            const [isDarkMode, setIsDarkMode] = useState(false);
+            const [publicTab, setPublicTab] = useState('register');
+            
+            const [publicData, setPublicData] = useState([]);
+            const [loadingPublic, setLoadingPublic] = useState(false);
+            const [searchPublic, setSearchPublic] = useState('');
+            const [publicPage, setPublicPage] = useState(1);
+            const [isSubmitting, setIsSubmitting] = useState(false);
+
+            useEffect(() => {
+                if (isDarkMode) document.documentElement.classList.add('dark');
+                else document.documentElement.classList.remove('dark');
+            }, [isDarkMode]);
+
+            const [studentId, setStudentId] = useState(''); const [idCard, setIdCard] = useState(''); const [fullName, setFullName] = useState('');
+            const [major, setMajor] = useState(''); const [studentPhone, setStudentPhone] = useState(''); const [parentPhone, setParentPhone] = useState('');
+            const [foodAllergy, setFoodAllergy] = useState('ไม่แพ้'); const [foodDetail, setFoodDetail] = useState('');
+            const [specificDiet, setSpecificDiet] = useState('ไม่มี'); const [specificDietDetail, setSpecificDietDetail] = useState('');
+            const [disease, setDisease] = useState('ไม่มี'); const [diseaseDetail, setDiseaseDetail] = useState('');
+            const [drugAllergy, setDrugAllergy] = useState('ไม่แพ้'); const [drugDetail, setDrugDetail] = useState('');
+            const [studentOrientation, setStudentOrientation] = useState('เข้าร่วม');
+            const [parentOrientation, setParentOrientation] = useState('เข้าร่วม');
+
+            const loadPublicData = () => {
+                setLoadingPublic(true);
+                Papa.parse(`${SHEET_CSV_URL}&_cb=${new Date().getTime()}`, {
+                    download: true, header: true,
+                    complete: (res) => {
+                        const validData = res.data.filter(row => row.StudentID).map(r => ({ ...r, Major: cleanMajor(r.Major) })).reverse();
+                        setPublicData(validData);
+                        setLoadingPublic(false);
+                    },
+                    error: () => setLoadingPublic(false)
+                });
+            };
+
+            useEffect(() => {
+                if (publicTab === 'check' && publicData.length === 0) loadPublicData();
+            }, [publicTab]);
+
+            const publicFilteredData = useMemo(() => {
+                if (!searchPublic) return publicData;
+                const s = searchPublic.toLowerCase();
+                return publicData.filter(r => (r.FullName || '').toLowerCase().includes(s) || (r.StudentID || '').toLowerCase().includes(s) || (r.Major || '').toLowerCase().includes(s));
+            }, [publicData, searchPublic]);
+
+            const handleAdminLogin = () => {
+                if(isAdmin) { setIsAdmin(false); return; }
+                Swal.fire({ title: 'System Login', input: 'password', inputPlaceholder: 'Enter Password', showCancelButton: true, confirmButtonText: 'Login', confirmButtonColor: '#111827' }).then((r) => {
+                    if (r.value === '000000') setIsAdmin(true);
+                    else if (r.value) Swal.fire({ icon: 'error', title: 'Unauthorized', text: 'Invalid credentials.' });
+                });
+            };
+
+            const resetForm = () => {
+                setStudentId(''); setIdCard(''); setFullName(''); setMajor(''); setStudentPhone(''); setParentPhone('');
+                setFoodAllergy('ไม่แพ้'); setFoodDetail(''); setSpecificDiet('ไม่มี'); setSpecificDietDetail(''); 
+                setDisease('ไม่มี'); setDiseaseDetail(''); setDrugAllergy('ไม่แพ้'); setDrugDetail('');
+                setStudentOrientation('เข้าร่วม'); setParentOrientation('เข้าร่วม');
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (idCard.length !== 13 || studentPhone.length !== 10 || parentPhone.length !== 10) {
+                    Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่สมบูรณ์', text: 'กรุณาตรวจสอบรูปแบบเลขบัตรประชาชน หรือเบอร์โทรศัพท์ให้ถูกต้อง', confirmButtonColor: '#E05D0F' }); return;
+                }
+                setIsSubmitting(true);
+                const payload = {
+                    StudentID: studentId, IDCard: idCard, FullName: fullName, Major: major, StudentPhone: studentPhone, ParentPhone: parentPhone,
+                    Religion: '-', BloodGroup: '-', FoodAllergy: foodAllergy === 'ไม่แพ้' ? 'ไม่แพ้' : foodDetail, SpecificDiet: specificDiet === 'ไม่มี' ? 'ไม่มี' : specificDietDetail,
+                    Disease: disease === 'ไม่มี' ? 'ไม่มี' : diseaseDetail, DrugAllergy: drugAllergy === 'ไม่แพ้' ? 'ไม่แพ้' : drugDetail,
+                    StudentOrientation: studentOrientation, ParentOrientation: parentOrientation
+                };
+                Swal.fire({ title: 'Processing...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                submitToAPI('register', payload).then(res => {
+                    setIsSubmitting(false);
+                    if(res.success) { Swal.fire({ icon: 'success', title: 'Completed', text: 'บันทึกข้อมูลเรียบร้อยแล้ว', confirmButtonColor: '#E05D0F' }); resetForm(); }
+                    else throw new Error(res.message);
+                }).catch(err => {
+                    setIsSubmitting(false);
+                    Swal.fire({icon: 'error', title: 'Error', text: err.message, confirmButtonColor: '#E05D0F'});
+                });
+            };
+
+            return (
+                <div className={`min-h-screen transition-colors duration-500 flex flex-col`}>
+                    
+                    <header className="px-4 md:px-8 py-4 flex justify-between items-center sticky top-0 z-30 backdrop-blur-md bg-white/80 dark:bg-black/60 border-b border-gray-200/50 dark:border-zinc-800/50">
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 bg-gray-900 dark:bg-white rounded-lg flex items-center justify-center text-white dark:text-gray-900"><Icon name="box" size={16}/></div>
+                            <h1 className="text-lg md:text-xl font-bold tracking-tight text-gray-900 dark:text-white">DIGIT<span className="text-brand">.69</span></h1>
+                        </div>
+                        <div className="flex items-center gap-3 md:gap-4">
+                            <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white transition-colors"><Icon name={isDarkMode ? "sun" : "moon"} size={18}/></button>
+                            <button onClick={handleAdminLogin} className="text-xs md:text-sm font-medium px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors">
+                                {isAdmin ? "Exit Admin" : "Sign In"}
+                            </button>
+                        </div>
+                    </header>
+
+                    <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10 flex-1">
+                        {!agreedPDPA && !isAdmin && publicTab === 'register' && <PdpaModal onAccept={() => setAgreedPDPA(true)} isDarkMode={isDarkMode} />}
+                        
+                        {isAdmin ? <AdminDashboard goBack={() => setIsAdmin(false)} isDarkMode={isDarkMode} /> : (
+                            <div className="max-w-3xl mx-auto">
+                                
+                                <div className="text-center mb-6 md:mb-10 animate-fade-in">
+                                    <h2 className="text-2xl md:text-4xl font-bold text-gray-900 dark:text-white tracking-tight mb-2 md:mb-3">Student Portal</h2>
+                                    <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">ระบบขึ้นทะเบียนนักศึกษาใหม่ คณะเทคโนโลยีดิจิทัล</p>
+                                </div>
+
+                                {/* Segmented Tab Controller (Restored) */}
+                                <div className="max-w-sm mx-auto mb-6 md:mb-8 bg-white/60 dark:bg-zinc-900/60 p-1.5 rounded-xl border border-gray-200/50 dark:border-zinc-800/50 flex backdrop-blur-xl relative z-10 shadow-sm animate-slide-up">
+                                    <button onClick={() => setPublicTab('register')} className={`flex-1 py-2.5 px-3 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 ${publicTab === 'register' ? 'bg-white dark:bg-zinc-800 text-brand shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>
+                                        <Icon name="user-plus" size={16}/> ลงทะเบียน
+                                    </button>
+                                    <button onClick={() => { setPublicTab('check'); setPublicPage(1); }} className={`flex-1 py-2.5 px-3 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 ${publicTab === 'check' ? 'bg-white dark:bg-zinc-800 text-brand shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>
+                                        <Icon name="search" size={16}/> ตรวจสอบรายชื่อ
+                                    </button>
+                                </div>
+
+                                {publicTab === 'register' ? (
+                                    <div className="glass-panel p-5 sm:p-8 md:p-10 rounded-2xl md:rounded-[2rem] shadow-premium dark:shadow-premium-dark animate-slide-up">
+                                        <form onSubmit={handleSubmit} className="space-y-8 md:space-y-10">
+                                            
+                                            <div>
+                                                <SectionHeader icon="user" title="ข้อมูลส่วนบุคคล" description="Personal Information" />
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                                                    <div><label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">รหัสนักศึกษา</label><input type="text" required maxLength="9" placeholder="66xxxxxxx" className="w-full input-modern rounded-xl px-4 py-3 text-sm" value={studentId} onChange={e => setStudentId(e.target.value)} /></div>
+                                                    <div><label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">รหัสบัตรประชาชน</label><input type="text" required maxLength="13" placeholder="13 digits" className="w-full input-modern rounded-xl px-4 py-3 text-sm" value={idCard} onChange={e => setIdCard(e.target.value.replace(/\D/g, ''))} /></div>
+                                                    <div className="sm:col-span-2"><label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">ชื่อ - นามสกุล (ระบุคำนำหน้า)</label><input type="text" required placeholder="นาย / นางสาว..." className="w-full input-modern rounded-xl px-4 py-3 text-sm" value={fullName} onChange={e => setFullName(e.target.value)} /></div>
+                                                    <div className="sm:col-span-2">
+                                                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">สาขาวิชา</label>
+                                                        <select required className="w-full input-modern rounded-xl px-4 py-3 text-sm appearance-none" value={major} onChange={e => setMajor(e.target.value)}>
+                                                            <option value="" disabled>-- เลือกสาขาวิชา --</option>
+                                                            {MAJOR_LIST.map(m => <option key={m} value={m}>{m}</option>)}
+                                                        </select>
+                                                    </div>
+                                                    <div><label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">เบอร์โทรศัพท์ นศ.</label><input type="tel" required maxLength="10" placeholder="08xxxxxxxx" className="w-full input-modern rounded-xl px-4 py-3 text-sm" value={studentPhone} onChange={e => setStudentPhone(e.target.value.replace(/\D/g, ''))} /></div>
+                                                    <div><label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">เบอร์ ผปค. (ฉุกเฉิน)</label><input type="tel" required maxLength="10" placeholder="08xxxxxxxx" className="w-full input-modern rounded-xl px-4 py-3 text-sm" value={parentPhone} onChange={e => setParentPhone(e.target.value.replace(/\D/g, ''))} /></div>
+                                                </div>
+                                            </div>
+
+                                            <hr className="border-gray-100 dark:border-zinc-800/50"/>
+
+                                            <div>
+                                                <SectionHeader icon="calendar-check" title="การเข้าร่วมกิจกรรมปฐมนิเทศ" description="Orientation Event Participation" />
+                                                <div className="space-y-5 md:space-y-6">
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">ท่านประสงค์เข้าร่วมกิจกรรมปฐมนิเทศหรือไม่?</label>
+                                                        <TogglePill options={[{label: 'เข้าร่วม', value: 'เข้าร่วม'}, {label: 'ไม่สะดวก', value: 'ไม่สะดวก'}]} value={studentOrientation} onChange={setStudentOrientation} />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">ผู้ปกครองสะดวกเข้าร่วมกิจกรรมปฐมนิเทศหรือไม่?</label>
+                                                        <TogglePill options={[{label: 'เข้าร่วม', value: 'เข้าร่วม'}, {label: 'ไม่สะดวก', value: 'ไม่สะดวก'}]} value={parentOrientation} onChange={setParentOrientation} />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <hr className="border-gray-100 dark:border-zinc-800/50"/>
+
+                                            <div>
+                                                <SectionHeader icon="pizza" title="ข้อมูลโภชนาการ" description="Dietary Requirements" />
+                                                <div className="space-y-5 md:space-y-6">
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">ประวัติแพ้อาหาร</label>
+                                                        <TogglePill isWarningType options={[{label: 'ทานได้ปกติ', value: 'ไม่แพ้'}, {label: 'มีประวัติแพ้', value: 'แพ้'}]} value={foodAllergy} onChange={val => { setFoodAllergy(val); if(val==='ไม่แพ้') setFoodDetail(''); }} />
+                                                        {foodAllergy === 'แพ้' && <input type="text" required placeholder="ระบุอาหารที่แพ้..." className="w-full input-modern rounded-xl px-4 py-3 text-sm mt-3 animate-fade-in" value={foodDetail} onChange={e => setFoodDetail(e.target.value)}/>}
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">อาหารเฉพาะทาง</label>
+                                                        <TogglePill options={[{label: 'ทั่วไป', value: 'ไม่มี'}, {label: 'ต้องการอาหารพิเศษ', value: 'มี'}]} value={specificDiet} onChange={val => { setSpecificDiet(val); if(val==='ไม่มี') setSpecificDietDetail(''); }} />
+                                                        {specificDiet === 'มี' && (
+                                                            <select required className="w-full input-modern rounded-xl px-4 py-3 text-sm mt-3 animate-fade-in" value={specificDietDetail} onChange={(e) => setSpecificDietDetail(e.target.value)}>
+                                                                <option value="" disabled>-- เลือกประเภท --</option>
+                                                                {['ฮาลาล', 'มังสวิรัติ', 'เจ'].map(v => <option key={v} value={v}>{v}</option>)}
+                                                            </select>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <hr className="border-gray-100 dark:border-zinc-800/50"/>
+
+                                            <div>
+                                                <SectionHeader icon="activity" title="ข้อมูลทางการแพทย์" description="Medical Information" />
+                                                <div className="space-y-5 md:space-y-6">
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">โรคประจำตัว</label>
+                                                        <TogglePill isWarningType options={[{label: 'ไม่มี', value: 'ไม่มี'}, {label: 'มีโรคประจำตัว', value: 'มี'}]} value={disease} onChange={val => { setDisease(val); if(val==='ไม่มี') setDiseaseDetail(''); }} />
+                                                        {disease === 'มี' && <input type="text" required placeholder="ระบุชื่อโรค..." className="w-full input-modern rounded-xl px-4 py-3 text-sm mt-3 animate-fade-in" value={diseaseDetail} onChange={e => setDiseaseDetail(e.target.value)}/>}
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">ประวัติแพ้ยา</label>
+                                                        <TogglePill isWarningType options={[{label: 'ไม่แพ้', value: 'ไม่แพ้'}, {label: 'มีประวัติแพ้ยา', value: 'แพ้'}]} value={drugAllergy} onChange={val => { setDrugAllergy(val); if(val==='ไม่แพ้') setDrugDetail(''); }} />
+                                                        {drugAllergy === 'แพ้' && <input type="text" required placeholder="ระบุชื่อยา..." className="w-full input-modern rounded-xl px-4 py-3 text-sm mt-3 animate-fade-in" value={drugDetail} onChange={e => setDrugDetail(e.target.value)}/>}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <button disabled={isSubmitting} type="submit" className="w-full py-4 rounded-xl text-base font-bold text-white brand-gradient hover:brand-gradient-hover shadow-lg shadow-brand/20 hover:shadow-brand/40 flex justify-center items-center gap-2 btn-interactive">
+                                                {isSubmitting ? <Icon name="loader-2" className="animate-spin"/> : 'ยืนยันการลงทะเบียน'}
+                                            </button>
+                                        </form>
+                                    </div>
+                                ) : (
+                                    /* Restored Check Public Tab */
+                                    <div className="glass-panel p-5 sm:p-8 md:p-10 rounded-2xl md:rounded-[2rem] shadow-premium dark:shadow-premium-dark animate-slide-up">
+                                        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
+                                            <div>
+                                                <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">รายชื่อผู้ขึ้นทะเบียน</h3>
+                                                <p className="text-xs md:text-sm text-gray-500 mt-1">ตรวจสอบสถานะการขึ้นทะเบียนของคุณ</p>
+                                            </div>
+                                            <div className="relative w-full md:w-64">
+                                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400"><Icon name="search" size={16}/></div>
+                                                <input type="text" placeholder="ค้นหา รหัส, ชื่อ, สาขา..." value={searchPublic} onChange={e => { setSearchPublic(e.target.value); setPublicPage(1); }} className="w-full pl-10 pr-4 py-2.5 rounded-xl input-modern text-sm" />
+                                            </div>
+                                        </div>
+
+                                        {loadingPublic ? (
+                                            <div className="flex flex-col justify-center items-center py-16 animate-pulse-slow">
+                                                <Icon name="loader-2" size={32} className="text-brand animate-spin mb-4" />
+                                                <p className="text-sm font-medium text-gray-500">กำลังดาวน์โหลดข้อมูล...</p>
+                                            </div>
+                                        ) : (
+                                            <div className="rounded-xl border border-gray-200/50 dark:border-zinc-800/50 overflow-hidden">
+                                                <div className="overflow-x-auto w-full custom-scrollbar">
+                                                    <table className="w-full text-sm text-left min-w-[500px]">
+                                                        <thead className="text-xs text-gray-500 uppercase bg-gray-50 dark:bg-zinc-800/50">
+                                                            <tr><th className="px-5 py-4 font-medium">รหัสนักศึกษา</th><th className="px-5 py-4 font-medium">ชื่อ-นามสกุล</th><th className="px-5 py-4 font-medium">สาขาวิชา</th></tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/50 bg-white/30 dark:bg-zinc-900/30">
+                                                            {(() => {
+                                                                const itemsPerPage = 10;
+                                                                const currentItems = publicFilteredData.slice((publicPage - 1) * itemsPerPage, publicPage * itemsPerPage);
+                                                                if (currentItems.length === 0) return <tr><td colSpan="3" className="text-center py-12 text-gray-400">ไม่พบข้อมูลผู้ขึ้นทะเบียน</td></tr>;
+                                                                return currentItems.map((row, i) => (
+                                                                    <tr key={i} className="hover:bg-white dark:hover:bg-zinc-800/50 transition-colors">
+                                                                        <td className="px-5 py-4 font-mono font-bold text-brand">{row.StudentID}</td>
+                                                                        <td className="px-5 py-4 font-medium text-gray-900 dark:text-white">{row.FullName}</td>
+                                                                        <td className="px-5 py-4 text-xs text-gray-500">{row.Major}</td>
+                                                                    </tr>
+                                                                ));
+                                                            })()}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                {publicFilteredData.length > 0 && (
+                                                    <div className="flex flex-col sm:flex-row justify-between items-center px-5 py-4 border-t border-gray-100 dark:border-zinc-800/50 gap-3 text-sm bg-white/50 dark:bg-zinc-900/50">
+                                                        <span className="text-gray-500 text-xs sm:text-sm">แสดง {(publicPage - 1) * 10 + 1} - {Math.min(publicPage * 10, publicFilteredData.length)} จาก {publicFilteredData.length} รายการ</span>
+                                                        <div className="flex gap-2">
+                                                            <button onClick={() => setPublicPage(p => Math.max(1, p - 1))} disabled={publicPage === 1} className="px-3 py-1.5 rounded-lg bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 disabled:opacity-40 transition-colors text-xs sm:text-sm">ก่อนหน้า</button>
+                                                            <button onClick={() => setPublicPage(p => p + 1)} disabled={publicPage * 10 >= publicFilteredData.length} className="px-3 py-1.5 rounded-lg bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 disabled:opacity-40 transition-colors text-xs sm:text-sm">ถัดไป</button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                                
+                                <div className="text-center mt-8 pb-4 text-xs text-gray-400 font-medium">
+                                    DIGIT.69 © {new Date().getFullYear()}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
