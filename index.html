@@ -290,80 +290,102 @@
             };
 
             return (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 dark:bg-black/90 backdrop-blur-lg animate-fade-in">
-                    <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] max-w-3xl w-full relative shadow-[0_20px_60px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.8)] border border-slate-200 dark:border-zinc-800 animate-slide-up overflow-hidden flex flex-col max-h-[95vh]">
+                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-slate-900/80 dark:bg-black/90 backdrop-blur-sm animate-fade-in">
+                    
+                    {/* Modal Box - Bottom Sheet on Mobile, Centered Modal on Desktop */}
+                    <div className="bg-white dark:bg-zinc-900 w-full sm:max-w-3xl relative flex flex-col h-[92vh] sm:h-auto sm:max-h-[90vh] rounded-t-[2rem] sm:rounded-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.2)] sm:shadow-[0_20px_60px_rgba(0,0,0,0.3)] animate-slide-up overflow-hidden">
                         
-                        <div className="absolute top-0 left-0 right-0 h-2 brand-gradient z-20"></div>
+                        {/* Decorative Top Line */}
+                        <div className="absolute top-0 left-0 right-0 h-1.5 sm:h-2 brand-gradient z-20"></div>
+
+                        {/* Mobile Pull Indicator (Visual Only) */}
+                        <div className="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-full sm:hidden z-20"></div>
 
                         {/* Admin Login Button */}
-                        <button onClick={promptAdmin} className="absolute top-5 right-5 p-3 text-slate-400 hover:text-brand bg-slate-50/50 dark:bg-black/20 hover:bg-slate-100 dark:hover:bg-white/10 backdrop-blur-md transition-all z-20 rounded-full shadow-sm hover:shadow-md border border-slate-200/50 dark:border-white/5" title="เข้าสู่ระบบผู้ดูแล">
-                            <Icon name="lock" size={18} />
+                        <button onClick={promptAdmin} className="absolute top-4 sm:top-5 right-4 sm:right-5 p-2.5 sm:p-3 text-slate-400 hover:text-brand bg-slate-50/50 dark:bg-black/20 hover:bg-slate-100 dark:hover:bg-white/10 backdrop-blur-md transition-all z-20 rounded-full shadow-sm hover:shadow-md border border-slate-200/50 dark:border-white/5" title="เข้าสู่ระบบผู้ดูแล">
+                            <Icon name="lock" size={16} className="sm:w-[18px] sm:h-[18px]" />
                         </button>
                         
-                        <div className="p-6 md:p-8 pb-5 bg-white dark:bg-zinc-900 border-b border-slate-100 dark:border-white/5 flex items-start gap-5 relative overflow-hidden shrink-0">
-                            <div className="absolute -right-10 -top-10 opacity-5 text-brand transform rotate-12 pointer-events-none"><Icon name="shield-check" size={150}/></div>
-                            <div className="p-4 bg-brand/10 dark:bg-brand/20 rounded-2xl shrink-0 shadow-inner relative z-10">
-                                <Icon name="shield-check" size={36} className="text-brand" />
+                        {/* Header Section */}
+                        <div className="p-5 sm:p-8 pt-8 sm:pt-8 pb-4 sm:pb-5 bg-white dark:bg-zinc-900 border-b border-slate-100 dark:border-white/5 flex items-start gap-4 relative overflow-hidden shrink-0">
+                            <div className="absolute -right-8 -top-8 opacity-[0.03] text-brand transform rotate-12 pointer-events-none"><Icon name="shield-check" size={120}/></div>
+                            
+                            <div className="p-3 bg-brand/10 dark:bg-brand/20 rounded-2xl shrink-0 shadow-inner relative z-10 hidden sm:block">
+                                <Icon name="shield-check" size={32} className="text-brand" />
                             </div>
-                            <div className="relative z-10">
-                                <div className="inline-block px-3 py-1 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 text-[10px] font-black tracking-widest uppercase rounded-lg mb-2 shadow-sm">Privacy Policy</div>
-                                <h2 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white leading-tight">นโยบายความยินยอม (PDPA)</h2>
-                                <p className="text-brand dark:text-brandLight text-sm mt-1 font-semibold">เพื่อสิทธิประโยชน์ ความปลอดภัย และการดูแลอย่างใกล้ชิด</p>
+                            
+                            <div className="relative z-10 w-full pr-8 sm:pr-0">
+                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 text-[10px] font-black tracking-widest uppercase rounded-lg mb-1.5 shadow-sm">
+                                    <Icon name="shield" size={10} className="text-brand sm:hidden" /> Privacy Policy
+                                </div>
+                                <h2 className="text-xl sm:text-3xl font-black text-slate-800 dark:text-white leading-tight">นโยบายความยินยอม (PDPA)</h2>
+                                <p className="text-brand dark:text-brandLight text-xs sm:text-sm mt-1 font-semibold">เพื่อสิทธิประโยชน์ ความปลอดภัย และการดูแลอย่างใกล้ชิด</p>
                             </div>
                         </div>
                         
-                        <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar flex-1 bg-slate-50 dark:bg-black/40">
-                            <p className="text-slate-700 dark:text-slate-300 text-sm md:text-base mb-6 leading-relaxed">
+                        {/* Content Scrollable Section */}
+                        <div className="p-5 sm:p-8 overflow-y-auto custom-scrollbar flex-1 bg-slate-50/50 dark:bg-black/20">
+                            <p className="text-slate-600 dark:text-slate-300 text-sm mb-5 leading-relaxed">
                                 คณะเทคโนโลยีดิจิทัล ให้ความสำคัญอย่างยิ่งกับการคุ้มครองข้อมูลส่วนบุคคลของท่าน 
                                 ตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 เรามีความจำเป็นต้องจัดเก็บและประมวลผลข้อมูลของท่านเพื่อใช้ในกิจกรรม ดังรายละเอียดต่อไปนี้:
                             </p>
                             
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                                <div className="bg-white dark:bg-zinc-800/80 p-5 rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm hover:shadow-md transition-all group">
-                                    <div className="w-10 h-10 bg-blue-50 dark:bg-blue-500/10 text-blue-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><Icon name="user" size={20}/></div>
-                                    <h4 className="font-bold text-slate-800 dark:text-white text-sm mb-1">ข้อมูลส่วนตัวเบื้องต้น</h4>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">ชื่อ, รหัส นศ., สาขา, เบอร์โทร เพื่อใช้ตรวจสอบสิทธิ์และประสานงานตลอดกิจกรรม</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-5 sm:mb-6">
+                                {/* Card 1 */}
+                                <div className="bg-white dark:bg-zinc-800/80 p-4 sm:p-5 rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm hover:shadow-md transition-all flex flex-row sm:flex-col items-center sm:items-start gap-4 sm:gap-0 text-left">
+                                    <div className="w-10 h-10 sm:mb-3 bg-blue-50 dark:bg-blue-500/10 text-blue-600 rounded-xl flex items-center justify-center shrink-0"><Icon name="user" size={18}/></div>
+                                    <div>
+                                        <h4 className="font-bold text-slate-800 dark:text-white text-sm sm:mb-1">ข้อมูลส่วนตัวเบื้องต้น</h4>
+                                        <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-snug">ชื่อ, รหัส นศ., สาขา, เบอร์โทร เพื่อใช้ตรวจสอบสิทธิ์และประสานงาน</p>
+                                    </div>
                                 </div>
                                 
-                                <div className="bg-white dark:bg-zinc-800/80 p-5 rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm hover:shadow-md transition-all group">
-                                    <div className="w-10 h-10 bg-orange-50 dark:bg-orange-500/10 text-orange-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><Icon name="pizza" size={20}/></div>
-                                    <h4 className="font-bold text-slate-800 dark:text-white text-sm mb-1">ข้อมูลด้านโภชนาการ</h4>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">ประวัติแพ้อาหาร, อาหารเฉพาะทาง (ฮาลาล/เจ) เพื่อจัดเตรียมมื้ออาหารที่ปลอดภัย</p>
+                                {/* Card 2 */}
+                                <div className="bg-white dark:bg-zinc-800/80 p-4 sm:p-5 rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm hover:shadow-md transition-all flex flex-row sm:flex-col items-center sm:items-start gap-4 sm:gap-0 text-left">
+                                    <div className="w-10 h-10 sm:mb-3 bg-orange-50 dark:bg-orange-500/10 text-orange-600 rounded-xl flex items-center justify-center shrink-0"><Icon name="pizza" size={18}/></div>
+                                    <div>
+                                        <h4 className="font-bold text-slate-800 dark:text-white text-sm sm:mb-1">ข้อมูลด้านโภชนาการ</h4>
+                                        <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-snug">ประวัติแพ้อาหาร, อาหารเฉพาะทาง เพื่อจัดเตรียมมื้ออาหารที่ปลอดภัย</p>
+                                    </div>
                                 </div>
 
-                                <div className="bg-white dark:bg-zinc-800/80 p-5 rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm hover:shadow-md transition-all group">
-                                    <div className="w-10 h-10 bg-red-50 dark:bg-red-500/10 text-red-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"><Icon name="heart-pulse" size={20}/></div>
-                                    <h4 className="font-bold text-slate-800 dark:text-white text-sm mb-1">ข้อมูลสุขภาพและการแพทย์</h4>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">โรคประจำตัว, ประวัติการแพ้ยา เพื่อวางแผนปฐมพยาบาลกรณีเกิดเหตุฉุกเฉิน</p>
+                                {/* Card 3 */}
+                                <div className="bg-white dark:bg-zinc-800/80 p-4 sm:p-5 rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm hover:shadow-md transition-all flex flex-row sm:flex-col items-center sm:items-start gap-4 sm:gap-0 text-left">
+                                    <div className="w-10 h-10 sm:mb-3 bg-red-50 dark:bg-red-500/10 text-red-600 rounded-xl flex items-center justify-center shrink-0"><Icon name="heart-pulse" size={18}/></div>
+                                    <div>
+                                        <h4 className="font-bold text-slate-800 dark:text-white text-sm sm:mb-1">ข้อมูลสุขภาพ/การแพทย์</h4>
+                                        <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-snug">โรคประจำตัว, ประวัติการแพ้ยา เพื่อวางแผนปฐมพยาบาลในกรณีฉุกเฉิน</p>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="bg-blue-50/80 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/30 p-5 rounded-2xl flex items-start gap-3 shadow-sm">
-                                <Icon name="shield-alert" className="text-blue-500 mt-0.5 shrink-0" size={20}/>
-                                <div className="text-xs md:text-sm text-blue-800 dark:text-blue-300 leading-relaxed">
-                                    <span className="font-bold text-blue-900 dark:text-blue-200">การรักษาความปลอดภัย:</span> ข้อมูลทั้งหมดจะถูกเก็บรักษาเป็นความลับอย่างสูงสุด เข้าถึงได้เฉพาะผู้บริหารและทีมแพทย์/พยาบาลที่เกี่ยวข้องเท่านั้น และจะถูกทำลายทิ้งเมื่อเสร็จสิ้นโครงการ
+                            <div className="bg-blue-50/80 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 p-4 rounded-2xl flex items-start gap-3 shadow-sm">
+                                <Icon name="shield-alert" className="text-blue-500 mt-0.5 shrink-0" size={16}/>
+                                <div className="text-[11px] sm:text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
+                                    <span className="font-bold text-blue-900 dark:text-blue-200">การรักษาความปลอดภัย:</span> ข้อมูลทั้งหมดจะถูกเก็บรักษาเป็นความลับอย่างสูงสุด เข้าถึงได้เฉพาะทีมงานที่เกี่ยวข้อง และจะถูกทำลายทิ้งเมื่อเสร็จสิ้นโครงการ
                                 </div>
                             </div>
                         </div>
                         
-                        <div className="p-6 md:p-8 border-t border-slate-100 dark:border-white/5 bg-white dark:bg-zinc-900 shrink-0">
-                            <label className="flex items-center justify-center md:justify-start gap-3 cursor-pointer group mb-6 w-full mx-auto md:mx-0 bg-slate-50 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-brand/50 transition-colors shadow-sm">
+                        {/* Footer Section */}
+                        <div className="p-5 sm:p-8 border-t border-slate-100 dark:border-white/5 bg-white dark:bg-zinc-900 shrink-0 pb-6 sm:pb-8">
+                            <label className="flex items-start sm:items-center gap-3 cursor-pointer group mb-5 w-full bg-slate-50 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-brand/50 transition-colors shadow-sm">
                                 <input type="checkbox" checked={isChecked} onChange={e => setIsChecked(e.target.checked)} className="hidden" />
-                                <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all shrink-0 ${isChecked ? 'bg-brand border-brand shadow-sm' : 'border-slate-300 dark:border-slate-600 group-hover:border-brand'}`}>
-                                    {isChecked && <Icon name="check" size={16} className="text-white"/>}
+                                <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-md border-2 flex items-center justify-center transition-all shrink-0 mt-0.5 sm:mt-0 ${isChecked ? 'bg-brand border-brand shadow-sm' : 'border-slate-300 dark:border-slate-600 group-hover:border-brand'}`}>
+                                    {isChecked && <Icon name="check" size={14} className="text-white"/>}
                                 </div>
-                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300 select-none">ฉันได้อ่านและยินยอมให้ประมวลผลข้อมูลส่วนบุคคลดังกล่าว</span>
+                                <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 select-none leading-snug">ฉันได้อ่านและยินยอมให้ประมวลผลข้อมูลส่วนบุคคลดังกล่าว</span>
                             </label>
 
                             <div className="flex flex-col sm:flex-row justify-end gap-3">
-                                <button onClick={handleDecline} className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 font-bold hover:bg-slate-200 dark:hover:bg-white/10 transition-colors btn-interactive">ไม่ยินยอม</button>
+                                <button onClick={handleDecline} className="w-full sm:w-auto px-6 py-3.5 sm:py-3.5 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 font-bold hover:bg-slate-200 dark:hover:bg-white/10 transition-colors btn-interactive text-sm">ไม่ยินยอม</button>
                                 <button 
                                     onClick={() => isChecked ? onAccept() : null} 
                                     disabled={!isChecked}
-                                    className={`w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all duration-300 btn-interactive
+                                    className={`w-full sm:w-auto px-8 py-3.5 sm:py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all duration-300 btn-interactive text-sm
                                         ${isChecked ? 'brand-gradient text-white shadow-glow-brand hover:shadow-lg transform hover:-translate-y-0.5' : 'bg-slate-200 dark:bg-white/5 text-slate-400 dark:text-slate-600 border border-slate-300 dark:border-white/10 cursor-not-allowed'}`}
                                 >
-                                    <Icon name="check-circle" size={18}/> ยินยอมและขึ้นทะเบียน
+                                    <Icon name="check-circle" size={16} className="sm:w-[18px] sm:h-[18px]" /> ยินยอมและขึ้นทะเบียน
                                 </button>
                             </div>
                         </div>
@@ -399,8 +421,8 @@
                     return;
                 }
 
-                if (formData.IDCard && formData.IDCard.length !== 13) {
-                    Swal.fire({ icon: 'warning', title: 'รหัสบัตรประชาชนไม่ถูกต้อง', text: 'กรุณากรอกรหัสบัตรประชาชนให้ครบ 13 หลัก', background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
+                if (formData.StudentID && formData.StudentID.length !== 9) {
+                    Swal.fire({ icon: 'warning', title: 'รหัสนักศึกษาไม่ถูกต้อง', text: 'กรุณากรอกรหัสนักศึกษาให้ครบ 9 หลัก', background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
                     return;
                 }
 
@@ -474,8 +496,8 @@
                                     </div>
                                 </div>
 
-                                <InputField label="รหัสนักศึกษา (13 หลัก)" value={formData.StudentID} onChange={v => setFormData({...formData, StudentID: v})} placeholder="เช่น 67xxxxxxxxx" numeric required maxLength="13" />
-                                <InputField label="รหัสประจำตัวประชาชน" value={formData.IDCard} onChange={v => setFormData({...formData, IDCard: v})} placeholder="ระบุ 13 หลัก" numeric maxLength="13" />
+                                <InputField label="รหัสนักศึกษา (9 หลัก)" value={formData.StudentID} onChange={v => setFormData({...formData, StudentID: v})} placeholder="เช่น 67xxxxxxx" numeric required maxLength="9" />
+                                <InputField label="รหัสประจำตัวประชาชน / Passport" value={formData.IDCard} onChange={v => setFormData({...formData, IDCard: v})} placeholder="ระบุ 13 หลัก หรือ เลขพาสปอร์ต" maxLength="20" />
                                 
                                 <div className="flex flex-col gap-1.5">
                                     <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">ศาสนา <span className="text-red-500">*</span></label>
@@ -757,8 +779,8 @@
 
             const handleSaveEdit = (e) => {
                 e.preventDefault();
-                if (editItem.IDCard && editItem.IDCard.length !== 13) {
-                    Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ถูกต้อง', text: 'กรุณาระบุ Thai ID ให้ครบ 13 หลัก', confirmButtonColor: '#ff6600', background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
+                if (editItem.StudentID && editItem.StudentID.length !== 9) {
+                    Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ถูกต้อง', text: 'กรุณาระบุรหัสนักศึกษาให้ครบ 9 หลัก', confirmButtonColor: '#ff6600', background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
                     return;
                 }
                 if (editItem.StudentPhone.length !== 10 || editItem.ParentPhone.length !== 10) {
@@ -786,7 +808,7 @@
 
             // 🌟 Updated TABS to match the exact requirement
             const TABS = [
-                { id: 'overview', icon: 'users', label: 'ยอดขึ้นทะเบียน (Real-time)' },
+                { id: 'overview', icon: 'users', label: 'ยอดขึ้นทะเบียน' },
                 { id: 'majors', icon: 'pie-chart', label: 'สรุปยอดสาขาวิชา' },
                 { id: 'health_diet', icon: 'activity', label: 'สุขภาพและโภชนาการ' },
                 { id: 'surveillance', icon: 'shield-alert', label: 'กลุ่มเฝ้าระวังพิเศษ' },
@@ -852,7 +874,7 @@
                         </div>
 
                         {/* ========================================================= */}
-                        {/* TAB 1: OVERVIEW (ยอดขึ้นทะเบียน Real-time และ กราฟรายงาน) */}
+                        {/* TAB 1: OVERVIEW (ยอดขึ้นทะเบียน และ กราฟรายงาน) */}
                         {/* ========================================================= */}
                         {activeTab === 'overview' && (
                             <div className="space-y-6 animate-fade-in">
@@ -874,26 +896,42 @@
                                     ))}
                                 </div>
 
-                                {/* Bar Chart Real-time */}
-                                <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-slate-200/50 dark:border-white/5 shadow-soft">
-                                    <h3 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-3 mb-8">
-                                        <div className="p-2.5 bg-brand/10 text-brand rounded-xl shadow-sm"><Icon name="bar-chart-2" size={20}/></div>
-                                        ยอดขึ้นทะเบียนแยกตามสาขาวิชา (Real-time)
-                                    </h3>
-                                    <div className="w-full h-[350px]">
+                                {/* Bar Chart (Modernized Horizontal Bar Chart) */}
+                                <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-brand shadow-soft flex flex-col relative overflow-hidden bg-gradient-to-b from-white to-slate-50/50 dark:from-zinc-900 dark:to-zinc-900/50">
+                                    <div className="absolute top-0 right-0 p-8 opacity-5 text-brand pointer-events-none transform translate-x-4 -translate-y-4">
+                                        <Icon name="bar-chart-2" size={120} />
+                                    </div>
+                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 relative z-10">
+                                        <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
+                                            <div className="p-3 bg-brand/10 text-brand rounded-2xl shadow-inner"><Icon name="bar-chart-2" size={24}/></div>
+                                            ยอดขึ้นทะเบียนแยกตามสาขาวิชา
+                                        </h3>
+                                        <div className="bg-brand/10 text-brand px-4 py-2 rounded-xl text-sm font-bold shadow-sm border border-brand/20">
+                                            รวมทั้งหมด {stats.total} คน
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="w-full min-h-[450px] relative z-10">
                                         {stats.pieData.length === 0 ? (
-                                            <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 dark:bg-white/5 rounded-[1.5rem] border border-dashed border-slate-200 dark:border-white/10">
+                                            <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 dark:bg-white/5 rounded-[2rem] border border-dashed border-slate-200 dark:border-white/10">
                                                 <Icon name="inbox" size={48} className="mb-4 opacity-20" />
-                                                <p className="font-semibold">ไม่มีข้อมูลแสดงกราฟ</p>
+                                                <p className="font-semibold text-lg">ไม่มีข้อมูลแสดงกราฟ</p>
                                             </div>
                                         ) : (
                                             <ResponsiveContainer width="100%" height="100%">
-                                                <BarChart data={stats.pieData.sort((a,b)=>b.value-a.value)} margin={{ top: 20, right: 30, left: 0, bottom: 50 }}>
-                                                    <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} tick={{fill: isDarkMode ? '#cbd5e1' : '#475569', fontSize: 11, fontWeight: 600}} axisLine={false} tickLine={false} />
-                                                    <YAxis axisLine={false} tickLine={false} tick={{fill: isDarkMode ? '#cbd5e1' : '#475569', fontSize: 12, fontWeight: 600}} />
-                                                    <Tooltip cursor={{fill: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}} contentStyle={{ backgroundColor: isDarkMode ? '#18181b' : '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', fontWeight: 'bold' }} />
-                                                    <Bar dataKey="value" radius={[8, 8, 0, 0]} label={{ position: 'top', fill: isDarkMode ? '#fff' : '#0f172a', fontSize: 14, fontWeight: '800' }}>
-                                                        {stats.pieData.map((e, i) => <Cell key={i} fill={stats.COLORS[i % stats.COLORS.length]} />)}
+                                                <BarChart data={stats.pieData.sort((a,b)=>b.value-a.value)} layout="vertical" margin={{ top: 0, right: 50, left: 0, bottom: 0 }}>
+                                                    <XAxis type="number" hide />
+                                                    <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: isDarkMode ? '#cbd5e1' : '#475569', fontSize: 13, fontWeight: 700}} width={200} />
+                                                    <Tooltip 
+                                                        cursor={{fill: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}} 
+                                                        contentStyle={{ backgroundColor: isDarkMode ? 'rgba(24, 24, 27, 0.95)' : 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', fontWeight: 'bold', padding: '12px 20px' }} 
+                                                        itemStyle={{ color: isDarkMode ? '#fff' : '#0f172a', fontWeight: '900', fontSize: '16px' }}
+                                                        formatter={(value) => [value + ' คน', 'จำนวน']}
+                                                    />
+                                                    <Bar dataKey="value" radius={[0, 12, 12, 0]} barSize={28} label={{ position: 'right', fill: isDarkMode ? '#fff' : '#0f172a', fontSize: 16, fontWeight: '900', formatter: (val) => val }}>
+                                                        {stats.pieData.map((e, i) => (
+                                                            <Cell key={i} fill={stats.COLORS[i % stats.COLORS.length]} className="hover:opacity-80 transition-all duration-300 drop-shadow-sm cursor-pointer" />
+                                                        ))}
                                                     </Bar>
                                                 </BarChart>
                                             </ResponsiveContainer>
@@ -1239,7 +1277,7 @@
                                         <div className="flex-1">
                                             <span className="text-[10px] font-black uppercase tracking-widest text-brand bg-brand/10 px-3 py-1.5 rounded-lg mb-4 inline-block border border-brand/20 shadow-sm">Executive Report</span>
                                             <h2 className="text-4xl md:text-5xl font-black text-slate-800 dark:text-white tracking-tight mb-4">รายงานสรุปผู้บริหาร</h2>
-                                            <p className="text-slate-600 dark:text-slate-400 text-base font-medium max-w-xl leading-relaxed mb-6">แดชบอร์ดสรุปผลภาพรวมการขึ้นทะเบียนนักศึกษาใหม่ รหัส 69 แบบ Real-time พร้อมการวิเคราะห์ความเสี่ยง</p>
+                                            <p className="text-slate-600 dark:text-slate-400 text-base font-medium max-w-xl leading-relaxed mb-6">แดชบอร์ดสรุปผลภาพรวมการขึ้นทะเบียนนักศึกษาใหม่ รหัส 69 พร้อมการวิเคราะห์ความเสี่ยง</p>
 
                                             {/* Dropdown for filtering by Major */}
                                             <div className="flex items-center gap-3">
@@ -1586,8 +1624,8 @@
                                     <div className="p-5 md:p-6 bg-slate-50/80 dark:bg-black/20 rounded-3xl border border-slate-200/60 dark:border-white/5 space-y-4 shadow-inner">
                                         <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">ชื่อ-นามสกุล (ระบุคำนำหน้า)</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-bold shadow-sm" value={editItem.FullName} onChange={e => setEditItem({...editItem, FullName: e.target.value})}/></div>
                                         <div className="grid grid-cols-2 gap-4">
-                                            <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">รหัสนักศึกษา</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-mono shadow-sm" inputMode="numeric" value={editItem.StudentID} onChange={e => setEditItem({...editItem, StudentID: e.target.value})}/></div>
-                                            <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">Thai ID</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-mono shadow-sm" maxLength="13" pattern="[0-9]{13}" inputMode="numeric" value={editItem.IDCard || ''} onChange={e => setEditItem({...editItem, IDCard: e.target.value.replace(/\D/g, '')})}/></div>
+                                            <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">รหัสนักศึกษา</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-mono shadow-sm" inputMode="numeric" maxLength="9" value={editItem.StudentID} onChange={e => setEditItem({...editItem, StudentID: e.target.value.replace(/\D/g, '')})}/></div>
+                                            <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">Thai ID / Passport</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-mono shadow-sm" maxLength="20" value={editItem.IDCard || ''} onChange={e => setEditItem({...editItem, IDCard: e.target.value})}/></div>
                                         </div>
                                         <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">สาขาวิชา</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm" value={editItem.Major} onChange={e => setEditItem({...editItem, Major: e.target.value})}/></div>
                                         <div className="grid grid-cols-2 gap-4">
