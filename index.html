@@ -143,7 +143,7 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo, useRef } = React;
         const Recharts = window.Recharts || {};
-        const { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } = Recharts;
+        const { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } = Recharts;
 
         // ==========================================
         // ⚙️ตั้งค่า API
@@ -152,10 +152,10 @@
         const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1MoZpnDniVF5pKr0tEgmYwlPO3wZdA7DaO_MvZjbC-ec/gviz/tq?tqx=out:csv&sheet=Registration";
         
         const MAJOR_LIST = [
-            "เทคโนโลยีดิจิทัลเพื่อธุรกิจ", "เทคโนโลยีดิจิทัลเพื่อธุรกิจ (เทียบโอน)",
-            "เทคโนโลยีปัญญาประดิษฐ์", "เทคโนโลยีสารสนเทศ", "เทคโนโลยีสารสนเทศ (เทียบโอน)",
+            "เทคโนโลยีดิจิทัลเพื่อธุรกิจ", "เทคโนโลยีดิจิทัลเพื่อธุรกิจ(เทียบโอน)",
+            "เทคโนโลยีปัญญาประดิษฐ์", "เทคโนโลยีสารสนเทศ", "เทคโนโลยีสารสนเทศ(เทียบโอน)",
             "วิทยาการคอมพิวเตอร์", "กราฟิกดีไซน์เทคโนโลยีสื่อดิจิทัล",
-            "กราฟิกดีไซน์สื่อศิลปะและการออกแบบ", "กราฟิกดีไซน์สื่อศิลปะและการออกแบบ (เทียบโอน)",
+            "กราฟิกดีไซน์สื่อศิลปะและการออกแบบ", "กราฟิกดีไซน์สื่อศิลปะและการออกแบบ(เทียบโอน)",
             "วิศวกรรมคอมพิวเตอร์"
         ];
 
@@ -175,7 +175,7 @@
         };
 
         // UI Components
-        const Icon = ({ name, size = 20, className = '' }) => {
+        function Icon({ name, size = 20, className = '' }) {
             const containerRef = useRef(null);
             useEffect(() => {
                 if (containerRef.current) {
@@ -186,9 +186,9 @@
                 }
             }, [name, size, className]);
             return <span ref={containerRef} className="inline-flex items-center justify-center shrink-0" />;
-        };
+        }
 
-        const TogglePill = ({ options, value, onChange, isWarningType }) => {
+        function TogglePill({ options, value, onChange, isWarningType }) {
             return (
                 <div className="flex flex-wrap gap-3">
                     {options.map(opt => {
@@ -208,19 +208,39 @@
                     })}
                 </div>
             );
-        };
+        }
 
-        const SectionHeader = ({ icon, title, colorClass }) => {
+        function SectionHeader({ icon, title, colorClass }) {
             return (
                 <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200/50 dark:border-white/5">
                     <div className={`p-3 rounded-2xl shadow-sm ${colorClass}`}><Icon name={icon} size={22}/></div>
                     <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white tracking-tight">{title}</h3>
                 </div>
             );
-        };
+        }
 
-        // PDPA Modal Component
-        const PdpaModal = ({ onAccept, isDarkMode }) => {
+        // ย้าย InputField ออกมาไว้ด้านนอก เพื่อป้องกันปัญหาเคอร์เซอร์หลุดเวลาพิมพ์
+        function InputField({ label, type="text", value, onChange, placeholder, maxLength, required, numeric }) {
+            return (
+                <div className="flex flex-col gap-1.5 w-full">
+                    <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">{label} {required && <span className="text-red-500">*</span>}</label>
+                    <input 
+                        type={type} value={value} onChange={e => {
+                            let val = e.target.value;
+                            if (numeric) val = val.replace(/\D/g, '');
+                            onChange(val);
+                        }} 
+                        placeholder={placeholder} maxLength={maxLength} required={required}
+                        className={`w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm ${numeric ? 'font-mono' : ''}`}
+                    />
+                </div>
+            );
+        }
+
+        // ==========================================
+        // 🛡️ PDPA Modal Component
+        // ==========================================
+        function PdpaModal({ onAccept, onAdminClick, isDarkMode }) {
             const [isChecked, setIsChecked] = useState(false);
 
             const handleDecline = () => Swal.fire({ 
@@ -234,11 +254,51 @@
                 customClass: { popup: 'rounded-[2rem]' } 
             });
 
+            const promptAdmin = () => {
+                Swal.fire({
+                    title: '<h3 class="text-2xl font-black text-slate-800 dark:text-white">Admin Access</h3>',
+                    html: '<p class="text-sm text-slate-500 mb-4">เข้าสู่ระบบจัดการข้อมูลผู้ดูแล</p>',
+                    input: 'password',
+                    inputAttributes: { autocapitalize: 'off', autocorrect: 'off' },
+                    showCancelButton: true,
+                    confirmButtonText: 'เข้าสู่ระบบ',
+                    cancelButtonText: 'ยกเลิก',
+                    confirmButtonColor: '#ff6600',
+                    background: isDarkMode ? '#18181b' : '#ffffff',
+                    color: isDarkMode ? '#ffffff' : '#0f172a',
+                    customClass: {
+                        popup: 'rounded-[2rem]',
+                        input: 'text-center font-mono text-xl tracking-[0.5em] rounded-xl bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-white/10'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        if (result.value === '000000') {
+                            onAdminClick();
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'รหัสผ่านไม่ถูกต้อง',
+                                text: 'กรุณาลองใหม่อีกครั้ง',
+                                confirmButtonColor: '#ff6600',
+                                background: isDarkMode ? '#18181b' : '#ffffff',
+                                color: isDarkMode ? '#ffffff' : '#0f172a',
+                                customClass: { popup: 'rounded-[2rem]' }
+                            });
+                        }
+                    }
+                });
+            };
+
             return (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 dark:bg-black/90 backdrop-blur-lg animate-fade-in">
                     <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] max-w-3xl w-full relative shadow-[0_20px_60px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.8)] border border-slate-200 dark:border-zinc-800 animate-slide-up overflow-hidden flex flex-col max-h-[95vh]">
                         
                         <div className="absolute top-0 left-0 right-0 h-2 brand-gradient z-20"></div>
+
+                        {/* Admin Login Button */}
+                        <button onClick={promptAdmin} className="absolute top-5 right-5 p-3 text-slate-400 hover:text-brand bg-slate-50/50 dark:bg-black/20 hover:bg-slate-100 dark:hover:bg-white/10 backdrop-blur-md transition-all z-20 rounded-full shadow-sm hover:shadow-md border border-slate-200/50 dark:border-white/5" title="เข้าสู่ระบบผู้ดูแล">
+                            <Icon name="lock" size={18} />
+                        </button>
                         
                         <div className="p-6 md:p-8 pb-5 bg-white dark:bg-zinc-900 border-b border-slate-100 dark:border-white/5 flex items-start gap-5 relative overflow-hidden shrink-0">
                             <div className="absolute -right-10 -top-10 opacity-5 text-brand transform rotate-12 pointer-events-none"><Icon name="shield-check" size={150}/></div>
@@ -311,10 +371,267 @@
                     </div>
                 </div>
             );
-        };
+        }
 
-        // Admin Dashboard Component
-        const AdminDashboard = ({ goBack, isDarkMode }) => {
+        // ==========================================
+        // 📝 Registration Form Component (ฟอร์มขึ้นทะเบียน)
+        // ==========================================
+        function RegistrationForm({ onBack, onSuccess, isDarkMode }) {
+            const [formData, setFormData] = useState({
+                FullName: '', StudentID: '', IDCard: '', Major: '', 
+                Religion: '', BloodGroup: '',
+                StudentPhone: '', ParentPhone: '',
+                FoodAllergy: '', SpecificDiet: 'ไม่มี', 
+                Disease: '', DrugAllergy: ''
+            });
+
+            const [hasFoodAllergy, setHasFoodAllergy] = useState(false);
+            const [hasDisease, setHasDisease] = useState(false);
+            const [hasDrugAllergy, setHasDrugAllergy] = useState(false);
+            const [isSubmitting, setIsSubmitting] = useState(false);
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+
+                // Validation
+                if (!formData.FullName || !formData.StudentID || !formData.Major || !formData.Religion || !formData.BloodGroup || !formData.StudentPhone || !formData.ParentPhone) {
+                    Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบถ้วน', text: 'กรุณากรอกข้อมูลในช่องที่มีเครื่องหมาย * ให้ครบ', background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
+                    return;
+                }
+
+                if (formData.IDCard && formData.IDCard.length !== 13) {
+                    Swal.fire({ icon: 'warning', title: 'รหัสบัตรประชาชนไม่ถูกต้อง', text: 'กรุณากรอกรหัสบัตรประชาชนให้ครบ 13 หลัก', background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
+                    return;
+                }
+
+                if (formData.StudentPhone.length !== 10 || formData.ParentPhone.length !== 10) {
+                    Swal.fire({ icon: 'warning', title: 'เบอร์โทรศัพท์ไม่ถูกต้อง', text: 'กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก', background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
+                    return;
+                }
+
+                if (hasFoodAllergy && !formData.FoodAllergy.trim()) {
+                    Swal.fire({ icon: 'warning', title: 'โปรดระบุอาหารที่แพ้', background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
+                    return;
+                }
+
+                if (hasDisease && !formData.Disease.trim()) {
+                    Swal.fire({ icon: 'warning', title: 'โปรดระบุโรคประจำตัว', background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
+                    return;
+                }
+
+                if (hasDrugAllergy && !formData.DrugAllergy.trim()) {
+                    Swal.fire({ icon: 'warning', title: 'โปรดระบุยาที่แพ้', background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
+                    return;
+                }
+
+                const finalData = {
+                    ...formData,
+                    FoodAllergy: hasFoodAllergy ? formData.FoodAllergy : 'ไม่แพ้',
+                    Disease: hasDisease ? formData.Disease : 'ไม่มี',
+                    DrugAllergy: hasDrugAllergy ? formData.DrugAllergy : 'ไม่แพ้'
+                };
+
+                setIsSubmitting(true);
+                Swal.fire({ title: 'กำลังบันทึกข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
+
+                try {
+                    // ใช้ Action 'register' สำหรับการเพิ่มข้อมูลใหม่
+                    const res = await submitToAPI('register', finalData);
+                    if (res.success) {
+                        Swal.close();
+                        onSuccess();
+                    } else {
+                        throw new Error(res.message || "ระบบขัดข้อง กรุณาลองใหม่อีกครั้ง");
+                    }
+                } catch (err) {
+                    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message, background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
+                } finally {
+                    setIsSubmitting(false);
+                }
+            };
+
+            return (
+                <div className="max-w-4xl mx-auto animate-fade-in pb-10">
+                    <button onClick={onBack} className="flex items-center gap-2 text-slate-500 hover:text-brand font-bold text-sm mb-6 transition-colors px-2">
+                        <Icon name="arrow-left" size={16} /> ย้อนกลับ
+                    </button>
+
+                    <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8">
+                        {/* ส่วนที่ 1: ข้อมูลส่วนตัว */}
+                        <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border border-slate-200/50 dark:border-white/5 shadow-soft">
+                            <SectionHeader icon="user" title="ข้อมูลส่วนตัวนักศึกษา" colorClass="bg-blue-100 dark:bg-blue-500/20 text-blue-600" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <InputField label="ชื่อ-นามสกุล (ระบุคำนำหน้า)" value={formData.FullName} onChange={v => setFormData({...formData, FullName: v})} placeholder="เช่น นายสมชาย ใจดี" required />
+                                
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">สาขาวิชา <span className="text-red-500">*</span></label>
+                                    <div className="relative">
+                                        <select value={formData.Major} onChange={e => setFormData({...formData, Major: e.target.value})} required className="w-full appearance-none input-modern rounded-xl pl-4 pr-10 py-3.5 text-sm font-semibold shadow-sm cursor-pointer bg-white/80 dark:bg-black/40">
+                                            <option value="">-- โปรดเลือกสาขาวิชา --</option>
+                                            {MAJOR_LIST.map(m => <option key={m} value={m}>{m}</option>)}
+                                        </select>
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><Icon name="chevron-down" size={16}/></div>
+                                    </div>
+                                </div>
+
+                                <InputField label="รหัสนักศึกษา (13 หลัก)" value={formData.StudentID} onChange={v => setFormData({...formData, StudentID: v})} placeholder="เช่น 67xxxxxxxxx" numeric required maxLength="13" />
+                                <InputField label="รหัสประจำตัวประชาชน" value={formData.IDCard} onChange={v => setFormData({...formData, IDCard: v})} placeholder="ระบุ 13 หลัก" numeric maxLength="13" />
+                                
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">ศาสนา <span className="text-red-500">*</span></label>
+                                    <div className="relative">
+                                        <select value={formData.Religion} onChange={e => setFormData({...formData, Religion: e.target.value})} required className="w-full appearance-none input-modern rounded-xl pl-4 pr-10 py-3.5 text-sm font-semibold shadow-sm cursor-pointer bg-white/80 dark:bg-black/40">
+                                            <option value="">-- โปรดเลือกศาสนา --</option>
+                                            <option value="พุทธ">พุทธ</option>
+                                            <option value="อิสลาม">อิสลาม</option>
+                                            <option value="คริสต์">คริสต์</option>
+                                            <option value="อื่นๆ">อื่นๆ</option>
+                                        </select>
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><Icon name="chevron-down" size={16}/></div>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">กรุ๊ปเลือด <span className="text-red-500">*</span></label>
+                                    <div className="relative">
+                                        <select value={formData.BloodGroup} onChange={e => setFormData({...formData, BloodGroup: e.target.value})} required className="w-full appearance-none input-modern rounded-xl pl-4 pr-10 py-3.5 text-sm font-semibold shadow-sm cursor-pointer bg-white/80 dark:bg-black/40">
+                                            <option value="">-- โปรดเลือกกรุ๊ปเลือด --</option>
+                                            <option value="A">A</option>
+                                            <option value="B">B</option>
+                                            <option value="O">O</option>
+                                            <option value="AB">AB</option>
+                                        </select>
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><Icon name="chevron-down" size={16}/></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* ส่วนที่ 2: ข้อมูลติดต่อ */}
+                        <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border border-slate-200/50 dark:border-white/5 shadow-soft">
+                            <SectionHeader icon="phone" title="ข้อมูลการติดต่อ" colorClass="bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <InputField label="เบอร์โทรศัพท์นักศึกษา" value={formData.StudentPhone} onChange={v => setFormData({...formData, StudentPhone: v})} placeholder="08xxxxxxxx" numeric required maxLength="10" />
+                                <InputField label="เบอร์โทรศัพท์ผู้ปกครอง (ฉุกเฉิน)" value={formData.ParentPhone} onChange={v => setFormData({...formData, ParentPhone: v})} placeholder="08xxxxxxxx" numeric required maxLength="10" />
+                            </div>
+                        </div>
+
+                        {/* ส่วนที่ 3: โภชนาการ */}
+                        <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-orange-500 border border-slate-200/50 dark:border-white/5 shadow-soft">
+                            <SectionHeader icon="pizza" title="ข้อมูลโภชนาการ" colorClass="bg-orange-100 dark:bg-orange-500/20 text-orange-600" />
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 block">1. อาหารเฉพาะทาง (เลือก 1 ข้อ) <span className="text-red-500">*</span></label>
+                                    <TogglePill 
+                                        options={[{label: 'ไม่มี (ทานปกติ)', value: 'ไม่มี'}, {label: 'ฮาลาล', value: 'ฮาลาล'}, {label: 'มังสวิรัติ', value: 'มังสวิรัติ'}, {label: 'เจ', value: 'เจ'}]}
+                                        value={formData.SpecificDiet}
+                                        onChange={v => setFormData({...formData, SpecificDiet: v})}
+                                        isWarningType={true}
+                                    />
+                                </div>
+                                
+                                <div className="p-5 bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/30 rounded-2xl">
+                                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 block">2. ประวัติการแพ้อาหาร <span className="text-red-500">*</span></label>
+                                    <div className="flex gap-4 mb-4">
+                                        <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold">
+                                            <input type="radio" name="foodAllergy" checked={!hasFoodAllergy} onChange={() => setHasFoodAllergy(false)} className="w-4 h-4 text-brand accent-brand" /> ไม่แพ้
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-orange-600 dark:text-orange-400">
+                                            <input type="radio" name="foodAllergy" checked={hasFoodAllergy} onChange={() => setHasFoodAllergy(true)} className="w-4 h-4 text-brand accent-brand" /> มีประวัติแพ้อาหาร
+                                        </label>
+                                    </div>
+                                    {hasFoodAllergy && (
+                                        <div className="animate-slide-up">
+                                            <InputField label="โปรดระบุอาหารที่แพ้ หรือ อาการ" value={formData.FoodAllergy} onChange={v => setFormData({...formData, FoodAllergy: v})} placeholder="เช่น กุ้ง, ถั่วลิสง, นมวัว" required={hasFoodAllergy} />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* ส่วนที่ 4: สุขภาพ */}
+                        <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-red-500 border border-slate-200/50 dark:border-white/5 shadow-soft">
+                            <SectionHeader icon="heart-pulse" title="ข้อมูลสุขภาพทางการแพทย์" colorClass="bg-red-100 dark:bg-red-500/20 text-red-600" />
+                            <div className="space-y-6">
+                                <div className="p-5 bg-red-50/50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-2xl">
+                                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 block">1. โรคประจำตัว <span className="text-red-500">*</span></label>
+                                    <div className="flex gap-4 mb-4">
+                                        <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold">
+                                            <input type="radio" name="disease" checked={!hasDisease} onChange={() => setHasDisease(false)} className="w-4 h-4 accent-red-500" /> ไม่มี
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-red-600 dark:text-red-400">
+                                            <input type="radio" name="disease" checked={hasDisease} onChange={() => setHasDisease(true)} className="w-4 h-4 accent-red-500" /> มีโรคประจำตัว
+                                        </label>
+                                    </div>
+                                    {hasDisease && (
+                                        <div className="animate-slide-up">
+                                            <InputField label="โปรดระบุโรคประจำตัว" value={formData.Disease} onChange={v => setFormData({...formData, Disease: v})} placeholder="เช่น หอบหืด, ภูมิแพ้, หัวใจ" required={hasDisease} />
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="p-5 bg-pink-50/50 dark:bg-pink-950/20 border border-pink-100 dark:border-pink-900/30 rounded-2xl">
+                                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 block">2. ประวัติการแพ้ยา <span className="text-red-500">*</span></label>
+                                    <div className="flex gap-4 mb-4">
+                                        <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold">
+                                            <input type="radio" name="drugAllergy" checked={!hasDrugAllergy} onChange={() => setHasDrugAllergy(false)} className="w-4 h-4 accent-pink-500" /> ไม่เคยแพ้ยา
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-pink-600 dark:text-pink-400">
+                                            <input type="radio" name="drugAllergy" checked={hasDrugAllergy} onChange={() => setHasDrugAllergy(true)} className="w-4 h-4 accent-pink-500" /> มีประวัติแพ้ยา
+                                        </label>
+                                    </div>
+                                    {hasDrugAllergy && (
+                                        <div className="animate-slide-up">
+                                            <InputField label="โปรดระบุยาที่แพ้ หรือ อาการ" value={formData.DrugAllergy} onChange={v => setFormData({...formData, DrugAllergy: v})} placeholder="เช่น Penicillin, Amoxicillin" required={hasDrugAllergy} />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Submit Button */}
+                        <div className="pt-4 flex justify-center">
+                            <button 
+                                type="submit" 
+                                disabled={isSubmitting}
+                                className="w-full md:w-auto min-w-[280px] py-4 px-8 brand-gradient text-white rounded-2xl font-black text-lg shadow-glow-brand hover:shadow-lg transform hover:-translate-y-1 transition-all btn-interactive flex items-center justify-center gap-2"
+                            >
+                                {isSubmitting ? <Icon name="loader-2" className="animate-spin" /> : <Icon name="save" />}
+                                บันทึกข้อมูลขึ้นทะเบียน
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            );
+        }
+
+        // ==========================================
+        // ✅ Success View Component
+        // ==========================================
+        function SuccessView({ onHome, isDarkMode }) {
+            return (
+                <div className="flex items-center justify-center min-h-[80vh] p-4 animate-fade-in">
+                    <div className="glass-panel p-8 md:p-12 rounded-[3rem] text-center max-w-md w-full animate-slide-up shadow-2xl border-t-8 border-t-emerald-500">
+                        <div className="w-24 h-24 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner relative">
+                            <Icon name="check-circle" size={48} className="relative z-10" />
+                            <div className="absolute inset-0 bg-emerald-400 rounded-full blur-xl opacity-30 animate-pulse"></div>
+                        </div>
+                        <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-3 tracking-tight">ลงทะเบียนสำเร็จ!</h2>
+                        <p className="text-slate-500 dark:text-slate-400 font-medium mb-8 leading-relaxed">
+                            ระบบได้รับข้อมูลการขึ้นทะเบียนของท่านเรียบร้อยแล้ว ขอบคุณที่ให้ความร่วมมือและยินดีต้อนรับครับ
+                        </p>
+                        <button onClick={onHome} className="w-full py-4 bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-white rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-white/20 transition-colors shadow-sm flex justify-center items-center gap-2 btn-interactive">
+                            <Icon name="home" size={18} /> กลับสู่หน้าแรก
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==========================================
+        // 📊 Admin Dashboard Component
+        // ==========================================
+        function AdminDashboard({ goBack, isDarkMode }) {
             const [data, setData] = useState([]);
             const [loading, setLoading] = useState(true);
             const [selectedMajor, setSelectedMajor] = useState(null);
@@ -374,6 +691,7 @@
                 let total = filteredData.length, normalCount = 0, transferCount = 0, foodAlert = 0, healthAlert = 0;
                 let majorCount = {}, dietStats = { 'ฮาลาล': 0, 'มังสวิรัติ': 0, 'เจ': 0, 'อาหารปกติ': 0 }, foodAllergies = [], diseases = [], drugAllergies = [];
                 const surveillanceList = [];
+                let surveillanceRiskPie = { 'ด้านการแพทย์': 0, 'ด้านโภชนาการ': 0, 'ความเสี่ยงซ้อน (ทั้งสอง)': 0 };
 
                 filteredData.forEach(s => {
                     if(s.Major) {
@@ -401,9 +719,16 @@
                         if (s.Disease !== 'ไม่มี') issues.push({ type: 'health', text: `โรคประจำตัว: ${s.Disease}` });
                         if (s.DrugAllergy !== 'ไม่แพ้') issues.push({ type: 'health', text: `แพ้ยา: ${s.DrugAllergy}` });
                         surveillanceList.push({ ...s, issues });
+
+                        if (hasF && hasH) surveillanceRiskPie['ความเสี่ยงซ้อน (ทั้งสอง)']++;
+                        else if (hasF) surveillanceRiskPie['ด้านโภชนาการ']++;
+                        else if (hasH) surveillanceRiskPie['ด้านการแพทย์']++;
                     }
                 });
-                return { total, pieData: Object.keys(majorCount).map(k=>({name:k, value:majorCount[k]})), COLORS: ['#ff6600', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#facc15', '#06b6d4'], foodAlert, healthAlert, surveillanceList, normalCount, transferCount, dietStats, foodAllergies, diseases, drugAllergies };
+
+                const surveillancePieData = Object.keys(surveillanceRiskPie).map(k => ({name: k, value: surveillanceRiskPie[k]})).filter(d => d.value > 0);
+
+                return { total, pieData: Object.keys(majorCount).map(k=>({name:k, value:majorCount[k]})), COLORS: ['#ff6600', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#facc15', '#06b6d4'], foodAlert, healthAlert, surveillanceList, surveillancePieData, normalCount, transferCount, dietStats, foodAllergies, diseases, drugAllergies };
             }, [filteredData]);
 
             const handleDrilldown = (title, type, key) => {
@@ -411,7 +736,7 @@
                 if (type === 'religion_diet') filtered = filteredData.filter(s => s.SpecificDiet && s.SpecificDiet.includes(key));
                 else if (type === 'food_allergy') filtered = filteredData.filter(s => s.FoodAllergy && s.FoodAllergy !== 'ไม่แพ้');
                 else if (type === 'food_alert') filtered = filteredData.filter(s => (s.FoodAllergy && s.FoodAllergy !== 'ไม่แพ้') || (s.SpecificDiet && s.SpecificDiet !== 'ไม่มี'));
-                else if (type === 'health_alert') filtered = filteredData.filter(s => s.Disease && s.Disease !== 'ไม่มี' || s.DrugAllergy && s.DrugAllergy !== 'ไม่แพ้');
+                else if (type === 'health_alert') filtered = filteredData.filter(s => (s.Disease && s.Disease !== 'ไม่มี') || (s.DrugAllergy && s.DrugAllergy !== 'ไม่แพ้'));
                 else if (type === 'disease') filtered = filteredData.filter(s => s.Disease && s.Disease !== 'ไม่มี');
                 else if (type === 'drug_allergy') filtered = filteredData.filter(s => s.DrugAllergy && s.DrugAllergy !== 'ไม่แพ้');
                 else if (type === 'demographics') {
@@ -459,23 +784,23 @@
                 </div>
             );
 
+            // 🌟 Updated TABS to match the exact requirement
             const TABS = [
-                { id: 'overview', icon: 'layout-dashboard', label: 'ภาพรวม' },
-                { id: 'majors', icon: 'pie-chart', label: 'สาขาวิชา' },
-                { id: 'diet', icon: 'utensils', label: 'โภชนาการ' },
-                { id: 'health', icon: 'heart-pulse', label: 'สุขภาพ' },
-                { id: 'surveillance', icon: 'shield-alert', label: 'กลุ่มเฝ้าระวัง' },
-                { id: 'executive', icon: 'file-bar-chart', label: 'รายงานผู้บริหาร' }
+                { id: 'overview', icon: 'users', label: 'ยอดขึ้นทะเบียน (Real-time)' },
+                { id: 'majors', icon: 'pie-chart', label: 'สรุปยอดสาขาวิชา' },
+                { id: 'health_diet', icon: 'activity', label: 'สุขภาพและโภชนาการ' },
+                { id: 'surveillance', icon: 'shield-alert', label: 'กลุ่มเฝ้าระวังพิเศษ' },
+                { id: 'executive', icon: 'layout-dashboard', label: 'รายงานผู้บริหาร' }
             ];
 
             return (
                 <div className="flex flex-col md:flex-row gap-6 animate-fade-in pb-20 items-start w-full">
                     {/* Admin Sidebar */}
-                    <div className="w-full md:w-64 glass-panel p-5 rounded-[2rem] flex flex-col md:sticky md:top-24 z-20 shrink-0 no-print">
+                    <div className="w-full md:w-64 glass-panel p-5 rounded-[2rem] flex flex-col md:sticky md:top-24 z-20 shrink-0 no-print border border-slate-200/50 dark:border-white/5 shadow-soft">
                         <div className="flex items-center gap-4 mb-8 px-2 pt-2">
                             <div className="w-12 h-12 bg-slate-900 dark:bg-white rounded-[1rem] flex items-center justify-center text-white dark:text-black shadow-lg"><Icon name="command" size={24}/></div>
                             <div>
-                                <p className="text-[10px] text-brand font-black tracking-widest uppercase">Management</p>
+                                <p className="text-[10px] text-brand font-black tracking-widest uppercase">Admin Portal</p>
                                 <h3 className="font-black text-slate-800 dark:text-white leading-none text-lg mt-0.5">Dashboard</h3>
                             </div>
                         </div>
@@ -483,7 +808,7 @@
                             {TABS.map(tab => (
                                 <button key={tab.id} onClick={() => { setActiveTab(tab.id); setCurrentPage(1); }} 
                                     className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all font-bold whitespace-nowrap btn-interactive
-                                    ${activeTab === tab.id ? 'bg-brand text-white shadow-glow-brand' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white'}`}>
+                                    ${activeTab === tab.id ? 'bg-brand text-white shadow-glow-brand hover:-translate-y-0.5' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white'}`}>
                                     <Icon name={tab.icon} size={18} className={activeTab === tab.id ? 'text-white' : 'text-slate-400'}/> {tab.label}
                                 </button>
                             ))}
@@ -493,8 +818,9 @@
                     {/* Admin Main Content */}
                     <div className="flex-1 w-full space-y-6 print-area min-w-0">
                         {/* Header Action Bar */}
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center glass-panel p-5 md:px-8 md:py-6 rounded-[2rem] gap-4 no-print shadow-sm">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center glass-panel p-5 md:px-8 md:py-6 rounded-[2.5rem] gap-4 no-print shadow-soft border border-slate-200/50 dark:border-white/5">
                             <h2 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3 whitespace-nowrap">
+                                <div className="p-2.5 bg-brand/10 text-brand rounded-xl shadow-sm"><Icon name={(TABS.find(t=>t.id===activeTab) || {}).icon} size={20}/></div>
                                 {(TABS.find(t=>t.id===activeTab) || {}).label}
                             </h2>
                             <div className="flex flex-col xl:flex-row flex-wrap w-full sm:w-auto gap-3 items-start xl:items-center">
@@ -525,46 +851,75 @@
                             </div>
                         </div>
 
-                        {/* --- TAB: OVERVIEW --- */}
+                        {/* ========================================================= */}
+                        {/* TAB 1: OVERVIEW (ยอดขึ้นทะเบียน Real-time และ กราฟรายงาน) */}
+                        {/* ========================================================= */}
                         {activeTab === 'overview' && (
                             <div className="space-y-6 animate-fade-in">
+                                {/* Top KPI Cards */}
                                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                                     {[
-                                        {l:'ยอดขึ้นทะเบียน', v:stats.total, i:'users', c:'brand', tab: 'overview'}, 
-                                        {l:'สาขาวิชา', v:stats.pieData.length, i:'layers', c:'blue', tab: 'majors'}, 
-                                        {l:'เฝ้าระวังสุขภาพ', v:stats.healthAlert, i:'activity', c:'red', tab: 'surveillance'}, 
-                                        {l:'โภชนาการเฉพาะ', v:stats.foodAlert, i:'utensils', c:'orange', tab: 'diet'}
+                                        {l:'ยอดขึ้นทะเบียนรวม', v:stats.total, i:'users', c:'text-brand', bg:'bg-brand/10'}, 
+                                        {l:'กลุ่มเปราะบาง (แพทย์)', v:stats.healthAlert, i:'activity', c:'text-red-500', bg:'bg-red-500/10'}, 
+                                        {l:'จัดการอาหารพิเศษ', v:stats.foodAlert, i:'utensils', c:'text-orange-500', bg:'bg-orange-500/10'},
+                                        {l:'สุขภาพปกติ', v:(stats.total - stats.healthAlert), i:'check-circle', c:'text-emerald-500', bg:'bg-emerald-500/10'}
                                     ].map((card, i) => (
-                                        <div key={i} onClick={() => { setActiveTab(card.tab); setCurrentPage(1); }} className={`glass-panel p-6 md:p-8 rounded-[2rem] border border-slate-200/50 dark:border-white/5 relative overflow-hidden group hover:-translate-y-1 transition-all cursor-pointer shadow-soft hover:shadow-lg ${card.tab !== 'overview' ? 'hover:border-' + card.c + '-300 dark:hover:border-' + card.c + '-500/50' : ''}`}>
-                                            <div className={`absolute -right-4 -top-4 w-32 h-32 rounded-full blur-3xl opacity-10 bg-${card.c}-500 group-hover:opacity-20 transition-opacity`}></div>
-                                            <div className="flex justify-between items-start mb-6 relative z-10">
-                                                <div className={`p-4 rounded-[1.25rem] bg-${card.c === 'brand' ? 'brand' : card.c+'-500'}/10 text-${card.c === 'brand' ? 'brand' : card.c+'-500'} w-max shadow-sm group-hover:scale-110 transition-transform`}><Icon name={card.i} size={32} /></div>
-                                                {card.tab !== 'overview' && <div className="opacity-0 group-hover:opacity-100 transition-opacity p-2 bg-slate-50 dark:bg-white/5 rounded-xl text-slate-400 border border-slate-200 dark:border-white/10"><Icon name="arrow-up-right" size={16}/></div>}
+                                        <div key={i} className="glass-panel p-6 md:p-8 rounded-[2rem] border border-slate-200/50 dark:border-white/5 relative overflow-hidden shadow-soft">
+                                            <div className="flex justify-between items-start mb-4 relative z-10">
+                                                <div className={`p-3.5 rounded-[1rem] ${card.bg} ${card.c} shadow-sm`}><Icon name={card.i} size={28} /></div>
                                             </div>
-                                            <p className="text-slate-500 text-sm font-bold uppercase tracking-wider mb-2 relative z-10">{card.l}</p>
-                                            <h3 className="text-5xl md:text-6xl font-black text-slate-800 dark:text-white relative z-10">{card.v}</h3>
+                                            <p className="text-slate-500 text-sm font-bold uppercase tracking-wider mb-1 relative z-10">{card.l}</p>
+                                            <h3 className={`text-4xl md:text-5xl font-black text-slate-800 dark:text-white relative z-10 drop-shadow-sm`}>{card.v}</h3>
                                         </div>
                                     ))}
                                 </div>
+
+                                {/* Bar Chart Real-time */}
+                                <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-slate-200/50 dark:border-white/5 shadow-soft">
+                                    <h3 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-3 mb-8">
+                                        <div className="p-2.5 bg-brand/10 text-brand rounded-xl shadow-sm"><Icon name="bar-chart-2" size={20}/></div>
+                                        ยอดขึ้นทะเบียนแยกตามสาขาวิชา (Real-time)
+                                    </h3>
+                                    <div className="w-full h-[350px]">
+                                        {stats.pieData.length === 0 ? (
+                                            <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 dark:bg-white/5 rounded-[1.5rem] border border-dashed border-slate-200 dark:border-white/10">
+                                                <Icon name="inbox" size={48} className="mb-4 opacity-20" />
+                                                <p className="font-semibold">ไม่มีข้อมูลแสดงกราฟ</p>
+                                            </div>
+                                        ) : (
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <BarChart data={stats.pieData.sort((a,b)=>b.value-a.value)} margin={{ top: 20, right: 30, left: 0, bottom: 50 }}>
+                                                    <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} tick={{fill: isDarkMode ? '#cbd5e1' : '#475569', fontSize: 11, fontWeight: 600}} axisLine={false} tickLine={false} />
+                                                    <YAxis axisLine={false} tickLine={false} tick={{fill: isDarkMode ? '#cbd5e1' : '#475569', fontSize: 12, fontWeight: 600}} />
+                                                    <Tooltip cursor={{fill: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}} contentStyle={{ backgroundColor: isDarkMode ? '#18181b' : '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', fontWeight: 'bold' }} />
+                                                    <Bar dataKey="value" radius={[8, 8, 0, 0]} label={{ position: 'top', fill: isDarkMode ? '#fff' : '#0f172a', fontSize: 14, fontWeight: '800' }}>
+                                                        {stats.pieData.map((e, i) => <Cell key={i} fill={stats.COLORS[i % stats.COLORS.length]} />)}
+                                                    </Bar>
+                                                </BarChart>
+                                            </ResponsiveContainer>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Table รายชื่อล่าสุด (Clickable) */}
                                 <div className="glass-panel rounded-[2rem] overflow-hidden border border-slate-200/50 dark:border-white/5 shadow-soft">
                                     <div className="p-6 md:px-8 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex justify-between items-center">
-                                        <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-3"><div className="p-2 bg-brand/10 text-brand rounded-lg shadow-sm"><Icon name="users" size={16}/></div> รายชื่อขึ้นทะเบียนนักศึกษาใหม่</h3>
+                                        <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-3"><Icon name="list" className="text-slate-400" size={18}/> รายชื่ออัปเดตล่าสุด <span className="text-xs bg-slate-200 dark:bg-white/10 px-2 py-1 rounded-md text-slate-500 font-semibold">(คลิกที่รายชื่อเพื่อดู/แก้ไข)</span></h3>
                                     </div>
                                     <div className="overflow-x-auto p-2 custom-scrollbar">
                                         <table className="w-full text-sm text-left min-w-[700px]">
                                             <thead className="text-[11px] text-slate-400 uppercase tracking-widest bg-transparent">
-                                                <tr><th className="px-6 py-3">ชื่อ-นามสกุล</th><th className="px-6 py-3">สาขาวิชา</th><th className="px-6 py-3 text-center">สถานะ</th><th className="px-6 py-3">ข้อมูลติดต่อ</th><th className="px-6 py-3"></th></tr>
+                                                <tr><th className="px-6 py-3">ชื่อ-นามสกุล</th><th className="px-6 py-3">สาขาวิชา</th><th className="px-6 py-3 text-center">สถานะ</th><th className="px-6 py-3">ข้อมูลติดต่อ</th></tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                                                 {(() => {
                                                     const reversedData = [...filteredData].reverse();
-                                                    const itemsPerPage = 20;
-                                                    const totalPages = Math.ceil(reversedData.length / itemsPerPage);
+                                                    const itemsPerPage = 15;
                                                     const indexOfLastItem = currentPage * itemsPerPage;
                                                     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
                                                     const currentItems = reversedData.slice(indexOfFirstItem, indexOfLastItem);
                                                     
-                                                    if (currentItems.length === 0) return <tr><td colSpan="5" className="text-center py-12 text-slate-400 font-medium">ไม่พบข้อมูลที่ค้นหา</td></tr>;
+                                                    if (currentItems.length === 0) return <tr><td colSpan="4" className="text-center py-12 text-slate-400 font-medium">ไม่พบข้อมูลที่ค้นหา</td></tr>;
                                                     
                                                     return currentItems.map((row, i) => {
                                                         const issues = [];
@@ -575,22 +930,15 @@
                                                         const isRisk = issues.length > 0;
                                                         
                                                         return (
-                                                            <tr key={i} className="hover:bg-slate-50/80 dark:hover:bg-white/5 transition-colors group">
-                                                                <td className="px-6 py-4 font-bold text-slate-800 dark:text-slate-200">{row.FullName}</td>
+                                                            <tr key={i} onClick={() => setEditItem({...row, oldStudentID: row.StudentID})} className="hover:bg-slate-50/80 dark:hover:bg-white/5 transition-colors cursor-pointer group">
+                                                                <td className="px-6 py-4 font-bold text-slate-800 dark:text-slate-200 group-hover:text-brand transition-colors">{row.FullName}</td>
                                                                 <td className="px-6 py-4 text-xs font-medium text-slate-500">{row.Major}</td>
                                                                 <td className="px-6 py-4 text-center">
-                                                                    {isRisk ? <span onClick={() => setSelectedSurveillanceStudent({...row, issues})} className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-[10px] font-bold border border-red-200 dark:border-red-500/20 hover:bg-red-100 dark:hover:bg-red-500/30 transition-all shadow-sm btn-interactive"><Icon name="shield-alert" size={12}/> เฝ้าระวัง</span> 
-                                                                            : <span onClick={() => setSelectedSurveillanceStudent({...row, issues})} className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold border border-emerald-200 dark:border-emerald-500/20 hover:bg-emerald-100 dark:hover:bg-emerald-500/30 transition-all shadow-sm btn-interactive"><Icon name="check-circle" size={12}/> ปกติ</span>}
+                                                                    {isRisk ? <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-[10px] font-bold border border-red-200 dark:border-red-500/20 shadow-sm"><Icon name="shield-alert" size={12}/> เฝ้าระวัง</span> 
+                                                                            : <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold border border-emerald-200 dark:border-emerald-500/20 shadow-sm"><Icon name="check-circle" size={12}/> ปกติ</span>}
                                                                 </td>
                                                                 <td className="px-6 py-4 text-xs">
-                                                                    <div className="text-slate-500 dark:text-slate-400 font-semibold flex items-center gap-1.5"><Icon name="user" size={12}/> นศ: {row.StudentPhone || '-'}</div>
-                                                                    <div className="text-red-500 font-bold flex items-center gap-1.5 mt-1"><Icon name="phone-call" size={12}/> ผปค: {row.ParentPhone || '-'}</div>
-                                                                </td>
-                                                                <td className="px-6 py-4 text-right">
-                                                                    <div className="flex justify-end gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                                                                        <button onClick={() => setEditItem({...row, oldStudentID: row.StudentID})} className="p-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-white/10 hover:text-blue-500 hover:border-blue-300 rounded-lg transition-all shadow-sm btn-interactive"><Icon name="edit" size={14}/></button>
-                                                                        <button onClick={() => handleDelete(row.StudentID, row.FullName)} className="p-2 bg-red-50 dark:bg-red-900/30 text-red-500 border border-red-100 dark:border-red-500/20 hover:bg-red-500 hover:text-white rounded-lg transition-all shadow-sm btn-interactive"><Icon name="trash-2" size={14}/></button>
-                                                                    </div>
+                                                                    <div className="text-slate-500 dark:text-slate-400 font-semibold flex items-center gap-1.5"><Icon name="user" size={12}/> {row.StudentPhone || '-'}</div>
                                                                 </td>
                                                             </tr>
                                                         );
@@ -601,13 +949,10 @@
                                     </div>
                                     {filteredData.length > 0 && (
                                         <div className="flex flex-col sm:flex-row justify-between items-center p-5 border-t border-slate-100 dark:border-white/5 gap-4 bg-slate-50/50 dark:bg-transparent">
-                                            <span className="text-xs font-semibold text-slate-500">
-                                                แสดง {((currentPage - 1) * 20) + 1} - {Math.min(currentPage * 20, filteredData.length)} จากทั้งหมด {filteredData.length} รายการ
-                                            </span>
+                                            <span className="text-xs font-semibold text-slate-500">แสดง {((currentPage - 1) * 15) + 1} - {Math.min(currentPage * 15, filteredData.length)} จากทั้งหมด {filteredData.length}</span>
                                             <div className="flex gap-2">
-                                                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-2.5 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-white/10 transition-colors btn-interactive"><Icon name="chevron-left" size={16}/></button>
-                                                <span className="px-4 py-2 rounded-lg font-bold text-sm bg-brand/10 text-brand">หน้า {currentPage} / {Math.ceil(filteredData.length / 20) || 1}</span>
-                                                <button onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredData.length / 20), p + 1))} disabled={currentPage === Math.ceil(filteredData.length / 20) || Math.ceil(filteredData.length / 20) === 0} className="p-2.5 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-white/10 transition-colors btn-interactive"><Icon name="chevron-right" size={16}/></button>
+                                                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-2.5 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors btn-interactive"><Icon name="chevron-left" size={16}/></button>
+                                                <button onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredData.length / 15), p + 1))} disabled={currentPage === Math.ceil(filteredData.length / 15) || Math.ceil(filteredData.length / 15) === 0} className="p-2.5 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors btn-interactive"><Icon name="chevron-right" size={16}/></button>
                                             </div>
                                         </div>
                                     )}
@@ -615,60 +960,51 @@
                             </div>
                         )}
 
-                        {/* --- TAB: MAJORS --- */}
+                        {/* ========================================================= */}
+                        {/* TAB 2: MAJORS (สรุปยอดสาขาวิชา และ คลิกดูรายละเอียด) */}
+                        {/* ========================================================= */}
                         {activeTab === 'majors' && (
                             <div className="grid lg:grid-cols-5 gap-6 animate-fade-in">
                                 {/* Left Side: Chart */}
                                 <div className="lg:col-span-2 glass-panel p-6 md:p-8 rounded-[2rem] border border-slate-200/50 dark:border-white/5 flex flex-col items-center justify-center min-h-[450px] shadow-sm relative overflow-hidden">
                                     <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent to-slate-50/50 dark:to-white/5 pointer-events-none"></div>
                                     <div className="w-full mb-2 text-center relative z-10">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-brand bg-brand/10 px-3 py-1.5 rounded-lg mb-3 inline-block shadow-sm">Demographics</span>
                                         <h3 className="text-2xl font-black text-slate-800 dark:text-white">สัดส่วนสาขาวิชา</h3>
+                                        <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-widest">ข้อมูลแบบจัดกลุ่ม</p>
                                     </div>
-                                    <div className="w-full flex-1 relative min-h-[320px] z-10">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <PieChart>
-                                                <Pie 
-                                                    data={stats.pieData} 
-                                                    innerRadius="70%" 
-                                                    outerRadius="90%" 
-                                                    paddingAngle={6} 
-                                                    dataKey="value" 
-                                                    stroke="none" 
-                                                    cornerRadius={12}
-                                                >
-                                                    {stats.pieData.map((e, i) => <Cell key={i} fill={stats.COLORS[i % stats.COLORS.length]} className="drop-shadow-sm hover:opacity-80 transition-opacity outline-none"/>)}
-                                                </Pie>
-                                                <Tooltip 
-                                                    contentStyle={{ backgroundColor: isDarkMode ? 'rgba(24, 24, 27, 0.95)' : 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }} 
-                                                    itemStyle={{fontWeight: 'bold', color: isDarkMode ? '#fff' : '#1e293b'}}
-                                                    cursor={false}
-                                                />
-                                                <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle">
-                                                    <tspan x="50%" dy="-8" fontSize="56" fill={isDarkMode ? "#fff" : "#0f172a"} fontWeight="900">{stats.total}</tspan>
-                                                    <tspan x="50%" dy="32" fontSize="13" fill="#64748b" fontWeight="bold" className="uppercase tracking-widest">รวมทั้งหมด</tspan>
-                                                </text>
-                                            </PieChart>
-                                        </ResponsiveContainer>
+                                    <div className="w-full flex-1 relative min-h-[320px] z-10 mt-4">
+                                        {stats.pieData.length === 0 ? (
+                                            <div className="w-full h-full flex items-center justify-center text-slate-400">ไม่มีข้อมูล</div>
+                                        ) : (
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <PieChart>
+                                                    <Pie data={stats.pieData} innerRadius="65%" outerRadius="90%" paddingAngle={6} dataKey="value" stroke="none" cornerRadius={12}>
+                                                        {stats.pieData.map((e, i) => <Cell key={i} fill={stats.COLORS[i % stats.COLORS.length]} className="drop-shadow-sm hover:opacity-80 transition-opacity outline-none"/>)}
+                                                    </Pie>
+                                                    <Tooltip contentStyle={{ backgroundColor: isDarkMode ? 'rgba(24, 24, 27, 0.95)' : 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }} itemStyle={{fontWeight: 'bold', color: isDarkMode ? '#fff' : '#1e293b'}} cursor={false} />
+                                                    <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle">
+                                                        <tspan x="50%" dy="-8" fontSize="56" fill={isDarkMode ? "#fff" : "#0f172a"} fontWeight="900">{stats.total}</tspan>
+                                                        <tspan x="50%" dy="32" fontSize="13" fill="#64748b" fontWeight="bold" className="uppercase tracking-widest">รวมทั้งหมด</tspan>
+                                                    </text>
+                                                </PieChart>
+                                            </ResponsiveContainer>
+                                        )}
                                     </div>
                                 </div>
 
-                                {/* Right Side: List of Majors */}
+                                {/* Right Side: Clickable List of Majors */}
                                 <div className="lg:col-span-3 glass-panel p-6 md:p-8 rounded-[2rem] border border-slate-200/50 dark:border-white/5 flex flex-col shadow-sm">
                                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3">
-                                        <div className="flex items-center gap-2.5 text-slate-500 bg-slate-50 dark:bg-white/5 px-4 py-2 rounded-xl border border-slate-100 dark:border-white/5">
+                                        <div className="flex items-center gap-2.5 text-slate-500 bg-slate-50 dark:bg-white/5 px-4 py-2 rounded-xl border border-slate-100 dark:border-white/5 shadow-sm">
                                             <Icon name="mouse-pointer-click" size={18} className="text-brand animate-pulse"/> 
-                                            <span className="text-xs font-bold uppercase tracking-wider">คลิกการ์ดเพื่อดูรายชื่อ</span>
-                                        </div>
-                                        <div className="bg-slate-100 dark:bg-zinc-800 px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 shadow-inner border border-slate-200/50 dark:border-zinc-700">
-                                            พบข้อมูล {stats.pieData.length} สาขา
+                                            <span className="text-xs font-bold uppercase tracking-wider">คลิกการ์ดเพื่อดูรายชื่อนักศึกษา</span>
                                         </div>
                                     </div>
                                     
                                     <div className="flex flex-col gap-3 overflow-y-auto custom-scrollbar flex-1 pr-2 max-h-[420px]">
                                         {stats.pieData.sort((a,b) => b.value - a.value).map((entry, idx) => (
                                             <div key={idx} onClick={() => setSelectedMajor(entry.name)} 
-                                                className="relative p-4 rounded-2xl bg-white dark:bg-zinc-800/80 border border-slate-200/60 dark:border-white/10 hover:border-brand/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:hover:shadow-[0_8px_30px_rgba(255,255,255,0.02)] transition-all duration-300 cursor-pointer overflow-hidden group">
+                                                className="relative p-5 rounded-2xl bg-white dark:bg-zinc-800/80 border border-slate-200/60 dark:border-white/10 hover:border-brand/50 hover:shadow-md transition-all duration-300 cursor-pointer overflow-hidden group btn-interactive">
                                                 
                                                 {/* Subtle Progress Background */}
                                                 <div className="absolute inset-y-0 left-0 opacity-[0.08] dark:opacity-[0.15] transition-all duration-700 ease-out" 
@@ -676,13 +1012,16 @@
                                                 </div>
 
                                                 <div className="relative z-10 flex items-center justify-between gap-4">
-                                                    <div className="flex items-center gap-3.5 overflow-hidden flex-1">
-                                                        <div className="w-4 h-4 rounded-full shrink-0 shadow-sm border-2 border-white dark:border-zinc-800 transition-transform group-hover:scale-110" style={{ backgroundColor: stats.COLORS[idx % stats.COLORS.length] }}></div>
-                                                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate group-hover:text-brand dark:group-hover:text-brandLight transition-colors" title={entry.name}>{entry.name}</span>
+                                                    <div className="flex items-center gap-4 overflow-hidden flex-1">
+                                                        <div className="w-5 h-5 rounded-full shrink-0 shadow-sm border-2 border-white dark:border-zinc-800 transition-transform group-hover:scale-125" style={{ backgroundColor: stats.COLORS[idx % stats.COLORS.length] }}></div>
+                                                        <span className="text-sm md:text-base font-bold text-slate-700 dark:text-slate-200 truncate group-hover:text-brand dark:group-hover:text-brandLight transition-colors" title={entry.name}>{entry.name}</span>
                                                     </div>
-                                                    <div className="flex flex-col items-end shrink-0">
-                                                        <span className="text-xl font-black text-slate-800 dark:text-white leading-none">{entry.value}</span>
-                                                        <span className="text-[10px] font-bold text-slate-400 mt-1.5 uppercase tracking-wider">{stats.total ? ((entry.value / stats.total) * 100).toFixed(1) : 0}%</span>
+                                                    <div className="flex items-center gap-4 shrink-0">
+                                                        <div className="flex flex-col items-end">
+                                                            <span className="text-2xl font-black text-slate-800 dark:text-white leading-none">{entry.value}</span>
+                                                            <span className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-wider">{stats.total ? ((entry.value / stats.total) * 100).toFixed(1) : 0}%</span>
+                                                        </div>
+                                                        <div className="text-slate-300 group-hover:text-brand transition-colors"><Icon name="chevron-right" size={20}/></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -698,109 +1037,69 @@
                             </div>
                         )}
 
-                        {/* --- TAB: DIET --- */}
-                        {activeTab === 'diet' && (
+                        {/* ========================================================= */}
+                        {/* TAB 3: HEALTH & DIET (ข้อมูลสุขภาพและโภชนาการ + กราฟ) */}
+                        {/* ========================================================= */}
+                        {activeTab === 'health_diet' && (
                             <div className="space-y-6 animate-fade-in">
-                                {/* Top KPI Cards */}
+                                {/* Clickable KPI Cards for Drilldown */}
                                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                                     {[ 
-                                        {l:'ฮาลาล', v:stats.dietStats['ฮาลาล'], cBg:'bg-blue-50 dark:bg-blue-500/10', cBorder:'border-blue-100 dark:border-blue-500/20', cText:'text-blue-600 dark:text-blue-400', cNum:'text-blue-700 dark:text-blue-300', ic:'info'},
-                                        {l:'มังสวิรัติ', v:stats.dietStats['มังสวิรัติ'], cBg:'bg-emerald-50 dark:bg-emerald-500/10', cBorder:'border-emerald-100 dark:border-emerald-500/20', cText:'text-emerald-600 dark:text-emerald-400', cNum:'text-emerald-700 dark:text-emerald-300', ic:'leaf'},
-                                        {l:'เจ', v:stats.dietStats['เจ'], cBg:'bg-yellow-50 dark:bg-yellow-500/10', cBorder:'border-yellow-100 dark:border-yellow-500/20', cText:'text-yellow-600 dark:text-yellow-500', cNum:'text-yellow-700 dark:text-yellow-400', ic:'sun'},
-                                        {l:'แพ้อาหาร', v:stats.foodAllergies.length, cBg:'bg-orange-50 dark:bg-orange-500/10', cBorder:'border-orange-100 dark:border-orange-500/20', cText:'text-orange-600 dark:text-orange-400', cNum:'text-orange-700 dark:text-orange-300', ic:'alert-circle'}
+                                        {l:'แพ้อาหาร', v:stats.foodAllergies.length, k:'', t:'food_allergy', cBg:'bg-orange-50 dark:bg-orange-500/10', cText:'text-orange-600 dark:text-orange-400', ic:'alert-triangle', hc:'hover:border-orange-400'},
+                                        {l:'อาหารเฉพาะ (ฮาลาล/เจ/มังฯ)', v:(stats.dietStats['ฮาลาล']+stats.dietStats['เจ']+stats.dietStats['มังสวิรัติ']), k:'', t:'food_alert', cBg:'bg-blue-50 dark:bg-blue-500/10', cText:'text-blue-600 dark:text-blue-400', ic:'utensils', hc:'hover:border-blue-400'},
+                                        {l:'โรคประจำตัว', v:stats.diseases.length, k:'', t:'disease', cBg:'bg-pink-50 dark:bg-pink-500/10', cText:'text-pink-600 dark:text-pink-400', ic:'activity', hc:'hover:border-pink-400'},
+                                        {l:'ประวัติแพ้ยา', v:stats.drugAllergies.length, k:'', t:'drug_allergy', cBg:'bg-purple-50 dark:bg-purple-500/10', cText:'text-purple-600 dark:text-purple-400', ic:'pill', hc:'hover:border-purple-400'}
                                     ].map((kpi, i) => (
-                                        <div key={i} className={`p-6 md:p-8 rounded-[2rem] ${kpi.cBg} border ${kpi.cBorder} flex flex-col relative overflow-hidden shadow-sm`}>
-                                            <div className={`absolute right-4 top-4 opacity-20 ${kpi.cText}`}><Icon name={kpi.ic} size={48}/></div>
-                                            <span className={`font-bold text-base mb-2 ${kpi.cText}`}>{kpi.l}</span>
-                                            <span className={`text-4xl md:text-5xl font-black ${kpi.cNum}`}>{kpi.v} <span className="text-base font-semibold opacity-70">คน</span></span>
+                                        <div key={i} onClick={() => handleDrilldown(kpi.l, kpi.t, kpi.k)} className={`p-6 rounded-[2rem] border border-slate-200/50 dark:border-white/5 ${kpi.cBg} flex flex-col relative overflow-hidden shadow-sm cursor-pointer btn-interactive ${kpi.hc} group transition-all`}>
+                                            <div className={`absolute right-4 top-4 opacity-10 group-hover:opacity-20 transition-opacity group-hover:scale-110 ${kpi.cText}`}><Icon name={kpi.ic} size={64}/></div>
+                                            <span className={`text-xs md:text-sm font-bold mb-2 ${kpi.cText} z-10`}>{kpi.l}</span>
+                                            <div className="flex items-end justify-between z-10">
+                                                <span className={`text-4xl md:text-5xl font-black ${kpi.cText}`}>{kpi.v} <span className="text-base font-semibold opacity-70">คน</span></span>
+                                                <div className={`p-1.5 rounded-lg bg-white/50 dark:bg-black/20 ${kpi.cText} shadow-sm group-hover:bg-white dark:group-hover:bg-white/10`}><Icon name="search" size={16}/></div>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
 
-                                <div className="grid lg:grid-cols-3 gap-6">
-                                    <div className="lg:col-span-2 glass-panel p-6 md:p-8 rounded-[2rem] border border-slate-200/50 dark:border-white/5 min-h-[400px] flex flex-col shadow-soft">
-                                        <h3 className="text-xl font-black mb-8 text-slate-800 dark:text-white flex items-center gap-3">
-                                            <div className="p-3 bg-orange-100 dark:bg-orange-500/20 text-orange-600 rounded-xl shadow-inner"><Icon name="bar-chart-2" size={20}/></div> 
-                                            สถิติโภชนาการและอาหารเฉพาะ
+                                <div className="grid lg:grid-cols-2 gap-6">
+                                    {/* Diet Graph */}
+                                    <div className="glass-panel p-6 md:p-8 rounded-[2rem] border-t-[8px] border-t-orange-500 shadow-soft flex flex-col min-h-[380px]">
+                                        <h3 className="text-xl font-black mb-6 text-slate-800 dark:text-white flex items-center gap-3">
+                                            <div className="p-2.5 bg-orange-100 dark:bg-orange-500/20 text-orange-600 rounded-xl"><Icon name="pie-chart" size={20}/></div> 
+                                            กราฟรายงานด้านโภชนาการ
                                         </h3>
                                         <div className="flex-1 w-full relative">
-                                            {stats.dietStats['ฮาลาล'] === 0 && stats.dietStats['มังสวิรัติ'] === 0 && stats.dietStats['เจ'] === 0 ? (
-                                                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 dark:bg-white/5 rounded-[2rem] border border-dashed border-slate-200 dark:border-white/10">
-                                                    <Icon name="utensils-crossed" size={48} className="mb-4 opacity-20" />
-                                                    <p className="font-semibold">ไม่พบข้อมูลสถิติโภชนาการพิเศษ</p>
-                                                </div>
+                                            {stats.dietStats['ฮาลาล'] === 0 && stats.dietStats['มังสวิรัติ'] === 0 && stats.dietStats['เจ'] === 0 && stats.foodAllergies.length === 0 ? (
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400">ไม่มีข้อมูลโภชนาการพิเศษ</div>
                                             ) : (
                                                 <ResponsiveContainer width="100%" height="100%">
                                                     <BarChart data={[
+                                                        { name: 'แพ้อาหาร', value: stats.foodAllergies.length, fill: '#ea580c' },
                                                         { name: 'ฮาลาล', value: stats.dietStats['ฮาลาล'], fill: '#3b82f6' },
                                                         { name: 'มังสวิรัติ', value: stats.dietStats['มังสวิรัติ'], fill: '#10b981' },
                                                         { name: 'เจ', value: stats.dietStats['เจ'], fill: '#eab308' }
                                                     ]} layout="vertical" margin={{ left: 0, right: 40, bottom: 0, top: 0 }}>
                                                         <XAxis type="number" hide />
-                                                        <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: isDarkMode ? '#cbd5e1' : '#475569', fontSize: 13, fontWeight: 700}} width={90} />
-                                                        <Tooltip cursor={{fill: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}} contentStyle={{ backgroundColor: isDarkMode ? '#18181b' : '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', fontWeight: 'bold' }} />
-                                                        <Bar dataKey="value" radius={[0, 16, 16, 0]} barSize={40} label={{ position: 'right', fill: isDarkMode ? '#fff' : '#0f172a', fontSize: 16, fontWeight: '900' }}>
-                                                            {[{fill: '#3b82f6'}, {fill: '#10b981'}, {fill: '#eab308'}].map((e, i) => <Cell key={i} fill={e.fill} />)}
+                                                        <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: isDarkMode ? '#cbd5e1' : '#475569', fontSize: 13, fontWeight: 700}} width={80} />
+                                                        <Tooltip cursor={{fill: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}} contentStyle={{ backgroundColor: isDarkMode ? '#18181b' : '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', fontWeight: 'bold' }} />
+                                                        <Bar dataKey="value" radius={[0, 16, 16, 0]} barSize={32} label={{ position: 'right', fill: isDarkMode ? '#fff' : '#0f172a', fontSize: 16, fontWeight: '900' }}>
+                                                            {[{fill: '#ea580c'},{fill: '#3b82f6'}, {fill: '#10b981'}, {fill: '#eab308'}].map((e, i) => <Cell key={i} fill={e.fill} />)}
                                                         </Bar>
                                                     </BarChart>
                                                 </ResponsiveContainer>
                                             )}
                                         </div>
                                     </div>
-                                    
-                                    {/* Allergy List */}
-                                    <div className="glass-panel p-6 rounded-[2rem] border-t-8 border-t-orange-500 flex flex-col max-h-[400px] shadow-soft">
-                                        <div className="flex justify-between items-center mb-5">
-                                            <h3 className="font-black text-slate-800 dark:text-white flex items-center gap-2"><Icon name="alert-triangle" className="text-orange-500" size={18}/> รายชื่อแพ้อาหาร</h3>
-                                            <span className="bg-orange-100 dark:bg-orange-500/20 text-orange-600 px-3 py-1 rounded-lg text-xs font-bold shadow-sm">{stats.foodAllergies.length}</span>
-                                        </div>
-                                        <div className="overflow-y-auto custom-scrollbar flex-1 pr-2 space-y-3">
-                                            {stats.foodAllergies.map((row, i) => (
-                                                <div key={i} className="p-4 rounded-2xl bg-orange-50/50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-500/20 text-sm hover:shadow-sm transition-shadow">
-                                                    <div className="font-bold text-slate-800 dark:text-white mb-1.5 truncate">{row.FullName}</div>
-                                                    <div className="text-xs text-orange-600 dark:text-orange-400 font-bold bg-orange-100/50 dark:bg-orange-500/20 px-2.5 py-1 rounded-lg inline-block">แพ้: {row.FoodAllergy}</div>
-                                                </div>
-                                            ))}
-                                            {stats.foodAllergies.length === 0 && (
-                                                <div className="text-center text-slate-400 font-medium py-10">ไม่พบประวัติการแพ้อาหาร</div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
 
-                        {/* --- TAB: HEALTH --- */}
-                        {activeTab === 'health' && (
-                            <div className="space-y-6 animate-fade-in">
-                                {/* Top KPI Cards */}
-                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                                    {[ 
-                                        {l:'โรคประจำตัว', v:stats.diseases.length, cBg:'bg-pink-50 dark:bg-pink-500/10', cBorder:'border-pink-100 dark:border-pink-500/20', cText:'text-pink-600 dark:text-pink-400', cNum:'text-pink-700 dark:text-pink-300', ic:'activity'},
-                                        {l:'แพ้ยา', v:stats.drugAllergies.length, cBg:'bg-purple-50 dark:bg-purple-500/10', cBorder:'border-purple-100 dark:border-purple-500/20', cText:'text-purple-600 dark:text-purple-400', cNum:'text-purple-700 dark:text-purple-300', ic:'pill'},
-                                        {l:'เฝ้าระวังสูงสุด', v:stats.healthAlert, cBg:'bg-red-50 dark:bg-red-500/10', cBorder:'border-red-100 dark:border-red-500/20', cText:'text-red-600 dark:text-red-400', cNum:'text-red-700 dark:text-red-300', ic:'shield-alert'},
-                                        {l:'สุขภาพปกติ', v:stats.total - stats.healthAlert, cBg:'bg-emerald-50 dark:bg-emerald-500/10', cBorder:'border-emerald-100 dark:border-emerald-500/20', cText:'text-emerald-600 dark:text-emerald-400', cNum:'text-emerald-700 dark:text-emerald-300', ic:'check-circle'}
-                                    ].map((kpi, i) => (
-                                        <div key={i} className={`p-6 md:p-8 rounded-[2rem] ${kpi.cBg} border ${kpi.cBorder} flex flex-col relative overflow-hidden shadow-sm`}>
-                                            <div className={`absolute right-4 top-4 opacity-20 ${kpi.cText}`}><Icon name={kpi.ic} size={48}/></div>
-                                            <span className={`font-bold text-base mb-2 ${kpi.cText}`}>{kpi.l}</span>
-                                            <span className={`text-4xl md:text-5xl font-black ${kpi.cNum}`}>{kpi.v} <span className="text-base font-semibold opacity-70">คน</span></span>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="grid lg:grid-cols-3 gap-6">
-                                    <div className="lg:col-span-2 glass-panel p-6 md:p-8 rounded-[2rem] border border-slate-200/50 dark:border-white/5 min-h-[400px] flex flex-col shadow-soft">
-                                        <h3 className="text-xl font-black mb-8 text-slate-800 dark:text-white flex items-center gap-3">
-                                            <div className="p-3 bg-red-100 dark:bg-red-500/20 text-red-600 rounded-xl shadow-inner"><Icon name="heart-pulse" size={20}/></div> 
-                                            สุขภาวะด้านสุขภาพทางการแพทย์
+                                    {/* Health Graph */}
+                                    <div className="glass-panel p-6 md:p-8 rounded-[2rem] border-t-[8px] border-t-pink-500 shadow-soft flex flex-col min-h-[380px]">
+                                        <h3 className="text-xl font-black mb-6 text-slate-800 dark:text-white flex items-center gap-3">
+                                            <div className="p-2.5 bg-pink-100 dark:bg-pink-500/20 text-pink-600 rounded-xl"><Icon name="activity" size={20}/></div> 
+                                            กราฟรายงานด้านการแพทย์
                                         </h3>
                                         <div className="flex-1 w-full relative">
                                             {stats.diseases.length === 0 && stats.drugAllergies.length === 0 ? (
-                                                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 dark:bg-white/5 rounded-[2rem] border border-dashed border-slate-200 dark:border-white/10">
-                                                    <Icon name="shield-check" size={48} className="mb-4 opacity-20 text-emerald-500" />
-                                                    <p className="font-semibold text-emerald-600 dark:text-emerald-400">สุขภาพแข็งแรงทุกคน (ไม่พบข้อมูลความเสี่ยง)</p>
-                                                </div>
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400">ไม่มีข้อมูลความเสี่ยงทางการแพทย์</div>
                                             ) : (
                                                 <ResponsiveContainer width="100%" height="100%">
                                                     <BarChart data={[
@@ -809,8 +1108,8 @@
                                                     ]} layout="vertical" margin={{ left: 0, right: 40, top: 0, bottom: 0 }}>
                                                         <XAxis type="number" hide />
                                                         <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: isDarkMode ? '#cbd5e1' : '#475569', fontSize: 13, fontWeight: 700}} width={100} />
-                                                        <Tooltip cursor={{fill: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}} contentStyle={{ backgroundColor: isDarkMode ? '#18181b' : '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', fontWeight: 'bold' }} />
-                                                        <Bar dataKey="value" radius={[0, 16, 16, 0]} barSize={40} label={{ position: 'right', fill: isDarkMode ? '#fff' : '#0f172a', fontSize: 16, fontWeight: '900' }}>
+                                                        <Tooltip cursor={{fill: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}} contentStyle={{ backgroundColor: isDarkMode ? '#18181b' : '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', fontWeight: 'bold' }} />
+                                                        <Bar dataKey="value" radius={[0, 16, 16, 0]} barSize={32} label={{ position: 'right', fill: isDarkMode ? '#fff' : '#0f172a', fontSize: 16, fontWeight: '900' }}>
                                                             {[{fill: '#ec4899'}, {fill: '#a855f7'}].map((e, i) => <Cell key={i} fill={e.fill} />)}
                                                         </Bar>
                                                     </BarChart>
@@ -818,127 +1117,119 @@
                                             )}
                                         </div>
                                     </div>
-
-                                    {/* High Risk Medical List */}
-                                    <div className="glass-panel p-6 rounded-[2rem] border-t-8 border-t-red-500 flex flex-col max-h-[400px] shadow-soft">
-                                        <div className="flex justify-between items-center mb-5">
-                                            <h3 className="font-black text-slate-800 dark:text-white flex items-center gap-2"><Icon name="activity" className="text-red-500" size={18}/> รายชื่อกลุ่มเปราะบาง</h3>
-                                            <span className="bg-red-100 dark:bg-red-500/20 text-red-600 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm">{stats.diseases.length + stats.drugAllergies.length}</span>
-                                        </div>
-                                        <div className="overflow-y-auto custom-scrollbar flex-1 pr-2 space-y-3">
-                                            {[...stats.diseases, ...stats.drugAllergies].filter((v,i,a)=>a.findIndex(t=>(t.StudentID===v.StudentID))===i).map((row, i) => (
-                                                <div key={i} className="p-4 rounded-2xl bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-500/20 text-sm flex flex-col hover:shadow-sm transition-shadow">
-                                                    <div className="font-bold text-slate-800 dark:text-white mb-2 truncate">{row.FullName}</div>
-                                                    <div className="flex flex-col gap-1.5 mb-3">
-                                                        {row.Disease !== 'ไม่มี' && <span className="text-[10px] bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 px-2.5 py-1 rounded-md font-bold w-max border border-pink-200 dark:border-pink-800/30">โรค: {row.Disease}</span>}
-                                                        {row.DrugAllergy !== 'ไม่แพ้' && <span className="text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2.5 py-1 rounded-md font-bold w-max border border-purple-200 dark:border-purple-800/30">แพ้ยา: {row.DrugAllergy}</span>}
-                                                    </div>
-                                                    <div className="pt-2 border-t border-red-200/50 dark:border-red-500/30 text-[11px] flex flex-col gap-1.5">
-                                                        <div className="flex justify-between text-slate-600 dark:text-slate-400"><span>เบอร์ นศ.</span><span className="font-semibold">{row.StudentPhone}</span></div>
-                                                        <div className="flex justify-between text-red-600 dark:text-red-400"><span>เบอร์ ผปค.</span><span className="font-bold flex items-center gap-1"><Icon name="phone-call" size={10}/> {row.ParentPhone}</span></div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                            {(stats.diseases.length + stats.drugAllergies.length) === 0 && (
-                                                <div className="text-center text-slate-400 font-medium py-10">ไม่พบความเสี่ยงทางการแพทย์</div>
-                                            )}
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         )}
 
-                        {/* --- TAB: SURVEILLANCE --- */}
+                        {/* ========================================================= */}
+                        {/* TAB 4: SURVEILLANCE (กลุ่มเฝ้าระวังพิเศษ + กราฟ + ตาราง) */}
+                        {/* ========================================================= */}
                         {activeTab === 'surveillance' && (
                             <div className="space-y-6 animate-fade-in">
-                                <div className="glass-panel p-6 md:p-8 rounded-[2rem] border-l-8 border-l-red-500 shadow-glow-red relative overflow-hidden bg-gradient-to-r from-white to-red-50/30 dark:from-zinc-900 dark:to-red-950/20">
-                                    <div className="absolute right-0 top-0 opacity-10 text-red-500 pointer-events-none transform translate-x-4 -translate-y-4"><Icon name="shield-alert" size={160} /></div>
-                                    <div className="relative z-10 flex flex-col md:flex-row justify-between md:items-center gap-6">
-                                        <div>
-                                            <h2 className="text-2xl md:text-3xl font-black text-red-600 dark:text-red-400 flex items-center gap-3 mb-2">
-                                                กลุ่มเฝ้าระวังพิเศษ (High Risk)
-                                            </h2>
-                                            <p className="text-slate-600 dark:text-slate-400 font-medium">รายชื่อผู้ที่ต้องการการดูแลโภชนาการหรือสุขภาวะทางการแพทย์เป็นพิเศษ</p>
-                                        </div>
-                                        <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 p-8 md:p-10 rounded-[2rem] text-center shrink-0 shadow-sm min-w-[240px]">
-                                            <div className="text-sm md:text-base font-bold text-red-500 uppercase tracking-widest mb-3">ยอดรวมเฝ้าระวัง</div>
-                                            <div className="text-6xl md:text-7xl font-black text-red-600 dark:text-red-400 leading-none drop-shadow-sm">{stats.surveillanceList.length} <span className="text-2xl md:text-3xl font-bold text-red-400">คน</span></div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {stats.surveillanceList.length > 0 ? (
-                                    <div className="glass-panel rounded-[2rem] overflow-hidden border border-slate-200/50 dark:border-white/5 shadow-soft">
-                                        <div className="overflow-x-auto p-2 custom-scrollbar">
-                                            <table className="w-full text-sm text-left min-w-[700px]">
-                                                <thead className="text-[11px] text-slate-400 uppercase tracking-widest bg-transparent">
-                                                    <tr>
-                                                        <th className="px-6 py-4">ชื่อ-นามสกุล</th>
-                                                        <th className="px-6 py-4">สาขาวิชา</th>
-                                                        <th className="px-6 py-4 text-center">ประเด็นเสี่ยง</th>
-                                                        <th className="px-6 py-4">ข้อมูลติดต่อ</th>
-                                                        <th className="px-6 py-4 text-center">จัดการ</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                                                    {(() => {
-                                                        const itemsPerPage = 10;
-                                                        const totalPages = Math.ceil(stats.surveillanceList.length / itemsPerPage);
-                                                        const indexOfLastItem = currentPage * itemsPerPage;
-                                                        const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-                                                        const currentItems = stats.surveillanceList.slice(indexOfFirstItem, indexOfLastItem);
-                                                        
-                                                        return currentItems.map((row, i) => (
-                                                            <tr key={i} className="hover:bg-slate-50/80 dark:hover:bg-white/5 transition-colors group">
-                                                                <td className="px-6 py-4 font-bold text-slate-800 dark:text-slate-200">{row.FullName}</td>
-                                                                <td className="px-6 py-4 text-xs font-semibold text-slate-500">{row.Major}</td>
-                                                                <td className="px-6 py-4 text-center">
-                                                                    <button onClick={() => setSelectedSurveillanceStudent(row)} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-bold hover:bg-orange-100 dark:hover:bg-orange-500/30 transition-all shadow-sm btn-interactive group-hover:shadow-md">
-                                                                        <Icon name="search" size={14}/>
-                                                                        คลิกดู {row.issues.length} รายการ
-                                                                    </button>
-                                                                </td>
-                                                                <td className="px-6 py-4 text-xs">
-                                                                    <div className="text-slate-500 dark:text-slate-400 font-semibold flex items-center gap-1.5"><Icon name="user" size={12}/> นศ: {row.StudentPhone || '-'}</div>
-                                                                    <div className="text-red-500 font-bold flex items-center gap-1.5 mt-1"><Icon name="phone-call" size={12}/> ผปค: {row.ParentPhone || '-'}</div>
-                                                                </td>
-                                                                <td className="px-6 py-4 text-center">
-                                                                    <button onClick={() => setSelectedSurveillanceStudent(row)} className="px-4 py-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-white/10 hover:border-red-500 hover:text-red-500 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 mx-auto btn-interactive opacity-100 md:opacity-0 md:group-hover:opacity-100">
-                                                                        <Icon name="search" size={14}/> ตรวจสอบ
-                                                                    </button>
-                                                                </td>
-                                                            </tr>
-                                                        ));
-                                                    })()}
-                                                </tbody>
-                                            </table>
+                                <div className="grid lg:grid-cols-3 gap-6">
+                                    {/* Left: Summary & Chart */}
+                                    <div className="lg:col-span-1 flex flex-col gap-6">
+                                        {/* Hero Card */}
+                                        <div className="glass-panel p-8 rounded-[2.5rem] border-l-8 border-l-red-500 shadow-glow-red relative overflow-hidden bg-gradient-to-br from-white to-red-50/50 dark:from-zinc-900 dark:to-red-950/20 text-center">
+                                            <div className="absolute right-0 top-0 opacity-10 text-red-500 transform translate-x-4 -translate-y-4"><Icon name="shield-alert" size={120} /></div>
+                                            <div className="relative z-10">
+                                                <div className="text-sm font-bold text-red-500 uppercase tracking-widest mb-3">ยอดรวมเฝ้าระวังพิเศษ</div>
+                                                <div className="text-7xl font-black text-red-600 dark:text-red-400 leading-none drop-shadow-sm mb-2">{stats.surveillanceList.length}</div>
+                                                <div className="text-sm font-semibold text-slate-500 dark:text-slate-400">จากทั้งหมด {stats.total} คน ({stats.total ? ((stats.surveillanceList.length/stats.total)*100).toFixed(1) : 0}%)</div>
+                                            </div>
                                         </div>
                                         
-                                        {/* Pagination */}
-                                        {stats.surveillanceList.length > 0 && (
-                                            <div className="flex flex-col sm:flex-row justify-between items-center p-5 border-t border-slate-100 dark:border-white/5 gap-4 bg-slate-50/50 dark:bg-transparent">
-                                                <span className="text-xs font-semibold text-slate-500">
-                                                    แสดง {((currentPage - 1) * 10) + 1} - {Math.min(currentPage * 10, stats.surveillanceList.length)} จากทั้งหมด {stats.surveillanceList.length} รายการ
-                                                </span>
-                                                <div className="flex gap-2">
-                                                    <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-2.5 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-white/10 transition-colors btn-interactive"><Icon name="chevron-left" size={16}/></button>
-                                                    <span className="px-4 py-2 rounded-lg font-bold text-sm bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 border border-red-100 dark:border-red-500/20 shadow-sm">หน้า {currentPage} / {Math.ceil(stats.surveillanceList.length / 10) || 1}</span>
-                                                    <button onClick={() => setCurrentPage(p => Math.min(Math.ceil(stats.surveillanceList.length / 10), p + 1))} disabled={currentPage === Math.ceil(stats.surveillanceList.length / 10) || Math.ceil(stats.surveillanceList.length / 10) === 0} className="p-2.5 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-white/10 transition-colors btn-interactive"><Icon name="chevron-right" size={16}/></button>
+                                        {/* Chart: Risk Types */}
+                                        <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border border-slate-200/50 dark:border-white/5 flex-1 shadow-soft flex flex-col">
+                                            <h3 className="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2 mb-4 justify-center"><Icon name="pie-chart" className="text-red-500"/> สัดส่วนประเภทความเสี่ยง</h3>
+                                            <div className="flex-1 w-full min-h-[220px]">
+                                                {stats.surveillancePieData.length === 0 ? (
+                                                    <div className="w-full h-full flex items-center justify-center text-slate-400">ไม่มีข้อมูลเฝ้าระวัง</div>
+                                                ) : (
+                                                    <ResponsiveContainer width="100%" height="100%">
+                                                        <PieChart>
+                                                            <Pie data={stats.surveillancePieData} innerRadius="55%" outerRadius="80%" paddingAngle={4} dataKey="value" stroke="none">
+                                                                {stats.surveillancePieData.map((e, i) => {
+                                                                    // Assign colors based on category name
+                                                                    let color = '#ef4444'; // Default red
+                                                                    if(e.name === 'ด้านโภชนาการ') color = '#f97316'; // orange
+                                                                    if(e.name === 'ความเสี่ยงซ้อน (ทั้งสอง)') color = '#7f1d1d'; // dark red
+                                                                    return <Cell key={i} fill={color} />;
+                                                                })}
+                                                            </Pie>
+                                                            <Tooltip contentStyle={{ backgroundColor: isDarkMode ? '#18181b' : '#fff', border: 'none', borderRadius: '12px' }} itemStyle={{fontWeight: 'bold', color: isDarkMode ? '#fff' : '#1e293b'}} />
+                                                            <Legend verticalAlign="bottom" height={36} wrapperStyle={{fontSize: '12px', fontWeight: 'bold'}}/>
+                                                        </PieChart>
+                                                    </ResponsiveContainer>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Right: Table (Clickable to details) */}
+                                    <div className="lg:col-span-2 glass-panel rounded-[2.5rem] overflow-hidden border border-slate-200/50 dark:border-white/5 shadow-soft flex flex-col">
+                                        <div className="p-6 md:px-8 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex justify-between items-center">
+                                            <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-3"><Icon name="users" className="text-red-500" size={18}/> รายชื่อกลุ่มเฝ้าระวัง <span className="text-xs bg-red-100 dark:bg-red-500/20 text-red-600 px-2 py-1 rounded-md font-semibold">(คลิกแถวเพื่อดูรายละเอียด)</span></h3>
+                                        </div>
+                                        
+                                        {stats.surveillanceList.length > 0 ? (
+                                            <>
+                                                <div className="overflow-x-auto p-2 custom-scrollbar flex-1">
+                                                    <table className="w-full text-sm text-left min-w-[500px]">
+                                                        <thead className="text-[11px] text-slate-400 uppercase tracking-widest bg-transparent">
+                                                            <tr>
+                                                                <th className="px-6 py-4">ชื่อ-นามสกุล</th>
+                                                                <th className="px-6 py-4">สาขาวิชา</th>
+                                                                <th className="px-6 py-4">ประเด็นเสี่ยง</th>
+                                                                <th className="px-6 py-4 text-right"></th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                                                            {(() => {
+                                                                const itemsPerPage = 8;
+                                                                const indexOfLastItem = currentPage * itemsPerPage;
+                                                                const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+                                                                const currentItems = stats.surveillanceList.slice(indexOfFirstItem, indexOfLastItem);
+                                                                
+                                                                return currentItems.map((row, i) => (
+                                                                    <tr key={i} onClick={() => setSelectedSurveillanceStudent(row)} className="hover:bg-red-50/50 dark:hover:bg-red-900/10 transition-colors group cursor-pointer">
+                                                                        <td className="px-6 py-4 font-bold text-slate-800 dark:text-slate-200 group-hover:text-red-600 transition-colors">{row.FullName}</td>
+                                                                        <td className="px-6 py-4 text-xs font-semibold text-slate-500">{row.Major}</td>
+                                                                        <td className="px-6 py-4">
+                                                                            <span className="inline-flex items-center justify-center bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 w-6 h-6 rounded-full text-xs font-bold shadow-sm">{row.issues.length}</span>
+                                                                        </td>
+                                                                        <td className="px-6 py-4 text-right text-slate-300 group-hover:text-red-500 transition-colors">
+                                                                            <Icon name="chevron-right" size={20}/>
+                                                                        </td>
+                                                                    </tr>
+                                                                ));
+                                                            })()}
+                                                        </tbody>
+                                                    </table>
                                                 </div>
+                                                <div className="flex flex-col sm:flex-row justify-between items-center p-5 border-t border-slate-100 dark:border-white/5 gap-4 bg-slate-50/50 dark:bg-transparent">
+                                                    <span className="text-xs font-semibold text-slate-500">แสดง {((currentPage - 1) * 8) + 1} - {Math.min(currentPage * 8, stats.surveillanceList.length)} จาก {stats.surveillanceList.length} รายการ</span>
+                                                    <div className="flex gap-2">
+                                                        <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-2.5 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm disabled:opacity-50 btn-interactive"><Icon name="chevron-left" size={16}/></button>
+                                                        <button onClick={() => setCurrentPage(p => Math.min(Math.ceil(stats.surveillanceList.length / 8), p + 1))} disabled={currentPage === Math.ceil(stats.surveillanceList.length / 8) || Math.ceil(stats.surveillanceList.length / 8) === 0} className="p-2.5 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm disabled:opacity-50 btn-interactive"><Icon name="chevron-right" size={16}/></button>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center text-center p-12 flex-1">
+                                                <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center mb-4"><Icon name="check-circle" size={40}/></div>
+                                                <h3 className="text-xl font-black text-emerald-600 dark:text-emerald-400 mb-2">สุขภาพแข็งแรงทุกคน</h3>
+                                                <p className="text-sm text-slate-500">ไม่พบนักศึกษาในกลุ่มเฝ้าระวังพิเศษ</p>
                                             </div>
                                         )}
                                     </div>
-                                ) : (
-                                    <div className="glass-panel p-12 rounded-[2rem] border border-emerald-200/50 dark:border-emerald-500/20 bg-emerald-50/30 dark:bg-emerald-950/10 flex flex-col items-center justify-center text-center shadow-soft">
-                                        <div className="w-24 h-24 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center mb-6 shadow-inner"><Icon name="check-circle" size={48}/></div>
-                                        <h3 className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mb-2">ยอดเยี่ยม! สุขภาพแข็งแรงทุกคน</h3>
-                                        <p className="text-slate-500 dark:text-slate-400 font-medium">ไม่พบข้อมูลนักศึกษาที่อยู่ในเกณฑ์เฝ้าระวังพิเศษในขณะนี้</p>
-                                    </div>
-                                )}
+                                </div>
                             </div>
                         )}
 
-                        {/* --- TAB: EXECUTIVE REPORT --- */}
+                        {/* ========================================================= */}
+                        {/* TAB 5: EXECUTIVE REPORT (ออกแบบให้สวยงาม คลิกได้) */}
+                        {/* ========================================================= */}
                         {activeTab === 'executive' && (
                             <div className="space-y-6 animate-fade-in">
                                 {/* Hero Summary Section */}
@@ -946,9 +1237,9 @@
                                     <div className="absolute -right-10 -bottom-10 opacity-5 dark:opacity-10 text-brand transform -rotate-12 pointer-events-none"><Icon name="award" size={280} /></div>
                                     <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
                                         <div className="flex-1">
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-brand bg-brand/10 px-3 py-1.5 rounded-lg mb-4 inline-block border border-brand/20 shadow-sm">Executive Summary</span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-brand bg-brand/10 px-3 py-1.5 rounded-lg mb-4 inline-block border border-brand/20 shadow-sm">Executive Report</span>
                                             <h2 className="text-4xl md:text-5xl font-black text-slate-800 dark:text-white tracking-tight mb-4">รายงานสรุปผู้บริหาร</h2>
-                                            <p className="text-slate-600 dark:text-slate-400 text-base font-medium max-w-xl leading-relaxed mb-6">รายงานข้อมูลนักศึกษาใหม่ 69</p>
+                                            <p className="text-slate-600 dark:text-slate-400 text-base font-medium max-w-xl leading-relaxed mb-6">แดชบอร์ดสรุปผลภาพรวมการขึ้นทะเบียนนักศึกษาใหม่ รหัส 69 แบบ Real-time พร้อมการวิเคราะห์ความเสี่ยง</p>
 
                                             {/* Dropdown for filtering by Major */}
                                             <div className="flex items-center gap-3">
@@ -969,12 +1260,14 @@
                                             </div>
                                         </div>
                                         <div className="flex gap-4 shrink-0 mt-6 md:mt-0">
-                                            <div className="bg-white/80 dark:bg-black/40 backdrop-blur-xl p-8 md:p-12 rounded-[2.5rem] border border-white dark:border-white/10 shadow-lg text-center min-w-[280px] md:min-w-[320px] relative overflow-hidden group hover:border-brand/50 transition-colors">
+                                            {/* ทำให้ตัวเลขใหญ่คลิกเพื่อดู List ได้เลย */}
+                                            <div onClick={() => handleDrilldown('นักศึกษาที่ขึ้นทะเบียนทั้งหมด', '', '')} className="bg-white/80 dark:bg-black/40 backdrop-blur-xl p-8 md:p-12 rounded-[2.5rem] border border-white dark:border-white/10 shadow-lg text-center min-w-[280px] md:min-w-[320px] relative overflow-hidden group hover:border-brand/50 transition-all cursor-pointer btn-interactive">
                                                 <div className="absolute inset-0 bg-brand/5 dark:bg-brand/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
+                                                <div className="absolute top-4 right-4 text-brand opacity-0 group-hover:opacity-100 transition-opacity"><Icon name="search" size={20}/></div>
                                                 <div className="relative z-10">
                                                     <p className="text-base md:text-lg font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4">ยอดขึ้นทะเบียนรวม</p>
                                                     <div className="flex items-baseline justify-center gap-3">
-                                                        <span className="text-8xl md:text-9xl font-black text-brand drop-shadow-md">{stats.total}</span>
+                                                        <span className="text-8xl md:text-9xl font-black text-brand drop-shadow-md group-hover:scale-110 transition-transform">{stats.total}</span>
                                                         <span className="text-xl md:text-2xl font-bold text-slate-400">คน</span>
                                                     </div>
                                                 </div>
@@ -995,9 +1288,10 @@
                                                     <div className="p-3 bg-red-100 dark:bg-red-500/20 text-red-600 rounded-xl shadow-inner"><Icon name="ambulance" size={24}/></div> 
                                                     ระเบียบความปลอดภัยการแพทย์
                                                 </h3>
-                                                <div className="text-left sm:text-right bg-red-50 dark:bg-red-900/20 px-5 py-2.5 rounded-xl border border-red-100 dark:border-red-500/20 shadow-sm">
-                                                    <span className="text-sm font-bold text-slate-500 mr-2">เคสเฝ้าระวังทั้งหมด:</span>
+                                                <div onClick={() => handleDrilldown('เฝ้าระวังด้านการแพทย์', 'health_alert', '')} className="cursor-pointer btn-interactive text-left sm:text-right bg-red-50 dark:bg-red-900/20 px-5 py-2.5 rounded-xl border border-red-100 dark:border-red-500/20 shadow-sm hover:shadow-md hover:bg-red-100 transition-colors flex items-center gap-3">
+                                                    <span className="text-sm font-bold text-slate-500">เคสเฝ้าระวังทั้งหมด:</span>
                                                     <span className="text-2xl font-black text-red-600">{stats.healthAlert}</span>
+                                                    <Icon name="search" size={16} className="text-red-500"/>
                                                 </div>
                                             </div>
                                             
@@ -1008,7 +1302,7 @@
                                                 ].map((itm,i) => (
                                                     <div key={i} onClick={() => handleDrilldown(itm.l, itm.t, itm.k)} className={`group cursor-pointer p-6 rounded-2xl bg-white/60 dark:bg-zinc-900/50 border border-slate-200 dark:border-white/10 ${itm.hc} hover:shadow-md transition-all btn-interactive ${i === 0 ? 'sm:col-span-2 bg-red-50/80 dark:bg-red-950/30 border-red-100 dark:border-red-900/50' : ''}`}>
                                                         <div className="flex justify-between items-end mb-4">
-                                                            <span className={`text-sm font-bold text-slate-600 dark:text-slate-300 group-hover:${itm.c.split(' ')[0]} transition-colors`}>{itm.l}</span>
+                                                            <span className={`text-sm font-bold text-slate-600 dark:text-slate-300 group-hover:${itm.c.split(' ')[0]} transition-colors flex items-center gap-1`}><Icon name="search" size={12} className="opacity-0 group-hover:opacity-100 transition-opacity"/> {itm.l}</span>
                                                             <span className={`font-black text-3xl leading-none ${itm.c}`}>{itm.v} <span className="text-xs text-slate-400 font-semibold ml-1">ราย</span></span>
                                                         </div>
                                                         <div className="w-full bg-slate-200/50 dark:bg-white/10 rounded-full h-2.5 overflow-hidden shadow-inner">
@@ -1037,7 +1331,7 @@
                                                 ].map((itm,i) => (
                                                     <div key={i} onClick={() => handleDrilldown(itm.l, itm.t, itm.k)} className={`group cursor-pointer p-6 rounded-2xl bg-white/60 dark:bg-zinc-900/50 border border-slate-200 dark:border-white/10 ${itm.hc} hover:shadow-md transition-all btn-interactive`}>
                                                         <div className="flex justify-between items-end mb-4">
-                                                            <span className={`text-sm font-bold text-slate-600 dark:text-slate-300 group-hover:${itm.c.split(' ')[0]} transition-colors`}>{itm.l}</span>
+                                                            <span className={`text-sm font-bold text-slate-600 dark:text-slate-300 group-hover:${itm.c.split(' ')[0]} transition-colors flex items-center gap-1`}><Icon name="search" size={12} className="opacity-0 group-hover:opacity-100 transition-opacity"/> {itm.l}</span>
                                                             <span className={`font-black text-3xl leading-none ${itm.c}`}>{itm.v} <span className="text-xs text-slate-400 font-semibold ml-1">คน</span></span>
                                                         </div>
                                                         <div className="w-full bg-slate-200/50 dark:bg-white/10 rounded-full h-2.5 overflow-hidden shadow-inner">
@@ -1062,7 +1356,7 @@
                                                 <div onClick={() => handleDrilldown('นักศึกษาปกติ', 'demographics', 'normal')} className="p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/40 dark:to-cyan-900/20 border border-blue-200/50 dark:border-blue-500/30 flex items-center justify-between cursor-pointer hover:shadow-lg hover:from-blue-100 dark:hover:from-blue-800/50 transition-all btn-interactive group relative overflow-hidden">
                                                     <div className="absolute right-0 top-0 opacity-[0.05] text-blue-600 transform translate-x-2 -translate-y-2 pointer-events-none group-hover:scale-110 transition-transform duration-500"><Icon name="graduation-cap" size={110}/></div>
                                                     <div className="flex items-center gap-4 relative z-10">
-                                                        <div className="p-3 bg-white dark:bg-blue-800/80 rounded-xl text-blue-500 shadow-sm group-hover:bg-blue-500 group-hover:text-white transition-colors duration-300"><Icon name="graduation-cap" size={24}/></div>
+                                                        <div className="p-3 bg-white dark:bg-blue-800/80 rounded-xl text-blue-500 shadow-sm group-hover:bg-blue-500 group-hover:text-white transition-colors duration-300"><Icon name="search" size={24}/></div>
                                                         <span className="font-bold text-base md:text-lg text-blue-900 dark:text-blue-100">นักศึกษาปกติ</span>
                                                     </div>
                                                     <span className="text-4xl md:text-5xl font-black text-blue-600 dark:text-blue-400 relative z-10 drop-shadow-sm">{stats.normalCount}</span>
@@ -1071,13 +1365,14 @@
                                                 <div onClick={() => handleDrilldown('นักศึกษาเทียบโอน', 'demographics', 'transfer')} className="p-6 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/40 dark:to-purple-900/20 border border-indigo-200/50 dark:border-indigo-500/30 flex items-center justify-between cursor-pointer hover:shadow-lg hover:from-indigo-100 dark:hover:from-indigo-800/50 transition-all btn-interactive group relative overflow-hidden">
                                                     <div className="absolute right-0 top-0 opacity-[0.05] text-indigo-600 transform translate-x-2 -translate-y-2 pointer-events-none group-hover:scale-110 transition-transform duration-500"><Icon name="refresh-cw" size={110}/></div>
                                                     <div className="flex items-center gap-4 relative z-10">
-                                                        <div className="p-3 bg-white dark:bg-indigo-800/80 rounded-xl text-indigo-500 shadow-sm group-hover:bg-indigo-500 group-hover:text-white transition-colors duration-300"><Icon name="refresh-cw" size={24}/></div>
+                                                        <div className="p-3 bg-white dark:bg-indigo-800/80 rounded-xl text-indigo-500 shadow-sm group-hover:bg-indigo-500 group-hover:text-white transition-colors duration-300"><Icon name="search" size={24}/></div>
                                                         <span className="font-bold text-base md:text-lg text-indigo-900 dark:text-indigo-100">นักศึกษาเทียบโอน</span>
                                                     </div>
                                                     <span className="text-4xl md:text-5xl font-black text-indigo-600 dark:text-indigo-400 relative z-10 drop-shadow-sm">{stats.transferCount}</span>
                                                 </div>
                                             </div>
                                             
+                                            {/* อัตราความเสี่ยงรวม */}
                                             <div className="mt-8 relative p-8 rounded-[2.5rem] bg-gradient-to-br from-slate-50 to-white dark:from-zinc-900/80 dark:to-black border border-slate-200/80 dark:border-white/5 shadow-inner overflow-hidden">
                                                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-red-500/20 blur-[50px] rounded-full pointer-events-none"></div>
                                                 <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-orange-500/20 blur-[50px] rounded-full pointer-events-none"></div>
@@ -1088,8 +1383,8 @@
                                                         <p className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest">อัตราความเสี่ยงรวม</p>
                                                     </div>
 
-                                                    <div className="relative flex items-center justify-center w-48 h-48 mb-8">
-                                                        <svg className="w-full h-full transform -rotate-90 drop-shadow-xl" viewBox="0 0 36 36">
+                                                    <div className="relative flex items-center justify-center w-48 h-48 mb-8 cursor-pointer group btn-interactive" onClick={() => handleDrilldown('กลุ่มเฝ้าระวังพิเศษ (เสี่ยงรวม)', 'health_alert', '')}>
+                                                        <svg className="w-full h-full transform -rotate-90 drop-shadow-xl group-hover:scale-105 transition-transform" viewBox="0 0 36 36">
                                                             <defs>
                                                                 <linearGradient id="riskGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                                                                     <stop offset="0%" stopColor="#ef4444" />
@@ -1099,21 +1394,21 @@
                                                             <path className="text-slate-200/50 dark:text-white/5" strokeWidth="2.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                                                             <path stroke="url(#riskGradient)" className="transition-all duration-1000 ease-out" strokeDasharray={`${stats.total ? (((new Set(stats.surveillanceList.map(s => s.StudentID))).size) / stats.total) * 100 : 0}, 100`} strokeWidth="4" fill="none" strokeLinecap="round" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                                                         </svg>
-                                                        <div className="absolute flex flex-col items-center justify-center text-center bg-white dark:bg-zinc-800 w-32 h-32 rounded-full shadow-lg border border-slate-100 dark:border-white/5 z-10">
+                                                        <div className="absolute flex flex-col items-center justify-center text-center bg-white dark:bg-zinc-800 w-32 h-32 rounded-full shadow-lg border border-slate-100 dark:border-white/5 z-10 group-hover:shadow-xl transition-shadow">
                                                             <span className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-orange-500 drop-shadow-sm">{stats.total ? (((new Set(stats.surveillanceList.map(s => s.StudentID))).size) / stats.total * 100).toFixed(0) : 0}%</span>
-                                                            <span className="text-[10px] font-black text-slate-400 uppercase mt-1 tracking-wider">ต้องการดูแลพิเศษ</span>
+                                                            <span className="text-[10px] font-black text-slate-400 uppercase mt-1 tracking-wider flex items-center gap-1"><Icon name="search" size={10}/> ดูรายชื่อ</span>
                                                         </div>
                                                     </div>
 
                                                     <div className="w-full flex gap-4">
                                                         <div onClick={() => handleDrilldown('เฝ้าระวังด้านการแพทย์', 'health_alert', '')} className="flex-1 bg-white/70 dark:bg-white/5 backdrop-blur-sm border border-slate-200/50 dark:border-white/5 rounded-[1.25rem] p-4 flex flex-col items-center justify-center hover:bg-red-50 dark:hover:bg-red-500/10 hover:border-red-200 dark:hover:border-red-500/30 transition-all btn-interactive cursor-pointer group shadow-sm">
                                                             <Icon name="activity" size={20} className="text-red-500 mb-1.5 group-hover:scale-110 transition-transform"/>
-                                                            <span className="text-[11px] text-slate-500 font-bold uppercase group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">การแพทย์</span>
+                                                            <span className="text-[11px] text-slate-500 font-bold uppercase group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors flex items-center gap-1">แพทย์ <Icon name="search" size={10} className="opacity-0 group-hover:opacity-100"/></span>
                                                             <span className="text-2xl font-black text-red-600 dark:text-red-400 leading-none mt-1.5">{stats.healthAlert}</span>
                                                         </div>
                                                         <div onClick={() => handleDrilldown('เฝ้าระวังด้านโภชนาการ', 'food_alert', '')} className="flex-1 bg-white/70 dark:bg-white/5 backdrop-blur-sm border border-slate-200/50 dark:border-white/5 rounded-[1.25rem] p-4 flex flex-col items-center justify-center hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:border-orange-200 dark:hover:border-orange-500/30 transition-all btn-interactive cursor-pointer group shadow-sm">
                                                             <Icon name="pizza" size={20} className="text-orange-500 mb-1.5 group-hover:scale-110 transition-transform"/>
-                                                            <span className="text-[11px] text-slate-500 font-bold uppercase group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">โภชนาการ</span>
+                                                            <span className="text-[11px] text-slate-500 font-bold uppercase group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors flex items-center gap-1">อาหาร <Icon name="search" size={10} className="opacity-0 group-hover:opacity-100"/></span>
                                                             <span className="text-2xl font-black text-orange-600 dark:text-orange-400 leading-none mt-1.5">{stats.foodAlert}</span>
                                                         </div>
                                                     </div>
@@ -1130,14 +1425,14 @@
                         MODALS SECTION (ป๊อปอัปทั้งหมด)
                     ========================================== */}
                     
-                    {/* Drilldown Modal (ป๊อปอัปรายงานผู้บริหาร) */}
+                    {/* Drilldown Modal (ป๊อปอัปรายงานผู้บริหาร / แสดงรายชื่อ) */}
                     {drilldownData.list.length > 0 && (
                         <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 dark:bg-black/90 backdrop-blur-lg animate-fade-in">
                             <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 p-6 md:p-8 rounded-[2.5rem] w-full max-w-5xl max-h-[90vh] flex flex-col shadow-[0_20px_60px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.8)] animate-slide-up text-left overflow-hidden">
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 shrink-0">
                                     <div>
                                         <h3 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white flex items-center gap-3">
-                                            <div className={`p-3 rounded-2xl text-white shadow-md ${drilldownData.type.includes('diet') || drilldownData.type.includes('food') ? 'bg-orange-500 shadow-glow-brand' : drilldownData.type === 'demographics' ? 'bg-blue-500' : 'bg-red-500 shadow-glow-red'}`}><Icon name="users" size={24}/></div>
+                                            <div className={`p-3 rounded-2xl text-white shadow-md ${drilldownData.type.includes('diet') || drilldownData.type.includes('food') ? 'bg-orange-500 shadow-glow-brand' : drilldownData.type === 'demographics' ? 'bg-blue-500' : drilldownData.title.includes('ทั้งหมด') ? 'bg-brand shadow-glow-brand' : 'bg-red-500 shadow-glow-red'}`}><Icon name="users" size={24}/></div>
                                             {drilldownData.title}
                                         </h3>
                                         <p className="text-sm font-semibold text-slate-500 mt-3">พบข้อมูลทั้งหมด <span className="text-brand font-black text-base bg-brand/10 px-2 py-0.5 rounded-md">{drilldownData.list.length}</span> รายการ</p>
@@ -1150,7 +1445,7 @@
                                             <tr>
                                                 <th className="px-6 py-5 rounded-l-xl font-black">ชื่อ-นามสกุล</th>
                                                 <th className="px-6 py-5 font-black">สาขาวิชา</th>
-                                                {drilldownData.type !== 'demographics' && <th className="px-6 py-5 font-black">เงื่อนไข/อาการ</th>}
+                                                {drilldownData.type !== 'demographics' && drilldownData.title !== 'นักศึกษาที่ขึ้นทะเบียนทั้งหมด' && <th className="px-6 py-5 font-black">เงื่อนไข/อาการ</th>}
                                                 <th className="px-6 py-5 rounded-r-xl font-black">เบอร์ติดต่อ</th>
                                             </tr>
                                         </thead>
@@ -1159,10 +1454,10 @@
                                                 <tr key={idx} className="hover:bg-slate-50/80 dark:hover:bg-white/5 transition-colors">
                                                     <td className="px-6 py-5 font-bold text-slate-800 dark:text-white">{row.FullName}</td>
                                                     <td className="px-6 py-5 text-xs font-semibold text-slate-600 dark:text-slate-400">{row.Major}</td>
-                                                    {drilldownData.type !== 'demographics' && (
+                                                    {drilldownData.type !== 'demographics' && drilldownData.title !== 'นักศึกษาที่ขึ้นทะเบียนทั้งหมด' && (
                                                         <td className="px-6 py-5">
                                                             <div className="flex flex-col gap-2">
-                                                                {row.FoodAllergy !== 'ไม่แพ้' && (!drilldownData.type || drilldownData.type === 'food_allergy' || drilldownData.type === 'food_alert') && <span className="text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-900/40 px-3 py-1.5 rounded-lg text-xs font-bold w-max border border-orange-200 dark:border-orange-800/50">แพ้: {row.FoodAllergy}</span>}
+                                                                {row.FoodAllergy !== 'ไม่แพ้' && (!drilldownData.type || drilldownData.type === 'food_allergy' || drilldownData.type === 'food_alert' || drilldownData.type === 'health_alert') && <span className="text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-900/40 px-3 py-1.5 rounded-lg text-xs font-bold w-max border border-orange-200 dark:border-orange-800/50">แพ้: {row.FoodAllergy}</span>}
                                                                 {row.SpecificDiet !== 'ไม่มี' && (!drilldownData.type || drilldownData.type === 'religion_diet' || drilldownData.type === 'food_alert') && <span className="text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/40 px-3 py-1.5 rounded-lg text-xs font-bold w-max border border-blue-200 dark:border-blue-800/50">อาหาร: {row.SpecificDiet}</span>}
                                                                 {row.Disease !== 'ไม่มี' && (!drilldownData.type || drilldownData.type === 'disease' || drilldownData.type === 'health_alert') && <span className="text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-900/40 px-3 py-1.5 rounded-lg text-xs font-bold w-max border border-purple-200 dark:border-purple-800/50">โรค: {row.Disease}</span>}
                                                                 {row.DrugAllergy !== 'ไม่แพ้' && (!drilldownData.type || drilldownData.type === 'drug_allergy' || drilldownData.type === 'health_alert') && <span className="text-pink-700 dark:text-pink-300 bg-pink-100 dark:bg-pink-900/40 px-3 py-1.5 rounded-lg text-xs font-bold w-max border border-pink-200 dark:border-pink-800/50">แพ้ยา: {row.DrugAllergy}</span>}
@@ -1239,7 +1534,7 @@
                         );
                     })()}
 
-                    {/* Majors Modal */}
+                    {/* Majors Modal (เมื่อคลิกจาก Pie Chart) */}
                     {selectedMajor && (
                         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 dark:bg-black/90 backdrop-blur-lg animate-fade-in">
                             <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 p-6 md:p-8 rounded-[2.5rem] w-full max-w-4xl max-h-[90vh] flex flex-col shadow-[0_20px_60px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.8)] animate-slide-up text-left overflow-hidden">
@@ -1289,12 +1584,16 @@
                                 </div>
                                 <form onSubmit={handleSaveEdit} className="space-y-5 overflow-y-auto flex-1 custom-scrollbar pr-2 pb-4">
                                     <div className="p-5 md:p-6 bg-slate-50/80 dark:bg-black/20 rounded-3xl border border-slate-200/60 dark:border-white/5 space-y-4 shadow-inner">
-                                        <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">ชื่อ-นามสกุล</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-bold shadow-sm" value={editItem.FullName} onChange={e => setEditItem({...editItem, FullName: e.target.value})}/></div>
+                                        <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">ชื่อ-นามสกุล (ระบุคำนำหน้า)</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-bold shadow-sm" value={editItem.FullName} onChange={e => setEditItem({...editItem, FullName: e.target.value})}/></div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">รหัสนักศึกษา</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-mono shadow-sm" inputMode="numeric" value={editItem.StudentID} onChange={e => setEditItem({...editItem, StudentID: e.target.value})}/></div>
                                             <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">Thai ID</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-mono shadow-sm" maxLength="13" pattern="[0-9]{13}" inputMode="numeric" value={editItem.IDCard || ''} onChange={e => setEditItem({...editItem, IDCard: e.target.value.replace(/\D/g, '')})}/></div>
                                         </div>
                                         <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">สาขาวิชา</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm" value={editItem.Major} onChange={e => setEditItem({...editItem, Major: e.target.value})}/></div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">ศาสนา</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm" value={editItem.Religion || ''} onChange={e => setEditItem({...editItem, Religion: e.target.value})}/></div>
+                                            <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">กรุ๊ปเลือด</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm" value={editItem.BloodGroup || ''} onChange={e => setEditItem({...editItem, BloodGroup: e.target.value})}/></div>
+                                        </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">เบอร์ นศ.</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-mono shadow-sm" maxLength="10" pattern="[0-9]{10}" inputMode="numeric" value={editItem.StudentPhone} onChange={e => setEditItem({...editItem, StudentPhone: e.target.value.replace(/\D/g, '')})}/></div>
                                             <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">เบอร์ ผปค.</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-mono shadow-sm" maxLength="10" pattern="[0-9]{10}" inputMode="numeric" value={editItem.ParentPhone} onChange={e => setEditItem({...editItem, ParentPhone: e.target.value.replace(/\D/g, '')})}/></div>
@@ -1319,402 +1618,74 @@
                     )}
                 </div>
             );
-        };
+        }
 
-        // Main App Component (หน้าฟอร์มลงทะเบียน)
-        const App = () => {
-            const [isAdmin, setIsAdmin] = useState(false);
-            const [agreedPDPA, setAgreedPDPA] = useState(false);
+        // ==========================================
+        // 🚀 Main App Component
+        // ==========================================
+        function App() {
             const [isDarkMode, setIsDarkMode] = useState(false);
-            const [publicTab, setPublicTab] = useState('register'); // 'register' or 'check'
             
-            const [publicData, setPublicData] = useState([]);
-            const [loadingPublic, setLoadingPublic] = useState(false);
-            const [searchPublic, setSearchPublic] = useState('');
-            const [publicPage, setPublicPage] = useState(1);
-            const [isSubmitting, setIsSubmitting] = useState(false); // เพิ่ม state ป้องกันการกดซ้ำ
+            // View State: 'pdpa' -> 'register' -> 'success', 'admin'
+            const [currentView, setCurrentView] = useState('pdpa'); 
+            
+            useEffect(() => {
+                // ตรวจสอบ Dark Mode จากระบบ (เช่น สลับธีมใน OS)
+                const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                setIsDarkMode(isDark);
+            }, []);
 
             useEffect(() => {
-                const theme = document.getElementById('swal-theme');
+                // อัปเดตคลาส dark ไปที่ <html> tag ของ Tailwind CSS
                 if (isDarkMode) {
                     document.documentElement.classList.add('dark');
-                    if(theme) theme.href = "https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css";
                 } else {
                     document.documentElement.classList.remove('dark');
-                    if(theme) theme.href = "https://cdn.jsdelivr.net/npm/@sweetalert2/theme-default@4/default.css";
                 }
             }, [isDarkMode]);
 
-            const [studentId, setStudentId] = useState(''); const [idCard, setIdCard] = useState(''); const [fullName, setFullName] = useState('');
-            const [major, setMajor] = useState(''); const [studentPhone, setStudentPhone] = useState(''); const [parentPhone, setParentPhone] = useState('');
-            const [religion, setReligion] = useState(''); const [bloodGroup, setBloodGroup] = useState(''); const [bloodGroupOther, setBloodGroupOther] = useState('');
-            const [foodAllergy, setFoodAllergy] = useState('ไม่แพ้'); const [foodDetail, setFoodDetail] = useState('');
-            const [specificDiet, setSpecificDiet] = useState('ไม่มี'); const [specificDietDetail, setSpecificDietDetail] = useState('');
-            const [disease, setDisease] = useState('ไม่มี'); const [diseaseDetail, setDiseaseDetail] = useState('');
-            const [drugAllergy, setDrugAllergy] = useState('ไม่แพ้'); const [drugDetail, setDrugDetail] = useState('');
-
-            const handleAdminLogin = () => {
-                if(isAdmin) { setIsAdmin(false); return; }
-                Swal.fire({ title: 'เข้าสู่ระบบจัดการ', input: 'password', inputPlaceholder: 'รหัสผ่าน', showCancelButton: true, confirmButtonText: 'เข้าสู่ระบบ', confirmButtonColor: '#ff6600', background: isDarkMode?'#18181b':'#ffffff', color: isDarkMode?'#f8fafc':'#0f172a', customClass:{popup:'rounded-[2rem]', confirmButton:'rounded-xl font-bold px-6 py-3', cancelButton:'rounded-xl font-bold px-6 py-3 bg-slate-200 text-slate-700 hover:bg-slate-300'} }).then((r) => {
-                    if (r.value === '000000') { setIsAdmin(true); }
-                    else if (r.value) Swal.fire({ icon: 'error', title: 'รหัสผ่านไม่ถูกต้อง', background: isDarkMode?'#18181b':'#ffffff', color: isDarkMode?'#f8fafc':'#0f172a', customClass:{popup:'rounded-[2rem]', confirmButton:'rounded-xl font-bold px-8'} });
-                });
-            };
-
-            const resetForm = () => {
-                setStudentId(''); setIdCard(''); setFullName(''); setMajor(''); setStudentPhone(''); setParentPhone('');
-                setReligion(''); setBloodGroup(''); setBloodGroupOther(''); setFoodAllergy('ไม่แพ้'); setFoodDetail(''); 
-                setSpecificDiet('ไม่มี'); setSpecificDietDetail(''); setDisease('ไม่มี'); setDiseaseDetail(''); setDrugAllergy('ไม่แพ้'); setDrugDetail('');
-            };
-
-            const loadPublicData = () => {
-                setLoadingPublic(true);
-                Papa.parse(`${SHEET_CSV_URL}&_cb=${new Date().getTime()}`, {
-                    download: true, header: true,
-                    complete: (res) => {
-                        const validData = res.data.filter(row => row.StudentID).map(r => ({
-                            ...r, Major: cleanMajor(r.Major)
-                        })).reverse();
-                        setPublicData(validData);
-                        setLoadingPublic(false);
-                    },
-                    error: () => {
-                        setLoadingPublic(false);
-                    }
-                });
-            };
-
-            useEffect(() => {
-                if (publicTab === 'check' && publicData.length === 0) {
-                    loadPublicData();
-                }
-            }, [publicTab]);
-
-            const maskIDCard = (id) => {
-                if (!id) return '-';
-                const str = String(id);
-                if (str.length <= 3) return str;
-                return str.substring(0, 3) + 'X'.repeat(Math.max(0, str.length - 3));
-            };
-
-            const publicFilteredData = useMemo(() => {
-                if (!searchPublic) return publicData;
-                const s = searchPublic.toLowerCase();
-                return publicData.filter(r => 
-                    (r.FullName || '').toLowerCase().includes(s) ||
-                    (r.StudentID || '').toLowerCase().includes(s) ||
-                    (r.Major || '').toLowerCase().includes(s)
-                );
-            }, [publicData, searchPublic]);
-
-            const handleSubmit = (e) => {
-                e.preventDefault();
-                
-                // ตรวจสอบความถูกต้องของ Thai ID 13 หลัก
-                if (idCard.length !== 13) {
-                    Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ถูกต้อง', text: 'กรุณาระบุ Thai ID (เลขประจำตัวประชาชน) ให้ครบ 13 หลัก', confirmButtonColor: '#ff6600', background: isDarkMode?'#18181b':'#ffffff', color: isDarkMode?'#f8fafc':'#0f172a', customClass:{popup:'rounded-[2rem]', confirmButton:'rounded-xl font-bold px-8 py-3'} });
-                    return;
-                }
-
-                // ตรวจสอบความถูกต้องของเบอร์โทรศัพท์ 10 หลัก
-                if (studentPhone.length !== 10) {
-                    Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ถูกต้อง', text: 'กรุณาระบุเบอร์โทรศัพท์นักศึกษาให้ครบ 10 หลัก', confirmButtonColor: '#ff6600', background: isDarkMode?'#18181b':'#ffffff', color: isDarkMode?'#f8fafc':'#0f172a', customClass:{popup:'rounded-[2rem]', confirmButton:'rounded-xl font-bold px-8 py-3'} });
-                    return;
-                }
-                if (parentPhone.length !== 10) {
-                    Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ถูกต้อง', text: 'กรุณาระบุเบอร์โทรศัพท์ผู้ปกครองให้ครบ 10 หลัก', confirmButtonColor: '#ff6600', background: isDarkMode?'#18181b':'#ffffff', color: isDarkMode?'#f8fafc':'#0f172a', customClass:{popup:'rounded-[2rem]', confirmButton:'rounded-xl font-bold px-8 py-3'} });
-                    return;
-                }
-
-                setIsSubmitting(true); // ป้องกันกดเบิ้ล
-                const payload = {
-                    StudentID: studentId, IDCard: idCard, FullName: fullName, Major: major, StudentPhone: studentPhone, ParentPhone: parentPhone,
-                    Religion: religion || 'ไม่ระบุ', BloodGroup: bloodGroup === 'อื่นๆ' ? bloodGroupOther || 'อื่นๆ' : bloodGroup || 'ไม่ระบุ',
-                    FoodAllergy: foodAllergy === 'ไม่แพ้' ? 'ไม่แพ้' : foodDetail || 'แพ้', SpecificDiet: specificDiet === 'ไม่มี' ? 'ไม่มี' : specificDietDetail || 'มี',
-                    Disease: disease === 'ไม่มี' ? 'ไม่มี' : diseaseDetail || 'มี', DrugAllergy: drugAllergy === 'ไม่แพ้' ? 'ไม่แพ้' : drugDetail || 'แพ้'
-                };
-                Swal.fire({ title: 'กำลังบันทึกข้อมูล...', text: 'กรุณารอสักครู่ ระบบกำลังจัดส่งข้อมูล', allowOutsideClick: false, didOpen: () => Swal.showLoading(), background: isDarkMode?'#18181b':'#ffffff', color: isDarkMode?'#f8fafc':'#0f172a', customClass:{popup:'rounded-[2rem]'} });
-                submitToAPI('register', payload).then(res => {
-                    setIsSubmitting(false);
-                    if(res.success) { Swal.fire({ icon: 'success', title: 'ลงทะเบียนสำเร็จ!', text: 'ยินดีต้อนรับเข้าสู่กิจกรรม', confirmButtonColor: '#ff6600', background: isDarkMode?'#18181b':'#ffffff', color: isDarkMode?'#f8fafc':'#0f172a', customClass:{popup:'rounded-[2rem]', confirmButton:'rounded-xl font-bold px-8 py-3'} }); resetForm(); }
-                    else throw new Error(res.message);
-                }).catch(err => {
-                    setIsSubmitting(false);
-                    Swal.fire({icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message, confirmButtonColor: '#ff6600', background: isDarkMode?'#18181b':'#ffffff', color: isDarkMode?'#f8fafc':'#0f172a', customClass:{popup:'rounded-[2rem]', confirmButton:'rounded-xl font-bold px-8 py-3'}});
-                });
-            };
-
             return (
-                <div className={`light-mode min-h-screen transition-colors duration-500 ${isDarkMode ? 'dark bg-darkBg text-white' : 'bg-lightBg text-slate-900'}`}>
+                <div className="min-h-screen p-4 md:p-6 transition-colors duration-300">
                     
-                    {/* Header */}
-                    <header className="glass-panel px-5 md:px-8 py-4 flex justify-between items-center z-30 sticky top-0 no-print shadow-sm border-b-0">
-                        <h1 className="text-lg md:text-2xl font-black flex items-center gap-3">
-                            <div className="p-2 md:p-2.5 bg-brand rounded-xl md:rounded-2xl text-white shadow-glow-brand transform hover:scale-105 transition-transform"><Icon name="box" size={20}/></div>
-                            <span className="tracking-tight hidden sm:block">DIGIT <span className="brand-text-gradient">.69</span></span>
-                            <span className="tracking-tight sm:hidden">DIGIT <span className="brand-text-gradient">.69</span></span>
-                        </h1>
-                        <div className="flex items-center gap-3">
-                            <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2.5 md:p-3 rounded-xl md:rounded-2xl bg-white/50 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 transition-colors btn-interactive shadow-sm border border-slate-200 dark:border-white/10"><Icon name={isDarkMode ? "sun" : "moon"} size={18} className={isDarkMode ? 'text-yellow-400' : 'text-slate-600'}/></button>
-                            <button onClick={handleAdminLogin} className="flex items-center gap-2 px-5 py-2.5 md:py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl md:rounded-2xl font-bold text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all btn-interactive">
-                                <Icon name={isAdmin ? "log-out" : "shield-check"} size={16}/> <span className="hidden sm:inline">{isAdmin ? "ออกจากระบบ" : "เข้าสู่ระบบจัดการ"}</span>
-                            </button>
-                        </div>
-                    </header>
+                    {/* View Router */}
+                    {currentView === 'pdpa' && (
+                        <PdpaModal 
+                            onAccept={() => setCurrentView('register')} 
+                            onAdminClick={() => setCurrentView('admin')} 
+                            isDarkMode={isDarkMode} 
+                        />
+                    )}
+                    
+                    {currentView === 'register' && (
+                        <RegistrationForm 
+                            onBack={() => setCurrentView('pdpa')} 
+                            onSuccess={() => setCurrentView('success')} 
+                            isDarkMode={isDarkMode} 
+                        />
+                    )}
 
-                    <div className="flex h-[calc(100vh-76px)] md:h-[calc(100vh-84px)] overflow-hidden relative z-10">
-                        {/* PDPA Modal will only show if user hasn't agreed, isn't admin, and is in the 'register' tab */}
-                        {!agreedPDPA && !isAdmin && publicTab === 'register' && <PdpaModal onAccept={() => setAgreedPDPA(true)} isDarkMode={isDarkMode} />}
-                        
-                        <div className="flex-1 flex flex-col h-full overflow-hidden relative w-full">
+                    {currentView === 'success' && (
+                        <SuccessView 
+                            onHome={() => setCurrentView('pdpa')} 
+                            isDarkMode={isDarkMode} 
+                        />
+                    )}
 
-                            {/* Main Scrollable Area */}
-                            <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
-                                <div className="max-w-7xl mx-auto h-full pb-12">
-                                    {isAdmin ? <AdminDashboard goBack={() => setIsAdmin(false)} isDarkMode={isDarkMode} /> : (
-                                        <>
-                                            {/* Public Toggle Tabs */}
-                                            <div className="max-w-md mx-auto mb-6 md:mb-8 bg-white/60 dark:bg-black/40 p-1.5 rounded-2xl border border-slate-200/80 dark:border-white/10 flex backdrop-blur-xl relative z-10 animate-fade-in shadow-sm">
-                                                <button onClick={() => setPublicTab('register')} className={`flex-1 py-3.5 px-4 rounded-[0.85rem] text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 ${publicTab === 'register' ? 'bg-white dark:bg-zinc-800 text-brand shadow-sm scale-100' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white btn-interactive scale-95 hover:scale-100 hover:bg-white/30 dark:hover:bg-white/5'}`}>
-                                                    <Icon name="user-plus" size={18}/> ลงทะเบียน
-                                                </button>
-                                                <button onClick={() => { setPublicTab('check'); setPublicPage(1); }} className={`flex-1 py-3.5 px-4 rounded-[0.85rem] text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 ${publicTab === 'check' ? 'bg-white dark:bg-zinc-800 text-brand shadow-sm scale-100' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white btn-interactive scale-95 hover:scale-100 hover:bg-white/30 dark:hover:bg-white/5'}`}>
-                                                    <Icon name="search" size={18}/> ตรวจสอบรายชื่อ
-                                                </button>
-                                            </div>
+                    {currentView === 'admin' && (
+                        <AdminDashboard 
+                            goBack={() => setCurrentView('pdpa')} 
+                            isDarkMode={isDarkMode} 
+                        />
+                    )}
 
-                                            {publicTab === 'register' ? (
-                                                <div className="max-w-3xl mx-auto glass-panel p-6 md:p-12 rounded-[2.5rem] border border-white/40 dark:border-white/10 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] relative overflow-hidden mt-2 animate-fade-in">
-                                                    {/* Decorative Top Line */}
-                                                    <div className="absolute top-0 left-0 right-0 h-2.5 brand-gradient opacity-90"></div>
-
-                                                    <div className="mb-12 text-center relative">
-                                                        <div className="w-24 h-24 bg-brand/10 dark:bg-brand/20 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-glow-brand transform rotate-3 hover:rotate-6 transition-transform duration-500"><Icon name="user-plus" size={40} className="text-brand -rotate-3"/></div>
-                                                        <h2 className="text-3xl md:text-4xl font-black mb-3 tracking-tight text-slate-800 dark:text-white">ขึ้นทะเบียนนักศึกษาใหม่</h2>
-                                                        <p className="text-slate-500 dark:text-slate-400 font-medium text-sm md:text-base px-4">กรุณากรอกข้อมูลส่วนบุคคลและข้อมูลสุขภาวะตามความเป็นจริง เพื่อการดูแลอย่างมีประสิทธิภาพ</p>
-                                                    </div>
-
-                                                    <form onSubmit={handleSubmit} className="space-y-8">
-                                                        {/* Section 1: Personal Info */}
-                                                        <div className="bg-white/50 dark:bg-black/20 p-6 md:p-8 rounded-[2rem] shadow-sm border border-slate-200/60 dark:border-white/5">
-                                                            <SectionHeader icon="user" title="ข้อมูลส่วนตัวเบื้องต้น" colorClass="bg-brand/10 text-brand" />
-                                                            
-                                                            <div className="space-y-6">
-                                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
-                                                                    <div>
-                                                                        <label className="block text-sm font-bold mb-2.5 text-slate-700 dark:text-slate-300">รหัสนักศึกษา <span className="text-red-500">*</span></label>
-                                                                        <input type="text" required maxLength="9" inputMode="numeric" placeholder="Ex. 66xxxxxxx" className="w-full input-modern rounded-xl px-4 py-4 font-mono text-sm shadow-sm" value={studentId} onChange={e => setStudentId(e.target.value)} />
-                                                                    </div>
-                                                                    <div>
-                                                                        <label className="block text-sm font-bold mb-1 text-slate-700 dark:text-slate-300">Thai ID (เลขประจำตัวประชาชน) <span className="text-red-500">*</span></label>
-                                                                        <p className="text-[11px] text-brand mb-2.5 font-semibold">* สำหรับเชื่อมข้อมูลส่วนตัวเบื้องต้น</p>
-                                                                        <div className="relative">
-                                                                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400"><Icon name="credit-card" size={18}/></div>
-                                                                            <input type="text" required maxLength="13" pattern="[0-9]{13}" inputMode="numeric" placeholder="เลข 13 หลัก" className="w-full input-modern rounded-xl pl-11 pr-4 py-4 font-mono text-sm shadow-sm" value={idCard} onChange={e => setIdCard(e.target.value.replace(/\D/g, ''))} />
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div>
-                                                                    <label className="block text-sm font-bold mb-2.5 text-slate-700 dark:text-slate-300">ชื่อ - นามสกุล (ระบุคำนำหน้า) <span className="text-red-500">*</span></label>
-                                                                    <input type="text" required placeholder="นาย / นางสาว..." className="w-full input-modern rounded-xl px-4 py-4 text-sm shadow-sm" value={fullName} onChange={e => setFullName(e.target.value)} />
-                                                                </div>
-                                                                
-                                                                <div>
-                                                                    <label className="block text-sm font-bold mb-2.5 text-slate-700 dark:text-slate-300">สาขาวิชา <span className="text-red-500">*</span></label>
-                                                                    <div className="relative group">
-                                                                        <select required className="w-full input-modern rounded-xl px-4 py-4 appearance-none bg-transparent relative z-10 cursor-pointer font-bold text-sm shadow-sm group-hover:border-brand/50 transition-colors" value={major} onChange={e => setMajor(e.target.value)}>
-                                                                            <option value="" disabled className="text-slate-400">-- เลือกสาขาวิชา --</option>
-                                                                            {MAJOR_LIST.map(m => <option key={m} value={m} className="dark:bg-zinc-800">{m}</option>)}
-                                                                        </select>
-                                                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-brand z-0 group-hover:translate-y-0 transition-transform"><Icon name="chevron-down" size={20}/></div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6 pt-6 border-t border-slate-200/80 dark:border-white/10">
-                                                                    <div>
-                                                                        <label className="block text-sm font-bold mb-2.5 text-slate-700 dark:text-slate-300">เบอร์โทรศัพท์ นศ. <span className="text-red-500">*</span></label>
-                                                                        <div className="relative">
-                                                                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400"><Icon name="smartphone" size={18}/></div>
-                                                                            <input type="tel" required maxLength="10" pattern="[0-9]{10}" inputMode="numeric" placeholder="08xxxxxxxx (10 หลัก)" className="w-full input-modern rounded-xl pl-11 pr-4 py-4 font-mono text-sm shadow-sm" value={studentPhone} onChange={e => setStudentPhone(e.target.value.replace(/\D/g, ''))} />
-                                                                        </div>
-                                                                    </div>
-                                                                    <div>
-                                                                        <label className="block text-sm font-bold mb-2.5 text-slate-700 dark:text-slate-300 flex items-center gap-1.5">เบอร์ ผปค. (ฉุกเฉิน) <span className="text-red-500">*</span></label>
-                                                                        <div className="relative">
-                                                                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-orange-500/50"><Icon name="phone" size={18}/></div>
-                                                                            <input type="tel" required maxLength="10" pattern="[0-9]{10}" inputMode="numeric" placeholder="08xxxxxxxx (10 หลัก)" className="w-full input-modern rounded-xl pl-11 pr-4 py-4 font-mono text-sm border-orange-200 focus:border-orange-500 focus:ring-orange-500/20 dark:border-orange-500/30 dark:focus:border-orange-500 shadow-sm" value={parentPhone} onChange={e => setParentPhone(e.target.value.replace(/\D/g, ''))} />
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6 pt-2">
-                                                                    <div>
-                                                                        <label className="block text-sm font-bold mb-2.5 text-slate-700 dark:text-slate-300">ศาสนา <span className="text-red-500">*</span></label>
-                                                                        <div className="relative group">
-                                                                            <select required className="w-full input-modern rounded-xl px-4 py-4 appearance-none bg-transparent relative z-10 cursor-pointer font-bold text-sm shadow-sm group-hover:border-slate-400 transition-colors" value={religion} onChange={e => setReligion(e.target.value)}>
-                                                                                <option value="" disabled className="text-slate-400">-- ระบุศาสนา --</option>
-                                                                                {['พุทธ', 'อิสลาม', 'คริสต์', 'อื่นๆ'].map(r => <option key={r} value={r} className="dark:bg-zinc-800">{r}</option>)}
-                                                                            </select>
-                                                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 z-0 group-hover:translate-y-0 transition-transform"><Icon name="chevron-down" size={20}/></div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div>
-                                                                        <label className="block text-sm font-bold mb-2.5 text-slate-700 dark:text-slate-300">กรุ๊ปเลือด <span className="text-red-500">*</span></label>
-                                                                        <TogglePill options={[{label:'A',value:'A'},{label:'B',value:'B'},{label:'O',value:'O'},{label:'AB',value:'AB'},{label:'อื่นๆ',value:'อื่นๆ'}]} value={bloodGroup} onChange={val => { setBloodGroup(val); if(val!=='อื่นๆ') setBloodGroupOther(''); }} />
-                                                                        {bloodGroup === 'อื่นๆ' && <input type="text" required placeholder="โปรดระบุ (เช่น Rh-)" className="w-full input-modern rounded-xl px-4 py-4 mt-3 animate-fade-in text-sm shadow-sm" value={bloodGroupOther} onChange={e => setBloodGroupOther(e.target.value)}/>}
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Section 2: Diet */}
-                                                        <div className="bg-orange-50/40 dark:bg-orange-950/10 p-6 md:p-8 rounded-[2rem] shadow-sm border border-orange-100 dark:border-orange-500/10 relative overflow-hidden">
-                                                            <div className="absolute -right-8 -top-8 text-orange-500/10 dark:text-orange-500/5 rotate-12 pointer-events-none"><Icon name="pizza" size={150}/></div>
-                                                            <div className="relative z-10">
-                                                                <SectionHeader icon="pizza" title="ข้อมูลโภชนาการ" colorClass="bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400" />
-                                                                <div className="space-y-6 md:space-y-8">
-                                                                    <div>
-                                                                        <label className="block text-sm font-bold mb-3.5 text-slate-700 dark:text-slate-300">ท่านมีประวัติแพ้อาหารหรือไม่?</label>
-                                                                        <TogglePill isWarningType options={[{label: 'ทานได้ปกติ', value: 'ไม่แพ้'}, {label: 'มีประวัติแพ้', value: 'แพ้'}]} value={foodAllergy} onChange={val => { setFoodAllergy(val); if(val==='ไม่แพ้') setFoodDetail(''); }} />
-                                                                        {foodAllergy === 'แพ้' && <div className="mt-4 animate-fade-in"><input type="text" required placeholder="โปรดระบุอาหารที่แพ้ (เช่น กุ้ง, ถั่ว, นมวัว)..." className="w-full input-modern border-orange-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 rounded-xl px-4 py-4 text-sm shadow-sm bg-white dark:bg-black/40" value={foodDetail} onChange={e => setFoodDetail(e.target.value)}/></div>}
-                                                                    </div>
-                                                                    <div className="pt-6 border-t border-orange-200/50 dark:border-orange-500/20">
-                                                                        <label className="block text-sm font-bold mb-3.5 text-slate-700 dark:text-slate-300">ต้องการอาหารที่จัดเตรียมพิเศษหรือไม่?</label>
-                                                                        <TogglePill options={[{label: 'อาหารปกติ', value: 'ไม่มี'}, {label: 'ต้องการอาหารพิเศษ', value: 'มี'}]} value={specificDiet} onChange={val => { setSpecificDiet(val); if(val==='ไม่มี') setSpecificDietDetail(''); }} />
-                                                                        {specificDiet === 'มี' && (
-                                                                            <div className="mt-4 p-6 animate-fade-in bg-white/60 dark:bg-black/40 rounded-2xl border border-orange-200/60 dark:border-orange-500/30 shadow-sm relative">
-                                                                                <div className="relative group">
-                                                                                    <select required className="w-full input-modern border-orange-200 hover:border-orange-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 rounded-xl px-4 py-4 appearance-none bg-transparent relative z-10 cursor-pointer font-bold text-sm text-orange-700 dark:text-orange-400 transition-all" value={specificDietDetail} onChange={(e) => setSpecificDietDetail(e.target.value)}>
-                                                                                        <option value="" disabled>-- เลือกประเภทโภชนาการ --</option>
-                                                                                        {['ฮาลาล', 'มังสวิรัติ', 'เจ'].map(v => <option key={v} value={v} className="text-slate-800 dark:text-slate-200 bg-white dark:bg-zinc-800">{v}</option>)}
-                                                                                    </select>
-                                                                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-orange-500 z-0 group-hover:translate-y-0 transition-transform"><Icon name="chevron-down" size={20}/></div>
-                                                                                </div>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Section 3: Health */}
-                                                        <div className="bg-red-50/40 dark:bg-red-950/10 p-6 md:p-8 rounded-[2rem] shadow-sm border border-red-100 dark:border-red-500/10 relative overflow-hidden">
-                                                            <div className="absolute -right-8 -top-8 text-red-500/10 dark:text-red-500/5 rotate-12 pointer-events-none"><Icon name="heart-pulse" size={150}/></div>
-                                                            <div className="relative z-10">
-                                                                <SectionHeader icon="heart-pulse" title="ข้อมูลสุขภาพและการแพทย์" colorClass="bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400" />
-                                                                <div className="space-y-6 md:space-y-8">
-                                                                    <div>
-                                                                        <label className="block text-sm font-bold mb-3.5 text-slate-700 dark:text-slate-300">ท่านมีโรคประจำตัวหรือไม่?</label>
-                                                                        <TogglePill isWarningType options={[{label: 'ไม่มี', value: 'ไม่มี'}, {label: 'มีโรคประจำตัว', value: 'มี'}]} value={disease} onChange={val => { setDisease(val); if(val==='ไม่มี') setDiseaseDetail(''); }} />
-                                                                        {disease === 'มี' && <div className="mt-4 animate-fade-in"><input type="text" required placeholder="โปรดระบุชื่อโรค (เพื่อการเตรียมปฐมพยาบาล)..." className="w-full input-modern border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/20 rounded-xl px-4 py-4 text-sm shadow-sm bg-white dark:bg-black/40" value={diseaseDetail} onChange={e => setDiseaseDetail(e.target.value)}/></div>}
-                                                                    </div>
-                                                                    <div className="pt-6 border-t border-red-200/50 dark:border-red-500/20">
-                                                                        <label className="block text-sm font-bold mb-3.5 text-slate-700 dark:text-slate-300">ท่านมีประวัติแพ้ยาหรือไม่?</label>
-                                                                        <TogglePill isWarningType options={[{label: 'ไม่แพ้', value: 'ไม่แพ้'}, {label: 'มีประวัติแพ้ยา', value: 'แพ้'}]} value={drugAllergy} onChange={val => { setDrugAllergy(val); if(val==='ไม่แพ้') setDrugDetail(''); }} />
-                                                                        {drugAllergy === 'แพ้' && <div className="mt-4 animate-fade-in"><input type="text" required placeholder="โปรดระบุชื่อกลุ่มยา หรือตัวยาที่แพ้..." className="w-full input-modern border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/20 rounded-xl px-4 py-4 text-sm shadow-sm bg-white dark:bg-black/40" value={drugDetail} onChange={e => setDrugDetail(e.target.value)}/></div>}
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <button disabled={isSubmitting} type="submit" className="w-full py-5 md:py-6 rounded-[1.5rem] md:rounded-[2rem] text-lg font-black text-white brand-gradient shadow-glow-brand hover:shadow-[0_0_35px_rgba(255,102,0,0.5)] transform hover:-translate-y-1 transition-all duration-300 flex justify-center items-center gap-3 mt-12 btn-interactive group border border-white/20">
-                                                            {isSubmitting ? (
-                                                                <><Icon name="loader-2" className="animate-spin" size={24}/> <span className="tracking-wide">กำลังบันทึกข้อมูล...</span></>
-                                                            ) : (
-                                                                <><Icon name="save" className="group-hover:scale-110 transition-transform" size={24}/> <span className="tracking-wide">บันทึกและส่งข้อมูลขึ้นทะเบียน</span> <Icon name="arrow-right" className="group-hover:translate-x-2 transition-transform" size={24}/></>
-                                                            )}
-                                                        </button>
-                                                    </form>
-
-                                                    {/* Footer Credit */}
-                                                    <div className="mt-20 pt-8 border-t border-slate-200/80 dark:border-white/10 text-center no-print relative">
-                                                        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-zinc-900 px-4">
-                                                            <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-400"><Icon name="shield-check" size={16}/></div>
-                                                        </div>
-                                                        <div className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-100/80 dark:bg-white/5 rounded-full mb-5 border border-slate-200/80 dark:border-white/10 shadow-sm mt-4"><Icon name="code-2" size={14} className="text-brand"/><p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold tracking-[0.2em] uppercase">System Developer</p></div>
-                                                        <p className="text-xl font-black text-slate-800 dark:text-white tracking-[0.3em] uppercase">JENNARONG</p>
-                                                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 font-medium">DIGIT.69 © {new Date().getFullYear()}</p>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div className="max-w-4xl mx-auto glass-panel p-6 md:p-10 rounded-[2.5rem] border border-white/40 dark:border-white/10 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] relative overflow-hidden mt-2 animate-fade-in">
-                                                    <div className="absolute top-0 left-0 right-0 h-2.5 brand-gradient opacity-90"></div>
-                                                    
-                                                    <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-5">
-                                                        <div>
-                                                            <h2 className="text-2xl md:text-3xl font-black mb-3 tracking-tight text-slate-800 dark:text-white flex items-center gap-3">
-                                                                <div className="p-3 bg-brand/10 text-brand rounded-[1rem] shadow-sm"><Icon name="users" size={24}/></div>
-                                                                ตรวจสอบผู้ขึ้นทะเบียน
-                                                            </h2>
-                                                            <p className="text-slate-500 dark:text-slate-400 font-medium text-sm md:text-base">ค้นหาและตรวจสอบรายชื่อนักศึกษาใหม่ที่ขึ้นทะเบียนเรียบร้อยแล้ว</p>
-                                                        </div>
-                                                        <div className="relative w-full md:w-80 shrink-0 group">
-                                                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-brand transition-colors"><Icon name="search" size={18}/></div>
-                                                            <input type="text" placeholder="ค้นหา รหัส นศ., ชื่อ, สาขา..." value={searchPublic} onChange={e => { setSearchPublic(e.target.value); setPublicPage(1); }} className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-black/30 text-sm font-semibold focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 dark:text-white transition-all shadow-sm" />
-                                                        </div>
-                                                    </div>
-
-                                                    {loadingPublic ? (
-                                                        <div className="flex flex-col justify-center items-center py-24">
-                                                            <div className="p-5 bg-brand/10 rounded-[1.5rem] mb-5 shadow-glow-brand"><Icon name="loader-2" size={48} className="text-brand animate-spin" /></div>
-                                                            <p className="text-slate-500 font-bold tracking-widest uppercase text-sm">กำลังโหลดข้อมูลระบบ...</p>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="bg-white/60 dark:bg-black/20 rounded-[1.5rem] border border-slate-200/80 dark:border-white/10 overflow-hidden shadow-sm">
-                                                            <div className="overflow-x-auto p-2">
-                                                                <table className="w-full text-sm text-left min-w-[700px]">
-                                                                    <thead className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-widest bg-slate-100/80 dark:bg-white/5 rounded-xl border-b border-slate-200/50 dark:border-white/5">
-                                                                        <tr>
-                                                                            <th className="px-6 py-5 rounded-tl-xl w-36 font-black">รหัสนักศึกษา</th>
-                                                                            <th className="px-6 py-5 w-44 font-black">เลขประจำตัวประชาชน</th>
-                                                                            <th className="px-6 py-5 font-black">ชื่อ-นามสกุล</th>
-                                                                            <th className="px-6 py-5 rounded-tr-xl font-black">สาขาวิชา</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                                                                        {(() => {
-                                                                            const itemsPerPage = 15;
-                                                                            const totalPages = Math.ceil(publicFilteredData.length / itemsPerPage);
-                                                                            const indexOfLastItem = publicPage * itemsPerPage;
-                                                                            const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-                                                                            const currentItems = publicFilteredData.slice(indexOfFirstItem, indexOfLastItem);
-                                                                            
-                                                                            if (currentItems.length === 0) return <tr><td colSpan="4" className="text-center py-20 text-slate-400 font-medium text-base">ไม่พบข้อมูลผู้ขึ้นทะเบียน</td></tr>;
-
-                                                                            return currentItems.map((row, i) => (
-                                                                                <tr key={i} className="hover:bg-white dark:hover:bg-white/5 transition-colors">
-                                                                                    <td className="px-6 py-4 font-mono font-bold text-brand">{row.StudentID}</td>
-                                                                                    <td className="px-6 py-4 font-mono text-slate-500 dark:text-slate-400 tracking-widest">{maskIDCard(row.IDCard)}</td>
-                                                                                    <td className="px-6 py-4 font-bold text-slate-800 dark:text-white">{row.FullName}</td>
-                                                                                    <td className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400">{row.Major}</td>
-                                                                                </tr>
-                                                                            ));
-                                                                        })()}
-                                                                    </tbody>
-                                                                </table>
-                                                            </div>
-                                                            {publicFilteredData.length > 0 && (
-                                                                <div className="flex flex-col sm:flex-row justify-between items-center p-5 border-t border-slate-200/60 dark:border-white/10 gap-4 bg-slate-50/80 dark:bg-transparent">
-                                                                    <span className="text-xs font-semibold text-slate-500">
-                                                                        แสดง {((publicPage - 1) * 15) + 1} - {Math.min(publicPage * 15, publicFilteredData.length)} จากทั้งหมด <span className="font-black text-slate-700 dark:text-slate-300">{publicFilteredData.length}</span> รายการ
-                                                                    </span>
-                                                                    <div className="flex gap-2">
-                                                                        <button onClick={() => setPublicPage(p => Math.max(1, p - 1))} disabled={publicPage === 1} className="p-2.5 rounded-xl bg-white dark:bg-white/10 border border-slate-200 dark:border-white/5 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-white/20 transition-all btn-interactive shadow-sm hover:shadow-md"><Icon name="chevron-left" size={18}/></button>
-                                                                        <span className="px-5 py-2.5 rounded-xl font-bold text-sm bg-brand/10 text-brand border border-brand/20 shadow-sm">หน้า {publicPage} / {Math.ceil(publicFilteredData.length / 15) || 1}</span>
-                                                                        <button onClick={() => setPublicPage(p => Math.min(Math.ceil(publicFilteredData.length / 15), p + 1))} disabled={publicPage === Math.ceil(publicFilteredData.length / 15) || Math.ceil(publicFilteredData.length / 15) === 0} className="p-2.5 rounded-xl bg-white dark:bg-white/10 border border-slate-200 dark:border-white/5 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-white/20 transition-all btn-interactive shadow-sm hover:shadow-md"><Icon name="chevron-right" size={18}/></button>
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </>
-                                    )}
-                                </div>
-                            </main>
-                        </div>
-                    </div>
+                    {/* ปุ่มสลับหน้าจอ (เปิด/ปิด Dark Mode อิสระ) */}
+                    <button 
+                        onClick={() => setIsDarkMode(!isDarkMode)}
+                        className="fixed bottom-6 right-6 p-4 bg-white dark:bg-zinc-800 text-slate-800 dark:text-white rounded-full shadow-lg border border-slate-200 dark:border-zinc-700 hover:scale-110 transition-transform z-50 flex items-center justify-center"
+                        title="Toggle Dark Mode"
+                    >
+                        <Icon name={isDarkMode ? "sun" : "moon"} size={24} />
+                    </button>
                 </div>
             );
         }
