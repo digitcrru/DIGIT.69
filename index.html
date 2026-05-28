@@ -146,6 +146,9 @@
         const Recharts = window.Recharts || {};
         const { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } = Recharts;
 
+        // ==========================================
+        // 🌐 TRANSLATIONS (พจนานุกรมคำแปล)
+        // ==========================================
         const TRANSLATIONS = {
             th: {
                 back: 'ย้อนกลับ', save: 'บันทึกข้อมูล', cancel: 'ยกเลิก', search: 'ค้นหา...', select_option: '-- โปรดเลือก --',
@@ -158,7 +161,7 @@
                 form_personal_title: 'ข้อมูลส่วนตัวนักศึกษา', form_fullname: 'ชื่อ-นามสกุล (ระบุคำนำหน้า)', form_major: 'สาขาวิชา', form_studentid: 'รหัสนักศึกษา (9 หลัก)', form_idcard: 'รหัสประจำตัวประชาชน / Passport', form_religion: 'ศาสนา', form_blood: 'กรุ๊ปเลือด', form_contact_title: 'ข้อมูลการติดต่อ', form_student_phone: 'เบอร์โทรศัพท์นักศึกษา', form_parent_phone: 'เบอร์โทรศัพท์ผู้ปกครอง (ฉุกเฉิน)',
                 form_nutrition_title: 'ข้อมูลโภชนาการ', form_diet: '1. อาหารเฉพาะทาง (เลือก 1 ข้อ)', form_food_allergy: '2. ประวัติการแพ้อาหาร', form_health_title: 'ข้อมูลสุขภาพทางการแพทย์', form_disease: '1. โรคประจำตัว', form_drug_allergy: '2. ประวัติการแพ้ยา', form_submit: 'บันทึกข้อมูลขึ้นทะเบียน', form_no_allergy: 'ไม่แพ้', form_has_allergy: 'มีประวัติแพ้อาหาร', form_specify_food: 'โปรดระบุอาหารที่แพ้ หรือ อาการ', form_no_disease: 'ไม่มี', form_has_disease: 'มีโรคประจำตัว', form_specify_disease: 'โปรดระบุโรคประจำตัว', form_no_drug_allergy: 'ไม่เคยแพ้ยา', form_has_drug_allergy: 'มีประวัติแพ้ยา', form_specify_drug: 'โปรดระบุยาที่แพ้ หรือ อาการ',
                 success_title: 'ลงทะเบียนสำเร็จ!', success_desc: 'ระบบได้รับข้อมูลการขึ้นทะเบียนของท่านเรียบร้อยแล้ว ขอบคุณที่ให้ความร่วมมือและยินดีต้อนรับครับ', success_home: 'กลับสู่หน้าแรก',
-                admin_dashboard: 'แดชบอร์ด', admin_tab_overview: 'ยอดขึ้นทะเบียน', admin_tab_majors: 'สรุปยอดสาขาวิชา', admin_tab_health: 'สุขภาพและโภชนาการ', admin_tab_surveillance: 'กลุ่มเฝ้าระวังพิเศษ', admin_tab_executive: 'รายงานผู้บริหาร', admin_total: 'ยอดขึ้นทะเบียนรวม', admin_risk_health: 'กลุ่มเปราะบาง (แพทย์)', admin_risk_food: 'จัดการอาหารพิเศษ', admin_healthy: 'สุขภาพปกติ', admin_pie_title: 'ยอดขึ้นทะเบียนแยกตามสาขาวิชา', admin_table_recent: 'รายชื่ออัปเดตล่าสุด', table_name: 'ชื่อ-นามสกุล', table_major: 'สาขาวิชา', table_status: 'สถานะ', table_contact: 'ข้อมูลติดต่อ', status_risk: 'เฝ้าระวัง', status_normal: 'ปกติ', admin_print: 'พิมพ์', admin_export: 'Excel', admin_export_summary: 'สรุปยอด',
+                admin_dashboard: 'แดชบอร์ด', admin_tab_overview: 'ยอดขึ้นทะเบียน', admin_tab_majors: 'สรุปยอดสาขาวิชา', admin_tab_health: 'สุขภาพและโภชนาการ', admin_tab_surveillance: 'กลุ่มเฝ้าระวังพิเศษ', admin_tab_executive: 'รายงานผู้บริหาร', admin_total: 'ยอดขึ้นทะเบียนรวม', admin_risk_health: 'กลุ่มเปราะบาง (แพทย์)', admin_risk_food: 'จัดการอาหารพิเศษ', admin_healthy: 'สุขภาพปกติ', admin_pie_title: 'ยอดขึ้นทะเบียนแยกตามสาขาวิชา', admin_table_recent: 'รายชื่ออัปเดตล่าสุด', table_name: 'ชื่อ-นามสกุล', table_major: 'สาขาวิชา', table_status: 'สถานะ', table_contact: 'ข้อมูลติดต่อ', status_risk: 'เฝ้าระวัง', status_normal: 'ปกติ', admin_print: 'พิมพ์', admin_export: 'Excel', admin_export_summary: 'สรุปยอด'
             },
             en: {
                 back: 'Go Back', save: 'Save Data', cancel: 'Cancel', search: 'Search...', select_option: '-- Please Select --',
@@ -171,7 +174,7 @@
                 form_personal_title: 'Personal Information', form_fullname: 'Full Name (with Title)', form_major: 'Major', form_studentid: 'Student ID (9 digits)', form_idcard: 'ID Card / Passport', form_religion: 'Religion', form_blood: 'Blood Group', form_contact_title: 'Contact Information', form_student_phone: 'Student Phone Number', form_parent_phone: 'Parent/Emergency Phone',
                 form_nutrition_title: 'Nutritional Information', form_diet: '1. Specific Diet (Select 1)', form_food_allergy: '2. Food Allergies', form_health_title: 'Health & Medical Information', form_disease: '1. Underlying Diseases', form_drug_allergy: '2. Drug Allergies', form_submit: 'Submit Registration', form_no_allergy: 'None', form_has_allergy: 'Have Food Allergy', form_specify_food: 'Please specify food allergies or symptoms', form_no_disease: 'None', form_has_disease: 'Have Disease', form_specify_disease: 'Please specify underlying diseases', form_no_drug_allergy: 'None', form_has_drug_allergy: 'Have Drug Allergy', form_specify_drug: 'Please specify drug allergies or symptoms',
                 success_title: 'Registration Successful!', success_desc: 'Your registration data has been successfully recorded. Thank you for your cooperation and welcome!', success_home: 'Return to Home',
-                admin_dashboard: 'Dashboard', admin_tab_overview: 'Overview', admin_tab_majors: 'Majors Summary', admin_tab_health: 'Health & Diet', admin_tab_surveillance: 'High Risk Watchlist', admin_tab_executive: 'Executive Report', admin_total: 'Total Registered', admin_risk_health: 'Vulnerable (Medical)', admin_risk_food: 'Special Diet', admin_healthy: 'Healthy', admin_pie_title: 'Registrations by Major', admin_table_recent: 'Recently Updated', table_name: 'Full Name', table_major: 'Major', table_status: 'Status', table_contact: 'Contact Info', status_risk: 'Watchlist', status_normal: 'Normal', admin_print: 'Print', admin_export: 'Export', admin_export_summary: 'Summary',
+                admin_dashboard: 'Dashboard', admin_tab_overview: 'Overview', admin_tab_majors: 'Majors Summary', admin_tab_health: 'Health & Diet', admin_tab_surveillance: 'High Risk Watchlist', admin_tab_executive: 'Executive Report', admin_total: 'Total Registered', admin_risk_health: 'Vulnerable (Medical)', admin_risk_food: 'Special Diet', admin_healthy: 'Healthy', admin_pie_title: 'Registrations by Major', admin_table_recent: 'Recently Updated', table_name: 'Full Name', table_major: 'Major', table_status: 'Status', table_contact: 'Contact Info', status_risk: 'Watchlist', status_normal: 'Normal', admin_print: 'Print', admin_export: 'Export', admin_export_summary: 'Summary'
             }
         };
 
@@ -182,6 +185,9 @@
 
         const AppContext = createContext();
 
+        // ==========================================
+        // ⚙️ตั้งค่า API
+        // ==========================================
         const API_URL = "https://script.google.com/macros/s/AKfycbwviBRd_BbtvGyEpZSq5ab5A0iEpXkG9iMwAUQyGyZb-nDI2R5-x8GE5ZEI3gpmzA3zug/exec";
         const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1MoZpnDniVF5pKr0tEgmYwlPO3wZdA7DaO_MvZjbC-ec/gviz/tq?tqx=out:csv&sheet=Registration";
         
@@ -208,6 +214,7 @@
             }
         };
 
+        // UI Components
         function Icon({ name, size = 20, className = '' }) {
             const containerRef = useRef(null);
             useEffect(() => {
@@ -272,6 +279,9 @@
             );
         }
 
+        // ==========================================
+        // 🛡️ PDPA Modal Component
+        // ==========================================
         function PdpaModal({ onAccept, onAdminClick }) {
             const { t, isDarkMode } = useContext(AppContext);
             const [isChecked, setIsChecked] = useState(false);
@@ -324,6 +334,7 @@
 
             return (
                 <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-slate-900/80 dark:bg-black/90 backdrop-blur-sm animate-fade-in">
+                    
                     <div className="bg-white dark:bg-zinc-900 w-full sm:max-w-3xl relative flex flex-col h-[92vh] sm:h-auto sm:max-h-[90vh] rounded-t-[2rem] sm:rounded-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.2)] sm:shadow-[0_20px_60px_rgba(0,0,0,0.3)] animate-slide-up overflow-hidden">
                         <div className="absolute top-0 left-0 right-0 h-1.5 sm:h-2 brand-gradient z-20"></div>
                         <div className="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-full sm:hidden z-20"></div>
@@ -410,6 +421,9 @@
             );
         }
 
+        // ==========================================
+        // 📝 Registration Form Component
+        // ==========================================
         function RegistrationForm({ onBack, onSuccess }) {
             const { t, lang, isDarkMode } = useContext(AppContext);
             const [formData, setFormData] = useState({
@@ -615,6 +629,9 @@
             );
         }
 
+        // ==========================================
+        // ✅ Success View Component
+        // ==========================================
         function SuccessView({ onHome }) {
             const { t } = useContext(AppContext);
             return (
@@ -636,6 +653,9 @@
             );
         }
 
+        // ==========================================
+        // 📊 Admin Dashboard Component
+        // ==========================================
         function AdminDashboard({ goBack }) {
             const { t, lang, isDarkMode } = useContext(AppContext);
             const [data, setData] = useState([]);
@@ -706,8 +726,6 @@
                 const uniqueDataMap = new Map();
                 
                 filteredData.forEach(s => {
-                    // กำหนด Primary Key: ใช้รหัสนักศึกษา (StudentID) เป็นหลัก 
-                    // หากไม่มีรหัสนักศึกษา ให้ใช้เลขบัตรประชาชน (IDCard) แทน
                     let uid = null;
                     if (s.StudentID && s.StudentID.trim() !== '') {
                         uid = s.StudentID.trim();
@@ -716,15 +734,12 @@
                     }
 
                     if (uid) {
-                        // การ set ทับคีย์เดิม จะทำให้เราได้ข้อมูล "รายการล่าสุด" (บรรทัดล่างสุดใน Google Sheets) เสมอ
                         uniqueDataMap.set(uid, s);
                     } else {
-                        // ป้องกันกรณีข้อมูลขยะที่ไม่มีทั้งสองรหัส ไม่ให้สูญหาย
                         uniqueDataMap.set(Math.random().toString(), s);
                     }
                 });
 
-                // ข้อมูลที่ผ่านการกรองซ้ำเรียบร้อยแล้ว
                 const uniqueStudents = Array.from(uniqueDataMap.values());
                 // --------------------------------------------------------
 
@@ -733,6 +748,7 @@
                 const surveillanceList = [];
                 let surveillanceRiskPie = { 'ด้านการแพทย์': 0, 'ด้านโภชนาการ': 0, 'ความเสี่ยงซ้อน (ทั้งสอง)': 0 };
                 let execBreakdownMap = {}; 
+                let allergyCounts = {};
 
                 uniqueStudents.forEach(s => {
                     if(s.Major) {
@@ -752,7 +768,12 @@
                     let hasH = s.Disease !== 'ไม่มี' || s.DrugAllergy !== 'ไม่แพ้';
                     if (hasF) foodAlert++; if (hasH) healthAlert++;
 
-                    if (s.FoodAllergy && s.FoodAllergy !== 'ไม่แพ้') foodAllergies.push(s);
+                    if (s.FoodAllergy && s.FoodAllergy !== 'ไม่แพ้') {
+                        foodAllergies.push(s);
+                        let foodStr = s.FoodAllergy.trim();
+                        allergyCounts[foodStr] = (allergyCounts[foodStr] || 0) + 1;
+                    }
+                    
                     if (s.SpecificDiet) {
                         if (s.SpecificDiet === 'ไม่มี') dietStats['อาหารปกติ']++;
                         else if (s.SpecificDiet.includes('ฮาลาล')) dietStats['ฮาลาล']++;
@@ -779,13 +800,16 @@
                 const surveillancePieData = Object.keys(surveillanceRiskPie).map(k => ({name: k, value: surveillanceRiskPie[k]})).filter(d => d.value > 0);
                 const pieDataList = Object.keys(majorCount).map(k=>({name:k, value:majorCount[k]}));
                 const execBreakdownList = Object.values(execBreakdownMap).sort((a,b) => b.total - a.total);
+                const groupedAllergies = Object.keys(allergyCounts).map(name => ({name, count: allergyCounts[name]})).sort((a,b) => b.count - a.count);
 
-                return { total, pieData: pieDataList, COLORS: ['#ff6600', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#facc15', '#06b6d4'], foodAlert, healthAlert, surveillanceList, surveillancePieData, normalCount, transferCount, dietStats, foodAllergies, diseases, drugAllergies, execBreakdownList };
+                return { total, pieData: pieDataList, COLORS: ['#ff6600', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#facc15', '#06b6d4'], foodAlert, healthAlert, surveillanceList, surveillancePieData, normalCount, transferCount, dietStats, foodAllergies, diseases, drugAllergies, execBreakdownList, groupedAllergies };
             }, [filteredData, lang, t]);
 
             const handleDrilldown = (title, type, key) => {
                 let filtered = [];
-                if (type === 'religion_diet') filtered = filteredData.filter(s => s.SpecificDiet && s.SpecificDiet.includes(key));
+                if (type === 'all') filtered = filteredData;
+                else if (type === 'healthy') filtered = filteredData.filter(s => s.Disease === 'ไม่มี' && s.DrugAllergy === 'ไม่แพ้');
+                else if (type === 'religion_diet') filtered = filteredData.filter(s => s.SpecificDiet && s.SpecificDiet.includes(key));
                 else if (type === 'food_allergy') filtered = filteredData.filter(s => s.FoodAllergy && s.FoodAllergy !== 'ไม่แพ้');
                 else if (type === 'food_alert') filtered = filteredData.filter(s => (s.FoodAllergy && s.FoodAllergy !== 'ไม่แพ้') || (s.SpecificDiet && s.SpecificDiet !== 'ไม่มี'));
                 else if (type === 'health_alert') filtered = filteredData.filter(s => (s.Disease && s.Disease !== 'ไม่มี') || (s.DrugAllergy && s.DrugAllergy !== 'ไม่แพ้'));
@@ -826,28 +850,57 @@
 
             const exportMajorsSummary = () => {
                 if (stats.pieData.length === 0) return;
-                
                 const exportData = stats.pieData.sort((a,b) => b.value - a.value).map(item => ({
                     'สาขาวิชา': lang === 'en' ? (DICT_MAPPING[item.name] || item.name) : item.name,
                     'จำนวน (คน)': item.value,
                     'สัดส่วน (%)': ((item.value / stats.total) * 100).toFixed(2) + '%'
                 }));
-                
-                exportData.push({
-                    'สาขาวิชา': lang === 'en' ? 'Total' : 'รวมทั้งหมด',
-                    'จำนวน (คน)': stats.total,
-                    'สัดส่วน (%)': '100.00%'
-                });
-
+                exportData.push({ 'สาขาวิชา': lang === 'en' ? 'Total' : 'รวมทั้งหมด', 'จำนวน (คน)': stats.total, 'สัดส่วน (%)': '100.00%' });
                 const ws = window.XLSX.utils.json_to_sheet(exportData);
-                const wscols = [{wch: 40}, {wch: 15}, {wch: 15}];
-                ws['!cols'] = wscols;
-                const wb = window.XLSX.utils.book_new();
-                window.XLSX.utils.book_append_sheet(wb, ws, "Majors_Summary");
+                ws['!cols'] = [{wch: 40}, {wch: 15}, {wch: 15}];
+                const wb = window.XLSX.utils.book_new(); window.XLSX.utils.book_append_sheet(wb, ws, "Majors_Summary");
                 window.XLSX.writeFile(wb, `DIGIT69_Summary_${new Date().toISOString().slice(0,10)}.xlsx`);
             };
 
-            if (loading) return (
+            const exportNutritionSummary = () => {
+                if (filteredData.length === 0) return;
+                const summaryData = [
+                    { 'ประเภทการจัดเตรียม': 'อาหารปกติ (ทานได้ทุกอย่าง)', 'จำนวน (คน)': stats.total - stats.foodAlert },
+                    { 'ประเภทการจัดเตรียม': 'คุ้มครองศาสนา (ฮาลาล)', 'จำนวน (คน)': stats.dietStats['ฮาลาล'] },
+                    { 'ประเภทการจัดเตรียม': 'เพื่อสุขภาพ (มังสวิรัติ)', 'จำนวน (คน)': stats.dietStats['มังสวิรัติ'] },
+                    { 'ประเภทการจัดเตรียม': 'อาหารเจ', 'จำนวน (คน)': stats.dietStats['เจ'] },
+                    { 'ประเภทการจัดเตรียม': 'ประวัติแพ้อาหาร', 'จำนวน (คน)': stats.foodAllergies.length },
+                    { 'ประเภทการจัดเตรียม': 'รวมผู้ที่ต้องจัดเตรียมพิเศษทั้งหมด', 'จำนวน (คน)': stats.foodAlert }
+                ];
+                
+                const allergyGroupData = stats.groupedAllergies.map(a => ({ 'รายการอาหารที่แพ้ (ระบุโดย นศ.)': a.name, 'จำนวน (คน)': a.count }));
+                const detailData = stats.surveillanceList.filter(s => s.FoodAllergy !== 'ไม่แพ้' || s.SpecificDiet !== 'ไม่มี').map(r => ({ 'รหัสนักศึกษา': r.StudentID || '', 'ชื่อ-นามสกุล': r.FullName || '', 'สาขาวิชา': r.Major || '', 'เบอร์ติดต่อ นศ.': r.StudentPhone || '', 'อาหารเฉพาะทาง': r.SpecificDiet || 'ไม่มี', 'ประวัติแพ้อาหาร': r.FoodAllergy || 'ไม่แพ้' }));
+                
+                const wb = window.XLSX.utils.book_new();
+                const wsSummary = window.XLSX.utils.json_to_sheet(summaryData); wsSummary['!cols'] = [{wch: 40}, {wch: 15}]; window.XLSX.utils.book_append_sheet(wb, wsSummary, "สรุปยอดโภชนาการ");
+                
+                if (allergyGroupData.length > 0) { const wsAllergy = window.XLSX.utils.json_to_sheet(allergyGroupData); wsAllergy['!cols'] = [{wch: 50}, {wch: 15}]; window.XLSX.utils.book_append_sheet(wb, wsAllergy, "สรุปรายการแพ้อาหาร"); }
+                if (detailData.length > 0) { const wsDetail = window.XLSX.utils.json_to_sheet(detailData); wsDetail['!cols'] = [{wch: 15}, {wch: 30}, {wch: 35}, {wch: 15}, {wch: 20}, {wch: 30}]; window.XLSX.utils.book_append_sheet(wb, wsDetail, "รายชื่อกลุ่มอาหารพิเศษ"); }
+                
+                window.XLSX.writeFile(wb, `DIGIT69_Nutrition_Report_${new Date().toISOString().slice(0,10)}.xlsx`);
+            };
+
+            const exportMedicalSummary = () => {
+                if (filteredData.length === 0) return;
+                const summaryData = [
+                    { 'ข้อมูลสุขภาพและการแพทย์': 'สุขภาพแข็งแรง (ไม่มีความเสี่ยง)', 'จำนวน (คน)': stats.total - stats.healthAlert },
+                    { 'ข้อมูลสุขภาพและการแพทย์': 'มีโรคประจำตัว', 'จำนวน (คน)': stats.diseases.length },
+                    { 'ข้อมูลสุขภาพและการแพทย์': 'มีประวัติแพ้ยา', 'จำนวน (คน)': stats.drugAllergies.length },
+                    { 'ข้อมูลสุขภาพและการแพทย์': 'รวมกลุ่มเปราะบางเฝ้าระวังทั้งหมด', 'จำนวน (คน)': stats.healthAlert }
+                ];
+                const detailData = stats.surveillanceList.filter(s => s.Disease !== 'ไม่มี' || s.DrugAllergy !== 'ไม่แพ้').map(r => ({ 'รหัสนักศึกษา': r.StudentID || '', 'ชื่อ-นามสกุล': r.FullName || '', 'สาขาวิชา': r.Major || '', 'เบอร์ติดต่อ นศ.': r.StudentPhone || '', 'เบอร์ ผปค. (ฉุกเฉิน)': r.ParentPhone || '', 'โรคประจำตัว': r.Disease || 'ไม่มี', 'ประวัติแพ้ยา': r.DrugAllergy || 'ไม่แพ้' }));
+                const wb = window.XLSX.utils.book_new();
+                const wsSummary = window.XLSX.utils.json_to_sheet(summaryData); wsSummary['!cols'] = [{wch: 40}, {wch: 15}]; window.XLSX.utils.book_append_sheet(wb, wsSummary, "สรุปยอดการแพทย์");
+                if (detailData.length > 0) { const wsDetail = window.XLSX.utils.json_to_sheet(detailData); wsDetail['!cols'] = [{wch: 15}, {wch: 30}, {wch: 35}, {wch: 15}, {wch: 15}, {wch: 30}, {wch: 30}]; window.XLSX.utils.book_append_sheet(wb, wsDetail, "รายชื่อกลุ่มเปราะบาง"); }
+                window.XLSX.writeFile(wb, `DIGIT69_Medical_Report_${new Date().toISOString().slice(0,10)}.xlsx`);
+            };
+
+            if (loading && stats.total === 0) return (
                 <div className="flex flex-col justify-center items-center h-[70vh]">
                     <div className="p-4 bg-brand/10 rounded-2xl mb-4 animate-pulse-slow shadow-glow-brand"><Icon name="loader-2" size={40} className="text-brand animate-spin" /></div>
                     <p className="text-slate-500 font-bold tracking-widest uppercase text-sm">Loading Database...</p>
@@ -857,8 +910,6 @@
             const TABS = [
                 { id: 'overview', icon: 'users', label: t('admin_tab_overview') },
                 { id: 'majors', icon: 'pie-chart', label: t('admin_tab_majors') },
-                { id: 'health_diet', icon: 'activity', label: t('admin_tab_health') },
-                { id: 'surveillance', icon: 'shield-alert', label: t('admin_tab_surveillance') },
                 { id: 'executive', icon: 'layout-dashboard', label: t('admin_tab_executive') }
             ];
 
@@ -884,6 +935,7 @@
                         </div>
                     </div>
 
+                    {/* Admin Main Content */}
                     <div className="flex-1 w-full space-y-6 print-area min-w-0">
                         {/* Header Action Bar */}
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center glass-panel p-5 md:px-8 md:py-6 rounded-[2.5rem] gap-4 no-print shadow-soft border border-slate-200/50 dark:border-white/5">
@@ -893,16 +945,8 @@
                             </h2>
                             <div className="flex flex-col xl:flex-row flex-wrap w-full sm:w-auto gap-3 items-start xl:items-center">
                                 <div className="relative w-full sm:w-64">
-                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                        <Icon name="search" size={16}/>
-                                    </div>
-                                    <input 
-                                        type="text" 
-                                        placeholder={t('search')} 
-                                        value={searchTerm}
-                                        onChange={(e) => {setSearchTerm(e.target.value); setCurrentPage(1);}}
-                                        className="w-full pl-10 pr-8 py-2.5 rounded-xl input-modern text-sm font-semibold"
-                                    />
+                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400"><Icon name="search" size={16}/></div>
+                                    <input type="text" placeholder={t('search')} value={searchTerm} onChange={(e) => {setSearchTerm(e.target.value); setCurrentPage(1);}} className="w-full pl-10 pr-8 py-2.5 rounded-xl input-modern text-sm font-semibold"/>
                                 </div>
                                 <div className="flex flex-wrap w-full sm:w-auto gap-2 justify-start sm:justify-end">
                                     {activeTab === 'executive' && <button onClick={window.print} className="px-5 py-2.5 bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white rounded-xl font-bold text-sm flex items-center gap-2 btn-interactive hover:bg-slate-200"><Icon name="printer" size={16} /> {t('admin_print')}</button>}
@@ -917,17 +961,32 @@
                             <div className="space-y-6 animate-fade-in">
                                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                                     {[
-                                        {l:t('admin_total'), v:stats.total, i:'users', c:'text-brand', bg:'bg-brand/10'}, 
-                                        {l:t('admin_risk_health'), v:stats.healthAlert, i:'activity', c:'text-red-500', bg:'bg-red-500/10'}, 
-                                        {l:t('admin_risk_food'), v:stats.foodAlert, i:'utensils', c:'text-orange-500', bg:'bg-orange-500/10'},
-                                        {l:t('admin_healthy'), v:(stats.total - stats.healthAlert), i:'check-circle', c:'text-emerald-500', bg:'bg-emerald-500/10'}
+                                        {l:t('admin_total'), v:stats.total, i:'users', c:'text-brand', bg:'bg-brand/10', type: 'all'}, 
+                                        {l:t('admin_risk_health'), v:stats.healthAlert, i:'activity', c:'text-red-500', bg:'bg-red-500/10', type: 'health_alert'}, 
+                                        {l:t('admin_risk_food'), v:stats.foodAlert, i:'utensils', c:'text-orange-500', bg:'bg-orange-500/10', type: 'food_alert'},
+                                        {l:t('admin_healthy'), v:(stats.total - stats.healthAlert), i:'check-circle', c:'text-emerald-500', bg:'bg-emerald-500/10', type: 'healthy'}
                                     ].map((card, i) => (
-                                        <div key={i} className="glass-panel p-6 md:p-8 rounded-[2rem] border border-slate-200/50 dark:border-white/5 relative overflow-hidden shadow-soft">
+                                        <div key={i} onClick={() => handleDrilldown(card.l, card.type, '')} className={`glass-panel p-6 md:p-8 rounded-[2rem] border border-slate-200/50 dark:border-white/5 relative overflow-hidden shadow-soft flex flex-col justify-between min-h-[180px] group cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1 ${card.c === 'text-brand' ? 'hover:border-brand/30' : card.c === 'text-red-500' ? 'hover:border-red-400/30' : card.c === 'text-orange-500' ? 'hover:border-orange-400/30' : 'hover:border-emerald-400/30'}`}>
+                                            <div className={`absolute right-0 top-0 p-6 opacity-0 group-hover:opacity-5 transition-all duration-500 transform translate-x-4 -translate-y-4 group-hover:translate-x-0 group-hover:translate-y-0 ${card.c}`}>
+                                                <Icon name={card.i} size={100} />
+                                            </div>
                                             <div className="flex justify-between items-start mb-4 relative z-10">
                                                 <div className={`p-3.5 rounded-[1rem] ${card.bg} ${card.c} shadow-sm`}><Icon name={card.i} size={28} /></div>
+                                                <div className={`p-2 bg-slate-50 dark:bg-white/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity border border-slate-200 dark:border-white/10 ${card.c}`}>
+                                                    <Icon name="search" size={16} />
+                                                </div>
                                             </div>
-                                            <p className="text-slate-500 text-xs sm:text-sm font-bold uppercase tracking-wider mb-1 relative z-10">{card.l}</p>
-                                            <h3 className={`text-4xl md:text-5xl font-black text-slate-800 dark:text-white relative z-10 drop-shadow-sm`}>{card.v}</h3>
+                                            <div className="relative z-10">
+                                                <p className="text-slate-500 text-xs sm:text-sm font-bold uppercase tracking-wider mb-1 group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">{card.l}</p>
+                                                <div className="flex items-end gap-3">
+                                                    <h3 className={`text-4xl md:text-5xl font-black text-slate-800 dark:text-white drop-shadow-sm leading-none group-hover:${card.c.split('-')[1]} transition-colors`}>{card.v}</h3>
+                                                </div>
+                                            </div>
+                                            <div className="mt-4 relative z-10 flex">
+                                                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold shadow-sm bg-white dark:bg-zinc-800 border border-slate-100 dark:border-white/10 text-slate-500 group-hover:${card.c} transition-colors`}>
+                                                    <Icon name="list" size={12} /> สรุปข้อมูลและรายชื่อ
+                                                </span>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -949,7 +1008,12 @@
                                             </div>
                                         </div>
                                         <div className="w-full relative z-10 flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 min-h-[350px]">
-                                            {stats.pieData.length > 0 && (
+                                            {stats.pieData.length === 0 ? (
+                                                <div className="w-full h-[350px] flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 dark:bg-white/5 rounded-[2rem] border border-dashed border-slate-200 dark:border-white/10">
+                                                    <Icon name="inbox" size={48} className="mb-4 opacity-20" />
+                                                    <p className="font-semibold text-lg">ไม่มีข้อมูลแสดงกราฟ</p>
+                                                </div>
+                                            ) : (
                                                 <>
                                                     <div className="w-full md:w-1/2 h-[350px]">
                                                         <ResponsiveContainer width="100%" height="100%">
@@ -960,6 +1024,7 @@
                                                                 <Tooltip contentStyle={{ backgroundColor: isDarkMode ? 'rgba(24, 24, 27, 0.95)' : 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }} itemStyle={{fontWeight: 'bold', color: isDarkMode ? '#fff' : '#1e293b'}} formatter={(value, name) => [`${value} คน (${((value/stats.total)*100).toFixed(1)}%)`, name]}/>
                                                                 <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle">
                                                                     <tspan x="50%" dy="-8" fontSize="48" fill={isDarkMode ? "#fff" : "#0f172a"} fontWeight="900">{stats.total}</tspan>
+                                                                    <tspan x="50%" dy="28" fontSize="12" fill="#64748b" fontWeight="bold" className="uppercase tracking-widest">นักศึกษา</tspan>
                                                                 </text>
                                                             </PieChart>
                                                         </ResponsiveContainer>
@@ -1105,7 +1170,6 @@
                         {/* TAB 2: MAJORS SUMMARY */}
                         {activeTab === 'majors' && (
                             <div className="grid lg:grid-cols-5 gap-6 animate-fade-in">
-                                {/* Left Side: Chart */}
                                 <div className="lg:col-span-2 glass-panel p-6 md:p-8 rounded-[2rem] border border-slate-200/50 dark:border-white/5 flex flex-col items-center justify-center min-h-[450px] shadow-sm relative overflow-hidden">
                                     <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent to-slate-50/50 dark:to-white/5 pointer-events-none"></div>
                                     <div className="w-full mb-2 text-center relative z-10">
@@ -1131,8 +1195,6 @@
                                         )}
                                     </div>
                                 </div>
-
-                                {/* Right Side: Clickable List of Majors */}
                                 <div className="lg:col-span-3 glass-panel p-6 md:p-8 rounded-[2rem] border border-slate-200/50 dark:border-white/5 flex flex-col shadow-sm">
                                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3">
                                         <div className="flex items-center gap-2.5 text-slate-500 bg-slate-50 dark:bg-white/5 px-4 py-2 rounded-xl border border-slate-100 dark:border-white/5 shadow-sm">
@@ -1143,178 +1205,25 @@
                                             <Icon name="filter" size={12}/> กรองข้อมูลซ้ำแล้ว
                                         </div>
                                     </div>
-                                    
                                     <div className="flex flex-col gap-3.5 overflow-y-auto custom-scrollbar flex-1 pr-2 max-h-[450px]">
                                         {[...stats.pieData].sort((a,b) => b.value - a.value).map((entry, idx) => (
                                             <div key={idx} onClick={() => handleDrilldown(entry.name, 'majors', entry.name)} className="relative py-4 px-5 md:px-6 rounded-2xl bg-white dark:bg-zinc-800/80 border border-slate-200/60 dark:border-white/10 hover:border-brand/50 hover:shadow-md transition-all duration-300 cursor-pointer overflow-hidden group btn-interactive min-h-[72px] flex items-center">
-                                                
-                                                {/* Subtle Progress Background */}
-                                                <div className="absolute inset-y-0 left-0 opacity-[0.06] dark:opacity-[0.12] transition-all duration-700 ease-out" 
-                                                     style={{ width: `${stats.total ? (entry.value / stats.total) * 100 : 0}%`, backgroundColor: stats.COLORS[idx % stats.COLORS.length] }}>
-                                                </div>
-
+                                                <div className="absolute inset-y-0 left-0 opacity-[0.06] dark:opacity-[0.12] transition-all duration-700 ease-out" style={{ width: `${stats.total ? (entry.value / stats.total) * 100 : 0}%`, backgroundColor: stats.COLORS[idx % stats.COLORS.length] }}></div>
                                                 <div className="relative z-10 flex items-center justify-between gap-4 w-full">
                                                     <div className="flex items-center gap-4 overflow-hidden flex-1">
                                                         <div className="w-4 h-4 rounded-full shrink-0 shadow-sm border-2 border-white dark:border-zinc-800 transition-transform group-hover:scale-125" style={{ backgroundColor: stats.COLORS[idx % stats.COLORS.length] }}></div>
-                                                        <span className="text-sm md:text-base font-bold text-slate-700 dark:text-slate-200 truncate group-hover:text-brand transition-colors leading-normal" title={entry.name}>
-                                                            {entry.name}
-                                                        </span>
+                                                        <span className="text-sm md:text-base font-bold text-slate-700 dark:text-slate-200 truncate group-hover:text-brand transition-colors leading-normal" title={entry.name}>{entry.name}</span>
                                                     </div>
-                                                    
                                                     <div className="flex items-center gap-4 shrink-0">
                                                         <div className="flex flex-col items-end justify-center">
                                                             <span className="text-2xl font-black text-slate-800 dark:text-white leading-none">{entry.value}</span>
                                                             <span className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-wider">{stats.total ? ((entry.value / stats.total) * 100).toFixed(1) : 0}%</span>
                                                         </div>
-                                                        <div className="text-slate-300 group-hover:text-brand transition-colors flex items-center h-full">
-                                                            <Icon name="chevron-right" size={20}/>
-                                                        </div>
+                                                        <div className="text-slate-300 group-hover:text-brand transition-colors flex items-center h-full"><Icon name="chevron-right" size={20}/></div>
                                                     </div>
                                                 </div>
                                             </div>
                                         ))}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* TAB 3: HEALTH & DIET */}
-                        {activeTab === 'health_diet' && (
-                            <div className="space-y-6 animate-fade-in">
-                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                                    {[ 
-                                        {l:'แพ้อาหาร', v:stats.foodAllergies.length, k:'', t:'food_allergy', cBg:'bg-orange-50 dark:bg-orange-500/10', cText:'text-orange-600 dark:text-orange-400', ic:'alert-triangle', hc:'hover:border-orange-400'},
-                                        {l:'อาหารเฉพาะ', v:(stats.dietStats['ฮาลาล']+stats.dietStats['เจ']+stats.dietStats['มังสวิรัติ']), k:'', t:'food_alert', cBg:'bg-blue-50 dark:bg-blue-500/10', cText:'text-blue-600 dark:text-blue-400', ic:'utensils', hc:'hover:border-blue-400'},
-                                        {l:'โรคประจำตัว', v:stats.diseases.length, k:'', t:'disease', cBg:'bg-pink-50 dark:bg-pink-500/10', cText:'text-pink-600 dark:text-pink-400', ic:'activity', hc:'hover:border-pink-400'},
-                                        {l:'ประวัติแพ้ยา', v:stats.drugAllergies.length, k:'', t:'drug_allergy', cBg:'bg-purple-50 dark:bg-purple-500/10', cText:'text-purple-600 dark:text-purple-400', ic:'pill', hc:'hover:border-purple-400'}
-                                    ].map((kpi, i) => (
-                                        <div key={i} onClick={() => handleDrilldown(kpi.l, kpi.t, kpi.k)} className={`p-6 rounded-[2rem] border border-slate-200/50 dark:border-white/5 ${kpi.cBg} flex flex-col relative overflow-hidden shadow-sm cursor-pointer btn-interactive ${kpi.hc} group transition-all`}>
-                                            <div className={`absolute right-4 top-4 opacity-10 group-hover:opacity-20 transition-opacity group-hover:scale-110 ${kpi.cText}`}><Icon name={kpi.ic} size={64}/></div>
-                                            <span className={`text-xs md:text-sm font-bold mb-2 ${kpi.cText} z-10`}>{kpi.l}</span>
-                                            <div className="flex items-end justify-between z-10">
-                                                <span className={`text-4xl md:text-5xl font-black ${kpi.cText}`}>{kpi.v} <span className="text-base font-semibold opacity-70">คน</span></span>
-                                                <div className={`p-1.5 rounded-lg bg-white/50 dark:bg-black/20 ${kpi.cText} shadow-sm group-hover:bg-white dark:group-hover:bg-white/10`}><Icon name="search" size={16}/></div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                                <div className="grid lg:grid-cols-2 gap-6">
-                                    <div className="glass-panel p-6 md:p-8 rounded-[2rem] border-t-[8px] border-t-orange-500 shadow-soft flex flex-col min-h-[380px]">
-                                        <h3 className="text-xl font-black mb-6 text-slate-800 dark:text-white flex items-center gap-3"><div className="p-2.5 bg-orange-100 dark:bg-orange-500/20 text-orange-600 rounded-xl"><Icon name="pie-chart" size={20}/></div> กราฟรายงานด้านโภชนาการ</h3>
-                                        <div className="flex-1 w-full relative">
-                                            {stats.dietStats['ฮาลาล'] === 0 && stats.dietStats['มังสวิรัติ'] === 0 && stats.dietStats['เจ'] === 0 && stats.foodAllergies.length === 0 ? (
-                                                <div className="absolute inset-0 flex items-center justify-center text-slate-400">ไม่มีข้อมูล</div>
-                                            ) : (
-                                                <ResponsiveContainer width="100%" height="100%">
-                                                    <BarChart data={[{ name: 'แพ้อาหาร', value: stats.foodAllergies.length, fill: '#ea580c' }, { name: 'ฮาลาล', value: stats.dietStats['ฮาลาล'], fill: '#3b82f6' }, { name: 'มังสวิรัติ', value: stats.dietStats['มังสวิรัติ'], fill: '#10b981' }, { name: 'เจ', value: stats.dietStats['เจ'], fill: '#eab308' }]} layout="vertical" margin={{ left: 0, right: 40, bottom: 0, top: 0 }}>
-                                                        <XAxis type="number" hide />
-                                                        <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: isDarkMode ? '#cbd5e1' : '#475569', fontSize: 13, fontWeight: 700}} width={80} />
-                                                        <Tooltip cursor={{fill: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}} contentStyle={{ backgroundColor: isDarkMode ? '#18181b' : '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', fontWeight: 'bold' }} />
-                                                        <Bar dataKey="value" radius={[0, 16, 16, 0]} barSize={32} label={{ position: 'right', fill: isDarkMode ? '#fff' : '#0f172a', fontSize: 16, fontWeight: '900' }}>
-                                                            {[{fill: '#ea580c'},{fill: '#3b82f6'}, {fill: '#10b981'}, {fill: '#eab308'}].map((e, i) => <Cell key={i} fill={e.fill} />)}
-                                                        </Bar>
-                                                    </BarChart>
-                                                </ResponsiveContainer>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="glass-panel p-6 md:p-8 rounded-[2rem] border-t-[8px] border-t-pink-500 shadow-soft flex flex-col min-h-[380px]">
-                                        <h3 className="text-xl font-black mb-6 text-slate-800 dark:text-white flex items-center gap-3"><div className="p-2.5 bg-pink-100 dark:bg-pink-500/20 text-pink-600 rounded-xl"><Icon name="activity" size={20}/></div> กราฟรายงานด้านการแพทย์</h3>
-                                        <div className="flex-1 w-full relative">
-                                            {stats.diseases.length === 0 && stats.drugAllergies.length === 0 ? (
-                                                <div className="absolute inset-0 flex items-center justify-center text-slate-400">ไม่มีข้อมูลความเสี่ยงทางการแพทย์</div>
-                                            ) : (
-                                                <ResponsiveContainer width="100%" height="100%">
-                                                    <BarChart data={[{ name: 'โรคประจำตัว', value: stats.diseases.length, fill: '#ec4899' }, { name: 'ประวัติแพ้ยา', value: stats.drugAllergies.length, fill: '#a855f7' }]} layout="vertical" margin={{ left: 0, right: 40, top: 0, bottom: 0 }}>
-                                                        <XAxis type="number" hide />
-                                                        <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: isDarkMode ? '#cbd5e1' : '#475569', fontSize: 13, fontWeight: 700}} width={100} />
-                                                        <Tooltip cursor={{fill: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}} contentStyle={{ backgroundColor: isDarkMode ? '#18181b' : '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', fontWeight: 'bold' }} />
-                                                        <Bar dataKey="value" radius={[0, 16, 16, 0]} barSize={32} label={{ position: 'right', fill: isDarkMode ? '#fff' : '#0f172a', fontSize: 16, fontWeight: '900' }}>
-                                                            {[{fill: '#ec4899'}, {fill: '#a855f7'}].map((e, i) => <Cell key={i} fill={e.fill} />)}
-                                                        </Bar>
-                                                    </BarChart>
-                                                </ResponsiveContainer>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* TAB 4: SURVEILLANCE */}
-                        {activeTab === 'surveillance' && (
-                            <div className="space-y-6 animate-fade-in">
-                                <div className="grid lg:grid-cols-3 gap-6">
-                                    <div className="lg:col-span-1 flex flex-col gap-6">
-                                        <div className="glass-panel p-8 rounded-[2.5rem] border-l-8 border-l-red-500 shadow-glow-red relative overflow-hidden bg-gradient-to-br from-white to-red-50/50 dark:from-zinc-900 dark:to-red-950/20 text-center">
-                                            <div className="absolute right-0 top-0 opacity-10 text-red-500 transform translate-x-4 -translate-y-4"><Icon name="shield-alert" size={120} /></div>
-                                            <div className="relative z-10">
-                                                <div className="text-sm font-bold text-red-500 uppercase tracking-widest mb-3">ยอดรวมเฝ้าระวังพิเศษ</div>
-                                                <div className="text-7xl font-black text-red-600 dark:text-red-400 leading-none drop-shadow-sm mb-2">{stats.surveillanceList.length}</div>
-                                                <div className="text-sm font-semibold text-slate-500 dark:text-slate-400">จากทั้งหมด {stats.total} คน ({stats.total ? ((stats.surveillanceList.length/stats.total)*100).toFixed(1) : 0}%)</div>
-                                            </div>
-                                        </div>
-                                        <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border border-slate-200/50 dark:border-white/5 flex-1 shadow-soft flex flex-col">
-                                            <h3 className="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2 mb-4 justify-center"><Icon name="pie-chart" className="text-red-500"/> สัดส่วนประเภทความเสี่ยง</h3>
-                                            <div className="flex-1 w-full min-h-[220px]">
-                                                {stats.surveillancePieData.length === 0 ? (
-                                                    <div className="w-full h-full flex items-center justify-center text-slate-400">ไม่มีข้อมูลเฝ้าระวัง</div>
-                                                ) : (
-                                                    <ResponsiveContainer width="100%" height="100%">
-                                                        <PieChart>
-                                                            <Pie data={stats.surveillancePieData} innerRadius="55%" outerRadius="80%" paddingAngle={4} dataKey="value" stroke="none">
-                                                                {stats.surveillancePieData.map((e, i) => {
-                                                                    let color = '#ef4444'; if(e.name === 'ด้านโภชนาการ') color = '#f97316'; if(e.name === 'ความเสี่ยงซ้อน (ทั้งสอง)') color = '#7f1d1d'; return <Cell key={i} fill={color} />;
-                                                                })}
-                                                            </Pie>
-                                                            <Tooltip contentStyle={{ backgroundColor: isDarkMode ? '#18181b' : '#fff', border: 'none', borderRadius: '12px' }} itemStyle={{fontWeight: 'bold', color: isDarkMode ? '#fff' : '#1e293b'}} />
-                                                            <Legend verticalAlign="bottom" height={36} wrapperStyle={{fontSize: '12px', fontWeight: 'bold'}}/>
-                                                        </PieChart>
-                                                    </ResponsiveContainer>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="lg:col-span-2 glass-panel rounded-[2.5rem] overflow-hidden border border-slate-200/50 dark:border-white/5 shadow-soft flex flex-col">
-                                        <div className="p-6 md:px-8 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex justify-between items-center">
-                                            <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-3"><Icon name="users" className="text-red-500" size={18}/> รายชื่อกลุ่มเฝ้าระวัง <span className="text-xs bg-red-100 dark:bg-red-500/20 text-red-600 px-2 py-1 rounded-md font-semibold">(คลิกแถวเพื่อดูรายละเอียด)</span></h3>
-                                        </div>
-                                        {stats.surveillanceList.length > 0 ? (
-                                            <>
-                                                <div className="overflow-x-auto p-2 custom-scrollbar flex-1">
-                                                    <table className="w-full text-sm text-left min-w-[500px]">
-                                                        <thead className="text-[11px] text-slate-400 uppercase tracking-widest bg-transparent"><tr><th className="px-6 py-4">ชื่อ-นามสกุล</th><th className="px-6 py-4">สาขาวิชา</th><th className="px-6 py-4">ประเด็นเสี่ยง</th><th className="px-6 py-4 text-right"></th></tr></thead>
-                                                        <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                                                            {(() => {
-                                                                const itemsPerPage = 8;
-                                                                const currentItems = stats.surveillanceList.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-                                                                return currentItems.map((row, i) => (
-                                                                    <tr key={i} onClick={() => setSelectedSurveillanceStudent(row)} className="hover:bg-red-50/50 dark:hover:bg-red-900/10 transition-colors group cursor-pointer">
-                                                                        <td className="px-6 py-4 font-bold text-slate-800 dark:text-slate-200 group-hover:text-red-600 transition-colors">{row.FullName}</td>
-                                                                        <td className="px-6 py-4 text-xs font-semibold text-slate-500">{row.Major}</td>
-                                                                        <td className="px-6 py-4"><span className="inline-flex items-center justify-center bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 w-6 h-6 rounded-full text-xs font-bold shadow-sm">{row.issues.length}</span></td>
-                                                                        <td className="px-6 py-4 text-right text-slate-300 group-hover:text-red-500 transition-colors"><Icon name="chevron-right" size={20}/></td>
-                                                                    </tr>
-                                                                ));
-                                                            })()}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                                <div className="flex flex-col sm:flex-row justify-between items-center p-5 border-t border-slate-100 dark:border-white/5 gap-4 bg-slate-50/50 dark:bg-transparent">
-                                                    <span className="text-xs font-semibold text-slate-500">แสดง {((currentPage - 1) * 8) + 1} - {Math.min(currentPage * 8, stats.surveillanceList.length)} จาก {stats.surveillanceList.length} รายการ</span>
-                                                    <div className="flex gap-2">
-                                                        <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-2.5 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm disabled:opacity-50 btn-interactive"><Icon name="chevron-left" size={16}/></button>
-                                                        <button onClick={() => setCurrentPage(p => Math.min(Math.ceil(stats.surveillanceList.length / 8), p + 1))} disabled={currentPage === Math.ceil(stats.surveillanceList.length / 8) || Math.ceil(stats.surveillanceList.length / 8) === 0} className="p-2.5 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm disabled:opacity-50 btn-interactive"><Icon name="chevron-right" size={16}/></button>
-                                                    </div>
-                                                </div>
-                                            </>
-                                        ) : (
-                                            <div className="flex flex-col items-center justify-center text-center p-12 flex-1">
-                                                <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center mb-4"><Icon name="check-circle" size={40}/></div>
-                                                <h3 className="text-xl font-black text-emerald-600 dark:text-emerald-400 mb-2">สุขภาพแข็งแรงทุกคน</h3>
-                                                <p className="text-sm text-slate-500">ไม่พบนักศึกษาในกลุ่มเฝ้าระวังพิเศษ</p>
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -1348,7 +1257,7 @@
                                             </div>
                                         </div>
                                         <div className="flex gap-4 shrink-0 mt-6 md:mt-0">
-                                            <div onClick={() => handleDrilldown('นักศึกษาที่ขึ้นทะเบียนทั้งหมด', '', '')} className="bg-white/80 dark:bg-black/40 backdrop-blur-xl p-8 md:p-12 rounded-[2.5rem] border border-white dark:border-white/10 shadow-lg text-center min-w-[280px] md:min-w-[320px] relative overflow-hidden group hover:border-brand/50 transition-all cursor-pointer btn-interactive print:border-slate-300 print:shadow-none print:p-6 print:min-w-[200px]">
+                                            <div onClick={() => handleDrilldown('นักศึกษาที่ขึ้นทะเบียนทั้งหมด', 'all', '')} className="bg-white/80 dark:bg-black/40 backdrop-blur-xl p-8 md:p-12 rounded-[2.5rem] border border-white dark:border-white/10 shadow-lg text-center min-w-[280px] md:min-w-[320px] relative overflow-hidden group hover:border-brand/50 transition-all cursor-pointer btn-interactive print:border-slate-300 print:shadow-none print:p-6 print:min-w-[200px]">
                                                 <div className="absolute inset-0 bg-brand/5 dark:bg-brand/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500 print:hidden"></div>
                                                 <div className="absolute top-4 right-4 text-brand opacity-0 group-hover:opacity-100 transition-opacity print:hidden"><Icon name="search" size={20}/></div>
                                                 <div className="relative z-10">
@@ -1367,61 +1276,125 @@
                                     <div className="lg:col-span-2 space-y-6 print:space-y-4">
                                         <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[6px] border-t-red-500 shadow-soft border border-slate-200/50 dark:border-white/5 relative overflow-hidden print:border print:border-slate-300 print:bg-white print:shadow-none print:p-4 avoid-break">
                                             <div className="absolute top-0 right-0 p-8 opacity-5 text-red-500 pointer-events-none transform rotate-12 print:hidden"><Icon name="activity" size={100} /></div>
-                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 relative z-10 gap-4 print:mb-4">
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 relative z-10 gap-4 print:mb-4">
                                                 <h3 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-3 print:text-lg print:text-black">
                                                     <div className="p-3 bg-red-100 dark:bg-red-500/20 text-red-600 rounded-xl shadow-inner print:hidden"><Icon name="ambulance" size={24}/></div> 
                                                     ระเบียบความปลอดภัยการแพทย์
                                                 </h3>
-                                                <div onClick={() => handleDrilldown('เฝ้าระวังด้านการแพทย์', 'health_alert', '')} className="cursor-pointer btn-interactive text-left sm:text-right bg-red-50 dark:bg-red-900/20 px-5 py-2.5 rounded-xl border border-red-100 dark:border-red-500/20 shadow-sm hover:shadow-md hover:bg-red-100 transition-colors flex items-center gap-3 print:border-none print:bg-transparent print:p-0">
-                                                    <span className="text-sm font-bold text-slate-500 print:text-slate-600">เคสเฝ้าระวังทั้งหมด:</span>
-                                                    <span className="text-2xl font-black text-red-600 print:text-red-600 print:text-xl">{stats.healthAlert}</span>
-                                                    <Icon name="search" size={16} className="text-red-500 print:hidden"/>
+                                                <div className="flex flex-wrap gap-2 items-center">
+                                                    <button onClick={exportMedicalSummary} className="px-4 py-2 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 rounded-xl text-sm font-bold shadow-sm hover:bg-emerald-500 hover:text-white transition-all btn-interactive flex items-center gap-2 print:hidden">
+                                                        <Icon name="download" size={16}/> สรุปยอด Excel
+                                                    </button>
+                                                    <div onClick={() => handleDrilldown('เฝ้าระวังด้านการแพทย์', 'health_alert', '')} className="cursor-pointer btn-interactive text-left sm:text-right bg-red-50 dark:bg-red-900/20 px-4 py-2 rounded-xl border border-red-100 dark:border-red-500/20 shadow-sm hover:shadow-md hover:bg-red-100 transition-colors flex items-center gap-3 print:border-none print:bg-transparent print:p-0">
+                                                        <span className="text-sm font-bold text-slate-500 print:text-slate-600">กลุ่มเปราะบาง:</span>
+                                                        <span className="text-xl md:text-2xl font-black text-red-600 print:text-red-600 print:text-xl">{stats.healthAlert}</span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10 print:grid-cols-2 print:gap-2">
-                                                {[ {l:'กลุ่มเปราะบาง (เฝ้าระวังสูงสุด)', v:stats.healthAlert, k:'', t:'health_alert', c:'text-red-600 dark:text-red-400', bg:'bg-red-500', hc:'hover:border-red-300 dark:hover:border-red-500/50'}, 
-                                                   {l:'มีสถิติโรคประจำตัว', v:stats.diseases.length, k:'', t:'disease', c:'text-pink-600 dark:text-pink-400', bg:'bg-pink-500', hc:'hover:border-pink-300 dark:hover:border-pink-500/50'}, 
+                                            <div className="flex flex-col gap-2 mb-6 relative z-10">
+                                                <div className="flex w-full h-3 gap-1 opacity-90">
+                                                    <div className="bg-slate-300 dark:bg-slate-600 rounded-l-full h-full transition-all duration-1000 shadow-inner print:bg-slate-300 print:opacity-100 print:color-adjust-exact" style={{width: `${stats.total ? ((stats.total - stats.healthAlert) / stats.total) * 100 : 0}%`, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>
+                                                    <div className="bg-red-500 rounded-r-full h-full transition-all duration-1000 shadow-inner print:bg-red-500 print:opacity-100 print:color-adjust-exact" style={{width: `${stats.total ? (stats.healthAlert / stats.total) * 100 : 0}%`, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>
+                                                </div>
+                                                <div className="flex justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest print:text-black">
+                                                    <span>สุขภาพแข็งแรง ({(stats.total - stats.healthAlert)})</span>
+                                                    <span className="text-red-600 dark:text-red-400">เฝ้าระวังพิเศษ ({stats.healthAlert})</span>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 relative z-10 print:grid-cols-3 print:gap-2">
+                                                {[ 
+                                                   {l:'สุขภาพแข็งแรง', v:(stats.total - stats.healthAlert), k:'', t:'', c:'text-slate-600 dark:text-slate-300', bg:'bg-slate-400', hc:'hover:border-slate-300 dark:hover:border-slate-500/50'}, 
+                                                   {l:'มีโรคประจำตัว', v:stats.diseases.length, k:'', t:'disease', c:'text-pink-600 dark:text-pink-400', bg:'bg-pink-500', hc:'hover:border-pink-300 dark:hover:border-pink-500/50'}, 
                                                    {l:'ประวัติแพ้ยา', v:stats.drugAllergies.length, k:'', t:'drug_allergy', c:'text-purple-600 dark:text-purple-400', bg:'bg-purple-500', hc:'hover:border-purple-300 dark:hover:border-purple-500/50'} 
                                                 ].map((itm,i) => (
-                                                    <div key={i} onClick={() => handleDrilldown(itm.l, itm.t, itm.k)} className={`group cursor-pointer p-6 rounded-2xl bg-white/60 dark:bg-zinc-900/50 border border-slate-200 dark:border-white/10 ${itm.hc} hover:shadow-md transition-all btn-interactive ${i === 0 ? 'sm:col-span-2 bg-red-50/80 dark:bg-red-950/30 border-red-100 dark:border-red-900/50' : ''} print:bg-white print:border-slate-200 print:shadow-none print:p-3 avoid-break`}>
-                                                        <div className="flex justify-between items-end mb-4 print:mb-2">
-                                                            <span className={`text-sm font-bold text-slate-600 dark:text-slate-300 group-hover:${itm.c.split(' ')[0]} transition-colors flex items-center gap-1 print:text-black`}><Icon name="search" size={12} className="opacity-0 group-hover:opacity-100 transition-opacity print:hidden"/> {itm.l}</span>
-                                                            <span className={`font-black text-3xl leading-none ${itm.c} print:text-xl`}>{itm.v} <span className="text-xs text-slate-400 font-semibold ml-1">ราย</span></span>
+                                                    <div key={i} onClick={() => { if(itm.l !== 'สุขภาพแข็งแรง') handleDrilldown(itm.l, itm.t, itm.k) }} className={`group ${itm.l !== 'สุขภาพแข็งแรง' ? 'cursor-pointer' : ''} p-4 rounded-2xl bg-white/60 dark:bg-zinc-900/50 border border-slate-200 dark:border-white/10 ${itm.hc} hover:shadow-md transition-all btn-interactive print:bg-white print:border-slate-200 print:shadow-none print:p-2 avoid-break`}>
+                                                        <div className="flex justify-between items-end mb-3 print:mb-1">
+                                                            <span className={`text-xs font-bold text-slate-600 dark:text-slate-300 group-hover:${itm.c.split(' ')[0]} transition-colors flex items-center gap-1 print:text-black`}>
+                                                                {itm.l !== 'สุขภาพแข็งแรง' && <Icon name="search" size={10} className="opacity-0 group-hover:opacity-100 transition-opacity print:hidden"/>} {itm.l}
+                                                            </span>
+                                                            <span className={`font-black text-2xl leading-none ${itm.c} print:text-xl`}>{itm.v}</span>
                                                         </div>
-                                                        <div className="w-full bg-slate-200/50 dark:bg-white/10 rounded-full h-2.5 overflow-hidden shadow-inner print:bg-slate-200">
-                                                            <div className={`h-2.5 rounded-full ${itm.bg} shadow-sm transition-all duration-1000 print:color-adjust-exact`} style={{ width: `${stats.total > 0 ? (itm.v / stats.total * 100) : 0}%`, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}></div>
+                                                        <div className="w-full bg-slate-200/50 dark:bg-white/10 rounded-full h-1.5 overflow-hidden shadow-inner print:bg-slate-200">
+                                                            <div className={`h-1.5 rounded-full ${itm.bg} shadow-sm transition-all duration-1000 print:color-adjust-exact`} style={{ width: `${stats.total > 0 ? (itm.v / stats.total * 100) : 0}%`, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}></div>
                                                         </div>
                                                     </div>
                                                 ))}
+                                                <div onClick={() => handleDrilldown('เฝ้าระวังด้านการแพทย์', 'health_alert', '')} className="col-span-2 md:col-span-3 group cursor-pointer p-4 md:p-5 rounded-2xl bg-red-50/50 dark:bg-red-950/20 border border-red-200 dark:border-red-500/20 hover:border-red-400 hover:shadow-md transition-all btn-interactive print:bg-white print:border-slate-200 print:shadow-none print:p-3 avoid-break">
+                                                    <div className="flex justify-between items-end mb-3 print:mb-1">
+                                                        <span className={`text-sm font-bold text-red-800 dark:text-red-300 group-hover:text-red-600 transition-colors flex items-center gap-1 print:text-black`}><Icon name="search" size={12} className="opacity-0 group-hover:opacity-100 transition-opacity print:hidden"/> กลุ่มเปราะบางเฝ้าระวังสูงสุด (Medical Risk)</span>
+                                                        <span className="font-black text-3xl leading-none text-red-600 print:text-xl">{stats.healthAlert} <span className="text-xs text-red-400 font-semibold ml-1">คน</span></span>
+                                                    </div>
+                                                    <div className="w-full bg-red-200/50 dark:bg-white/10 rounded-full h-2 overflow-hidden shadow-inner print:bg-slate-200">
+                                                        <div className="h-2 rounded-full bg-red-500 shadow-sm transition-all duration-1000 print:color-adjust-exact" style={{ width: `${stats.total > 0 ? (stats.healthAlert / stats.total * 100) : 0}%`, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}></div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
 
                                         <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[6px] border-t-orange-500 shadow-soft border border-slate-200/50 dark:border-white/5 relative overflow-hidden print:border print:border-slate-300 print:bg-white print:shadow-none print:p-4 avoid-break">
                                             <div className="absolute top-0 right-0 p-8 opacity-5 text-orange-500 pointer-events-none transform -rotate-12 print:hidden"><Icon name="pizza" size={100} /></div>
-                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 relative z-10 gap-4 print:mb-4">
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 relative z-10 gap-4 print:mb-4">
                                                 <h3 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-3 print:text-lg print:text-black">
                                                     <div className="p-3 bg-orange-100 dark:bg-orange-500/20 text-orange-600 rounded-xl shadow-inner print:hidden"><Icon name="utensils" size={24}/></div> 
                                                     บริหารการจัดเตรียมโภชนาการ
                                                 </h3>
+                                                <div className="flex flex-wrap gap-2 items-center">
+                                                    <button onClick={exportNutritionSummary} className="px-4 py-2 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 rounded-xl text-sm font-bold shadow-sm hover:bg-emerald-500 hover:text-white transition-all btn-interactive flex items-center gap-2 print:hidden">
+                                                        <Icon name="download" size={16}/> สรุปยอด Excel
+                                                    </button>
+                                                    <div onClick={() => handleDrilldown('เฝ้าระวังด้านโภชนาการ', 'food_alert', '')} className="cursor-pointer btn-interactive text-left sm:text-right bg-orange-50 dark:bg-orange-900/20 px-4 py-2 rounded-xl border border-orange-100 dark:border-orange-500/20 shadow-sm hover:shadow-md hover:bg-orange-100 transition-colors flex items-center gap-3 print:border-none print:bg-transparent print:p-0">
+                                                        <span className="text-sm font-bold text-slate-500 print:text-slate-600">จัดการพิเศษ:</span>
+                                                        <span className="text-xl md:text-2xl font-black text-orange-600 print:text-orange-600 print:text-xl">{stats.foodAlert}</span>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10 print:grid-cols-2 print:gap-2">
-                                                {[ {l:'คุ้มครองศาสนา (ฮาลาล)', v:stats.dietStats['ฮาลาล'], k:'ฮาลาล', t:'religion_diet', c:'text-blue-600 dark:text-blue-400', bg:'bg-blue-500', hc:'hover:border-blue-300 dark:hover:border-blue-500/50'}, 
-                                                   {l:'เพื่อสุขภาพ (มังสวิรัติ)', v:stats.dietStats['มังสวิรัติ'], k:'มังสวิรัติ', t:'religion_diet', c:'text-emerald-600 dark:text-emerald-400', bg:'bg-emerald-500', hc:'hover:border-emerald-300 dark:hover:border-emerald-500/50'}, 
-                                                   {l:'อาหารเจ (เทศกาล/ตลอด)', v:stats.dietStats['เจ'], k:'เจ', t:'religion_diet', c:'text-yellow-600 dark:text-yellow-500', bg:'bg-yellow-400', hc:'hover:border-yellow-300 dark:hover:border-yellow-500/50'}, 
-                                                   {l:'แพ้อาหารเฉพาะกลุ่ม', v:stats.foodAllergies.length, k:'', t:'food_allergy', c:'text-orange-600 dark:text-orange-400', bg:'bg-orange-500', hc:'hover:border-orange-300 dark:hover:border-orange-500/50'} 
+                                            <div className="flex flex-col gap-2 mb-6 relative z-10">
+                                                <div className="flex w-full h-3 gap-1 opacity-90">
+                                                    <div className="bg-slate-300 dark:bg-slate-600 rounded-l-full h-full transition-all duration-1000 shadow-inner print:bg-slate-300 print:opacity-100 print:color-adjust-exact" style={{width: `${stats.total ? ((stats.total - stats.foodAlert) / stats.total) * 100 : 0}%`, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>
+                                                    <div className="bg-orange-500 rounded-r-full h-full transition-all duration-1000 shadow-inner print:bg-orange-500 print:opacity-100 print:color-adjust-exact" style={{width: `${stats.total ? (stats.foodAlert / stats.total) * 100 : 0}%`, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>
+                                                </div>
+                                                <div className="flex justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest print:text-black">
+                                                    <span>ทานได้ทุกอย่าง ({(stats.total - stats.foodAlert)})</span>
+                                                    <span className="text-orange-600 dark:text-orange-400">ต้องจัดเตรียมพิเศษ ({stats.foodAlert})</span>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 relative z-10 print:grid-cols-4 print:gap-2">
+                                                {[ 
+                                                   {l:'ทานได้ทุกอย่าง', v:(stats.total - stats.foodAlert), k:'ไม่มี', t:'food_alert', c:'text-slate-600 dark:text-slate-300', bg:'bg-slate-400', hc:'hover:border-slate-300 dark:hover:border-slate-500/50'}, 
+                                                   {l:'ฮาลาล', v:stats.dietStats['ฮาลาล'], k:'ฮาลาล', t:'religion_diet', c:'text-blue-600 dark:text-blue-400', bg:'bg-blue-500', hc:'hover:border-blue-300 dark:hover:border-blue-500/50'}, 
+                                                   {l:'มังสวิรัติ', v:stats.dietStats['มังสวิรัติ'], k:'มังสวิรัติ', t:'religion_diet', c:'text-emerald-600 dark:text-emerald-400', bg:'bg-emerald-500', hc:'hover:border-emerald-300 dark:hover:border-emerald-500/50'}, 
+                                                   {l:'เจ', v:stats.dietStats['เจ'], k:'เจ', t:'religion_diet', c:'text-yellow-600 dark:text-yellow-500', bg:'bg-yellow-400', hc:'hover:border-yellow-300 dark:hover:border-yellow-500/50'}
                                                 ].map((itm,i) => (
-                                                    <div key={i} onClick={() => handleDrilldown(itm.l, itm.t, itm.k)} className={`group cursor-pointer p-6 rounded-2xl bg-white/60 dark:bg-zinc-900/50 border border-slate-200 dark:border-white/10 ${itm.hc} hover:shadow-md transition-all btn-interactive print:bg-white print:border-slate-200 print:shadow-none print:p-3 avoid-break`}>
-                                                        <div className="flex justify-between items-end mb-4 print:mb-2">
-                                                            <span className={`text-sm font-bold text-slate-600 dark:text-slate-300 group-hover:${itm.c.split(' ')[0]} transition-colors flex items-center gap-1 print:text-black`}><Icon name="search" size={12} className="opacity-0 group-hover:opacity-100 transition-opacity print:hidden"/> {itm.l}</span>
-                                                            <span className={`font-black text-3xl leading-none ${itm.c} print:text-xl`}>{itm.v} <span className="text-xs text-slate-400 font-semibold ml-1">คน</span></span>
+                                                    <div key={i} onClick={() => { if(itm.l !== 'ทานได้ทุกอย่าง') handleDrilldown(itm.l, itm.t, itm.k) }} className={`group ${itm.l !== 'ทานได้ทุกอย่าง' ? 'cursor-pointer' : ''} p-4 rounded-2xl bg-white/60 dark:bg-zinc-900/50 border border-slate-200 dark:border-white/10 ${itm.hc} hover:shadow-md transition-all btn-interactive print:bg-white print:border-slate-200 print:shadow-none print:p-2 avoid-break`}>
+                                                        <div className="flex justify-between items-end mb-3 print:mb-1">
+                                                            <span className={`text-xs font-bold text-slate-600 dark:text-slate-300 group-hover:${itm.c.split(' ')[0]} transition-colors flex items-center gap-1 print:text-black`}>
+                                                                {itm.l !== 'ทานได้ทุกอย่าง' && <Icon name="search" size={10} className="opacity-0 group-hover:opacity-100 transition-opacity print:hidden"/>} {itm.l}
+                                                            </span>
+                                                            <span className={`font-black text-2xl leading-none ${itm.c} print:text-xl`}>{itm.v}</span>
                                                         </div>
-                                                        <div className="w-full bg-slate-200/50 dark:bg-white/10 rounded-full h-2.5 overflow-hidden shadow-inner print:bg-slate-200">
-                                                            <div className={`h-2.5 rounded-full ${itm.bg} shadow-sm transition-all duration-1000 print:color-adjust-exact`} style={{ width: `${stats.total > 0 ? (itm.v / stats.total * 100) : 0}%`, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}></div>
+                                                        <div className="w-full bg-slate-200/50 dark:bg-white/10 rounded-full h-1.5 overflow-hidden shadow-inner print:bg-slate-200">
+                                                            <div className={`h-1.5 rounded-full ${itm.bg} shadow-sm transition-all duration-1000 print:color-adjust-exact`} style={{ width: `${stats.total > 0 ? (itm.v / stats.total * 100) : 0}%`, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}></div>
                                                         </div>
                                                     </div>
                                                 ))}
+                                                <div onClick={() => handleDrilldown('แพ้อาหารเฉพาะกลุ่ม', 'food_allergy', '')} className="col-span-2 md:col-span-4 group cursor-pointer p-4 md:p-5 rounded-2xl bg-orange-50/50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-500/20 hover:border-orange-400 hover:shadow-md transition-all btn-interactive print:bg-white print:border-slate-200 print:shadow-none print:p-3 avoid-break">
+                                                    <div className="flex justify-between items-end mb-3 print:mb-1">
+                                                        <span className={`text-sm font-bold text-orange-800 dark:text-orange-300 group-hover:text-orange-600 transition-colors flex items-center gap-1 print:text-black`}><Icon name="search" size={12} className="opacity-0 group-hover:opacity-100 transition-opacity print:hidden"/> มีประวัติแพ้อาหารเฉพาะกลุ่ม (Food Allergies)</span>
+                                                        <span className="font-black text-3xl leading-none text-orange-600 print:text-xl">{stats.foodAllergies.length} <span className="text-xs text-orange-400 font-semibold ml-1">คน</span></span>
+                                                    </div>
+                                                    {stats.groupedAllergies.length > 0 && (
+                                                        <div className="mt-4 pt-4 border-t border-orange-200/50 dark:border-orange-500/30 print:mt-2 print:pt-2">
+                                                            <p className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-2 print:text-black">สรุปรายการอาหารที่แพ้</p>
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {stats.groupedAllergies.map((alg, idx) => (
+                                                                    <span key={idx} className="bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800/50 px-2.5 py-1 rounded-lg text-xs font-semibold shadow-sm print:bg-white print:border-slate-300 print:text-black">
+                                                                        {alg.name} <span className="font-black ml-1 bg-white dark:bg-black/20 px-1.5 rounded-md print:bg-slate-100">{alg.count}</span>
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -1464,8 +1437,7 @@
                                                         </div>
                                                     </div>
 
-                                                    {/* ปรับ Grid เป็น 1 คอลัมน์บนมือถือ/แท็บเล็ต และ 2 คอลัมน์เฉพาะจอที่กว้างมากๆ เพื่อป้องกันเลย์เอาต์พัง */}
-                                                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 print:grid-cols-2">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4 sm:gap-5 print:grid-cols-2">
                                                         {stats.execBreakdownList.map((item, idx) => {
                                                             const mName = lang === 'en' ? (DICT_MAPPING[item.name] || item.name) : item.name;
                                                             const normalPercent = item.total ? (item.normal / item.total) * 100 : 0;
@@ -1473,30 +1445,21 @@
                                                             
                                                             return (
                                                                 <div key={idx} className="bg-white dark:bg-zinc-800/80 border border-slate-200/80 dark:border-white/10 rounded-3xl p-5 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-300 flex flex-col group print:border-slate-300 print:shadow-none print:transform-none avoid-break">
-                                                                    
-                                                                    {/* Header: Title & Total */}
-                                                                    <div className="flex items-start justify-between gap-4 mb-4">
-                                                                        {/* ใช้ flex-1 และ min-w-0 เพื่อให้ข้อความตัด ... อย่างถูกต้อง */}
+                                                                    <div className="flex justify-between items-start gap-3 mb-4">
                                                                         <div className="flex-1 min-w-0">
                                                                             <h5 className="font-bold text-base text-slate-800 dark:text-white leading-snug truncate group-hover:text-brand transition-colors" title={mName}>{mName}</h5>
                                                                         </div>
-                                                                        
-                                                                        {/* ปุ่ม Total */}
                                                                         <div onClick={() => handleDrilldown(mName, 'major_breakdown', {major: item.name, type: 'all'})} className="px-4 py-1.5 bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-200 rounded-xl text-sm font-black cursor-pointer hover:bg-brand hover:text-white transition-colors shadow-sm print:bg-slate-100 print:text-slate-800 btn-interactive shrink-0 flex items-center gap-1.5" title="ดูรายชื่อทั้งหมด">
                                                                             {item.total} <span className="text-[10px] font-semibold opacity-70">คน</span>
                                                                         </div>
                                                                     </div>
 
-                                                                    {/* Modern Segmented Progress Bar */}
                                                                     <div className="flex w-full h-3 mb-5 gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity">
                                                                         {normalPercent > 0 && <div className="bg-blue-500 rounded-full h-full transition-all duration-1000 shadow-inner print:bg-blue-500 print:opacity-100 print:color-adjust-exact" style={{width: `${normalPercent}%`, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>}
                                                                         {transferPercent > 0 && <div className="bg-purple-500 rounded-full h-full transition-all duration-1000 shadow-inner print:bg-purple-500 print:opacity-100 print:color-adjust-exact" style={{width: `${transferPercent}%`, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>}
                                                                     </div>
 
-                                                                    {/* Legend & Stats Blocks (เรียงแนวนอนแบบกว้างๆ) */}
                                                                     <div className="grid grid-cols-2 gap-3 mt-auto">
-                                                                        
-                                                                        {/* Normal Block */}
                                                                         <div onClick={() => handleDrilldown(`${mName} (ปกติ)`, 'major_breakdown', {major: item.name, type: 'normal'})} className="bg-blue-50/50 dark:bg-blue-900/20 p-3.5 rounded-2xl border border-blue-100/50 dark:border-blue-800/30 cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-all flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 group/btn print:bg-white print:border-slate-200 btn-interactive relative overflow-hidden">
                                                                             <div className="flex items-center gap-2 z-10">
                                                                                 <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm print:bg-blue-500 print:color-adjust-exact" style={{WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>
@@ -1508,8 +1471,6 @@
                                                                             </div>
                                                                             <div className="absolute right-2 top-2 opacity-0 group-hover/btn:opacity-10 text-blue-500 transition-opacity transform translate-x-1 -translate-y-1 print:hidden"><Icon name="users" size={40}/></div>
                                                                         </div>
-
-                                                                        {/* Transfer Block */}
                                                                         <div onClick={() => handleDrilldown(`${mName} (เทียบโอน)`, 'major_breakdown', {major: item.name, type: 'transfer'})} className="bg-purple-50/50 dark:bg-purple-900/20 p-3.5 rounded-2xl border border-purple-100/50 dark:border-purple-800/30 cursor-pointer hover:border-purple-300 hover:bg-purple-50 transition-all flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 group/btn print:bg-white print:border-slate-200 btn-interactive relative overflow-hidden">
                                                                             <div className="flex items-center gap-2 z-10">
                                                                                 <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm print:bg-purple-500 print:color-adjust-exact" style={{WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>
@@ -1521,7 +1482,6 @@
                                                                             </div>
                                                                             <div className="absolute right-2 top-2 opacity-0 group-hover/btn:opacity-10 text-purple-500 transition-opacity transform translate-x-1 -translate-y-1 print:hidden"><Icon name="refresh-cw" size={40}/></div>
                                                                         </div>
-
                                                                     </div>
                                                                 </div>
                                                             );
@@ -1585,7 +1545,7 @@
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 shrink-0">
                                     <div>
                                         <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
-                                            <div className={`p-3 rounded-2xl text-white shadow-md ${drilldownData.type.includes('diet') || drilldownData.type.includes('food') ? 'bg-orange-500 shadow-glow-brand' : drilldownData.type === 'demographics' ? 'bg-blue-500' : drilldownData.title.includes('ทั้งหมด') ? 'bg-brand shadow-glow-brand' : 'bg-red-500 shadow-glow-red'}`}><Icon name="users" size={24}/></div>
+                                            <div className={`p-3 rounded-2xl text-white shadow-md ${drilldownData.type.includes('diet') || drilldownData.type.includes('food') ? 'bg-orange-500 shadow-glow-brand' : drilldownData.type === 'demographics' || drilldownData.type === 'major_breakdown' ? 'bg-blue-500' : drilldownData.title.includes('ทั้งหมด') ? 'bg-brand shadow-glow-brand' : 'bg-red-500 shadow-glow-red'}`}><Icon name="users" size={24}/></div>
                                             {drilldownData.title}
                                         </h3>
                                         <p className="text-sm font-semibold text-slate-500 mt-2">พบทั้งหมด <span className="text-brand font-black bg-brand/10 px-2 py-0.5 rounded-md">{drilldownData.list.length}</span> รายการ</p>
@@ -1598,7 +1558,7 @@
                                             <tr>
                                                 <th className="px-6 py-5 rounded-l-xl font-black">{t('table_name')}</th>
                                                 <th className="px-6 py-5 font-black">{t('table_major')}</th>
-                                                {drilldownData.type !== 'demographics' && !drilldownData.title.includes('ทั้งหมด') && <th className="px-6 py-5 font-black">เงื่อนไข/อาการ</th>}
+                                                {drilldownData.type !== 'demographics' && drilldownData.type !== 'major_breakdown' && !drilldownData.title.includes('ทั้งหมด') && <th className="px-6 py-5 font-black">เงื่อนไข/อาการ</th>}
                                                 <th className="px-6 py-5 rounded-r-xl font-black">{t('table_contact')}</th>
                                             </tr>
                                         </thead>
@@ -1609,7 +1569,7 @@
                                                 <tr key={idx} className="hover:bg-slate-50/80 dark:hover:bg-white/5 transition-colors">
                                                     <td className="px-6 py-5 font-bold text-slate-800 dark:text-white">{row.FullName}</td>
                                                     <td className="px-6 py-5 text-xs font-semibold text-slate-600 dark:text-slate-400">{mName}</td>
-                                                    {drilldownData.type !== 'demographics' && !drilldownData.title.includes('ทั้งหมด') && (
+                                                    {drilldownData.type !== 'demographics' && drilldownData.type !== 'major_breakdown' && !drilldownData.title.includes('ทั้งหมด') && (
                                                         <td className="px-6 py-5">
                                                             <div className="flex flex-col gap-2">
                                                                 {row.FoodAllergy !== 'ไม่แพ้' && (!drilldownData.type || drilldownData.type === 'food_allergy' || drilldownData.type === 'food_alert' || drilldownData.type === 'health_alert') && <span className="text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-900/40 px-3 py-1.5 rounded-lg text-xs font-bold w-max border border-orange-200 dark:border-orange-800/50">แพ้: {row.FoodAllergy}</span>}
@@ -1632,7 +1592,6 @@
                         </div>
                     )}
 
-                    {/* Edit Modal */}
                     {editItem && (
                         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 dark:bg-black/90 backdrop-blur-lg animate-fade-in print:hidden">
                             <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 p-6 md:p-8 rounded-[2.5rem] w-full max-w-lg max-h-[90vh] flex flex-col shadow-[0_20px_60px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.8)] animate-slide-up text-left overflow-hidden">
@@ -1680,7 +1639,7 @@
 
         function App() {
             const [isDarkMode, setIsDarkMode] = useState(false);
-            const [lang, setLang] = useState('th'); // Language State (th, en)
+            const [lang, setLang] = useState('th');
             const [currentView, setCurrentView] = useState('pdpa'); 
             
             useEffect(() => {
@@ -1693,22 +1652,18 @@
                 else document.documentElement.classList.remove('dark');
             }, [isDarkMode]);
 
-            // Translation Helper
             const t = (key) => TRANSLATIONS[lang][key] || key;
 
             return (
                 <AppContext.Provider value={{ t, lang, setLang, isDarkMode }}>
                     <div className="min-h-screen p-4 md:p-6 transition-colors duration-300 relative">
                         
-                        {/* View Router */}
                         {currentView === 'pdpa' && <PdpaModal onAccept={() => setCurrentView('register')} onAdminClick={() => setCurrentView('admin')} />}
                         {currentView === 'register' && <RegistrationForm onBack={() => setCurrentView('pdpa')} onSuccess={() => setCurrentView('success')} />}
                         {currentView === 'success' && <SuccessView onHome={() => setCurrentView('pdpa')} />}
                         {currentView === 'admin' && <AdminDashboard goBack={() => setCurrentView('pdpa')} />}
 
-                        {/* Theme & Language Switchers (Hidden when printing) */}
                         <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-50 print:hidden">
-                            {/* Language Toggle */}
                             <button 
                                 onClick={() => setLang(lang === 'th' ? 'en' : 'th')}
                                 className="w-12 h-12 bg-white dark:bg-zinc-800 text-slate-800 dark:text-white rounded-full shadow-lg border border-slate-200 dark:border-zinc-700 hover:scale-110 transition-transform flex items-center justify-center font-black text-sm"
@@ -1716,8 +1671,6 @@
                             >
                                 {lang === 'th' ? 'EN' : 'TH'}
                             </button>
-
-                            {/* Dark Mode Toggle */}
                             <button 
                                 onClick={() => setIsDarkMode(!isDarkMode)}
                                 className="w-12 h-12 bg-white dark:bg-zinc-800 text-slate-800 dark:text-white rounded-full shadow-lg border border-slate-200 dark:border-zinc-700 hover:scale-110 transition-transform flex items-center justify-center"
@@ -1726,7 +1679,6 @@
                                 <Icon name={isDarkMode ? "sun" : "moon"} size={20} />
                             </button>
                         </div>
-
                     </div>
                 </AppContext.Provider>
             );
