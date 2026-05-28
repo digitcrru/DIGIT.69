@@ -146,9 +146,6 @@
         const Recharts = window.Recharts || {};
         const { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } = Recharts;
 
-        // ==========================================
-        // 🌐 TRANSLATIONS (พจนานุกรมคำแปล)
-        // ==========================================
         const TRANSLATIONS = {
             th: {
                 back: 'ย้อนกลับ', save: 'บันทึกข้อมูล', cancel: 'ยกเลิก', search: 'ค้นหา...', select_option: '-- โปรดเลือก --',
@@ -161,7 +158,7 @@
                 form_personal_title: 'ข้อมูลส่วนตัวนักศึกษา', form_fullname: 'ชื่อ-นามสกุล (ระบุคำนำหน้า)', form_major: 'สาขาวิชา', form_studentid: 'รหัสนักศึกษา (9 หลัก)', form_idcard: 'รหัสประจำตัวประชาชน / Passport', form_religion: 'ศาสนา', form_blood: 'กรุ๊ปเลือด', form_contact_title: 'ข้อมูลการติดต่อ', form_student_phone: 'เบอร์โทรศัพท์นักศึกษา', form_parent_phone: 'เบอร์โทรศัพท์ผู้ปกครอง (ฉุกเฉิน)',
                 form_nutrition_title: 'ข้อมูลโภชนาการ', form_diet: '1. อาหารเฉพาะทาง (เลือก 1 ข้อ)', form_food_allergy: '2. ประวัติการแพ้อาหาร', form_health_title: 'ข้อมูลสุขภาพทางการแพทย์', form_disease: '1. โรคประจำตัว', form_drug_allergy: '2. ประวัติการแพ้ยา', form_submit: 'บันทึกข้อมูลขึ้นทะเบียน', form_no_allergy: 'ไม่แพ้', form_has_allergy: 'มีประวัติแพ้อาหาร', form_specify_food: 'โปรดระบุอาหารที่แพ้ หรือ อาการ', form_no_disease: 'ไม่มี', form_has_disease: 'มีโรคประจำตัว', form_specify_disease: 'โปรดระบุโรคประจำตัว', form_no_drug_allergy: 'ไม่เคยแพ้ยา', form_has_drug_allergy: 'มีประวัติแพ้ยา', form_specify_drug: 'โปรดระบุยาที่แพ้ หรือ อาการ',
                 success_title: 'ลงทะเบียนสำเร็จ!', success_desc: 'ระบบได้รับข้อมูลการขึ้นทะเบียนของท่านเรียบร้อยแล้ว ขอบคุณที่ให้ความร่วมมือและยินดีต้อนรับครับ', success_home: 'กลับสู่หน้าแรก',
-                admin_dashboard: 'แดชบอร์ด', admin_tab_overview: 'ยอดขึ้นทะเบียน', admin_tab_majors: 'สรุปยอดสาขาวิชา', admin_tab_health: 'สุขภาพและโภชนาการ', admin_tab_surveillance: 'กลุ่มเฝ้าระวังพิเศษ', admin_tab_executive: 'รายงานผู้บริหาร', admin_total: 'ยอดขึ้นทะเบียนรวม', admin_risk_health: 'กลุ่มเปราะบาง (แพทย์)', admin_risk_food: 'จัดการอาหารพิเศษ', admin_healthy: 'สุขภาพปกติ', admin_pie_title: 'ยอดขึ้นทะเบียนแยกตามสาขาวิชา', admin_table_recent: 'รายชื่ออัปเดตล่าสุด', table_name: 'ชื่อ-นามสกุล', table_major: 'สาขาวิชา', table_status: 'สถานะ', table_contact: 'ข้อมูลติดต่อ', status_risk: 'เฝ้าระวัง', status_normal: 'ปกติ', admin_print: 'พิมพ์', admin_export: 'Excel', admin_export_summary: 'สรุปยอด'
+                admin_dashboard: 'แดชบอร์ด', admin_tab_overview: 'ยอดขึ้นทะเบียน', admin_tab_majors: 'สรุปยอดสาขาวิชา', admin_tab_health: 'สุขภาพและโภชนาการ', admin_tab_surveillance: 'กลุ่มเฝ้าระวังพิเศษ', admin_tab_executive: 'รายงานผู้บริหาร', admin_total: 'ยอดขึ้นทะเบียนรวม', admin_risk_health: 'กลุ่มเปราะบาง (แพทย์)', admin_risk_food: 'จัดการอาหารพิเศษ', admin_healthy: 'สุขภาพปกติ', admin_pie_title: 'ยอดขึ้นทะเบียนแยกตามสาขาวิชา', admin_table_recent: 'รายชื่ออัปเดตล่าสุด', table_name: 'ชื่อ-นามสกุล', table_major: 'สาขาวิชา', table_status: 'สถานะ', table_contact: 'ข้อมูลติดต่อ', status_risk: 'เฝ้าระวัง', status_normal: 'ปกติ', admin_print: 'พิมพ์', admin_export: 'Excel', admin_export_summary: 'สรุปยอด',
             },
             en: {
                 back: 'Go Back', save: 'Save Data', cancel: 'Cancel', search: 'Search...', select_option: '-- Please Select --',
@@ -174,7 +171,7 @@
                 form_personal_title: 'Personal Information', form_fullname: 'Full Name (with Title)', form_major: 'Major', form_studentid: 'Student ID (9 digits)', form_idcard: 'ID Card / Passport', form_religion: 'Religion', form_blood: 'Blood Group', form_contact_title: 'Contact Information', form_student_phone: 'Student Phone Number', form_parent_phone: 'Parent/Emergency Phone',
                 form_nutrition_title: 'Nutritional Information', form_diet: '1. Specific Diet (Select 1)', form_food_allergy: '2. Food Allergies', form_health_title: 'Health & Medical Information', form_disease: '1. Underlying Diseases', form_drug_allergy: '2. Drug Allergies', form_submit: 'Submit Registration', form_no_allergy: 'None', form_has_allergy: 'Have Food Allergy', form_specify_food: 'Please specify food allergies or symptoms', form_no_disease: 'None', form_has_disease: 'Have Disease', form_specify_disease: 'Please specify underlying diseases', form_no_drug_allergy: 'None', form_has_drug_allergy: 'Have Drug Allergy', form_specify_drug: 'Please specify drug allergies or symptoms',
                 success_title: 'Registration Successful!', success_desc: 'Your registration data has been successfully recorded. Thank you for your cooperation and welcome!', success_home: 'Return to Home',
-                admin_dashboard: 'Dashboard', admin_tab_overview: 'Overview', admin_tab_majors: 'Majors Summary', admin_tab_health: 'Health & Diet', admin_tab_surveillance: 'High Risk Watchlist', admin_tab_executive: 'Executive Report', admin_total: 'Total Registered', admin_risk_health: 'Vulnerable (Medical)', admin_risk_food: 'Special Diet', admin_healthy: 'Healthy', admin_pie_title: 'Registrations by Major', admin_table_recent: 'Recently Updated', table_name: 'Full Name', table_major: 'Major', table_status: 'Status', table_contact: 'Contact Info', status_risk: 'Watchlist', status_normal: 'Normal', admin_print: 'Print', admin_export: 'Export', admin_export_summary: 'Summary'
+                admin_dashboard: 'Dashboard', admin_tab_overview: 'Overview', admin_tab_majors: 'Majors Summary', admin_tab_health: 'Health & Diet', admin_tab_surveillance: 'High Risk Watchlist', admin_tab_executive: 'Executive Report', admin_total: 'Total Registered', admin_risk_health: 'Vulnerable (Medical)', admin_risk_food: 'Special Diet', admin_healthy: 'Healthy', admin_pie_title: 'Registrations by Major', admin_table_recent: 'Recently Updated', table_name: 'Full Name', table_major: 'Major', table_status: 'Status', table_contact: 'Contact Info', status_risk: 'Watchlist', status_normal: 'Normal', admin_print: 'Print', admin_export: 'Export', admin_export_summary: 'Summary',
             }
         };
 
@@ -185,9 +182,6 @@
 
         const AppContext = createContext();
 
-        // ==========================================
-        // ⚙️ตั้งค่า API
-        // ==========================================
         const API_URL = "https://script.google.com/macros/s/AKfycbwviBRd_BbtvGyEpZSq5ab5A0iEpXkG9iMwAUQyGyZb-nDI2R5-x8GE5ZEI3gpmzA3zug/exec";
         const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1MoZpnDniVF5pKr0tEgmYwlPO3wZdA7DaO_MvZjbC-ec/gviz/tq?tqx=out:csv&sheet=Registration";
         
@@ -214,7 +208,6 @@
             }
         };
 
-        // UI Components
         function Icon({ name, size = 20, className = '' }) {
             const containerRef = useRef(null);
             useEffect(() => {
@@ -279,9 +272,6 @@
             );
         }
 
-        // ==========================================
-        // 🛡️ PDPA Modal Component
-        // ==========================================
         function PdpaModal({ onAccept, onAdminClick }) {
             const { t, isDarkMode } = useContext(AppContext);
             const [isChecked, setIsChecked] = useState(false);
@@ -334,7 +324,6 @@
 
             return (
                 <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-slate-900/80 dark:bg-black/90 backdrop-blur-sm animate-fade-in">
-                    
                     <div className="bg-white dark:bg-zinc-900 w-full sm:max-w-3xl relative flex flex-col h-[92vh] sm:h-auto sm:max-h-[90vh] rounded-t-[2rem] sm:rounded-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.2)] sm:shadow-[0_20px_60px_rgba(0,0,0,0.3)] animate-slide-up overflow-hidden">
                         <div className="absolute top-0 left-0 right-0 h-1.5 sm:h-2 brand-gradient z-20"></div>
                         <div className="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-full sm:hidden z-20"></div>
@@ -421,9 +410,6 @@
             );
         }
 
-        // ==========================================
-        // 📝 Registration Form Component
-        // ==========================================
         function RegistrationForm({ onBack, onSuccess }) {
             const { t, lang, isDarkMode } = useContext(AppContext);
             const [formData, setFormData] = useState({
@@ -629,9 +615,6 @@
             );
         }
 
-        // ==========================================
-        // ✅ Success View Component
-        // ==========================================
         function SuccessView({ onHome }) {
             const { t } = useContext(AppContext);
             return (
@@ -653,9 +636,6 @@
             );
         }
 
-        // ==========================================
-        // 📊 Admin Dashboard Component
-        // ==========================================
         function AdminDashboard({ goBack }) {
             const { t, lang, isDarkMode } = useContext(AppContext);
             const [data, setData] = useState([]);
@@ -722,13 +702,39 @@
             }, [data, searchTerm, activeTab, executiveMajor]);
 
             const stats = useMemo(() => {
-                let total = filteredData.length, normalCount = 0, transferCount = 0, foodAlert = 0, healthAlert = 0;
+                // --- 🌟 ระบบตรวจสอบและกรองข้อมูลซ้ำ (Deduplication) ---
+                const uniqueDataMap = new Map();
+                
+                filteredData.forEach(s => {
+                    // กำหนด Primary Key: ใช้รหัสนักศึกษา (StudentID) เป็นหลัก 
+                    // หากไม่มีรหัสนักศึกษา ให้ใช้เลขบัตรประชาชน (IDCard) แทน
+                    let uid = null;
+                    if (s.StudentID && s.StudentID.trim() !== '') {
+                        uid = s.StudentID.trim();
+                    } else if (s.IDCard && s.IDCard.trim() !== '') {
+                        uid = s.IDCard.trim();
+                    }
+
+                    if (uid) {
+                        // การ set ทับคีย์เดิม จะทำให้เราได้ข้อมูล "รายการล่าสุด" (บรรทัดล่างสุดใน Google Sheets) เสมอ
+                        uniqueDataMap.set(uid, s);
+                    } else {
+                        // ป้องกันกรณีข้อมูลขยะที่ไม่มีทั้งสองรหัส ไม่ให้สูญหาย
+                        uniqueDataMap.set(Math.random().toString(), s);
+                    }
+                });
+
+                // ข้อมูลที่ผ่านการกรองซ้ำเรียบร้อยแล้ว
+                const uniqueStudents = Array.from(uniqueDataMap.values());
+                // --------------------------------------------------------
+
+                let total = uniqueStudents.length, normalCount = 0, transferCount = 0, foodAlert = 0, healthAlert = 0;
                 let majorCount = {}, dietStats = { 'ฮาลาล': 0, 'มังสวิรัติ': 0, 'เจ': 0, 'อาหารปกติ': 0 }, foodAllergies = [], diseases = [], drugAllergies = [];
                 const surveillanceList = [];
                 let surveillanceRiskPie = { 'ด้านการแพทย์': 0, 'ด้านโภชนาการ': 0, 'ความเสี่ยงซ้อน (ทั้งสอง)': 0 };
                 let execBreakdownMap = {}; 
 
-                filteredData.forEach(s => {
+                uniqueStudents.forEach(s => {
                     if(s.Major) {
                         majorCount[s.Major] = (majorCount[s.Major] || 0) + 1;
                         s.Major.includes("เทียบโอน") ? transferCount++ : normalCount++;
@@ -878,7 +884,6 @@
                         </div>
                     </div>
 
-                    {/* Admin Main Content */}
                     <div className="flex-1 w-full space-y-6 print-area min-w-0">
                         {/* Header Action Bar */}
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center glass-panel p-5 md:px-8 md:py-6 rounded-[2.5rem] gap-4 no-print shadow-soft border border-slate-200/50 dark:border-white/5">
@@ -1105,7 +1110,7 @@
                                     <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent to-slate-50/50 dark:to-white/5 pointer-events-none"></div>
                                     <div className="w-full mb-2 text-center relative z-10">
                                         <h3 className="text-2xl font-black text-slate-800 dark:text-white">สัดส่วนสาขาวิชา</h3>
-                                        <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-widest">ข้อมูลแบบจัดกลุ่ม</p>
+                                        <p className="text-xs font-bold text-emerald-500 mt-1 uppercase tracking-widest flex items-center justify-center gap-1"><Icon name="check-circle" size={12}/> ข้อมูลผ่านการตรวจสอบซ้ำแล้ว</p>
                                     </div>
                                     <div className="w-full flex-1 relative min-h-[320px] z-10 mt-4">
                                         {stats.pieData.length === 0 ? (
@@ -1134,9 +1139,11 @@
                                             <Icon name="mouse-pointer-click" size={18} className="text-brand animate-pulse"/> 
                                             <span className="text-xs font-bold uppercase tracking-wider">คลิกการ์ดเพื่อดูรายชื่อนักศึกษา</span>
                                         </div>
+                                        <div className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 border border-emerald-200 dark:border-emerald-800/50 shadow-sm">
+                                            <Icon name="filter" size={12}/> กรองข้อมูลซ้ำแล้ว
+                                        </div>
                                     </div>
                                     
-                                    {/* Scrollable List Container */}
                                     <div className="flex flex-col gap-3.5 overflow-y-auto custom-scrollbar flex-1 pr-2 max-h-[450px]">
                                         {[...stats.pieData].sort((a,b) => b.value - a.value).map((entry, idx) => (
                                             <div key={idx} onClick={() => handleDrilldown(entry.name, 'majors', entry.name)} className="relative py-4 px-5 md:px-6 rounded-2xl bg-white dark:bg-zinc-800/80 border border-slate-200/60 dark:border-white/10 hover:border-brand/50 hover:shadow-md transition-all duration-300 cursor-pointer overflow-hidden group btn-interactive min-h-[72px] flex items-center">
@@ -1147,7 +1154,6 @@
                                                 </div>
 
                                                 <div className="relative z-10 flex items-center justify-between gap-4 w-full">
-                                                    {/* Left side: Color dot & Major Name */}
                                                     <div className="flex items-center gap-4 overflow-hidden flex-1">
                                                         <div className="w-4 h-4 rounded-full shrink-0 shadow-sm border-2 border-white dark:border-zinc-800 transition-transform group-hover:scale-125" style={{ backgroundColor: stats.COLORS[idx % stats.COLORS.length] }}></div>
                                                         <span className="text-sm md:text-base font-bold text-slate-700 dark:text-slate-200 truncate group-hover:text-brand transition-colors leading-normal" title={entry.name}>
@@ -1155,7 +1161,6 @@
                                                         </span>
                                                     </div>
                                                     
-                                                    {/* Right side: Count, Percent, Icon */}
                                                     <div className="flex items-center gap-4 shrink-0">
                                                         <div className="flex flex-col items-end justify-center">
                                                             <span className="text-2xl font-black text-slate-800 dark:text-white leading-none">{entry.value}</span>
@@ -1576,11 +1581,11 @@
                     {/* MODALS */}
                     {drilldownData.list.length > 0 && (
                         <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 dark:bg-black/90 backdrop-blur-lg animate-fade-in print:hidden">
-                            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 p-6 md:p-8 rounded-[2.5rem] w-full max-w-5xl max-h-[90vh] flex flex-col shadow-[0_20px_60px_rgba(0,0,0,0.3)] animate-slide-up text-left overflow-hidden">
-                                <div className="flex justify-between items-center gap-4 mb-6 shrink-0">
+                            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 p-6 md:p-8 rounded-[2.5rem] w-full max-w-5xl max-h-[90vh] flex flex-col shadow-[0_20px_60px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.8)] animate-slide-up text-left overflow-hidden">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 shrink-0">
                                     <div>
                                         <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
-                                            <div className={`p-3 rounded-2xl text-white shadow-md ${drilldownData.type.includes('diet') || drilldownData.type.includes('food') ? 'bg-orange-500' : drilldownData.type === 'demographics' ? 'bg-blue-500' : drilldownData.title.includes('ทั้งหมด') ? 'bg-brand' : 'bg-red-500'}`}><Icon name="users" size={24}/></div>
+                                            <div className={`p-3 rounded-2xl text-white shadow-md ${drilldownData.type.includes('diet') || drilldownData.type.includes('food') ? 'bg-orange-500 shadow-glow-brand' : drilldownData.type === 'demographics' ? 'bg-blue-500' : drilldownData.title.includes('ทั้งหมด') ? 'bg-brand shadow-glow-brand' : 'bg-red-500 shadow-glow-red'}`}><Icon name="users" size={24}/></div>
                                             {drilldownData.title}
                                         </h3>
                                         <p className="text-sm font-semibold text-slate-500 mt-2">พบทั้งหมด <span className="text-brand font-black bg-brand/10 px-2 py-0.5 rounded-md">{drilldownData.list.length}</span> รายการ</p>
@@ -1627,24 +1632,43 @@
                         </div>
                     )}
 
+                    {/* Edit Modal */}
                     {editItem && (
                         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 dark:bg-black/90 backdrop-blur-lg animate-fade-in print:hidden">
-                            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 p-6 md:p-8 rounded-[2.5rem] w-full max-w-lg max-h-[90vh] flex flex-col shadow-[0_20px_60px_rgba(0,0,0,0.3)] animate-slide-up text-left overflow-hidden">
+                            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 p-6 md:p-8 rounded-[2.5rem] w-full max-w-lg max-h-[90vh] flex flex-col shadow-[0_20px_60px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.8)] animate-slide-up text-left overflow-hidden">
                                 <div className="flex justify-between items-center mb-6 shrink-0">
                                     <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3"><Icon name="edit" size={24}/> Edit Data</h3>
                                     <button onClick={() => setEditItem(null)} className="p-2.5 bg-slate-100 dark:bg-white/10 rounded-xl hover:bg-slate-200 transition-colors"><Icon name="x" size={20}/></button>
                                 </div>
                                 <form onSubmit={handleSaveEdit} className="space-y-5 overflow-y-auto flex-1 custom-scrollbar pr-2 pb-4">
-                                    <div className="p-5 bg-slate-50 dark:bg-black/20 rounded-3xl border border-slate-200/60 dark:border-white/5 space-y-4">
-                                        <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">{t('form_fullname')}</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-bold shadow-sm" value={editItem.FullName} onChange={e => setEditItem({...editItem, FullName: e.target.value})}/></div>
+                                    <div className="p-5 md:p-6 bg-slate-50/80 dark:bg-black/20 rounded-3xl border border-slate-200/60 dark:border-white/5 space-y-4 shadow-inner">
+                                        <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">ชื่อ-นามสกุล (ระบุคำนำหน้า)</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-bold shadow-sm" value={editItem.FullName} onChange={e => setEditItem({...editItem, FullName: e.target.value})}/></div>
                                         <div className="grid grid-cols-2 gap-4">
-                                            <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">{t('form_studentid')}</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-mono shadow-sm" inputMode="numeric" maxLength="9" value={editItem.StudentID} onChange={e => setEditItem({...editItem, StudentID: e.target.value.replace(/\D/g, '')})}/></div>
-                                            <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">{t('form_idcard')}</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-mono shadow-sm" maxLength="20" value={editItem.IDCard || ''} onChange={e => setEditItem({...editItem, IDCard: e.target.value})}/></div>
+                                            <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">รหัสนักศึกษา</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-mono shadow-sm" inputMode="numeric" maxLength="9" value={editItem.StudentID} onChange={e => setEditItem({...editItem, StudentID: e.target.value.replace(/\D/g, '')})}/></div>
+                                            <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">Thai ID / Passport</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-mono shadow-sm" maxLength="20" value={editItem.IDCard || ''} onChange={e => setEditItem({...editItem, IDCard: e.target.value})}/></div>
+                                        </div>
+                                        <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">สาขาวิชา</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm" value={editItem.Major} onChange={e => setEditItem({...editItem, Major: e.target.value})}/></div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">ศาสนา</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm" value={editItem.Religion || ''} onChange={e => setEditItem({...editItem, Religion: e.target.value})}/></div>
+                                            <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">กรุ๊ปเลือด</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm" value={editItem.BloodGroup || ''} onChange={e => setEditItem({...editItem, BloodGroup: e.target.value})}/></div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">เบอร์ นศ.</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-mono shadow-sm" maxLength="10" pattern="[0-9]{10}" inputMode="numeric" value={editItem.StudentPhone} onChange={e => setEditItem({...editItem, StudentPhone: e.target.value.replace(/\D/g, '')})}/></div>
+                                            <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">เบอร์ ผปค.</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-mono shadow-sm" maxLength="10" pattern="[0-9]{10}" inputMode="numeric" value={editItem.ParentPhone} onChange={e => setEditItem({...editItem, ParentPhone: e.target.value.replace(/\D/g, '')})}/></div>
                                         </div>
                                     </div>
+                                    <div className="p-5 md:p-6 bg-orange-50/80 dark:bg-orange-950/20 rounded-3xl border border-orange-200/60 dark:border-orange-500/20 space-y-4 shadow-sm">
+                                        <div><label className="text-[10px] font-black text-orange-600 dark:text-orange-400 mb-1.5 block uppercase tracking-widest">แพ้อาหาร</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm focus:ring-orange-500/50" value={editItem.FoodAllergy} onChange={e => setEditItem({...editItem, FoodAllergy: e.target.value})}/></div>
+                                        <div><label className="text-[10px] font-black text-orange-600 dark:text-orange-400 mb-1.5 block uppercase tracking-widest">อาหารเฉพาะทาง</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm focus:ring-orange-500/50" value={editItem.SpecificDiet} onChange={e => setEditItem({...editItem, SpecificDiet: e.target.value})}/></div>
+                                    </div>
+                                    <div className="p-5 md:p-6 bg-red-50/80 dark:bg-red-950/20 rounded-3xl border border-red-200/60 dark:border-red-500/20 space-y-4 shadow-sm">
+                                        <div><label className="text-[10px] font-black text-red-600 dark:text-red-400 mb-1.5 block uppercase tracking-widest">โรคประจำตัว</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm focus:ring-red-500/50" value={editItem.Disease} onChange={e => setEditItem({...editItem, Disease: e.target.value})}/></div>
+                                        <div><label className="text-[10px] font-black text-red-600 dark:text-red-400 mb-1.5 block uppercase tracking-widest">แพ้ยา</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm focus:ring-red-500/50" value={editItem.DrugAllergy} onChange={e => setEditItem({...editItem, DrugAllergy: e.target.value})}/></div>
+                                    </div>
+                                    
                                     <div className="flex gap-4 pt-6 sticky bottom-0 bg-white dark:bg-zinc-900 pb-2 z-10 border-t border-slate-100 dark:border-white/5 mt-6">
-                                        <button type="button" onClick={() => setEditItem(null)} className="flex-1 py-4 bg-slate-100 dark:bg-white/5 text-sm rounded-xl font-bold btn-interactive">{t('cancel')}</button>
-                                        <button type="submit" className="flex-1 py-4 brand-gradient text-white text-sm rounded-xl font-bold shadow-glow-brand btn-interactive">{t('save')}</button>
+                                        <button type="button" onClick={() => setEditItem(null)} className="flex-1 py-4 bg-slate-100 dark:bg-white/5 text-sm rounded-xl font-bold btn-interactive hover:bg-slate-200 dark:hover:bg-white/10 transition-colors text-slate-600 dark:text-slate-300">ยกเลิก</button>
+                                        <button type="submit" className="flex-1 py-4 brand-gradient text-white text-sm rounded-xl font-bold shadow-glow-brand btn-interactive transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"><Icon name="save" size={18}/> บันทึกข้อมูล</button>
                                     </div>
                                 </form>
                             </div>
@@ -1654,9 +1678,6 @@
             );
         }
 
-        // ==========================================
-        // 🚀 Main App Component
-        // ==========================================
         function App() {
             const [isDarkMode, setIsDarkMode] = useState(false);
             const [lang, setLang] = useState('th'); // Language State (th, en)
