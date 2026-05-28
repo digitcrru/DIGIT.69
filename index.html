@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DIGIT.69</title>
     
-    <!-- Tailwind CSS with Dark Mode Support -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -141,13 +140,200 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo, useRef } = React;
+        const { useState, useEffect, useMemo, useRef, createContext, useContext } = React;
         const Recharts = window.Recharts || {};
         const { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } = Recharts;
 
         // ==========================================
-        // ⚙️ตั้งค่า API
+        // 🌐 TRANSLATIONS (พจนานุกรมคำแปล)
         // ==========================================
+        const TRANSLATIONS = {
+            th: {
+                // General
+                back: 'ย้อนกลับ',
+                save: 'บันทึกข้อมูล',
+                cancel: 'ยกเลิก',
+                search: 'ค้นหา...',
+                select_option: '-- โปรดเลือก --',
+                
+                // PDPA Modal
+                pdpa_policy: 'นโยบายความยินยอม (PDPA)',
+                pdpa_subtitle: 'เพื่อสิทธิประโยชน์ ความปลอดภัย และการดูแลอย่างใกล้ชิด',
+                pdpa_desc: 'คณะเทคโนโลยีดิจิทัล ให้ความสำคัญอย่างยิ่งกับการคุ้มครองข้อมูลส่วนบุคคลของท่าน ตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 เรามีความจำเป็นต้องจัดเก็บและประมวลผลข้อมูลของท่านเพื่อใช้ในกิจกรรม ดังรายละเอียดต่อไปนี้:',
+                pdpa_card1_title: 'ข้อมูลส่วนตัวเบื้องต้น',
+                pdpa_card1_desc: 'ชื่อ, รหัส นศ., สาขา, เบอร์โทร เพื่อใช้ตรวจสอบสิทธิ์และประสานงาน',
+                pdpa_card2_title: 'ข้อมูลด้านโภชนาการ',
+                pdpa_card2_desc: 'ประวัติแพ้อาหาร, อาหารเฉพาะทาง เพื่อจัดเตรียมมื้ออาหารที่ปลอดภัย',
+                pdpa_card3_title: 'ข้อมูลสุขภาพ/การแพทย์',
+                pdpa_card3_desc: 'โรคประจำตัว, ประวัติการแพ้ยา เพื่อวางแผนปฐมพยาบาลในกรณีฉุกเฉิน',
+                pdpa_security: 'การรักษาความปลอดภัย:',
+                pdpa_security_desc: 'ข้อมูลทั้งหมดจะถูกเก็บรักษาเป็นความลับอย่างสูงสุด เข้าถึงได้เฉพาะทีมงานที่เกี่ยวข้อง และจะถูกทำลายทิ้งเมื่อเสร็จสิ้นโครงการ',
+                pdpa_checkbox: 'ฉันได้อ่านและยินยอมให้ประมวลผลข้อมูลส่วนบุคคลดังกล่าว',
+                pdpa_decline: 'ไม่ยินยอม',
+                pdpa_accept: 'ยินยอมและขึ้นทะเบียน',
+
+                // Form
+                form_personal_title: 'ข้อมูลส่วนตัวนักศึกษา',
+                form_fullname: 'ชื่อ-นามสกุล (ระบุคำนำหน้า)',
+                form_major: 'สาขาวิชา',
+                form_studentid: 'รหัสนักศึกษา (9 หลัก)',
+                form_idcard: 'รหัสประจำตัวประชาชน / Passport',
+                form_religion: 'ศาสนา',
+                form_blood: 'กรุ๊ปเลือด',
+                form_contact_title: 'ข้อมูลการติดต่อ',
+                form_student_phone: 'เบอร์โทรศัพท์นักศึกษา',
+                form_parent_phone: 'เบอร์โทรศัพท์ผู้ปกครอง (ฉุกเฉิน)',
+                form_nutrition_title: 'ข้อมูลโภชนาการ',
+                form_diet: '1. อาหารเฉพาะทาง (เลือก 1 ข้อ)',
+                form_food_allergy: '2. ประวัติการแพ้อาหาร',
+                form_health_title: 'ข้อมูลสุขภาพทางการแพทย์',
+                form_disease: '1. โรคประจำตัว',
+                form_drug_allergy: '2. ประวัติการแพ้ยา',
+                form_submit: 'บันทึกข้อมูลขึ้นทะเบียน',
+                form_no_allergy: 'ไม่แพ้',
+                form_has_allergy: 'มีประวัติแพ้อาหาร',
+                form_specify_food: 'โปรดระบุอาหารที่แพ้ หรือ อาการ',
+                form_no_disease: 'ไม่มี',
+                form_has_disease: 'มีโรคประจำตัว',
+                form_specify_disease: 'โปรดระบุโรคประจำตัว',
+                form_no_drug_allergy: 'ไม่เคยแพ้ยา',
+                form_has_drug_allergy: 'มีประวัติแพ้ยา',
+                form_specify_drug: 'โปรดระบุยาที่แพ้ หรือ อาการ',
+
+                // Success
+                success_title: 'ลงทะเบียนสำเร็จ!',
+                success_desc: 'ระบบได้รับข้อมูลการขึ้นทะเบียนของท่านเรียบร้อยแล้ว ขอบคุณที่ให้ความร่วมมือและยินดีต้อนรับครับ',
+                success_home: 'กลับสู่หน้าแรก',
+
+                // Admin
+                admin_dashboard: 'แดชบอร์ด',
+                admin_tab_overview: 'ยอดขึ้นทะเบียน',
+                admin_tab_majors: 'สรุปยอดสาขาวิชา',
+                admin_tab_health: 'สุขภาพและโภชนาการ',
+                admin_tab_surveillance: 'กลุ่มเฝ้าระวังพิเศษ',
+                admin_tab_executive: 'รายงานผู้บริหาร',
+                admin_total: 'ยอดขึ้นทะเบียนรวม',
+                admin_risk_health: 'กลุ่มเปราะบาง (แพทย์)',
+                admin_risk_food: 'จัดการอาหารพิเศษ',
+                admin_healthy: 'สุขภาพปกติ',
+                admin_pie_title: 'ยอดขึ้นทะเบียนแยกตามสาขาวิชา',
+                admin_table_recent: 'รายชื่ออัปเดตล่าสุด',
+                table_name: 'ชื่อ-นามสกุล',
+                table_major: 'สาขาวิชา',
+                table_status: 'สถานะ',
+                table_contact: 'ข้อมูลติดต่อ',
+                status_risk: 'เฝ้าระวัง',
+                status_normal: 'ปกติ',
+                admin_print: 'พิมพ์',
+                admin_export: 'Excel',
+                admin_export_summary: 'สรุปยอด',
+            },
+            en: {
+                // General
+                back: 'Go Back',
+                save: 'Save Data',
+                cancel: 'Cancel',
+                search: 'Search...',
+                select_option: '-- Please Select --',
+                
+                // PDPA Modal
+                pdpa_policy: 'Consent Policy (PDPA)',
+                pdpa_subtitle: 'For your benefits, safety, and close care',
+                pdpa_desc: 'The Faculty of Digital Technology highly values your privacy. According to the Personal Data Protection Act (PDPA), we need to collect and process your data for the following purposes:',
+                pdpa_card1_title: 'Basic Personal Info',
+                pdpa_card1_desc: 'Name, Student ID, Major, Phone for verification and coordination.',
+                pdpa_card2_title: 'Nutritional Info',
+                pdpa_card2_desc: 'Food allergies and specific diets for safe meal preparation.',
+                pdpa_card3_title: 'Health/Medical Info',
+                pdpa_card3_desc: 'Underlying diseases and drug allergies for emergency first aid.',
+                pdpa_security: 'Security:',
+                pdpa_security_desc: 'All data is kept strictly confidential, accessible only by authorized staff, and will be destroyed after the program ends.',
+                pdpa_checkbox: 'I have read and consent to the processing of my personal data.',
+                pdpa_decline: 'Decline',
+                pdpa_accept: 'Accept & Register',
+
+                // Form
+                form_personal_title: 'Personal Information',
+                form_fullname: 'Full Name (with Title)',
+                form_major: 'Major',
+                form_studentid: 'Student ID (9 digits)',
+                form_idcard: 'ID Card / Passport',
+                form_religion: 'Religion',
+                form_blood: 'Blood Group',
+                form_contact_title: 'Contact Information',
+                form_student_phone: 'Student Phone Number',
+                form_parent_phone: 'Parent/Emergency Phone',
+                form_nutrition_title: 'Nutritional Information',
+                form_diet: '1. Specific Diet (Select 1)',
+                form_food_allergy: '2. Food Allergies',
+                form_health_title: 'Health & Medical Information',
+                form_disease: '1. Underlying Diseases',
+                form_drug_allergy: '2. Drug Allergies',
+                form_submit: 'Submit Registration',
+                form_no_allergy: 'None',
+                form_has_allergy: 'Have Food Allergy',
+                form_specify_food: 'Please specify food allergies or symptoms',
+                form_no_disease: 'None',
+                form_has_disease: 'Have Disease',
+                form_specify_disease: 'Please specify underlying diseases',
+                form_no_drug_allergy: 'None',
+                form_has_drug_allergy: 'Have Drug Allergy',
+                form_specify_drug: 'Please specify drug allergies or symptoms',
+
+                // Success
+                success_title: 'Registration Successful!',
+                success_desc: 'Your registration data has been successfully recorded. Thank you for your cooperation and welcome!',
+                success_home: 'Return to Home',
+
+                // Admin
+                admin_dashboard: 'Dashboard',
+                admin_tab_overview: 'Overview',
+                admin_tab_majors: 'Majors Summary',
+                admin_tab_health: 'Health & Diet',
+                admin_tab_surveillance: 'High Risk Watchlist',
+                admin_tab_executive: 'Executive Report',
+                admin_total: 'Total Registered',
+                admin_risk_health: 'Vulnerable (Medical)',
+                admin_risk_food: 'Special Diet',
+                admin_healthy: 'Healthy',
+                admin_pie_title: 'Registrations by Major',
+                admin_table_recent: 'Recently Updated',
+                table_name: 'Full Name',
+                table_major: 'Major',
+                table_status: 'Status',
+                table_contact: 'Contact Info',
+                status_risk: 'Watchlist',
+                status_normal: 'Normal',
+                admin_print: 'Print',
+                admin_export: 'Export',
+                admin_export_summary: 'Summary',
+            }
+        };
+
+        // Translations mapping for options
+        const DICT_MAPPING = {
+            'ไม่มี': 'None',
+            'ฮาลาล': 'Halal',
+            'มังสวิรัติ': 'Vegetarian',
+            'เจ': 'Vegan',
+            'พุทธ': 'Buddhism',
+            'อิสลาม': 'Islam',
+            'คริสต์': 'Christianity',
+            'อื่นๆ': 'Others',
+            'เทคโนโลยีดิจิทัลเพื่อธุรกิจ': 'Digital Tech for Business',
+            'เทคโนโลยีดิจิทัลเพื่อธุรกิจ(เทียบโอน)': 'Digital Tech for Business (Transfer)',
+            'เทคโนโลยีปัญญาประดิษฐ์': 'Artificial Intelligence',
+            'เทคโนโลยีสารสนเทศ': 'Information Technology',
+            'เทคโนโลยีสารสนเทศ(เทียบโอน)': 'Information Technology (Transfer)',
+            'วิทยาการคอมพิวเตอร์': 'Computer Science',
+            'กราฟิกดีไซน์เทคโนโลยีสื่อดิจิทัล': 'Graphic Design & Digital Media',
+            'กราฟิกดีไซน์สื่อศิลปะและการออกแบบ': 'Graphic Design & Art Media',
+            'กราฟิกดีไซน์สื่อศิลปะและการออกแบบ(เทียบโอน)': 'Graphic Design & Art Media (Transfer)',
+            'วิศวกรรมคอมพิวเตอร์': 'Computer Engineering'
+        };
+
+        const AppContext = createContext();
+
         const API_URL = "https://script.google.com/macros/s/AKfycbwviBRd_BbtvGyEpZSq5ab5A0iEpXkG9iMwAUQyGyZb-nDI2R5-x8GE5ZEI3gpmzA3zug/exec";
         const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1MoZpnDniVF5pKr0tEgmYwlPO3wZdA7DaO_MvZjbC-ec/gviz/tq?tqx=out:csv&sheet=Registration";
         
@@ -159,7 +345,7 @@
             "วิศวกรรมคอมพิวเตอร์"
         ];
 
-        const cleanMajor = (str) => str ? str.replace(/\s*\([a-zA-Z\s]+\)/g, '').trim() : '';
+        const cleanMajor = (str) => str ? str.replace(/\s*\([a-zA-Zก-๙\s]+\)/g, '').trim() : '';
 
         const submitToAPI = async (action, payload) => {
             try {
@@ -174,7 +360,6 @@
             }
         };
 
-        // UI Components
         function Icon({ name, size = 20, className = '' }) {
             const containerRef = useRef(null);
             useEffect(() => {
@@ -189,11 +374,14 @@
         }
 
         function TogglePill({ options, value, onChange, isWarningType }) {
+            const { lang } = useContext(AppContext);
             return (
                 <div className="flex flex-wrap gap-3">
                     {options.map(opt => {
                         const isActive = value === opt.value;
                         const isAlert = isWarningType && opt.value !== 'ไม่มี' && opt.value !== 'ไม่แพ้';
+                        const displayLabel = lang === 'en' ? (DICT_MAPPING[opt.label] || opt.label) : opt.label;
+                        
                         return (
                             <button key={opt.value} type="button" onClick={() => onChange(opt.value)}
                                 className={`flex-1 min-w-[100px] py-3.5 px-4 rounded-xl font-bold transition-all duration-300 border flex items-center justify-center gap-2 text-sm btn-interactive shadow-sm
@@ -202,7 +390,7 @@
                                         : 'border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-slate-500 hover:bg-white dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20 hover:text-slate-700 dark:hover:text-slate-200'}`}
                             >
                                 {isActive && <Icon name={isAlert ? "alert-triangle" : "check-circle"} size={16} />}
-                                {opt.label}
+                                {displayLabel}
                             </button>
                         )
                     })}
@@ -219,7 +407,6 @@
             );
         }
 
-        // ย้าย InputField ออกมาไว้ด้านนอก เพื่อป้องกันปัญหาเคอร์เซอร์หลุดเวลาพิมพ์
         function InputField({ label, type="text", value, onChange, placeholder, maxLength, required, numeric }) {
             return (
                 <div className="flex flex-col gap-1.5 w-full">
@@ -237,17 +424,15 @@
             );
         }
 
-        // ==========================================
-        // 🛡️ PDPA Modal Component
-        // ==========================================
-        function PdpaModal({ onAccept, onAdminClick, isDarkMode }) {
+        function PdpaModal({ onAccept, onAdminClick }) {
+            const { t, isDarkMode } = useContext(AppContext);
             const [isChecked, setIsChecked] = useState(false);
 
             const handleDecline = () => Swal.fire({ 
                 icon: 'warning', 
-                title: 'จำเป็นต้องให้ความยินยอม', 
-                text: 'ระบบจำเป็นต้องเก็บข้อมูลเพื่อความปลอดภัยและสิทธิประโยชน์ของท่าน หากปฏิเสธจะไม่สามารถดำเนินการลงทะเบียนต่อได้', 
-                confirmButtonText: 'รับทราบ', 
+                title: t('pdpa_decline'), 
+                text: t('pdpa_desc'), 
+                confirmButtonText: 'OK', 
                 confirmButtonColor: '#ff6600', 
                 background: isDarkMode ? '#18181b' : '#fff', 
                 color: isDarkMode ? '#f8fafc' : '#0f172a', 
@@ -261,8 +446,8 @@
                     input: 'password',
                     inputAttributes: { autocapitalize: 'off', autocorrect: 'off' },
                     showCancelButton: true,
-                    confirmButtonText: 'เข้าสู่ระบบ',
-                    cancelButtonText: 'ยกเลิก',
+                    confirmButtonText: 'Login',
+                    cancelButtonText: t('cancel'),
                     confirmButtonColor: '#ff6600',
                     background: isDarkMode ? '#18181b' : '#ffffff',
                     color: isDarkMode ? '#ffffff' : '#0f172a',
@@ -277,8 +462,8 @@
                         } else {
                             Swal.fire({
                                 icon: 'error',
-                                title: 'รหัสผ่านไม่ถูกต้อง',
-                                text: 'กรุณาลองใหม่อีกครั้ง',
+                                title: 'Error',
+                                text: 'Invalid Password',
                                 confirmButtonColor: '#ff6600',
                                 background: isDarkMode ? '#18181b' : '#ffffff',
                                 color: isDarkMode ? '#ffffff' : '#0f172a',
@@ -291,70 +476,53 @@
 
             return (
                 <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-slate-900/80 dark:bg-black/90 backdrop-blur-sm animate-fade-in">
-                    
-                    {/* Modal Box - Bottom Sheet on Mobile, Centered Modal on Desktop */}
                     <div className="bg-white dark:bg-zinc-900 w-full sm:max-w-3xl relative flex flex-col h-[92vh] sm:h-auto sm:max-h-[90vh] rounded-t-[2rem] sm:rounded-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.2)] sm:shadow-[0_20px_60px_rgba(0,0,0,0.3)] animate-slide-up overflow-hidden">
-                        
-                        {/* Decorative Top Line */}
                         <div className="absolute top-0 left-0 right-0 h-1.5 sm:h-2 brand-gradient z-20"></div>
-
-                        {/* Mobile Pull Indicator (Visual Only) */}
                         <div className="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-full sm:hidden z-20"></div>
 
-                        {/* Admin Login Button */}
-                        <button onClick={promptAdmin} className="absolute top-4 sm:top-5 right-4 sm:right-5 p-2.5 sm:p-3 text-slate-400 hover:text-brand bg-slate-50/50 dark:bg-black/20 hover:bg-slate-100 dark:hover:bg-white/10 backdrop-blur-md transition-all z-20 rounded-full shadow-sm hover:shadow-md border border-slate-200/50 dark:border-white/5" title="เข้าสู่ระบบผู้ดูแล">
+                        <button onClick={promptAdmin} className="absolute top-4 sm:top-5 right-4 sm:right-5 p-2.5 sm:p-3 text-slate-400 hover:text-brand bg-slate-50/50 dark:bg-black/20 hover:bg-slate-100 dark:hover:bg-white/10 backdrop-blur-md transition-all z-20 rounded-full shadow-sm hover:shadow-md border border-slate-200/50 dark:border-white/5" title="Admin Login">
                             <Icon name="lock" size={16} className="sm:w-[18px] sm:h-[18px]" />
                         </button>
                         
-                        {/* Header Section */}
                         <div className="p-5 sm:p-8 pt-8 sm:pt-8 pb-4 sm:pb-5 bg-white dark:bg-zinc-900 border-b border-slate-100 dark:border-white/5 flex items-start gap-4 relative overflow-hidden shrink-0">
                             <div className="absolute -right-8 -top-8 opacity-[0.03] text-brand transform rotate-12 pointer-events-none"><Icon name="shield-check" size={120}/></div>
-                            
                             <div className="p-3 bg-brand/10 dark:bg-brand/20 rounded-2xl shrink-0 shadow-inner relative z-10 hidden sm:block">
                                 <Icon name="shield-check" size={32} className="text-brand" />
                             </div>
-                            
                             <div className="relative z-10 w-full pr-8 sm:pr-0">
                                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 text-[10px] font-black tracking-widest uppercase rounded-lg mb-1.5 shadow-sm">
                                     <Icon name="shield" size={10} className="text-brand sm:hidden" /> Privacy Policy
                                 </div>
-                                <h2 className="text-xl sm:text-3xl font-black text-slate-800 dark:text-white leading-tight">นโยบายความยินยอม (PDPA)</h2>
-                                <p className="text-brand dark:text-brandLight text-xs sm:text-sm mt-1 font-semibold">เพื่อสิทธิประโยชน์ ความปลอดภัย และการดูแลอย่างใกล้ชิด</p>
+                                <h2 className="text-xl sm:text-3xl font-black text-slate-800 dark:text-white leading-tight">{t('pdpa_policy')}</h2>
+                                <p className="text-brand dark:text-brandLight text-xs sm:text-sm mt-1 font-semibold">{t('pdpa_subtitle')}</p>
                             </div>
                         </div>
                         
-                        {/* Content Scrollable Section */}
                         <div className="p-5 sm:p-8 overflow-y-auto custom-scrollbar flex-1 bg-slate-50/50 dark:bg-black/20">
-                            <p className="text-slate-600 dark:text-slate-300 text-sm mb-5 leading-relaxed">
-                                คณะเทคโนโลยีดิจิทัล ให้ความสำคัญอย่างยิ่งกับการคุ้มครองข้อมูลส่วนบุคคลของท่าน 
-                                ตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 เรามีความจำเป็นต้องจัดเก็บและประมวลผลข้อมูลของท่านเพื่อใช้ในกิจกรรม ดังรายละเอียดต่อไปนี้:
-                            </p>
+                            <p className="text-slate-600 dark:text-slate-300 text-sm mb-5 leading-relaxed">{t('pdpa_desc')}</p>
                             
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-5 sm:mb-6">
-                                {/* Card 1 */}
                                 <div className="bg-white dark:bg-zinc-800/80 p-4 sm:p-5 rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm hover:shadow-md transition-all flex flex-row sm:flex-col items-center sm:items-start gap-4 sm:gap-0 text-left">
                                     <div className="w-10 h-10 sm:mb-3 bg-blue-50 dark:bg-blue-500/10 text-blue-600 rounded-xl flex items-center justify-center shrink-0"><Icon name="user" size={18}/></div>
                                     <div>
-                                        <h4 className="font-bold text-slate-800 dark:text-white text-sm sm:mb-1">ข้อมูลส่วนตัวเบื้องต้น</h4>
-                                        <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-snug">ชื่อ, รหัส นศ., สาขา, เบอร์โทร เพื่อใช้ตรวจสอบสิทธิ์และประสานงาน</p>
+                                        <h4 className="font-bold text-slate-800 dark:text-white text-sm sm:mb-1">{t('pdpa_card1_title')}</h4>
+                                        <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-snug">{t('pdpa_card1_desc')}</p>
                                     </div>
                                 </div>
                                 
-                                {/* Card 2 */}
                                 <div className="bg-white dark:bg-zinc-800/80 p-4 sm:p-5 rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm hover:shadow-md transition-all flex flex-row sm:flex-col items-center sm:items-start gap-4 sm:gap-0 text-left">
                                     <div className="w-10 h-10 sm:mb-3 bg-orange-50 dark:bg-orange-500/10 text-orange-600 rounded-xl flex items-center justify-center shrink-0"><Icon name="pizza" size={18}/></div>
                                     <div>
-                                        <h4 className="font-bold text-slate-800 dark:text-white text-sm sm:mb-1">ข้อมูลด้านโภชนาการ</h4>
-                                        <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-snug">ประวัติแพ้อาหาร, อาหารเฉพาะทาง เพื่อจัดเตรียมมื้ออาหารที่ปลอดภัย</p>
+                                        <h4 className="font-bold text-slate-800 dark:text-white text-sm sm:mb-1">{t('pdpa_card2_title')}</h4>
+                                        <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-snug">{t('pdpa_card2_desc')}</p>
                                     </div>
                                 </div>
 
-                                {/* Card 3 */}
                                 <div className="bg-white dark:bg-zinc-800/80 p-4 sm:p-5 rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm hover:shadow-md transition-all flex flex-row sm:flex-col items-center sm:items-start gap-4 sm:gap-0 text-left">
                                     <div className="w-10 h-10 sm:mb-3 bg-red-50 dark:bg-red-500/10 text-red-600 rounded-xl flex items-center justify-center shrink-0"><Icon name="heart-pulse" size={18}/></div>
                                     <div>
-                                        <h4 className="font-bold text-slate-800 dark:text-white text-sm sm:mb-1">ข้อมูลสุขภาพ/การแพทย์</h4>
-                                        <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-snug">โรคประจำตัว, ประวัติการแพ้ยา เพื่อวางแผนปฐมพยาบาลในกรณีฉุกเฉิน</p>
+                                        <h4 className="font-bold text-slate-800 dark:text-white text-sm sm:mb-1">{t('pdpa_card3_title')}</h4>
+                                        <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-snug">{t('pdpa_card3_desc')}</p>
                                     </div>
                                 </div>
                             </div>
@@ -362,30 +530,29 @@
                             <div className="bg-blue-50/80 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 p-4 rounded-2xl flex items-start gap-3 shadow-sm">
                                 <Icon name="shield-alert" className="text-blue-500 mt-0.5 shrink-0" size={16}/>
                                 <div className="text-[11px] sm:text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
-                                    <span className="font-bold text-blue-900 dark:text-blue-200">การรักษาความปลอดภัย:</span> ข้อมูลทั้งหมดจะถูกเก็บรักษาเป็นความลับอย่างสูงสุด เข้าถึงได้เฉพาะทีมงานที่เกี่ยวข้อง และจะถูกทำลายทิ้งเมื่อเสร็จสิ้นโครงการ
+                                    <span className="font-bold text-blue-900 dark:text-blue-200">{t('pdpa_security')}</span> {t('pdpa_security_desc')}
                                 </div>
                             </div>
                         </div>
                         
-                        {/* Footer Section */}
                         <div className="p-5 sm:p-8 border-t border-slate-100 dark:border-white/5 bg-white dark:bg-zinc-900 shrink-0 pb-6 sm:pb-8">
                             <label className="flex items-start sm:items-center gap-3 cursor-pointer group mb-5 w-full bg-slate-50 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-brand/50 transition-colors shadow-sm">
                                 <input type="checkbox" checked={isChecked} onChange={e => setIsChecked(e.target.checked)} className="hidden" />
                                 <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-md border-2 flex items-center justify-center transition-all shrink-0 mt-0.5 sm:mt-0 ${isChecked ? 'bg-brand border-brand shadow-sm' : 'border-slate-300 dark:border-slate-600 group-hover:border-brand'}`}>
                                     {isChecked && <Icon name="check" size={14} className="text-white"/>}
                                 </div>
-                                <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 select-none leading-snug">ฉันได้อ่านและยินยอมให้ประมวลผลข้อมูลส่วนบุคคลดังกล่าว</span>
+                                <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 select-none leading-snug">{t('pdpa_checkbox')}</span>
                             </label>
 
                             <div className="flex flex-col sm:flex-row justify-end gap-3">
-                                <button onClick={handleDecline} className="w-full sm:w-auto px-6 py-3.5 sm:py-3.5 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 font-bold hover:bg-slate-200 dark:hover:bg-white/10 transition-colors btn-interactive text-sm">ไม่ยินยอม</button>
+                                <button onClick={handleDecline} className="w-full sm:w-auto px-6 py-3.5 sm:py-3.5 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 font-bold hover:bg-slate-200 dark:hover:bg-white/10 transition-colors btn-interactive text-sm">{t('pdpa_decline')}</button>
                                 <button 
                                     onClick={() => isChecked ? onAccept() : null} 
                                     disabled={!isChecked}
                                     className={`w-full sm:w-auto px-8 py-3.5 sm:py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all duration-300 btn-interactive text-sm
                                         ${isChecked ? 'brand-gradient text-white shadow-glow-brand hover:shadow-lg transform hover:-translate-y-0.5' : 'bg-slate-200 dark:bg-white/5 text-slate-400 dark:text-slate-600 border border-slate-300 dark:border-white/10 cursor-not-allowed'}`}
                                 >
-                                    <Icon name="check-circle" size={16} className="sm:w-[18px] sm:h-[18px]" /> ยินยอมและขึ้นทะเบียน
+                                    <Icon name="check-circle" size={16} className="sm:w-[18px] sm:h-[18px]" /> {t('pdpa_accept')}
                                 </button>
                             </div>
                         </div>
@@ -395,10 +562,8 @@
             );
         }
 
-        // ==========================================
-        // 📝 Registration Form Component (ฟอร์มขึ้นทะเบียน)
-        // ==========================================
-        function RegistrationForm({ onBack, onSuccess, isDarkMode }) {
+        function RegistrationForm({ onBack, onSuccess }) {
+            const { t, lang, isDarkMode } = useContext(AppContext);
             const [formData, setFormData] = useState({
                 FullName: '', StudentID: '', IDCard: '', Major: '', 
                 Religion: '', BloodGroup: '',
@@ -415,34 +580,18 @@
             const handleSubmit = async (e) => {
                 e.preventDefault();
 
-                // Validation
                 if (!formData.FullName || !formData.StudentID || !formData.Major || !formData.Religion || !formData.BloodGroup || !formData.StudentPhone || !formData.ParentPhone) {
-                    Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบถ้วน', text: 'กรุณากรอกข้อมูลในช่องที่มีเครื่องหมาย * ให้ครบ', background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
+                    Swal.fire({ icon: 'warning', title: 'Warning', text: 'Please fill in all required fields (*)', background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
                     return;
                 }
 
                 if (formData.StudentID && formData.StudentID.length !== 9) {
-                    Swal.fire({ icon: 'warning', title: 'รหัสนักศึกษาไม่ถูกต้อง', text: 'กรุณากรอกรหัสนักศึกษาให้ครบ 9 หลัก', background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
+                    Swal.fire({ icon: 'warning', title: 'Warning', text: 'Student ID must be 9 digits', background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
                     return;
                 }
 
                 if (formData.StudentPhone.length !== 10 || formData.ParentPhone.length !== 10) {
-                    Swal.fire({ icon: 'warning', title: 'เบอร์โทรศัพท์ไม่ถูกต้อง', text: 'กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก', background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
-                    return;
-                }
-
-                if (hasFoodAllergy && !formData.FoodAllergy.trim()) {
-                    Swal.fire({ icon: 'warning', title: 'โปรดระบุอาหารที่แพ้', background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
-                    return;
-                }
-
-                if (hasDisease && !formData.Disease.trim()) {
-                    Swal.fire({ icon: 'warning', title: 'โปรดระบุโรคประจำตัว', background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
-                    return;
-                }
-
-                if (hasDrugAllergy && !formData.DrugAllergy.trim()) {
-                    Swal.fire({ icon: 'warning', title: 'โปรดระบุยาที่แพ้', background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
+                    Swal.fire({ icon: 'warning', title: 'Warning', text: 'Phone numbers must be 10 digits', background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
                     return;
                 }
 
@@ -454,19 +603,18 @@
                 };
 
                 setIsSubmitting(true);
-                Swal.fire({ title: 'กำลังบันทึกข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
+                Swal.fire({ title: 'Loading...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
 
                 try {
-                    // ใช้ Action 'register' สำหรับการเพิ่มข้อมูลใหม่
                     const res = await submitToAPI('register', finalData);
                     if (res.success) {
                         Swal.close();
                         onSuccess();
                     } else {
-                        throw new Error(res.message || "ระบบขัดข้อง กรุณาลองใหม่อีกครั้ง");
+                        throw new Error(res.message || "Error saving data");
                     }
                 } catch (err) {
-                    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message, background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
+                    Swal.fire({ icon: 'error', title: 'Error', text: err.message, background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
                 } finally {
                     setIsSubmitting(false);
                 }
@@ -475,49 +623,45 @@
             return (
                 <div className="max-w-4xl mx-auto animate-fade-in pb-10">
                     <button onClick={onBack} className="flex items-center gap-2 text-slate-500 hover:text-brand font-bold text-sm mb-6 transition-colors px-2">
-                        <Icon name="arrow-left" size={16} /> ย้อนกลับ
+                        <Icon name="arrow-left" size={16} /> {t('back')}
                     </button>
 
                     <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8">
-                        {/* ส่วนที่ 1: ข้อมูลส่วนตัว */}
                         <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border border-slate-200/50 dark:border-white/5 shadow-soft">
-                            <SectionHeader icon="user" title="ข้อมูลส่วนตัวนักศึกษา" colorClass="bg-blue-100 dark:bg-blue-500/20 text-blue-600" />
+                            <SectionHeader icon="user" title={t('form_personal_title')} colorClass="bg-blue-100 dark:bg-blue-500/20 text-blue-600" />
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                <InputField label="ชื่อ-นามสกุล (ระบุคำนำหน้า)" value={formData.FullName} onChange={v => setFormData({...formData, FullName: v})} placeholder="เช่น นายสมชาย ใจดี" required />
+                                <InputField label={t('form_fullname')} value={formData.FullName} onChange={v => setFormData({...formData, FullName: v})} placeholder="John Doe" required />
                                 
                                 <div className="flex flex-col gap-1.5">
-                                    <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">สาขาวิชา <span className="text-red-500">*</span></label>
+                                    <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">{t('form_major')} <span className="text-red-500">*</span></label>
                                     <div className="relative">
                                         <select value={formData.Major} onChange={e => setFormData({...formData, Major: e.target.value})} required className="w-full appearance-none input-modern rounded-xl pl-4 pr-10 py-3.5 text-sm font-semibold shadow-sm cursor-pointer bg-white/80 dark:bg-black/40">
-                                            <option value="">-- โปรดเลือกสาขาวิชา --</option>
-                                            {MAJOR_LIST.map(m => <option key={m} value={m}>{m}</option>)}
+                                            <option value="">{t('select_option')}</option>
+                                            {MAJOR_LIST.map(m => <option key={m} value={m}>{lang === 'en' ? (DICT_MAPPING[m] || m) : m}</option>)}
                                         </select>
                                         <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><Icon name="chevron-down" size={16}/></div>
                                     </div>
                                 </div>
 
-                                <InputField label="รหัสนักศึกษา (9 หลัก)" value={formData.StudentID} onChange={v => setFormData({...formData, StudentID: v})} placeholder="เช่น 67xxxxxxx" numeric required maxLength="9" />
-                                <InputField label="รหัสประจำตัวประชาชน / Passport" value={formData.IDCard} onChange={v => setFormData({...formData, IDCard: v})} placeholder="ระบุ 13 หลัก หรือ เลขพาสปอร์ต" maxLength="20" />
+                                <InputField label={t('form_studentid')} value={formData.StudentID} onChange={v => setFormData({...formData, StudentID: v})} placeholder="67xxxxxxx" numeric required maxLength="9" />
+                                <InputField label={t('form_idcard')} value={formData.IDCard} onChange={v => setFormData({...formData, IDCard: v})} placeholder="13 digits or Passport" maxLength="20" />
                                 
                                 <div className="flex flex-col gap-1.5">
-                                    <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">ศาสนา <span className="text-red-500">*</span></label>
+                                    <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">{t('form_religion')} <span className="text-red-500">*</span></label>
                                     <div className="relative">
                                         <select value={formData.Religion} onChange={e => setFormData({...formData, Religion: e.target.value})} required className="w-full appearance-none input-modern rounded-xl pl-4 pr-10 py-3.5 text-sm font-semibold shadow-sm cursor-pointer bg-white/80 dark:bg-black/40">
-                                            <option value="">-- โปรดเลือกศาสนา --</option>
-                                            <option value="พุทธ">พุทธ</option>
-                                            <option value="อิสลาม">อิสลาม</option>
-                                            <option value="คริสต์">คริสต์</option>
-                                            <option value="อื่นๆ">อื่นๆ</option>
+                                            <option value="">{t('select_option')}</option>
+                                            {['พุทธ', 'อิสลาม', 'คริสต์', 'อื่นๆ'].map(r => <option key={r} value={r}>{lang === 'en' ? DICT_MAPPING[r] : r}</option>)}
                                         </select>
                                         <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><Icon name="chevron-down" size={16}/></div>
                                     </div>
                                 </div>
 
                                 <div className="flex flex-col gap-1.5">
-                                    <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">กรุ๊ปเลือด <span className="text-red-500">*</span></label>
+                                    <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">{t('form_blood')} <span className="text-red-500">*</span></label>
                                     <div className="relative">
                                         <select value={formData.BloodGroup} onChange={e => setFormData({...formData, BloodGroup: e.target.value})} required className="w-full appearance-none input-modern rounded-xl pl-4 pr-10 py-3.5 text-sm font-semibold shadow-sm cursor-pointer bg-white/80 dark:bg-black/40">
-                                            <option value="">-- โปรดเลือกกรุ๊ปเลือด --</option>
+                                            <option value="">{t('select_option')}</option>
                                             <option value="A">A</option>
                                             <option value="B">B</option>
                                             <option value="O">O</option>
@@ -529,23 +673,21 @@
                             </div>
                         </div>
 
-                        {/* ส่วนที่ 2: ข้อมูลติดต่อ */}
-                        <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border border-slate-200/50 dark:border-white/5 shadow-soft">
-                            <SectionHeader icon="phone" title="ข้อมูลการติดต่อ" colorClass="bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600" />
+                        <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-orange-500 border border-slate-200/50 dark:border-white/5 shadow-soft">
+                            <SectionHeader icon="phone" title={t('form_contact_title')} colorClass="bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600" />
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                <InputField label="เบอร์โทรศัพท์นักศึกษา" value={formData.StudentPhone} onChange={v => setFormData({...formData, StudentPhone: v})} placeholder="08xxxxxxxx" numeric required maxLength="10" />
-                                <InputField label="เบอร์โทรศัพท์ผู้ปกครอง (ฉุกเฉิน)" value={formData.ParentPhone} onChange={v => setFormData({...formData, ParentPhone: v})} placeholder="08xxxxxxxx" numeric required maxLength="10" />
+                                <InputField label={t('form_student_phone')} value={formData.StudentPhone} onChange={v => setFormData({...formData, StudentPhone: v})} placeholder="08xxxxxxxx" numeric required maxLength="10" />
+                                <InputField label={t('form_parent_phone')} value={formData.ParentPhone} onChange={v => setFormData({...formData, ParentPhone: v})} placeholder="08xxxxxxxx" numeric required maxLength="10" />
                             </div>
                         </div>
 
-                        {/* ส่วนที่ 3: โภชนาการ */}
                         <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-orange-500 border border-slate-200/50 dark:border-white/5 shadow-soft">
-                            <SectionHeader icon="pizza" title="ข้อมูลโภชนาการ" colorClass="bg-orange-100 dark:bg-orange-500/20 text-orange-600" />
+                            <SectionHeader icon="pizza" title={t('form_nutrition_title')} colorClass="bg-orange-100 dark:bg-orange-500/20 text-orange-600" />
                             <div className="space-y-6">
                                 <div>
-                                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 block">1. อาหารเฉพาะทาง (เลือก 1 ข้อ) <span className="text-red-500">*</span></label>
+                                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 block">{t('form_diet')} <span className="text-red-500">*</span></label>
                                     <TogglePill 
-                                        options={[{label: 'ไม่มี (ทานปกติ)', value: 'ไม่มี'}, {label: 'ฮาลาล', value: 'ฮาลาล'}, {label: 'มังสวิรัติ', value: 'มังสวิรัติ'}, {label: 'เจ', value: 'เจ'}]}
+                                        options={[{label: 'ไม่มี', value: 'ไม่มี'}, {label: 'ฮาลาล', value: 'ฮาลาล'}, {label: 'มังสวิรัติ', value: 'มังสวิรัติ'}, {label: 'เจ', value: 'เจ'}]}
                                         value={formData.SpecificDiet}
                                         onChange={v => setFormData({...formData, SpecificDiet: v})}
                                         isWarningType={true}
@@ -553,65 +695,63 @@
                                 </div>
                                 
                                 <div className="p-5 bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/30 rounded-2xl">
-                                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 block">2. ประวัติการแพ้อาหาร <span className="text-red-500">*</span></label>
+                                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 block">{t('form_food_allergy')} <span className="text-red-500">*</span></label>
                                     <div className="flex gap-4 mb-4">
                                         <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold">
-                                            <input type="radio" name="foodAllergy" checked={!hasFoodAllergy} onChange={() => setHasFoodAllergy(false)} className="w-4 h-4 text-brand accent-brand" /> ไม่แพ้
+                                            <input type="radio" name="foodAllergy" checked={!hasFoodAllergy} onChange={() => setHasFoodAllergy(false)} className="w-4 h-4 text-brand accent-brand" /> {t('form_no_allergy')}
                                         </label>
                                         <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-orange-600 dark:text-orange-400">
-                                            <input type="radio" name="foodAllergy" checked={hasFoodAllergy} onChange={() => setHasFoodAllergy(true)} className="w-4 h-4 text-brand accent-brand" /> มีประวัติแพ้อาหาร
+                                            <input type="radio" name="foodAllergy" checked={hasFoodAllergy} onChange={() => setHasFoodAllergy(true)} className="w-4 h-4 text-brand accent-brand" /> {t('form_has_allergy')}
                                         </label>
                                     </div>
                                     {hasFoodAllergy && (
                                         <div className="animate-slide-up">
-                                            <InputField label="โปรดระบุอาหารที่แพ้ หรือ อาการ" value={formData.FoodAllergy} onChange={v => setFormData({...formData, FoodAllergy: v})} placeholder="เช่น กุ้ง, ถั่วลิสง, นมวัว" required={hasFoodAllergy} />
+                                            <InputField label={t('form_specify_food')} value={formData.FoodAllergy} onChange={v => setFormData({...formData, FoodAllergy: v})} placeholder="e.g. Seafood, Nuts" required={hasFoodAllergy} />
                                         </div>
                                     )}
                                 </div>
                             </div>
                         </div>
 
-                        {/* ส่วนที่ 4: สุขภาพ */}
                         <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-red-500 border border-slate-200/50 dark:border-white/5 shadow-soft">
-                            <SectionHeader icon="heart-pulse" title="ข้อมูลสุขภาพทางการแพทย์" colorClass="bg-red-100 dark:bg-red-500/20 text-red-600" />
+                            <SectionHeader icon="heart-pulse" title={t('form_health_title')} colorClass="bg-red-100 dark:bg-red-500/20 text-red-600" />
                             <div className="space-y-6">
                                 <div className="p-5 bg-red-50/50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-2xl">
-                                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 block">1. โรคประจำตัว <span className="text-red-500">*</span></label>
+                                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 block">{t('form_disease')} <span className="text-red-500">*</span></label>
                                     <div className="flex gap-4 mb-4">
                                         <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold">
-                                            <input type="radio" name="disease" checked={!hasDisease} onChange={() => setHasDisease(false)} className="w-4 h-4 accent-red-500" /> ไม่มี
+                                            <input type="radio" name="disease" checked={!hasDisease} onChange={() => setHasDisease(false)} className="w-4 h-4 accent-red-500" /> {t('form_no_disease')}
                                         </label>
                                         <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-red-600 dark:text-red-400">
-                                            <input type="radio" name="disease" checked={hasDisease} onChange={() => setHasDisease(true)} className="w-4 h-4 accent-red-500" /> มีโรคประจำตัว
+                                            <input type="radio" name="disease" checked={hasDisease} onChange={() => setHasDisease(true)} className="w-4 h-4 accent-red-500" /> {t('form_has_disease')}
                                         </label>
                                     </div>
                                     {hasDisease && (
                                         <div className="animate-slide-up">
-                                            <InputField label="โปรดระบุโรคประจำตัว" value={formData.Disease} onChange={v => setFormData({...formData, Disease: v})} placeholder="เช่น หอบหืด, ภูมิแพ้, หัวใจ" required={hasDisease} />
+                                            <InputField label={t('form_specify_disease')} value={formData.Disease} onChange={v => setFormData({...formData, Disease: v})} placeholder="e.g. Asthma, Allergies" required={hasDisease} />
                                         </div>
                                     )}
                                 </div>
 
                                 <div className="p-5 bg-pink-50/50 dark:bg-pink-950/20 border border-pink-100 dark:border-pink-900/30 rounded-2xl">
-                                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 block">2. ประวัติการแพ้ยา <span className="text-red-500">*</span></label>
+                                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 block">{t('form_drug_allergy')} <span className="text-red-500">*</span></label>
                                     <div className="flex gap-4 mb-4">
                                         <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold">
-                                            <input type="radio" name="drugAllergy" checked={!hasDrugAllergy} onChange={() => setHasDrugAllergy(false)} className="w-4 h-4 accent-pink-500" /> ไม่เคยแพ้ยา
+                                            <input type="radio" name="drugAllergy" checked={!hasDrugAllergy} onChange={() => setHasDrugAllergy(false)} className="w-4 h-4 accent-pink-500" /> {t('form_no_drug_allergy')}
                                         </label>
                                         <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-pink-600 dark:text-pink-400">
-                                            <input type="radio" name="drugAllergy" checked={hasDrugAllergy} onChange={() => setHasDrugAllergy(true)} className="w-4 h-4 accent-pink-500" /> มีประวัติแพ้ยา
+                                            <input type="radio" name="drugAllergy" checked={hasDrugAllergy} onChange={() => setHasDrugAllergy(true)} className="w-4 h-4 accent-pink-500" /> {t('form_has_drug_allergy')}
                                         </label>
                                     </div>
                                     {hasDrugAllergy && (
                                         <div className="animate-slide-up">
-                                            <InputField label="โปรดระบุยาที่แพ้ หรือ อาการ" value={formData.DrugAllergy} onChange={v => setFormData({...formData, DrugAllergy: v})} placeholder="เช่น Penicillin, Amoxicillin" required={hasDrugAllergy} />
+                                            <InputField label={t('form_specify_drug')} value={formData.DrugAllergy} onChange={v => setFormData({...formData, DrugAllergy: v})} placeholder="e.g. Penicillin" required={hasDrugAllergy} />
                                         </div>
                                     )}
                                 </div>
                             </div>
                         </div>
 
-                        {/* Submit Button */}
                         <div className="pt-4 flex justify-center">
                             <button 
                                 type="submit" 
@@ -619,7 +759,7 @@
                                 className="w-full md:w-auto min-w-[280px] py-4 px-8 brand-gradient text-white rounded-2xl font-black text-lg shadow-glow-brand hover:shadow-lg transform hover:-translate-y-1 transition-all btn-interactive flex items-center justify-center gap-2"
                             >
                                 {isSubmitting ? <Icon name="loader-2" className="animate-spin" /> : <Icon name="save" />}
-                                บันทึกข้อมูลขึ้นทะเบียน
+                                {t('form_submit')}
                             </button>
                         </div>
                     </form>
@@ -627,10 +767,8 @@
             );
         }
 
-        // ==========================================
-        // ✅ Success View Component
-        // ==========================================
-        function SuccessView({ onHome, isDarkMode }) {
+        function SuccessView({ onHome }) {
+            const { t } = useContext(AppContext);
             return (
                 <div className="flex items-center justify-center min-h-[80vh] p-4 animate-fade-in">
                     <div className="glass-panel p-8 md:p-12 rounded-[3rem] text-center max-w-md w-full animate-slide-up shadow-2xl border-t-8 border-t-emerald-500">
@@ -638,22 +776,20 @@
                             <Icon name="check-circle" size={48} className="relative z-10" />
                             <div className="absolute inset-0 bg-emerald-400 rounded-full blur-xl opacity-30 animate-pulse"></div>
                         </div>
-                        <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-3 tracking-tight">ลงทะเบียนสำเร็จ!</h2>
+                        <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-3 tracking-tight">{t('success_title')}</h2>
                         <p className="text-slate-500 dark:text-slate-400 font-medium mb-8 leading-relaxed">
-                            ระบบได้รับข้อมูลการขึ้นทะเบียนของท่านเรียบร้อยแล้ว ขอบคุณที่ให้ความร่วมมือและยินดีต้อนรับครับ
+                            {t('success_desc')}
                         </p>
                         <button onClick={onHome} className="w-full py-4 bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-white rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-white/20 transition-colors shadow-sm flex justify-center items-center gap-2 btn-interactive">
-                            <Icon name="home" size={18} /> กลับสู่หน้าแรก
+                            <Icon name="home" size={18} /> {t('success_home')}
                         </button>
                     </div>
                 </div>
             );
         }
 
-        // ==========================================
-        // 📊 Admin Dashboard Component
-        // ==========================================
-        function AdminDashboard({ goBack, isDarkMode }) {
+        function AdminDashboard({ goBack }) {
+            const { t, lang, isDarkMode } = useContext(AppContext);
             const [data, setData] = useState([]);
             const [loading, setLoading] = useState(true);
             const [selectedMajor, setSelectedMajor] = useState(null);
@@ -665,7 +801,6 @@
             const [searchTerm, setSearchTerm] = useState('');
             const [executiveMajor, setExecutiveMajor] = useState('ทั้งหมด');
 
-            // เพิ่มพารามิเตอร์ isSilent เพื่อซ่อนหน้าจอโหลดเวลาดึงข้อมูลอัตโนมัติ
             const loadData = (isSilent = false) => {
                 if (!isSilent) setLoading(true);
                 Papa.parse(`${SHEET_CSV_URL}&_cb=${new Date().getTime()}`, {
@@ -675,28 +810,22 @@
                         if (!isSilent) setLoading(false);
                     },
                     error: () => { 
-                        if (!isSilent) Swal.fire('ข้อผิดพลาด', 'เชื่อมต่อฐานข้อมูลล้มเหลว', 'warning'); 
+                        if (!isSilent) Swal.fire('Error', 'Database Connection Failed', 'warning'); 
                         if (!isSilent) setLoading(false); 
                     }
                 });
             };
 
             useEffect(() => { 
-                loadData(); // โหลดครั้งแรกแสดง Spinner ปกติ
-                
-                // ตั้งเวลาดึงข้อมูลอัตโนมัติทุกๆ 5 นาที (300,000 มิลลิวินาที)
-                const intervalId = setInterval(() => {
-                    loadData(true); // ดึงข้อมูลแบบเงียบๆ (Silent) ไม่รบกวนการทำงาน
-                }, 300000);
-
-                // ทำความสะอาด interval เมื่อออกจากหน้าต่างนี้
+                loadData();
+                const intervalId = setInterval(() => { loadData(true); }, 1000); // อัปเดตทุก 1 วินาที
                 return () => clearInterval(intervalId);
             }, []);
 
             const executiveBaseMajors = useMemo(() => {
                 const mSet = new Set();
                 data.forEach(r => {
-                    if(r.Major) mSet.add(r.Major.replace(/\s*\(เทียบโอน\)/g, '').trim());
+                    if(r.Major) mSet.add(r.Major.replace(/\s*\([a-zA-Zก-๙\s]+\)/g, '').trim());
                 });
                 return Array.from(mSet).sort();
             }, [data]);
@@ -716,7 +845,7 @@
                 
                 if (activeTab === 'executive' && executiveMajor !== 'ทั้งหมด') {
                     result = result.filter(r => {
-                        const baseMajor = r.Major ? r.Major.replace(/\s*\(เทียบโอน\)/g, '').trim() : '';
+                        const baseMajor = r.Major ? r.Major.replace(/\s*\([a-zA-Zก-๙\s]+\)/g, '').trim() : '';
                         return baseMajor === executiveMajor;
                     });
                 }
@@ -729,11 +858,20 @@
                 let majorCount = {}, dietStats = { 'ฮาลาล': 0, 'มังสวิรัติ': 0, 'เจ': 0, 'อาหารปกติ': 0 }, foodAllergies = [], diseases = [], drugAllergies = [];
                 const surveillanceList = [];
                 let surveillanceRiskPie = { 'ด้านการแพทย์': 0, 'ด้านโภชนาการ': 0, 'ความเสี่ยงซ้อน (ทั้งสอง)': 0 };
+                let majorBreakdownMap = {}; // ตัวแปรสำหรับเก็บข้อมูลแยกสาขา ปกติ/เทียบโอน
 
                 filteredData.forEach(s => {
                     if(s.Major) {
                         majorCount[s.Major] = (majorCount[s.Major] || 0) + 1;
-                        s.Major.includes("เทียบโอน") ? transferCount++ : normalCount++;
+                        const isTransfer = s.Major.includes("เทียบโอน");
+                        isTransfer ? transferCount++ : normalCount++;
+
+                        // คำนวณสรุปแยกสาขา ปกติ/เทียบโอน
+                        const baseMajor = s.Major.replace(/\s*\([a-zA-Zก-๙\s]+\)/g, '').trim();
+                        if (!majorBreakdownMap[baseMajor]) majorBreakdownMap[baseMajor] = { total: 0, normal: 0, transfer: 0 };
+                        majorBreakdownMap[baseMajor].total++;
+                        if (isTransfer) majorBreakdownMap[baseMajor].transfer++;
+                        else majorBreakdownMap[baseMajor].normal++;
                     }
                     let hasF = s.FoodAllergy !== 'ไม่แพ้' || s.SpecificDiet !== 'ไม่มี';
                     let hasH = s.Disease !== 'ไม่มี' || s.DrugAllergy !== 'ไม่แพ้';
@@ -751,10 +889,10 @@
 
                     if (hasF || hasH) {
                         let issues = [];
-                        if (s.FoodAllergy !== 'ไม่แพ้') issues.push({ type: 'food', text: `แพ้อาหาร: ${s.FoodAllergy}` });
-                        if (s.SpecificDiet !== 'ไม่มี') issues.push({ type: 'food', text: `อาหารเฉพาะ: ${s.SpecificDiet}` });
-                        if (s.Disease !== 'ไม่มี') issues.push({ type: 'health', text: `โรคประจำตัว: ${s.Disease}` });
-                        if (s.DrugAllergy !== 'ไม่แพ้') issues.push({ type: 'health', text: `แพ้ยา: ${s.DrugAllergy}` });
+                        if (s.FoodAllergy !== 'ไม่แพ้') issues.push({ type: 'food', text: `${t('form_food_allergy')}: ${s.FoodAllergy}` });
+                        if (s.SpecificDiet !== 'ไม่มี') issues.push({ type: 'food', text: `${lang==='en'?'Diet':'อาหาร'}: ${s.SpecificDiet}` });
+                        if (s.Disease !== 'ไม่มี') issues.push({ type: 'health', text: `${t('form_disease')}: ${s.Disease}` });
+                        if (s.DrugAllergy !== 'ไม่แพ้') issues.push({ type: 'health', text: `${t('form_drug_allergy')}: ${s.DrugAllergy}` });
                         surveillanceList.push({ ...s, issues });
 
                         if (hasF && hasH) surveillanceRiskPie['ความเสี่ยงซ้อน (ทั้งสอง)']++;
@@ -764,9 +902,16 @@
                 });
 
                 const surveillancePieData = Object.keys(surveillanceRiskPie).map(k => ({name: k, value: surveillanceRiskPie[k]})).filter(d => d.value > 0);
+                const pieDataList = Object.keys(majorCount).map(k=>({name:k, value:majorCount[k]}));
+                
+                // แปลง object ให้เป็น array และเรียงจากคนเยอะไปน้อย
+                const majorBreakdown = Object.keys(majorBreakdownMap).map(k => ({
+                    name: k,
+                    ...majorBreakdownMap[k]
+                })).sort((a, b) => b.total - a.total);
 
-                return { total, pieData: Object.keys(majorCount).map(k=>({name:k, value:majorCount[k]})), COLORS: ['#ff6600', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#facc15', '#06b6d4'], foodAlert, healthAlert, surveillanceList, surveillancePieData, normalCount, transferCount, dietStats, foodAllergies, diseases, drugAllergies };
-            }, [filteredData]);
+                return { total, pieData: pieDataList, COLORS: ['#ff6600', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#facc15', '#06b6d4'], foodAlert, healthAlert, surveillanceList, surveillancePieData, normalCount, transferCount, dietStats, foodAllergies, diseases, drugAllergies, majorBreakdown };
+            }, [filteredData, lang]);
 
             const handleDrilldown = (title, type, key) => {
                 let filtered = [];
@@ -783,27 +928,18 @@
                 setDrilldownData({ title, type, list: filtered });
             };
 
-            const handleDelete = (id, name) => {
-                Swal.fire({ title: 'ยืนยันลบข้อมูล?', text: `ลบข้อมูลของ ${name}`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'ลบ', cancelButtonText: 'ยกเลิก', background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a', customClass:{popup:'rounded-3xl'} }).then((res) => {
-                    if (res.isConfirmed) {
-                        Swal.fire({ title: 'กำลังลบ...', didOpen: () => Swal.showLoading(), background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
-                        submitToAPI('delete', { StudentID: id }).then(r => { if(r.success) { Swal.fire({ icon:'success', title:'สำเร็จ', timer:1500, showConfirmButton:false, background: isDarkMode?'#18181b':'#fff' }); loadData(); } }).catch(err => Swal.fire('Error', err.message, 'error'));
-                    }
-                });
-            };
-
             const handleSaveEdit = (e) => {
                 e.preventDefault();
                 if (editItem.StudentID && editItem.StudentID.length !== 9) {
-                    Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ถูกต้อง', text: 'กรุณาระบุรหัสนักศึกษาให้ครบ 9 หลัก', confirmButtonColor: '#ff6600', background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
+                    Swal.fire({ icon: 'warning', title: 'Warning', text: 'Student ID must be 9 digits', confirmButtonColor: '#ff6600', background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
                     return;
                 }
                 if (editItem.StudentPhone.length !== 10 || editItem.ParentPhone.length !== 10) {
-                    Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ถูกต้อง', text: 'กรุณาระบุเบอร์โทรศัพท์ให้ครบ 10 หลัก', confirmButtonColor: '#ff6600', background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
+                    Swal.fire({ icon: 'warning', title: 'Warning', text: 'Phone numbers must be 10 digits', confirmButtonColor: '#ff6600', background: isDarkMode?'#18181b':'#fff', color: isDarkMode?'#f8fafc':'#0f172a' });
                     return;
                 }
-                Swal.fire({ title: 'กำลังอัปเดต...', didOpen: () => Swal.showLoading(), background: isDarkMode?'#18181b':'#fff' });
-                submitToAPI('update', { oldStudentID: editItem.oldStudentID, newData: editItem }).then(res => { if(res.success) { Swal.fire({ icon:'success', title:'บันทึกสำเร็จ', timer:1500, showConfirmButton:false, background: isDarkMode?'#18181b':'#fff' }); setEditItem(null); loadData(); } }).catch(err => Swal.fire('Error', err.message, 'error'));
+                Swal.fire({ title: 'Loading...', didOpen: () => Swal.showLoading(), background: isDarkMode?'#18181b':'#fff' });
+                submitToAPI('update', { oldStudentID: editItem.oldStudentID, newData: editItem }).then(res => { if(res.success) { Swal.fire({ icon:'success', title:'Success', timer:1500, showConfirmButton:false, background: isDarkMode?'#18181b':'#fff' }); setEditItem(null); loadData(); } }).catch(err => Swal.fire('Error', err.message, 'error'));
             };
 
             const exportExcel = () => {
@@ -814,20 +950,42 @@
                 window.XLSX.writeFile(wb, `DIGIT_Export_${new Date().toISOString().slice(0,10)}.xlsx`);
             };
 
+            const exportMajorsSummary = () => {
+                if (stats.pieData.length === 0) return;
+                
+                const exportData = stats.pieData.sort((a,b) => b.value - a.value).map(item => ({
+                    'สาขาวิชา': lang === 'en' ? (DICT_MAPPING[item.name] || item.name) : item.name,
+                    'จำนวน (คน)': item.value,
+                    'สัดส่วน (%)': ((item.value / stats.total) * 100).toFixed(2) + '%'
+                }));
+                
+                exportData.push({
+                    'สาขาวิชา': lang === 'en' ? 'Total' : 'รวมทั้งหมด',
+                    'จำนวน (คน)': stats.total,
+                    'สัดส่วน (%)': '100.00%'
+                });
+
+                const ws = window.XLSX.utils.json_to_sheet(exportData);
+                const wscols = [{wch: 40}, {wch: 15}, {wch: 15}];
+                ws['!cols'] = wscols;
+                const wb = window.XLSX.utils.book_new();
+                window.XLSX.utils.book_append_sheet(wb, ws, "Majors_Summary");
+                window.XLSX.writeFile(wb, `DIGIT69_Summary_${new Date().toISOString().slice(0,10)}.xlsx`);
+            };
+
             if (loading) return (
                 <div className="flex flex-col justify-center items-center h-[70vh]">
                     <div className="p-4 bg-brand/10 rounded-2xl mb-4 animate-pulse-slow shadow-glow-brand"><Icon name="loader-2" size={40} className="text-brand animate-spin" /></div>
-                    <p className="text-slate-500 font-bold tracking-widest uppercase text-sm">กำลังเชื่อมต่อฐานข้อมูล...</p>
+                    <p className="text-slate-500 font-bold tracking-widest uppercase text-sm">Loading Database...</p>
                 </div>
             );
 
-            // 🌟 Updated TABS to match the exact requirement
             const TABS = [
-                { id: 'overview', icon: 'users', label: 'ยอดขึ้นทะเบียน' },
-                { id: 'majors', icon: 'pie-chart', label: 'สรุปยอดสาขาวิชา' },
-                { id: 'health_diet', icon: 'activity', label: 'สุขภาพและโภชนาการ' },
-                { id: 'surveillance', icon: 'shield-alert', label: 'กลุ่มเฝ้าระวังพิเศษ' },
-                { id: 'executive', icon: 'layout-dashboard', label: 'รายงานผู้บริหาร' }
+                { id: 'overview', icon: 'users', label: t('admin_tab_overview') },
+                { id: 'majors', icon: 'pie-chart', label: t('admin_tab_majors') },
+                { id: 'health_diet', icon: 'activity', label: t('admin_tab_health') },
+                { id: 'surveillance', icon: 'shield-alert', label: t('admin_tab_surveillance') },
+                { id: 'executive', icon: 'layout-dashboard', label: t('admin_tab_executive') }
             ];
 
             return (
@@ -838,13 +996,13 @@
                             <div className="w-12 h-12 bg-slate-900 dark:bg-white rounded-[1rem] flex items-center justify-center text-white dark:text-black shadow-lg"><Icon name="command" size={24}/></div>
                             <div>
                                 <p className="text-[10px] text-brand font-black tracking-widest uppercase">Admin Portal</p>
-                                <h3 className="font-black text-slate-800 dark:text-white leading-none text-lg mt-0.5">Dashboard</h3>
+                                <h3 className="font-black text-slate-800 dark:text-white leading-none text-lg mt-0.5">{t('admin_dashboard')}</h3>
                             </div>
                         </div>
                         <div className="flex flex-row md:flex-col overflow-x-auto hide-scrollbar gap-2 pb-2 md:pb-0">
                             {TABS.map(tab => (
                                 <button key={tab.id} onClick={() => { setActiveTab(tab.id); setCurrentPage(1); }} 
-                                    className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all font-bold whitespace-nowrap btn-interactive
+                                    className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all font-bold whitespace-nowrap btn-interactive text-sm
                                     ${activeTab === tab.id ? 'bg-brand text-white shadow-glow-brand hover:-translate-y-0.5' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white'}`}>
                                     <Icon name={tab.icon} size={18} className={activeTab === tab.id ? 'text-white' : 'text-slate-400'}/> {tab.label}
                                 </button>
@@ -861,138 +1019,187 @@
                                 {(TABS.find(t=>t.id===activeTab) || {}).label}
                             </h2>
                             <div className="flex flex-col xl:flex-row flex-wrap w-full sm:w-auto gap-3 items-start xl:items-center">
-                                {/* ช่องค้นหา */}
                                 <div className="relative w-full sm:w-64">
                                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                         <Icon name="search" size={16}/>
                                     </div>
                                     <input 
                                         type="text" 
-                                        placeholder="ค้นหาชื่อ, รหัส, สาขา, เบอร์..." 
+                                        placeholder={t('search')} 
                                         value={searchTerm}
                                         onChange={(e) => {setSearchTerm(e.target.value); setCurrentPage(1);}}
                                         className="w-full pl-10 pr-8 py-2.5 rounded-xl input-modern text-sm font-semibold"
                                     />
-                                    {searchTerm && (
-                                        <button onClick={() => {setSearchTerm(''); setCurrentPage(1);}} className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-red-500 transition-colors">
-                                            <Icon name="x" size={14}/>
-                                        </button>
-                                    )}
                                 </div>
                                 <div className="flex flex-wrap w-full sm:w-auto gap-2 justify-start sm:justify-end">
-                                    {activeTab === 'executive' && <button onClick={window.print} className="px-5 py-2.5 bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white rounded-xl font-bold text-sm flex items-center gap-2 btn-interactive hover:bg-slate-200"><Icon name="printer" size={16} /> พิมพ์</button>}
-                                    <button onClick={exportExcel} className="px-5 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-xl font-bold text-sm flex items-center gap-2 transition-all btn-interactive shadow-sm"><Icon name="download" size={16} /> Excel</button>
-                                    <button onClick={loadData} className="p-2.5 bg-slate-100 dark:bg-white/10 rounded-xl text-slate-500 hover:text-slate-800 dark:hover:text-white btn-interactive shadow-sm"><Icon name="refresh-cw" size={18}/></button>
+                                    {activeTab === 'executive' && <button onClick={window.print} className="px-5 py-2.5 bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white rounded-xl font-bold text-sm flex items-center gap-2 btn-interactive hover:bg-slate-200"><Icon name="printer" size={16} /> {t('admin_print')}</button>}
+                                    <button onClick={exportExcel} className="px-5 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-xl font-bold text-sm flex items-center gap-2 transition-all btn-interactive shadow-sm"><Icon name="download" size={16} /> {t('admin_export')}</button>
                                     <button onClick={goBack} className="p-2.5 bg-red-50 dark:bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white btn-interactive shadow-sm"><Icon name="log-out" size={18}/></button>
                                 </div>
                             </div>
                         </div>
 
-                        {/* ========================================================= */}
-                        {/* TAB 1: OVERVIEW (ยอดขึ้นทะเบียน และ กราฟรายงาน) */}
-                        {/* ========================================================= */}
+                        {/* TAB 1: OVERVIEW */}
                         {activeTab === 'overview' && (
                             <div className="space-y-6 animate-fade-in">
-                                {/* Top KPI Cards */}
                                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                                     {[
-                                        {l:'ยอดขึ้นทะเบียนรวม', v:stats.total, i:'users', c:'text-brand', bg:'bg-brand/10'}, 
-                                        {l:'กลุ่มเปราะบาง (แพทย์)', v:stats.healthAlert, i:'activity', c:'text-red-500', bg:'bg-red-500/10'}, 
-                                        {l:'จัดการอาหารพิเศษ', v:stats.foodAlert, i:'utensils', c:'text-orange-500', bg:'bg-orange-500/10'},
-                                        {l:'สุขภาพปกติ', v:(stats.total - stats.healthAlert), i:'check-circle', c:'text-emerald-500', bg:'bg-emerald-500/10'}
+                                        {l:t('admin_total'), v:stats.total, i:'users', c:'text-brand', bg:'bg-brand/10'}, 
+                                        {l:t('admin_risk_health'), v:stats.healthAlert, i:'activity', c:'text-red-500', bg:'bg-red-500/10'}, 
+                                        {l:t('admin_risk_food'), v:stats.foodAlert, i:'utensils', c:'text-orange-500', bg:'bg-orange-500/10'},
+                                        {l:t('admin_healthy'), v:(stats.total - stats.healthAlert), i:'check-circle', c:'text-emerald-500', bg:'bg-emerald-500/10'}
                                     ].map((card, i) => (
                                         <div key={i} className="glass-panel p-6 md:p-8 rounded-[2rem] border border-slate-200/50 dark:border-white/5 relative overflow-hidden shadow-soft">
                                             <div className="flex justify-between items-start mb-4 relative z-10">
                                                 <div className={`p-3.5 rounded-[1rem] ${card.bg} ${card.c} shadow-sm`}><Icon name={card.i} size={28} /></div>
                                             </div>
-                                            <p className="text-slate-500 text-sm font-bold uppercase tracking-wider mb-1 relative z-10">{card.l}</p>
+                                            <p className="text-slate-500 text-xs sm:text-sm font-bold uppercase tracking-wider mb-1 relative z-10">{card.l}</p>
                                             <h3 className={`text-4xl md:text-5xl font-black text-slate-800 dark:text-white relative z-10 drop-shadow-sm`}>{card.v}</h3>
                                         </div>
                                     ))}
                                 </div>
 
-                                {/* Pie Chart: ยอดขึ้นทะเบียนแยกตามสาขาวิชา */}
-                                <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-brand shadow-soft flex flex-col relative overflow-hidden bg-gradient-to-b from-white to-slate-50/50 dark:from-zinc-900 dark:to-zinc-900/50">
-                                    <div className="absolute top-0 right-0 p-8 opacity-5 text-brand pointer-events-none transform translate-x-4 -translate-y-4">
-                                        <Icon name="pie-chart" size={120} />
-                                    </div>
-                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 relative z-10">
-                                        <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
-                                            <div className="p-3 bg-brand/10 text-brand rounded-2xl shadow-inner"><Icon name="pie-chart" size={24}/></div>
-                                            ยอดขึ้นทะเบียนแยกตามสาขาวิชา
-                                        </h3>
-                                        <div className="bg-brand/10 text-brand px-4 py-2 rounded-xl text-sm font-bold shadow-sm border border-brand/20">
-                                            รวมทั้งหมด {stats.total} คน
+                                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                                    <div className="xl:col-span-2 glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-brand shadow-soft flex flex-col relative overflow-hidden bg-gradient-to-b from-white to-slate-50/50 dark:from-zinc-900 dark:to-zinc-900/50">
+                                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 relative z-10">
+                                            <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
+                                                <div className="p-3 bg-brand/10 text-brand rounded-2xl shadow-inner"><Icon name="pie-chart" size={24}/></div>
+                                                {t('admin_pie_title')}
+                                            </h3>
+                                            <div className="flex flex-wrap items-center gap-3">
+                                                <button onClick={exportMajorsSummary} className="flex items-center gap-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500 dark:hover:text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm border border-emerald-200 dark:border-emerald-500/20 transition-all btn-interactive">
+                                                    <Icon name="download" size={16} /> {t('admin_export_summary')}
+                                                </button>
+                                                <div className="bg-brand/10 text-brand px-4 py-2 rounded-xl text-sm font-bold shadow-sm border border-brand/20">
+                                                    {lang === 'en' ? 'Total ' : 'รวมทั้งหมด '}{stats.total}{lang === 'en' ? '' : ' คน'}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="w-full relative z-10 flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 min-h-[350px]">
+                                            {stats.pieData.length > 0 && (
+                                                <>
+                                                    <div className="w-full md:w-1/2 h-[350px]">
+                                                        <ResponsiveContainer width="100%" height="100%">
+                                                            <PieChart>
+                                                                <Pie data={[...stats.pieData].sort((a,b)=>b.value-a.value)} innerRadius="60%" outerRadius="90%" paddingAngle={4} dataKey="value" stroke="none" cornerRadius={8}>
+                                                                    {stats.pieData.sort((a,b)=>b.value-a.value).map((e, i) => <Cell key={i} fill={stats.COLORS[i % stats.COLORS.length]} className="drop-shadow-sm hover:opacity-80 transition-all cursor-pointer outline-none"/>)}
+                                                                </Pie>
+                                                                <Tooltip 
+                                                                    contentStyle={{ backgroundColor: isDarkMode ? 'rgba(24, 24, 27, 0.95)' : 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }} 
+                                                                    itemStyle={{fontWeight: 'bold', color: isDarkMode ? '#fff' : '#1e293b'}}
+                                                                    formatter={(value, name) => [`${value} คน (${((value/stats.total)*100).toFixed(1)}%)`, name]}
+                                                                />
+                                                                <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle">
+                                                                    <tspan x="50%" dy="-8" fontSize="48" fill={isDarkMode ? "#fff" : "#0f172a"} fontWeight="900">{stats.total}</tspan>
+                                                                </text>
+                                                            </PieChart>
+                                                        </ResponsiveContainer>
+                                                    </div>
+                                                    <div className="w-full md:w-1/2 flex flex-col gap-2.5 overflow-y-auto max-h-[350px] custom-scrollbar pr-2">
+                                                        {[...stats.pieData].sort((a,b)=>b.value-a.value).map((entry, idx) => {
+                                                            const mName = lang === 'en' ? (DICT_MAPPING[entry.name] || entry.name) : entry.name;
+                                                            return (
+                                                            <div key={idx} className="flex items-center justify-between p-3.5 bg-white/80 dark:bg-zinc-800/50 rounded-2xl border border-slate-200/50 dark:border-white/5 hover:border-brand/30 hover:shadow-md transition-all">
+                                                                <div className="flex items-center gap-3.5 overflow-hidden flex-1">
+                                                                    <div className="w-3.5 h-3.5 rounded-full shrink-0 shadow-inner" style={{ backgroundColor: stats.COLORS[idx % stats.COLORS.length] }}></div>
+                                                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate" title={mName}>{mName}</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-4 shrink-0 ml-3">
+                                                                    <span className="text-lg font-black text-slate-800 dark:text-white">{entry.value}</span>
+                                                                    <span className="text-xs font-bold text-slate-400 bg-slate-100 dark:bg-white/5 px-2 py-1 rounded-md min-w-[3.5rem] text-center">{((entry.value/stats.total)*100).toFixed(0)}%</span>
+                                                                </div>
+                                                            </div>
+                                                        )})}
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
-                                    
-                                    <div className="w-full relative z-10 flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 min-h-[350px]">
-                                        {stats.pieData.length === 0 ? (
-                                            <div className="w-full h-[350px] flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 dark:bg-white/5 rounded-[2rem] border border-dashed border-slate-200 dark:border-white/10">
-                                                <Icon name="inbox" size={48} className="mb-4 opacity-20" />
-                                                <p className="font-semibold text-lg">ไม่มีข้อมูลแสดงกราฟ</p>
-                                            </div>
-                                        ) : (
-                                            <>
-                                                {/* กราฟโดนัท */}
-                                                <div className="w-full md:w-1/2 h-[350px]">
-                                                    <ResponsiveContainer width="100%" height="100%">
-                                                        <PieChart>
-                                                            <Pie 
-                                                                data={[...stats.pieData].sort((a,b)=>b.value-a.value)} 
-                                                                innerRadius="60%" 
-                                                                outerRadius="90%" 
-                                                                paddingAngle={4} 
-                                                                dataKey="value" 
-                                                                stroke="none" 
-                                                                cornerRadius={8}
-                                                            >
-                                                                {stats.pieData.sort((a,b)=>b.value-a.value).map((e, i) => (
-                                                                    <Cell key={i} fill={stats.COLORS[i % stats.COLORS.length]} className="drop-shadow-sm hover:opacity-80 transition-all cursor-pointer outline-none"/>
-                                                                ))}
-                                                            </Pie>
-                                                            <Tooltip 
-                                                                contentStyle={{ backgroundColor: isDarkMode ? 'rgba(24, 24, 27, 0.95)' : 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }} 
-                                                                itemStyle={{fontWeight: 'bold', color: isDarkMode ? '#fff' : '#1e293b'}}
-                                                                formatter={(value, name) => [`${value} คน (${((value/stats.total)*100).toFixed(1)}%)`, name]}
-                                                            />
-                                                            <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle">
-                                                                <tspan x="50%" dy="-8" fontSize="48" fill={isDarkMode ? "#fff" : "#0f172a"} fontWeight="900">{stats.total}</tspan>
-                                                                <tspan x="50%" dy="28" fontSize="12" fill="#64748b" fontWeight="bold" className="uppercase tracking-widest">นักศึกษา</tspan>
-                                                            </text>
-                                                        </PieChart>
-                                                    </ResponsiveContainer>
-                                                </div>
-                                                
-                                                {/* รายการสาขา (Legend) */}
-                                                <div className="w-full md:w-1/2 flex flex-col gap-2.5 overflow-y-auto max-h-[350px] custom-scrollbar pr-2">
-                                                    {[...stats.pieData].sort((a,b)=>b.value-a.value).map((entry, idx) => (
-                                                        <div key={idx} className="flex items-center justify-between p-3.5 bg-white/80 dark:bg-zinc-800/50 rounded-2xl border border-slate-200/50 dark:border-white/5 hover:border-brand/30 hover:shadow-md transition-all">
-                                                            <div className="flex items-center gap-3.5 overflow-hidden flex-1">
-                                                                <div className="w-3.5 h-3.5 rounded-full shrink-0 shadow-inner" style={{ backgroundColor: stats.COLORS[idx % stats.COLORS.length] }}></div>
-                                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate" title={entry.name}>{entry.name}</span>
+
+                                    <div className="xl:col-span-1 glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-indigo-500 shadow-soft flex flex-col relative overflow-hidden bg-gradient-to-b from-white to-slate-50/50 dark:from-zinc-900 dark:to-zinc-900/50">
+                                        <div className="absolute top-0 right-0 p-8 opacity-5 text-indigo-500 pointer-events-none transform translate-x-4 -translate-y-4">
+                                            <Icon name="graduation-cap" size={120} />
+                                        </div>
+                                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 relative z-10">
+                                            <h3 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-3">
+                                                <div className="p-3 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 rounded-2xl shadow-inner"><Icon name="users" size={24}/></div>
+                                                {lang === 'en' ? 'Student Types' : 'ประเภทนักศึกษา'}
+                                            </h3>
+                                        </div>
+                                        
+                                        <div className="w-full relative z-10 flex-1 flex flex-col items-center justify-center min-h-[350px]">
+                                            {stats.total === 0 ? (
+                                                <div className="text-slate-400 flex flex-col items-center"><Icon name="inbox" size={40} className="mb-2 opacity-30"/>ไม่มีข้อมูล</div>
+                                            ) : (
+                                                <>
+                                                    <div className="w-full h-[220px]">
+                                                        <ResponsiveContainer width="100%" height="100%">
+                                                            <PieChart>
+                                                                <Pie 
+                                                                    data={[
+                                                                        { name: lang === 'en' ? 'Normal' : 'ปกติ', value: stats.normalCount, color: '#3b82f6' },
+                                                                        { name: lang === 'en' ? 'Transfer' : 'เทียบโอน', value: stats.transferCount, color: '#8b5cf6' }
+                                                                    ]} 
+                                                                    innerRadius="70%" 
+                                                                    outerRadius="95%" 
+                                                                    paddingAngle={4} 
+                                                                    dataKey="value" 
+                                                                    stroke="none" 
+                                                                    cornerRadius={8}
+                                                                >
+                                                                    {[{ color: '#3b82f6' }, { color: '#8b5cf6' }].map((entry, index) => (
+                                                                        <Cell key={`cell-${index}`} fill={entry.color} className="drop-shadow-sm hover:opacity-80 transition-all cursor-pointer outline-none" />
+                                                                    ))}
+                                                                </Pie>
+                                                                <Tooltip 
+                                                                    contentStyle={{ backgroundColor: isDarkMode ? 'rgba(24, 24, 27, 0.95)' : 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }} 
+                                                                    itemStyle={{fontWeight: 'bold', color: isDarkMode ? '#fff' : '#1e293b'}}
+                                                                    formatter={(value, name) => [`${value} คน (${((value/stats.total)*100).toFixed(1)}%)`, name]}
+                                                                />
+                                                                <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle">
+                                                                    <tspan x="50%" dy="-5" fontSize="36" fill={isDarkMode ? "#fff" : "#0f172a"} fontWeight="900">{stats.total}</tspan>
+                                                                    <tspan x="50%" dy="24" fontSize="11" fill="#64748b" fontWeight="bold" className="uppercase tracking-widest">{lang === 'en' ? 'TOTAL' : 'รวมทั้งหมด'}</tspan>
+                                                                </text>
+                                                            </PieChart>
+                                                        </ResponsiveContainer>
+                                                    </div>
+
+                                                    <div className="w-full mt-6 flex flex-col gap-3">
+                                                        <div className="flex items-center justify-between p-3.5 bg-white/80 dark:bg-zinc-800/50 rounded-xl border border-slate-200/50 dark:border-white/5 hover:border-blue-300 dark:hover:border-blue-500/50 hover:shadow-sm transition-all">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-3.5 h-3.5 rounded-full bg-blue-500 shadow-inner"></div>
+                                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{lang === 'en' ? 'Normal' : 'นักศึกษาปกติ'}</span>
                                                             </div>
-                                                            <div className="flex items-center gap-4 shrink-0 ml-3">
-                                                                <span className="text-lg font-black text-slate-800 dark:text-white">{entry.value} <span className="text-xs text-slate-400 font-medium">คน</span></span>
-                                                                <span className="text-xs font-bold text-slate-400 bg-slate-100 dark:bg-white/5 px-2 py-1 rounded-md min-w-[3.5rem] text-center">{((entry.value/stats.total)*100).toFixed(0)}%</span>
+                                                            <div className="flex items-center gap-3">
+                                                                <span className="text-lg font-black text-slate-800 dark:text-white">{stats.normalCount}</span>
+                                                                <span className="text-xs font-bold text-slate-400 bg-slate-100 dark:bg-white/5 px-2 py-1 rounded-md min-w-[3rem] text-center">{stats.total ? ((stats.normalCount/stats.total)*100).toFixed(0) : 0}%</span>
                                                             </div>
                                                         </div>
-                                                    ))}
-                                                </div>
-                                            </>
-                                        )}
+                                                        <div className="flex items-center justify-between p-3.5 bg-white/80 dark:bg-zinc-800/50 rounded-xl border border-slate-200/50 dark:border-white/5 hover:border-purple-300 dark:hover:border-purple-500/50 hover:shadow-sm transition-all">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-3.5 h-3.5 rounded-full bg-purple-500 shadow-inner"></div>
+                                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{lang === 'en' ? 'Transfer' : 'เทียบโอน'}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-3">
+                                                                <span className="text-lg font-black text-slate-800 dark:text-white">{stats.transferCount}</span>
+                                                                <span className="text-xs font-bold text-slate-400 bg-slate-100 dark:bg-white/5 px-2 py-1 rounded-md min-w-[3rem] text-center">{stats.total ? ((stats.transferCount/stats.total)*100).toFixed(0) : 0}%</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* Table รายชื่อล่าสุด (Clickable) */}
                                 <div className="glass-panel rounded-[2rem] overflow-hidden border border-slate-200/50 dark:border-white/5 shadow-soft">
                                     <div className="p-6 md:px-8 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex justify-between items-center">
-                                        <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-3"><Icon name="list" className="text-slate-400" size={18}/> รายชื่ออัปเดตล่าสุด <span className="text-xs bg-slate-200 dark:bg-white/10 px-2 py-1 rounded-md text-slate-500 font-semibold">(คลิกที่รายชื่อเพื่อดู/แก้ไข)</span></h3>
+                                        <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-3"><Icon name="list" className="text-slate-400" size={18}/> {t('admin_table_recent')}</h3>
                                     </div>
                                     <div className="overflow-x-auto p-2 custom-scrollbar">
                                         <table className="w-full text-sm text-left min-w-[700px]">
                                             <thead className="text-[11px] text-slate-400 uppercase tracking-widest bg-transparent">
-                                                <tr><th className="px-6 py-3">ชื่อ-นามสกุล</th><th className="px-6 py-3">สาขาวิชา</th><th className="px-6 py-3 text-center">สถานะ</th><th className="px-6 py-3">ข้อมูลติดต่อ</th></tr>
+                                                <tr><th className="px-6 py-3">{t('table_name')}</th><th className="px-6 py-3">{t('table_major')}</th><th className="px-6 py-3 text-center">{t('table_status')}</th><th className="px-6 py-3">{t('table_contact')}</th></tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                                                 {(() => {
@@ -1002,23 +1209,19 @@
                                                     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
                                                     const currentItems = reversedData.slice(indexOfFirstItem, indexOfLastItem);
                                                     
-                                                    if (currentItems.length === 0) return <tr><td colSpan="4" className="text-center py-12 text-slate-400 font-medium">ไม่พบข้อมูลที่ค้นหา</td></tr>;
+                                                    if (currentItems.length === 0) return <tr><td colSpan="4" className="text-center py-12 text-slate-400 font-medium">No Data</td></tr>;
                                                     
                                                     return currentItems.map((row, i) => {
-                                                        const issues = [];
-                                                        if (row.FoodAllergy && row.FoodAllergy !== 'ไม่แพ้') issues.push({ type: 'food', text: `แพ้อาหาร: ${row.FoodAllergy}` });
-                                                        if (row.SpecificDiet && row.SpecificDiet !== 'ไม่มี') issues.push({ type: 'food', text: `อาหารเฉพาะ: ${row.SpecificDiet}` });
-                                                        if (row.Disease && row.Disease !== 'ไม่มี') issues.push({ type: 'health', text: `โรคประจำตัว: ${row.Disease}` });
-                                                        if (row.DrugAllergy && row.DrugAllergy !== 'ไม่แพ้') issues.push({ type: 'health', text: `แพ้ยา: ${row.DrugAllergy}` });
-                                                        const isRisk = issues.length > 0;
-                                                        
+                                                        const isRisk = (row.FoodAllergy && row.FoodAllergy !== 'ไม่แพ้') || (row.SpecificDiet && row.SpecificDiet !== 'ไม่มี') || (row.Disease && row.Disease !== 'ไม่มี') || (row.DrugAllergy && row.DrugAllergy !== 'ไม่แพ้');
+                                                        const mName = lang === 'en' ? (DICT_MAPPING[row.Major] || row.Major) : row.Major;
+
                                                         return (
                                                             <tr key={i} onClick={() => setEditItem({...row, oldStudentID: row.StudentID})} className="hover:bg-slate-50/80 dark:hover:bg-white/5 transition-colors cursor-pointer group">
                                                                 <td className="px-6 py-4 font-bold text-slate-800 dark:text-slate-200 group-hover:text-brand transition-colors">{row.FullName}</td>
-                                                                <td className="px-6 py-4 text-xs font-medium text-slate-500">{row.Major}</td>
+                                                                <td className="px-6 py-4 text-xs font-medium text-slate-500">{mName}</td>
                                                                 <td className="px-6 py-4 text-center">
-                                                                    {isRisk ? <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-[10px] font-bold border border-red-200 dark:border-red-500/20 shadow-sm"><Icon name="shield-alert" size={12}/> เฝ้าระวัง</span> 
-                                                                            : <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold border border-emerald-200 dark:border-emerald-500/20 shadow-sm"><Icon name="check-circle" size={12}/> ปกติ</span>}
+                                                                    {isRisk ? <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-[10px] font-bold border border-red-200 dark:border-red-500/20 shadow-sm"><Icon name="shield-alert" size={12}/> {t('status_risk')}</span> 
+                                                                            : <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold border border-emerald-200 dark:border-emerald-500/20 shadow-sm"><Icon name="check-circle" size={12}/> {t('status_normal')}</span>}
                                                                 </td>
                                                                 <td className="px-6 py-4 text-xs">
                                                                     <div className="text-slate-500 dark:text-slate-400 font-semibold flex items-center gap-1.5"><Icon name="user" size={12}/> {row.StudentPhone || '-'}</div>
@@ -1032,7 +1235,7 @@
                                     </div>
                                     {filteredData.length > 0 && (
                                         <div className="flex flex-col sm:flex-row justify-between items-center p-5 border-t border-slate-100 dark:border-white/5 gap-4 bg-slate-50/50 dark:bg-transparent">
-                                            <span className="text-xs font-semibold text-slate-500">แสดง {((currentPage - 1) * 15) + 1} - {Math.min(currentPage * 15, filteredData.length)} จากทั้งหมด {filteredData.length}</span>
+                                            <span className="text-xs font-semibold text-slate-500">Page {currentPage} of {Math.ceil(filteredData.length / 15) || 1}</span>
                                             <div className="flex gap-2">
                                                 <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-2.5 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors btn-interactive"><Icon name="chevron-left" size={16}/></button>
                                                 <button onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredData.length / 15), p + 1))} disabled={currentPage === Math.ceil(filteredData.length / 15) || Math.ceil(filteredData.length / 15) === 0} className="p-2.5 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors btn-interactive"><Icon name="chevron-right" size={16}/></button>
@@ -1043,12 +1246,9 @@
                             </div>
                         )}
 
-                        {/* ========================================================= */}
-                        {/* TAB 2: MAJORS (สรุปยอดสาขาวิชา และ คลิกดูรายละเอียด) */}
-                        {/* ========================================================= */}
+                        {/* TAB 2: MAJORS */}
                         {activeTab === 'majors' && (
                             <div className="grid lg:grid-cols-5 gap-6 animate-fade-in">
-                                {/* Left Side: Chart */}
                                 <div className="lg:col-span-2 glass-panel p-6 md:p-8 rounded-[2rem] border border-slate-200/50 dark:border-white/5 flex flex-col items-center justify-center min-h-[450px] shadow-sm relative overflow-hidden">
                                     <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent to-slate-50/50 dark:to-white/5 pointer-events-none"></div>
                                     <div className="w-full mb-2 text-center relative z-10">
@@ -1075,7 +1275,6 @@
                                     </div>
                                 </div>
 
-                                {/* Right Side: Clickable List of Majors */}
                                 <div className="lg:col-span-3 glass-panel p-6 md:p-8 rounded-[2rem] border border-slate-200/50 dark:border-white/5 flex flex-col shadow-sm">
                                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3">
                                         <div className="flex items-center gap-2.5 text-slate-500 bg-slate-50 dark:bg-white/5 px-4 py-2 rounded-xl border border-slate-100 dark:border-white/5 shadow-sm">
@@ -1089,7 +1288,6 @@
                                             <div key={idx} onClick={() => setSelectedMajor(entry.name)} 
                                                 className="relative p-5 rounded-2xl bg-white dark:bg-zinc-800/80 border border-slate-200/60 dark:border-white/10 hover:border-brand/50 hover:shadow-md transition-all duration-300 cursor-pointer overflow-hidden group btn-interactive">
                                                 
-                                                {/* Subtle Progress Background */}
                                                 <div className="absolute inset-y-0 left-0 opacity-[0.08] dark:opacity-[0.15] transition-all duration-700 ease-out" 
                                                      style={{ width: `${stats.total ? (entry.value / stats.total) * 100 : 0}%`, backgroundColor: stats.COLORS[idx % stats.COLORS.length] }}>
                                                 </div>
@@ -1109,23 +1307,14 @@
                                                 </div>
                                             </div>
                                         ))}
-                                        {stats.pieData.length === 0 && (
-                                            <div className="flex flex-col items-center justify-center py-10 text-slate-400">
-                                                <Icon name="inbox" size={40} className="mb-3 opacity-20"/>
-                                                <span className="font-semibold text-sm">ไม่พบข้อมูลสาขาวิชา</span>
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
                             </div>
                         )}
 
-                        {/* ========================================================= */}
-                        {/* TAB 3: HEALTH & DIET (ข้อมูลสุขภาพและโภชนาการ + กราฟ) */}
-                        {/* ========================================================= */}
+                        {/* TAB 3: HEALTH & DIET */}
                         {activeTab === 'health_diet' && (
                             <div className="space-y-6 animate-fade-in">
-                                {/* Clickable KPI Cards for Drilldown */}
                                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                                     {[ 
                                         {l:'แพ้อาหาร', v:stats.foodAllergies.length, k:'', t:'food_allergy', cBg:'bg-orange-50 dark:bg-orange-500/10', cText:'text-orange-600 dark:text-orange-400', ic:'alert-triangle', hc:'hover:border-orange-400'},
@@ -1145,7 +1334,6 @@
                                 </div>
 
                                 <div className="grid lg:grid-cols-2 gap-6">
-                                    {/* Diet Graph */}
                                     <div className="glass-panel p-6 md:p-8 rounded-[2rem] border-t-[8px] border-t-orange-500 shadow-soft flex flex-col min-h-[380px]">
                                         <h3 className="text-xl font-black mb-6 text-slate-800 dark:text-white flex items-center gap-3">
                                             <div className="p-2.5 bg-orange-100 dark:bg-orange-500/20 text-orange-600 rounded-xl"><Icon name="pie-chart" size={20}/></div> 
@@ -1174,7 +1362,6 @@
                                         </div>
                                     </div>
 
-                                    {/* Health Graph */}
                                     <div className="glass-panel p-6 md:p-8 rounded-[2rem] border-t-[8px] border-t-pink-500 shadow-soft flex flex-col min-h-[380px]">
                                         <h3 className="text-xl font-black mb-6 text-slate-800 dark:text-white flex items-center gap-3">
                                             <div className="p-2.5 bg-pink-100 dark:bg-pink-500/20 text-pink-600 rounded-xl"><Icon name="activity" size={20}/></div> 
@@ -1204,15 +1391,11 @@
                             </div>
                         )}
 
-                        {/* ========================================================= */}
-                        {/* TAB 4: SURVEILLANCE (กลุ่มเฝ้าระวังพิเศษ + กราฟ + ตาราง) */}
-                        {/* ========================================================= */}
+                        {/* TAB 4: SURVEILLANCE */}
                         {activeTab === 'surveillance' && (
                             <div className="space-y-6 animate-fade-in">
                                 <div className="grid lg:grid-cols-3 gap-6">
-                                    {/* Left: Summary & Chart */}
                                     <div className="lg:col-span-1 flex flex-col gap-6">
-                                        {/* Hero Card */}
                                         <div className="glass-panel p-8 rounded-[2.5rem] border-l-8 border-l-red-500 shadow-glow-red relative overflow-hidden bg-gradient-to-br from-white to-red-50/50 dark:from-zinc-900 dark:to-red-950/20 text-center">
                                             <div className="absolute right-0 top-0 opacity-10 text-red-500 transform translate-x-4 -translate-y-4"><Icon name="shield-alert" size={120} /></div>
                                             <div className="relative z-10">
@@ -1222,7 +1405,6 @@
                                             </div>
                                         </div>
                                         
-                                        {/* Chart: Risk Types */}
                                         <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border border-slate-200/50 dark:border-white/5 flex-1 shadow-soft flex flex-col">
                                             <h3 className="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2 mb-4 justify-center"><Icon name="pie-chart" className="text-red-500"/> สัดส่วนประเภทความเสี่ยง</h3>
                                             <div className="flex-1 w-full min-h-[220px]">
@@ -1233,10 +1415,9 @@
                                                         <PieChart>
                                                             <Pie data={stats.surveillancePieData} innerRadius="55%" outerRadius="80%" paddingAngle={4} dataKey="value" stroke="none">
                                                                 {stats.surveillancePieData.map((e, i) => {
-                                                                    // Assign colors based on category name
-                                                                    let color = '#ef4444'; // Default red
-                                                                    if(e.name === 'ด้านโภชนาการ') color = '#f97316'; // orange
-                                                                    if(e.name === 'ความเสี่ยงซ้อน (ทั้งสอง)') color = '#7f1d1d'; // dark red
+                                                                    let color = '#ef4444';
+                                                                    if(e.name === 'ด้านโภชนาการ') color = '#f97316';
+                                                                    if(e.name === 'ความเสี่ยงซ้อน (ทั้งสอง)') color = '#7f1d1d';
                                                                     return <Cell key={i} fill={color} />;
                                                                 })}
                                                             </Pie>
@@ -1249,7 +1430,6 @@
                                         </div>
                                     </div>
 
-                                    {/* Right: Table (Clickable to details) */}
                                     <div className="lg:col-span-2 glass-panel rounded-[2.5rem] overflow-hidden border border-slate-200/50 dark:border-white/5 shadow-soft flex flex-col">
                                         <div className="p-6 md:px-8 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex justify-between items-center">
                                             <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-3"><Icon name="users" className="text-red-500" size={18}/> รายชื่อกลุ่มเฝ้าระวัง <span className="text-xs bg-red-100 dark:bg-red-500/20 text-red-600 px-2 py-1 rounded-md font-semibold">(คลิกแถวเพื่อดูรายละเอียด)</span></h3>
@@ -1310,12 +1490,9 @@
                             </div>
                         )}
 
-                        {/* ========================================================= */}
-                        {/* TAB 5: EXECUTIVE REPORT (ออกแบบให้สวยงาม คลิกได้) */}
-                        {/* ========================================================= */}
+                        {/* TAB 5: EXECUTIVE REPORT */}
                         {activeTab === 'executive' && (
                             <div className="space-y-6 animate-fade-in">
-                                {/* Hero Summary Section */}
                                 <div className="glass-panel p-8 md:p-10 rounded-[2.5rem] border-l-[12px] border-brand relative overflow-hidden bg-gradient-to-br from-white to-orange-50/50 dark:from-zinc-900 dark:to-zinc-800 shadow-soft border border-slate-200/50 dark:border-white/5">
                                     <div className="absolute -right-10 -bottom-10 opacity-5 dark:opacity-10 text-brand transform -rotate-12 pointer-events-none"><Icon name="award" size={280} /></div>
                                     <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
@@ -1324,7 +1501,6 @@
                                             <h2 className="text-4xl md:text-5xl font-black text-slate-800 dark:text-white tracking-tight mb-4">รายงานสรุปผู้บริหาร</h2>
                                             <p className="text-slate-600 dark:text-slate-400 text-base font-medium max-w-xl leading-relaxed mb-6">แดชบอร์ดสรุปผลภาพรวมการขึ้นทะเบียนนักศึกษาใหม่ รหัส 69 พร้อมการวิเคราะห์ความเสี่ยง</p>
 
-                                            {/* Dropdown for filtering by Major */}
                                             <div className="flex items-center gap-3">
                                                 <div className="p-3 bg-brand/10 text-brand rounded-xl shrink-0 shadow-sm"><Icon name="filter" size={20}/></div>
                                                 <div className="relative w-full max-w-xs">
@@ -1343,7 +1519,6 @@
                                             </div>
                                         </div>
                                         <div className="flex gap-4 shrink-0 mt-6 md:mt-0">
-                                            {/* ทำให้ตัวเลขใหญ่คลิกเพื่อดู List ได้เลย */}
                                             <div onClick={() => handleDrilldown('นักศึกษาที่ขึ้นทะเบียนทั้งหมด', '', '')} className="bg-white/80 dark:bg-black/40 backdrop-blur-xl p-8 md:p-12 rounded-[2.5rem] border border-white dark:border-white/10 shadow-lg text-center min-w-[280px] md:min-w-[320px] relative overflow-hidden group hover:border-brand/50 transition-all cursor-pointer btn-interactive">
                                                 <div className="absolute inset-0 bg-brand/5 dark:bg-brand/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
                                                 <div className="absolute top-4 right-4 text-brand opacity-0 group-hover:opacity-100 transition-opacity"><Icon name="search" size={20}/></div>
@@ -1359,11 +1534,62 @@
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                    {/* Column 1 & 2: Health and Food Detailed Analysis */}
-                                    <div className="lg:col-span-2 space-y-6">
+                                {/* SECTION: สรุปโครงสร้างประชากรแยกตามสาขาวิชา (ปกติ/เทียบโอน) */}
+                                <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[6px] border-t-indigo-500 shadow-soft border border-slate-200/50 dark:border-white/5 relative overflow-hidden mt-6">
+                                    <div className="absolute top-0 right-0 p-8 opacity-5 text-indigo-500 pointer-events-none transform -rotate-12">
+                                        <Icon name="layers" size={120} />
+                                    </div>
+                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 relative z-10">
+                                        <h3 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-3">
+                                            <div className="p-3 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 rounded-xl shadow-inner">
+                                                <Icon name="git-merge" size={24}/>
+                                            </div> 
+                                            {lang === 'en' ? 'Demographics Breakdown by Major' : 'สรุปโครงสร้างประชากรแยกตามสาขาวิชา'}
+                                        </h3>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 relative z-10">
+                                        {stats.majorBreakdown.map((m, i) => (
+                                            <div key={i} className="p-5 rounded-2xl bg-white/60 dark:bg-zinc-900/50 border border-slate-200 dark:border-white/10 hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-500/50 transition-all flex flex-col justify-between group">
+                                                <div className="flex justify-between items-start mb-5 gap-3">
+                                                    <span className="font-bold text-slate-800 dark:text-slate-200 text-sm leading-snug line-clamp-2" title={m.name}>
+                                                        {lang === 'en' ? (DICT_MAPPING[m.name] || m.name) : m.name}
+                                                    </span>
+                                                    <div className="flex flex-col items-end shrink-0">
+                                                        <span className="text-2xl font-black text-slate-800 dark:text-white leading-none group-hover:text-indigo-600 transition-colors">{m.total}</span>
+                                                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Total</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="mt-auto">
+                                                    <div className="flex h-2.5 w-full rounded-full overflow-hidden bg-slate-100 dark:bg-white/5 shadow-inner mb-2.5">
+                                                        <div style={{width: `${(m.normal/m.total)*100}%`}} className="bg-blue-500 hover:brightness-110 transition-all duration-1000" title={`ปกติ: ${m.normal}`}></div>
+                                                        <div style={{width: `${(m.transfer/m.total)*100}%`}} className="bg-indigo-500 hover:brightness-110 transition-all duration-1000" title={`เทียบโอน: ${m.transfer}`}></div>
+                                                    </div>
+                                                    <div className="flex justify-between text-[11px] font-bold">
+                                                        <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+                                                            <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm"></div>
+                                                            {lang === 'en' ? 'Normal' : 'ปกติ'} {m.normal}
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
+                                                            <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-sm"></div>
+                                                            {lang === 'en' ? 'Transfer' : 'เทียบโอน'} {m.transfer}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
                                         
-                                        {/* Section การแพทย์ */}
+                                        {stats.majorBreakdown.length === 0 && (
+                                            <div className="col-span-full py-10 text-center text-slate-400 font-medium">
+                                                {lang === 'en' ? 'No major data available.' : 'ไม่พบข้อมูลสาขาวิชา'}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                    <div className="lg:col-span-2 space-y-6">
                                         <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[6px] border-t-red-500 shadow-soft border border-slate-200/50 dark:border-white/5 relative overflow-hidden">
                                             <div className="absolute top-0 right-0 p-8 opacity-5 text-red-500 pointer-events-none transform rotate-12"><Icon name="activity" size={100} /></div>
                                             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 relative z-10 gap-4">
@@ -1396,7 +1622,6 @@
                                             </div>
                                         </div>
 
-                                        {/* Section โภชนาการ */}
                                         <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[6px] border-t-orange-500 shadow-soft border border-slate-200/50 dark:border-white/5 relative overflow-hidden">
                                             <div className="absolute top-0 right-0 p-8 opacity-5 text-orange-500 pointer-events-none transform -rotate-12"><Icon name="pizza" size={100} /></div>
                                             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 relative z-10 gap-4">
@@ -1426,7 +1651,6 @@
                                         </div>
                                     </div>
 
-                                    {/* Column 3: Demographics & Quick KPIs */}
                                     <div className="space-y-6">
                                         <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[6px] border-t-blue-500 shadow-soft border border-slate-200/50 dark:border-white/5 h-full flex flex-col">
                                             <h3 className="text-lg font-black text-slate-800 dark:text-white mb-6 flex items-center gap-3">
@@ -1435,7 +1659,6 @@
                                             </h3>
                                             
                                             <div className="space-y-4 flex-1">
-                                                {/* ปรับให้ส่วนนี้สามารถคลิกได้เพื่อเปิด Modal แสดงรายชื่อ */}
                                                 <div onClick={() => handleDrilldown('นักศึกษาปกติ', 'demographics', 'normal')} className="p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/40 dark:to-cyan-900/20 border border-blue-200/50 dark:border-blue-500/30 flex items-center justify-between cursor-pointer hover:shadow-lg hover:from-blue-100 dark:hover:from-blue-800/50 transition-all btn-interactive group relative overflow-hidden">
                                                     <div className="absolute right-0 top-0 opacity-[0.05] text-blue-600 transform translate-x-2 -translate-y-2 pointer-events-none group-hover:scale-110 transition-transform duration-500"><Icon name="graduation-cap" size={110}/></div>
                                                     <div className="flex items-center gap-4 relative z-10">
@@ -1455,7 +1678,6 @@
                                                 </div>
                                             </div>
                                             
-                                            {/* อัตราความเสี่ยงรวม */}
                                             <div className="mt-8 relative p-8 rounded-[2.5rem] bg-gradient-to-br from-slate-50 to-white dark:from-zinc-900/80 dark:to-black border border-slate-200/80 dark:border-white/5 shadow-inner overflow-hidden">
                                                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-red-500/20 blur-[50px] rounded-full pointer-events-none"></div>
                                                 <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-orange-500/20 blur-[50px] rounded-full pointer-events-none"></div>
@@ -1504,23 +1726,13 @@
                         )}
                     </div>
 
-                    {/* =========================================
-                        MODALS SECTION (ป๊อปอัปทั้งหมด)
-                    ========================================== */}
-                    
-                    {/* Drilldown Modal (ป๊อปอัปรายงานผู้บริหาร / แสดงรายชื่อ) */}
+                    {/* MODALS */}
                     {drilldownData.list.length > 0 && (
                         <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 dark:bg-black/90 backdrop-blur-lg animate-fade-in">
-                            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 p-6 md:p-8 rounded-[2.5rem] w-full max-w-5xl max-h-[90vh] flex flex-col shadow-[0_20px_60px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.8)] animate-slide-up text-left overflow-hidden">
-                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 shrink-0">
-                                    <div>
-                                        <h3 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white flex items-center gap-3">
-                                            <div className={`p-3 rounded-2xl text-white shadow-md ${drilldownData.type.includes('diet') || drilldownData.type.includes('food') ? 'bg-orange-500 shadow-glow-brand' : drilldownData.type === 'demographics' ? 'bg-blue-500' : drilldownData.title.includes('ทั้งหมด') ? 'bg-brand shadow-glow-brand' : 'bg-red-500 shadow-glow-red'}`}><Icon name="users" size={24}/></div>
-                                            {drilldownData.title}
-                                        </h3>
-                                        <p className="text-sm font-semibold text-slate-500 mt-3">พบข้อมูลทั้งหมด <span className="text-brand font-black text-base bg-brand/10 px-2 py-0.5 rounded-md">{drilldownData.list.length}</span> รายการ</p>
-                                    </div>
-                                    <button onClick={() => setDrilldownData({ title: '', list: [], type: '' })} className="p-2.5 bg-slate-100 dark:bg-white/10 rounded-xl text-slate-500 hover:bg-slate-200 hover:text-slate-800 dark:hover:text-white btn-interactive transition-colors"><Icon name="x" size={20}/></button>
+                            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 p-6 md:p-8 rounded-[2.5rem] w-full max-w-5xl max-h-[90vh] flex flex-col shadow-[0_20px_60px_rgba(0,0,0,0.3)] animate-slide-up text-left overflow-hidden">
+                                <div className="flex justify-between items-center gap-4 mb-6 shrink-0">
+                                    <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white">{drilldownData.title}</h3>
+                                    <button onClick={() => setDrilldownData({ title: '', list: [], type: '' })} className="p-2.5 bg-slate-100 dark:bg-white/10 rounded-xl hover:bg-slate-200 transition-colors"><Icon name="x" size={20}/></button>
                                 </div>
                                 <div className="overflow-y-auto flex-1 custom-scrollbar -mx-2 px-2">
                                     <table className="w-full text-sm text-left">
@@ -1560,140 +1772,24 @@
                         </div>
                     )}
 
-                    {/* Surveillance Detail Modal */}
-                    {selectedSurveillanceStudent && (() => {
-                        const isSafe = selectedSurveillanceStudent.issues.length === 0;
-                        return (
-                        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 dark:bg-black/90 backdrop-blur-lg animate-fade-in">
-                            <div className={`bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] w-full max-w-md ${isSafe ? 'shadow-[0_20px_60px_rgba(16,185,129,0.2)] border-emerald-500/30' : 'shadow-[0_20px_60px_rgba(239,68,68,0.2)] border-red-500/30'} border shadow-2xl animate-slide-up text-left overflow-hidden relative`}>
-                                <div className={`absolute top-0 left-0 right-0 h-2.5 bg-gradient-to-r ${isSafe ? 'from-emerald-400 to-teal-500' : 'from-red-500 to-orange-500'} z-20`}></div>
-                                
-                                <div className="flex justify-between items-center mb-8 mt-2">
-                                    <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
-                                        <div className={`p-3 rounded-2xl shadow-sm ${isSafe ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600' : 'bg-red-100 dark:bg-red-500/20 text-red-600'}`}><Icon name={isSafe ? "user-check" : "shield-alert"} size={24}/></div> 
-                                        {isSafe ? 'ข้อมูลนักศึกษา' : 'เฝ้าระวังพิเศษ'}
-                                    </h3>
-                                    <button onClick={() => setSelectedSurveillanceStudent(null)} className="p-2.5 bg-slate-100 dark:bg-white/10 rounded-xl text-slate-500 hover:bg-slate-200 hover:text-slate-800 dark:hover:text-white btn-interactive transition-colors"><Icon name="x" size={18}/></button>
-                                </div>
-                                
-                                <div className="bg-slate-50 dark:bg-black/20 p-6 rounded-3xl border border-slate-200/60 dark:border-white/5 mb-6 shadow-inner">
-                                    <h4 className="text-xl font-black text-slate-800 dark:text-white mb-2">{selectedSurveillanceStudent.FullName}</h4>
-                                    <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-6">{selectedSurveillanceStudent.Major}</p>
-                                    
-                                    <div className="flex flex-col gap-3 text-sm">
-                                        <div className="flex justify-between border-b border-slate-200/80 dark:border-white/10 pb-3">
-                                            <span className="text-slate-500 flex items-center gap-2"><Icon name="smartphone" size={16}/> เบอร์ นศ.</span>
-                                            <span className="font-bold text-slate-800 dark:text-slate-200">{selectedSurveillanceStudent.StudentPhone}</span>
-                                        </div>
-                                        <div className="flex justify-between pt-1">
-                                            <span className="text-slate-500 flex items-center gap-2"><Icon name="phone" size={16}/> เบอร์ ผปค.</span>
-                                            <span className="font-black text-red-500 flex items-center gap-1.5"><Icon name="alert-circle" size={14}/> {selectedSurveillanceStudent.ParentPhone}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div className={`p-6 rounded-3xl border shadow-sm ${isSafe ? 'bg-emerald-50/80 dark:bg-emerald-950/30 border-emerald-200/60 dark:border-emerald-500/20' : 'bg-red-50/80 dark:bg-red-950/30 border-red-200/60 dark:border-red-500/20'}`}>
-                                    <p className={`text-xs font-black uppercase mb-4 tracking-widest ${isSafe ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}`}>ประเด็นเสี่ยง ({selectedSurveillanceStudent.issues.length})</p>
-                                    <div className="space-y-3">
-                                        {isSafe ? (
-                                            <div className="flex items-center gap-2.5 text-emerald-600 dark:text-emerald-400 text-sm font-bold bg-white/50 dark:bg-black/20 p-4 rounded-xl border border-emerald-100 dark:border-emerald-900/30">
-                                                <Icon name="check-circle" size={20}/> ปกติ (ไม่มีประเด็นเฝ้าระวัง)
-                                            </div>
-                                        ) : (
-                                            selectedSurveillanceStudent.issues.map((iss, idx) => (
-                                                <div key={idx} className={`p-4 rounded-2xl border flex items-start gap-3.5 text-sm font-bold shadow-sm
-                                                    ${iss.type === 'food' ? 'bg-white dark:bg-zinc-800/80 border-orange-200 dark:border-orange-500/30 text-orange-800 dark:text-orange-300' : 'bg-white dark:bg-zinc-800/80 border-red-200 dark:border-red-500/30 text-red-800 dark:text-red-300'}`}>
-                                                    <div className={`p-2 rounded-xl shrink-0 ${iss.type === 'food' ? 'bg-orange-100 dark:bg-orange-500/20 text-orange-600' : 'bg-red-100 dark:bg-red-500/20 text-red-600'}`}>
-                                                        <Icon name={iss.type === 'food' ? 'pizza' : 'heart-pulse'} size={18}/>
-                                                    </div>
-                                                    <span className="mt-1.5">{iss.text}</span>
-                                                </div>
-                                            ))
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        );
-                    })()}
-
-                    {/* Majors Modal (เมื่อคลิกจาก Pie Chart) */}
-                    {selectedMajor && (
-                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 dark:bg-black/90 backdrop-blur-lg animate-fade-in">
-                            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 p-6 md:p-8 rounded-[2.5rem] w-full max-w-4xl max-h-[90vh] flex flex-col shadow-[0_20px_60px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.8)] animate-slide-up text-left overflow-hidden">
-                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 shrink-0">
-                                    <h3 className="text-2xl md:text-3xl font-black brand-text-gradient flex items-center gap-3">
-                                        <div className="p-3 bg-brand/10 rounded-2xl text-brand shadow-sm"><Icon name="book-open" size={24}/></div> 
-                                        {selectedMajor}
-                                    </h3>
-                                    <button onClick={() => setSelectedMajor(null)} className="p-2.5 bg-slate-100 dark:bg-white/10 rounded-xl text-slate-500 hover:bg-slate-200 hover:text-slate-800 dark:hover:text-white btn-interactive transition-colors"><Icon name="x" size={20}/></button>
-                                </div>
-                                <div className="overflow-y-auto flex-1 custom-scrollbar -mx-2 px-2">
-                                    <table className="w-full text-sm text-left">
-                                        <thead className="text-xs text-slate-500 uppercase tracking-widest bg-slate-100/80 dark:bg-zinc-800/80 sticky top-0 rounded-xl shadow-sm backdrop-blur-md">
-                                            <tr>
-                                                <th className="px-6 py-5 rounded-l-xl font-black">รหัส นศ.</th>
-                                                <th className="px-6 py-5 font-black">ชื่อ-นามสกุล</th>
-                                                <th className="px-6 py-5 rounded-r-xl font-black">เบอร์ติดต่อ</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                                            {filteredData.filter(s => s.Major === selectedMajor).map((row, i) => (
-                                                <tr key={i} className="hover:bg-slate-50/80 dark:hover:bg-white/5 transition-colors">
-                                                    <td className="px-6 py-5 font-mono text-xs font-bold text-slate-500 dark:text-slate-400">{row.StudentID}</td>
-                                                    <td className="px-6 py-5 font-bold text-slate-800 dark:text-white">{row.FullName}</td>
-                                                    <td className="px-6 py-5 text-xs">
-                                                        <div className="font-semibold text-slate-600 dark:text-slate-300 mb-1 flex items-center gap-1.5"><Icon name="user" size={14}/> นศ: {row.StudentPhone}</div>
-                                                        <div className="font-bold text-red-500 flex items-center gap-1.5"><Icon name="phone-call" size={14}/> ผปค: {row.ParentPhone}</div>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Edit Modal */}
                     {editItem && (
                         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 dark:bg-black/90 backdrop-blur-lg animate-fade-in">
-                            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 p-6 md:p-8 rounded-[2.5rem] w-full max-w-lg max-h-[90vh] flex flex-col shadow-[0_20px_60px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.8)] animate-slide-up text-left overflow-hidden">
+                            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 p-6 md:p-8 rounded-[2.5rem] w-full max-w-lg max-h-[90vh] flex flex-col shadow-[0_20px_60px_rgba(0,0,0,0.3)] animate-slide-up text-left overflow-hidden">
                                 <div className="flex justify-between items-center mb-6 shrink-0">
-                                    <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
-                                        <div className="p-3 bg-blue-500/10 text-blue-500 rounded-2xl shadow-sm"><Icon name="edit" size={24}/></div> แก้ไขข้อมูล
-                                    </h3>
-                                    <button onClick={() => setEditItem(null)} className="p-2.5 bg-slate-100 dark:bg-white/10 rounded-xl text-slate-500 hover:bg-slate-200 hover:text-slate-800 dark:hover:text-white btn-interactive transition-colors"><Icon name="x" size={20}/></button>
+                                    <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3"><Icon name="edit" size={24}/> Edit Data</h3>
+                                    <button onClick={() => setEditItem(null)} className="p-2.5 bg-slate-100 dark:bg-white/10 rounded-xl hover:bg-slate-200 transition-colors"><Icon name="x" size={20}/></button>
                                 </div>
                                 <form onSubmit={handleSaveEdit} className="space-y-5 overflow-y-auto flex-1 custom-scrollbar pr-2 pb-4">
-                                    <div className="p-5 md:p-6 bg-slate-50/80 dark:bg-black/20 rounded-3xl border border-slate-200/60 dark:border-white/5 space-y-4 shadow-inner">
-                                        <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">ชื่อ-นามสกุล (ระบุคำนำหน้า)</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-bold shadow-sm" value={editItem.FullName} onChange={e => setEditItem({...editItem, FullName: e.target.value})}/></div>
+                                    <div className="p-5 bg-slate-50 dark:bg-black/20 rounded-3xl border border-slate-200/60 dark:border-white/5 space-y-4">
+                                        <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">{t('form_fullname')}</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-bold shadow-sm" value={editItem.FullName} onChange={e => setEditItem({...editItem, FullName: e.target.value})}/></div>
                                         <div className="grid grid-cols-2 gap-4">
-                                            <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">รหัสนักศึกษา</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-mono shadow-sm" inputMode="numeric" maxLength="9" value={editItem.StudentID} onChange={e => setEditItem({...editItem, StudentID: e.target.value.replace(/\D/g, '')})}/></div>
-                                            <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">Thai ID / Passport</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-mono shadow-sm" maxLength="20" value={editItem.IDCard || ''} onChange={e => setEditItem({...editItem, IDCard: e.target.value})}/></div>
-                                        </div>
-                                        <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">สาขาวิชา</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm" value={editItem.Major} onChange={e => setEditItem({...editItem, Major: e.target.value})}/></div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">ศาสนา</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm" value={editItem.Religion || ''} onChange={e => setEditItem({...editItem, Religion: e.target.value})}/></div>
-                                            <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">กรุ๊ปเลือด</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm" value={editItem.BloodGroup || ''} onChange={e => setEditItem({...editItem, BloodGroup: e.target.value})}/></div>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">เบอร์ นศ.</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-mono shadow-sm" maxLength="10" pattern="[0-9]{10}" inputMode="numeric" value={editItem.StudentPhone} onChange={e => setEditItem({...editItem, StudentPhone: e.target.value.replace(/\D/g, '')})}/></div>
-                                            <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">เบอร์ ผปค.</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-mono shadow-sm" maxLength="10" pattern="[0-9]{10}" inputMode="numeric" value={editItem.ParentPhone} onChange={e => setEditItem({...editItem, ParentPhone: e.target.value.replace(/\D/g, '')})}/></div>
+                                            <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">{t('form_studentid')}</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-mono shadow-sm" inputMode="numeric" maxLength="9" value={editItem.StudentID} onChange={e => setEditItem({...editItem, StudentID: e.target.value.replace(/\D/g, '')})}/></div>
+                                            <div><label className="text-[10px] font-black text-slate-500 mb-1.5 block uppercase tracking-widest">{t('form_idcard')}</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-mono shadow-sm" maxLength="20" value={editItem.IDCard || ''} onChange={e => setEditItem({...editItem, IDCard: e.target.value})}/></div>
                                         </div>
                                     </div>
-                                    <div className="p-5 md:p-6 bg-orange-50/80 dark:bg-orange-950/20 rounded-3xl border border-orange-200/60 dark:border-orange-500/20 space-y-4 shadow-sm">
-                                        <div><label className="text-[10px] font-black text-orange-600 dark:text-orange-400 mb-1.5 block uppercase tracking-widest">แพ้อาหาร</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm focus:ring-orange-500/50" value={editItem.FoodAllergy} onChange={e => setEditItem({...editItem, FoodAllergy: e.target.value})}/></div>
-                                        <div><label className="text-[10px] font-black text-orange-600 dark:text-orange-400 mb-1.5 block uppercase tracking-widest">อาหารเฉพาะทาง</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm focus:ring-orange-500/50" value={editItem.SpecificDiet} onChange={e => setEditItem({...editItem, SpecificDiet: e.target.value})}/></div>
-                                    </div>
-                                    <div className="p-5 md:p-6 bg-red-50/80 dark:bg-red-950/20 rounded-3xl border border-red-200/60 dark:border-red-500/20 space-y-4 shadow-sm">
-                                        <div><label className="text-[10px] font-black text-red-600 dark:text-red-400 mb-1.5 block uppercase tracking-widest">โรคประจำตัว</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm focus:ring-red-500/50" value={editItem.Disease} onChange={e => setEditItem({...editItem, Disease: e.target.value})}/></div>
-                                        <div><label className="text-[10px] font-black text-red-600 dark:text-red-400 mb-1.5 block uppercase tracking-widest">แพ้ยา</label><input className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm focus:ring-red-500/50" value={editItem.DrugAllergy} onChange={e => setEditItem({...editItem, DrugAllergy: e.target.value})}/></div>
-                                    </div>
-                                    
                                     <div className="flex gap-4 pt-6 sticky bottom-0 bg-white dark:bg-zinc-900 pb-2 z-10 border-t border-slate-100 dark:border-white/5 mt-6">
-                                        <button type="button" onClick={() => setEditItem(null)} className="flex-1 py-4 bg-slate-100 dark:bg-white/5 text-sm rounded-xl font-bold btn-interactive hover:bg-slate-200 dark:hover:bg-white/10 transition-colors text-slate-600 dark:text-slate-300">ยกเลิก</button>
-                                        <button type="submit" className="flex-1 py-4 brand-gradient text-white text-sm rounded-xl font-bold shadow-glow-brand btn-interactive transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"><Icon name="save" size={18}/> บันทึกข้อมูล</button>
+                                        <button type="button" onClick={() => setEditItem(null)} className="flex-1 py-4 bg-slate-100 dark:bg-white/5 text-sm rounded-xl font-bold btn-interactive">{t('cancel')}</button>
+                                        <button type="submit" className="flex-1 py-4 brand-gradient text-white text-sm rounded-xl font-bold shadow-glow-brand btn-interactive">{t('save')}</button>
                                     </div>
                                 </form>
                             </div>
@@ -1703,73 +1799,52 @@
             );
         }
 
-        // ==========================================
-        // 🚀 Main App Component
-        // ==========================================
         function App() {
             const [isDarkMode, setIsDarkMode] = useState(false);
-            
-            // View State: 'pdpa' -> 'register' -> 'success', 'admin'
+            const [lang, setLang] = useState('th'); 
             const [currentView, setCurrentView] = useState('pdpa'); 
             
             useEffect(() => {
-                // ตรวจสอบ Dark Mode จากระบบ (เช่น สลับธีมใน OS)
                 const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
                 setIsDarkMode(isDark);
             }, []);
 
             useEffect(() => {
-                // อัปเดตคลาส dark ไปที่ <html> tag ของ Tailwind CSS
-                if (isDarkMode) {
-                    document.documentElement.classList.add('dark');
-                } else {
-                    document.documentElement.classList.remove('dark');
-                }
+                if (isDarkMode) document.documentElement.classList.add('dark');
+                else document.documentElement.classList.remove('dark');
             }, [isDarkMode]);
 
+            const t = (key) => TRANSLATIONS[lang][key] || key;
+
             return (
-                <div className="min-h-screen p-4 md:p-6 transition-colors duration-300">
-                    
-                    {/* View Router */}
-                    {currentView === 'pdpa' && (
-                        <PdpaModal 
-                            onAccept={() => setCurrentView('register')} 
-                            onAdminClick={() => setCurrentView('admin')} 
-                            isDarkMode={isDarkMode} 
-                        />
-                    )}
-                    
-                    {currentView === 'register' && (
-                        <RegistrationForm 
-                            onBack={() => setCurrentView('pdpa')} 
-                            onSuccess={() => setCurrentView('success')} 
-                            isDarkMode={isDarkMode} 
-                        />
-                    )}
+                <AppContext.Provider value={{ t, lang, setLang, isDarkMode }}>
+                    <div className="min-h-screen p-4 md:p-6 transition-colors duration-300 relative">
+                        
+                        {currentView === 'pdpa' && <PdpaModal onAccept={() => setCurrentView('register')} onAdminClick={() => setCurrentView('admin')} />}
+                        {currentView === 'register' && <RegistrationForm onBack={() => setCurrentView('pdpa')} onSuccess={() => setCurrentView('success')} />}
+                        {currentView === 'success' && <SuccessView onHome={() => setCurrentView('pdpa')} />}
+                        {currentView === 'admin' && <AdminDashboard goBack={() => setCurrentView('pdpa')} />}
 
-                    {currentView === 'success' && (
-                        <SuccessView 
-                            onHome={() => setCurrentView('pdpa')} 
-                            isDarkMode={isDarkMode} 
-                        />
-                    )}
+                        <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-50">
+                            <button 
+                                onClick={() => setLang(lang === 'th' ? 'en' : 'th')}
+                                className="w-12 h-12 bg-white dark:bg-zinc-800 text-slate-800 dark:text-white rounded-full shadow-lg border border-slate-200 dark:border-zinc-700 hover:scale-110 transition-transform flex items-center justify-center font-black text-sm"
+                                title="Change Language"
+                            >
+                                {lang === 'th' ? 'EN' : 'TH'}
+                            </button>
 
-                    {currentView === 'admin' && (
-                        <AdminDashboard 
-                            goBack={() => setCurrentView('pdpa')} 
-                            isDarkMode={isDarkMode} 
-                        />
-                    )}
+                            <button 
+                                onClick={() => setIsDarkMode(!isDarkMode)}
+                                className="w-12 h-12 bg-white dark:bg-zinc-800 text-slate-800 dark:text-white rounded-full shadow-lg border border-slate-200 dark:border-zinc-700 hover:scale-110 transition-transform flex items-center justify-center"
+                                title="Toggle Dark Mode"
+                            >
+                                <Icon name={isDarkMode ? "sun" : "moon"} size={20} />
+                            </button>
+                        </div>
 
-                    {/* ปุ่มสลับหน้าจอ (เปิด/ปิด Dark Mode อิสระ) */}
-                    <button 
-                        onClick={() => setIsDarkMode(!isDarkMode)}
-                        className="fixed bottom-6 right-6 p-4 bg-white dark:bg-zinc-800 text-slate-800 dark:text-white rounded-full shadow-lg border border-slate-200 dark:border-zinc-700 hover:scale-110 transition-transform z-50 flex items-center justify-center"
-                        title="Toggle Dark Mode"
-                    >
-                        <Icon name={isDarkMode ? "sun" : "moon"} size={24} />
-                    </button>
-                </div>
+                    </div>
+                </AppContext.Provider>
             );
         }
 
