@@ -1459,7 +1459,8 @@
                                                         </div>
                                                     </div>
 
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4 sm:gap-5 print:grid-cols-2">
+                                                    {/* ปรับ Grid เป็น 1 คอลัมน์บนมือถือ/แท็บเล็ต และ 2 คอลัมน์เฉพาะจอที่กว้างมากๆ เพื่อป้องกันเลย์เอาต์พัง */}
+                                                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 print:grid-cols-2">
                                                         {stats.execBreakdownList.map((item, idx) => {
                                                             const mName = lang === 'en' ? (DICT_MAPPING[item.name] || item.name) : item.name;
                                                             const normalPercent = item.total ? (item.normal / item.total) * 100 : 0;
@@ -1467,47 +1468,55 @@
                                                             
                                                             return (
                                                                 <div key={idx} className="bg-white dark:bg-zinc-800/80 border border-slate-200/80 dark:border-white/10 rounded-3xl p-5 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-300 flex flex-col group print:border-slate-300 print:shadow-none print:transform-none avoid-break">
+                                                                    
                                                                     {/* Header: Title & Total */}
-                                                                    <div className="flex justify-between items-start gap-3 mb-4">
-                                                                        <h5 className="font-bold text-sm text-slate-800 dark:text-white leading-snug flex-1 line-clamp-2 group-hover:text-brand transition-colors">{mName}</h5>
-                                                                        <div onClick={() => handleDrilldown(mName, 'major_breakdown', {major: item.name, type: 'all'})} className="px-3.5 py-1.5 bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-200 rounded-xl text-sm font-black cursor-pointer hover:bg-brand hover:text-white transition-colors shadow-sm print:bg-slate-100 print:text-slate-800 btn-interactive shrink-0" title="ดูรายชื่อทั้งหมด">
-                                                                            {item.total}
+                                                                    <div className="flex items-start justify-between gap-4 mb-4">
+                                                                        {/* ใช้ flex-1 และ min-w-0 เพื่อให้ข้อความตัด ... อย่างถูกต้อง */}
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <h5 className="font-bold text-base text-slate-800 dark:text-white leading-snug truncate group-hover:text-brand transition-colors" title={mName}>{mName}</h5>
+                                                                        </div>
+                                                                        
+                                                                        {/* ปุ่ม Total */}
+                                                                        <div onClick={() => handleDrilldown(mName, 'major_breakdown', {major: item.name, type: 'all'})} className="px-4 py-1.5 bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-200 rounded-xl text-sm font-black cursor-pointer hover:bg-brand hover:text-white transition-colors shadow-sm print:bg-slate-100 print:text-slate-800 btn-interactive shrink-0 flex items-center gap-1.5" title="ดูรายชื่อทั้งหมด">
+                                                                            {item.total} <span className="text-[10px] font-semibold opacity-70">คน</span>
                                                                         </div>
                                                                     </div>
 
                                                                     {/* Modern Segmented Progress Bar */}
-                                                                    <div className="flex w-full h-3 mb-4 gap-1 opacity-90 group-hover:opacity-100 transition-opacity">
-                                                                        <div className="bg-blue-500 rounded-l-full h-full transition-all duration-1000 shadow-inner print:bg-blue-500 print:opacity-100 print:color-adjust-exact" style={{width: `${normalPercent}%`, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>
-                                                                        <div className="bg-purple-500 rounded-r-full h-full transition-all duration-1000 shadow-inner print:bg-purple-500 print:opacity-100 print:color-adjust-exact" style={{width: `${transferPercent}%`, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>
+                                                                    <div className="flex w-full h-3 mb-5 gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity">
+                                                                        {normalPercent > 0 && <div className="bg-blue-500 rounded-full h-full transition-all duration-1000 shadow-inner print:bg-blue-500 print:opacity-100 print:color-adjust-exact" style={{width: `${normalPercent}%`, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>}
+                                                                        {transferPercent > 0 && <div className="bg-purple-500 rounded-full h-full transition-all duration-1000 shadow-inner print:bg-purple-500 print:opacity-100 print:color-adjust-exact" style={{width: `${transferPercent}%`, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>}
                                                                     </div>
 
-                                                                    {/* Legend & Stats Blocks */}
+                                                                    {/* Legend & Stats Blocks (เรียงแนวนอนแบบกว้างๆ) */}
                                                                     <div className="grid grid-cols-2 gap-3 mt-auto">
+                                                                        
                                                                         {/* Normal Block */}
-                                                                        <div onClick={() => handleDrilldown(`${mName} (ปกติ)`, 'major_breakdown', {major: item.name, type: 'normal'})} className="bg-blue-50/50 dark:bg-blue-900/20 p-3 rounded-2xl border border-blue-100/50 dark:border-blue-800/30 cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-all flex flex-col group/btn print:bg-white print:border-slate-200 btn-interactive relative overflow-hidden">
-                                                                            <div className="absolute right-2 top-2 opacity-0 group-hover/btn:opacity-100 text-blue-400 transition-opacity print:hidden"><Icon name="search" size={12}/></div>
-                                                                            <div className="flex items-center gap-1.5 mb-2">
-                                                                                <div className="w-2 h-2 rounded-full bg-blue-500 shadow-sm print:bg-blue-500 print:color-adjust-exact" style={{WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>
-                                                                                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">ปกติ</span>
+                                                                        <div onClick={() => handleDrilldown(`${mName} (ปกติ)`, 'major_breakdown', {major: item.name, type: 'normal'})} className="bg-blue-50/50 dark:bg-blue-900/20 p-3.5 rounded-2xl border border-blue-100/50 dark:border-blue-800/30 cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-all flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 group/btn print:bg-white print:border-slate-200 btn-interactive relative overflow-hidden">
+                                                                            <div className="flex items-center gap-2 z-10">
+                                                                                <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm print:bg-blue-500 print:color-adjust-exact" style={{WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>
+                                                                                <span className="text-xs font-bold text-slate-500 dark:text-slate-400">ปกติ</span>
                                                                             </div>
-                                                                            <div className="flex items-end justify-between">
-                                                                                <span className="text-xl font-black text-blue-700 dark:text-blue-400 leading-none group-hover/btn:scale-110 transition-transform origin-bottom-left print:text-blue-700">{item.normal}</span>
+                                                                            <div className="flex items-end gap-2 z-10">
+                                                                                <span className="text-2xl font-black text-blue-700 dark:text-blue-400 leading-none group-hover/btn:scale-110 transition-transform origin-bottom-right print:text-blue-700">{item.normal}</span>
                                                                                 <span className="text-[10px] font-bold text-blue-500 bg-blue-100/50 dark:bg-blue-900/40 px-1.5 py-0.5 rounded-md print:bg-transparent">{normalPercent.toFixed(0)}%</span>
                                                                             </div>
+                                                                            <div className="absolute right-2 top-2 opacity-0 group-hover/btn:opacity-10 text-blue-500 transition-opacity transform translate-x-1 -translate-y-1 print:hidden"><Icon name="users" size={40}/></div>
                                                                         </div>
 
                                                                         {/* Transfer Block */}
-                                                                        <div onClick={() => handleDrilldown(`${mName} (เทียบโอน)`, 'major_breakdown', {major: item.name, type: 'transfer'})} className="bg-purple-50/50 dark:bg-purple-900/20 p-3 rounded-2xl border border-purple-100/50 dark:border-purple-800/30 cursor-pointer hover:border-purple-300 hover:bg-purple-50 transition-all flex flex-col group/btn print:bg-white print:border-slate-200 btn-interactive relative overflow-hidden">
-                                                                            <div className="absolute right-2 top-2 opacity-0 group-hover/btn:opacity-100 text-purple-400 transition-opacity print:hidden"><Icon name="search" size={12}/></div>
-                                                                            <div className="flex items-center gap-1.5 mb-2">
-                                                                                <div className="w-2 h-2 rounded-full bg-purple-500 shadow-sm print:bg-purple-500 print:color-adjust-exact" style={{WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>
-                                                                                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">เทียบโอน</span>
+                                                                        <div onClick={() => handleDrilldown(`${mName} (เทียบโอน)`, 'major_breakdown', {major: item.name, type: 'transfer'})} className="bg-purple-50/50 dark:bg-purple-900/20 p-3.5 rounded-2xl border border-purple-100/50 dark:border-purple-800/30 cursor-pointer hover:border-purple-300 hover:bg-purple-50 transition-all flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 group/btn print:bg-white print:border-slate-200 btn-interactive relative overflow-hidden">
+                                                                            <div className="flex items-center gap-2 z-10">
+                                                                                <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm print:bg-purple-500 print:color-adjust-exact" style={{WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>
+                                                                                <span className="text-xs font-bold text-slate-500 dark:text-slate-400">เทียบโอน</span>
                                                                             </div>
-                                                                            <div className="flex items-end justify-between">
-                                                                                <span className="text-xl font-black text-purple-700 dark:text-purple-400 leading-none group-hover/btn:scale-110 transition-transform origin-bottom-left print:text-purple-700">{item.transfer}</span>
+                                                                            <div className="flex items-end gap-2 z-10">
+                                                                                <span className="text-2xl font-black text-purple-700 dark:text-purple-400 leading-none group-hover/btn:scale-110 transition-transform origin-bottom-right print:text-purple-700">{item.transfer}</span>
                                                                                 <span className="text-[10px] font-bold text-purple-500 bg-purple-100/50 dark:bg-purple-900/40 px-1.5 py-0.5 rounded-md print:bg-transparent">{transferPercent.toFixed(0)}%</span>
                                                                             </div>
+                                                                            <div className="absolute right-2 top-2 opacity-0 group-hover/btn:opacity-10 text-purple-500 transition-opacity transform translate-x-1 -translate-y-1 print:hidden"><Icon name="refresh-cw" size={40}/></div>
                                                                         </div>
+
                                                                     </div>
                                                                 </div>
                                                             );
