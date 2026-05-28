@@ -1100,6 +1100,7 @@
                         {/* TAB 2: MAJORS SUMMARY */}
                         {activeTab === 'majors' && (
                             <div className="grid lg:grid-cols-5 gap-6 animate-fade-in">
+                                {/* Left Side: Chart */}
                                 <div className="lg:col-span-2 glass-panel p-6 md:p-8 rounded-[2rem] border border-slate-200/50 dark:border-white/5 flex flex-col items-center justify-center min-h-[450px] shadow-sm relative overflow-hidden">
                                     <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent to-slate-50/50 dark:to-white/5 pointer-events-none"></div>
                                     <div className="w-full mb-2 text-center relative z-10">
@@ -1125,6 +1126,8 @@
                                         )}
                                     </div>
                                 </div>
+
+                                {/* Right Side: Clickable List of Majors */}
                                 <div className="lg:col-span-3 glass-panel p-6 md:p-8 rounded-[2rem] border border-slate-200/50 dark:border-white/5 flex flex-col shadow-sm">
                                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3">
                                         <div className="flex items-center gap-2.5 text-slate-500 bg-slate-50 dark:bg-white/5 px-4 py-2 rounded-xl border border-slate-100 dark:border-white/5 shadow-sm">
@@ -1132,21 +1135,35 @@
                                             <span className="text-xs font-bold uppercase tracking-wider">คลิกการ์ดเพื่อดูรายชื่อนักศึกษา</span>
                                         </div>
                                     </div>
-                                    <div className="flex flex-col gap-3 overflow-y-auto custom-scrollbar flex-1 pr-2 max-h-[420px]">
+                                    
+                                    {/* Scrollable List Container */}
+                                    <div className="flex flex-col gap-3.5 overflow-y-auto custom-scrollbar flex-1 pr-2 max-h-[450px]">
                                         {[...stats.pieData].sort((a,b) => b.value - a.value).map((entry, idx) => (
-                                            <div key={idx} onClick={() => handleDrilldown(entry.name, 'majors', entry.name)} className="relative p-5 rounded-2xl bg-white dark:bg-zinc-800/80 border border-slate-200/60 dark:border-white/10 hover:border-brand/50 hover:shadow-md transition-all duration-300 cursor-pointer overflow-hidden group btn-interactive">
-                                                <div className="absolute inset-y-0 left-0 opacity-[0.08] dark:opacity-[0.15] transition-all duration-700 ease-out" style={{ width: `${stats.total ? (entry.value / stats.total) * 100 : 0}%`, backgroundColor: stats.COLORS[idx % stats.COLORS.length] }}></div>
-                                                <div className="relative z-10 flex items-center justify-between gap-4">
+                                            <div key={idx} onClick={() => handleDrilldown(entry.name, 'majors', entry.name)} className="relative py-4 px-5 md:px-6 rounded-2xl bg-white dark:bg-zinc-800/80 border border-slate-200/60 dark:border-white/10 hover:border-brand/50 hover:shadow-md transition-all duration-300 cursor-pointer overflow-hidden group btn-interactive min-h-[72px] flex items-center">
+                                                
+                                                {/* Subtle Progress Background */}
+                                                <div className="absolute inset-y-0 left-0 opacity-[0.06] dark:opacity-[0.12] transition-all duration-700 ease-out" 
+                                                     style={{ width: `${stats.total ? (entry.value / stats.total) * 100 : 0}%`, backgroundColor: stats.COLORS[idx % stats.COLORS.length] }}>
+                                                </div>
+
+                                                <div className="relative z-10 flex items-center justify-between gap-4 w-full">
+                                                    {/* Left side: Color dot & Major Name */}
                                                     <div className="flex items-center gap-4 overflow-hidden flex-1">
-                                                        <div className="w-5 h-5 rounded-full shrink-0 shadow-sm border-2 border-white dark:border-zinc-800 transition-transform group-hover:scale-125" style={{ backgroundColor: stats.COLORS[idx % stats.COLORS.length] }}></div>
-                                                        <span className="text-sm md:text-base font-bold text-slate-700 dark:text-slate-200 truncate group-hover:text-brand transition-colors" title={entry.name}>{entry.name}</span>
+                                                        <div className="w-4 h-4 rounded-full shrink-0 shadow-sm border-2 border-white dark:border-zinc-800 transition-transform group-hover:scale-125" style={{ backgroundColor: stats.COLORS[idx % stats.COLORS.length] }}></div>
+                                                        <span className="text-sm md:text-base font-bold text-slate-700 dark:text-slate-200 truncate group-hover:text-brand transition-colors leading-normal" title={entry.name}>
+                                                            {entry.name}
+                                                        </span>
                                                     </div>
+                                                    
+                                                    {/* Right side: Count, Percent, Icon */}
                                                     <div className="flex items-center gap-4 shrink-0">
-                                                        <div className="flex flex-col items-end">
+                                                        <div className="flex flex-col items-end justify-center">
                                                             <span className="text-2xl font-black text-slate-800 dark:text-white leading-none">{entry.value}</span>
                                                             <span className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-wider">{stats.total ? ((entry.value / stats.total) * 100).toFixed(1) : 0}%</span>
                                                         </div>
-                                                        <div className="text-slate-300 group-hover:text-brand transition-colors"><Icon name="chevron-right" size={20}/></div>
+                                                        <div className="text-slate-300 group-hover:text-brand transition-colors flex items-center h-full">
+                                                            <Icon name="chevron-right" size={20}/>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
