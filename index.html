@@ -711,7 +711,7 @@
         // 📊 Admin Dashboard
         // ==========================================
         function AdminDashboard({ goBack }) {
-            const { isDarkMode = false } = useContext(AppContext) || {};
+            const { t, lang, isDarkMode = false } = useContext(AppContext) || {};
             const [data, setData] = useState([]);
             const [loading, setLoading] = useState(true);
             const [editItem, setEditItem] = useState(null);
@@ -763,6 +763,9 @@
                 return result;
             }, [data, searchTerm, activeTab, executiveMajor]);
 
+            // ==========================================
+            // 📌 SPSS Data Analysis Calculation
+            // ==========================================
             const surveyStats = useMemo(() => {
                 let filteredSurveys = surveys;
                 if (selectedSurveyActivity !== 'ทั้งหมด') {
@@ -771,6 +774,7 @@
 
                 let total = filteredSurveys.length;
                 let commentsList = [];
+                let majorDemographics = {}; // สำหรับตารางที่ 1 ข้อมูลประชากรศาสตร์
                 
                 // โครงสร้างสำหรับเก็บข้อมูล 13 ข้อเพื่อหาความถี่ (Frequency), ค่าเฉลี่ย (Mean)
                 let qStats = {
@@ -792,9 +796,17 @@
                 const parseVal = (val) => { const n = Number(val); return isNaN(n) ? 0 : n; };
 
                 filteredSurveys.forEach(s => {
+                    // การดึงข้อมูลประชากรศาสตร์ (Major) จากข้อมูลนักศึกษา (Join Data)
+                    const student = data.find(st => st.StudentID === s.StudentID);
+                    let major = 'ไม่ระบุสาขา / บุคคลภายนอก';
+                    if (student && student.Major) {
+                        major = student.Major.replace(/\s*\([^)]*\)/g, '').trim(); // ลบคำว่า (เทียบโอน) ออกเพื่อรวมกลุ่ม
+                    }
+                    majorDemographics[major] = (majorDemographics[major] || 0) + 1;
+
+                    // คำนวณคะแนนรายข้อ
                     const keys = Object.keys(qStats);
                     keys.forEach((key) => {
-                        // แมปคีย์เช่น q1_1 ไปยัง Q1_1 ใน Sheet
                         const sKey = `Q${key.split('q')[1].toUpperCase()}`;
                         const v = parseVal(s[sKey]);
                         if (v > 0) { 
@@ -809,7 +821,14 @@
                     }
                 });
 
-                // ฟังก์ชันหาค่าเฉลี่ย และ S.D.
+                // เตรียมข้อมูลตารางที่ 1 ประชากรศาสตร์ (Demographics)
+                const demoArray = Object.keys(majorDemographics).map(k => ({
+                    major: k,
+                    count: majorDemographics[k],
+                    percent: total > 0 ? ((majorDemographics[k] / total) * 100).toFixed(1) : 0
+                })).sort((a,b) => b.count - a.count);
+
+                // ฟังก์ชันหาค่าเฉลี่ย และ S.D. เชิงสถิติ
                 const getMean = (sum, count) => count > 0 ? (sum / count) : 0;
                 const getSD = (values, mean) => {
                     if (values.length <= 1) return 0;
@@ -834,29 +853,58 @@
 
                 let allValues = [];
                 let overallSum = 0;
-                const details = [];
                 const chartData = [];
 
-                Object.keys(qStats).forEach(k => {
-                    const mean = getMean(qStats[k].sum, qStats[k].values.length);
-                    const sd = getSD(qStats[k].values, mean);
-                    
-                    allValues.push(...qStats[k].values);
-                    overallSum += qStats[k].sum;
+                const sections = [
+                    { id: 'part1', title: 'ส่วนที่ 1: กระบวนการ ขั้นตอนการให้บริการ', keys: ['q1_1', 'q1_2', 'q1_3', 'q1_4'] },
+                    { id: 'part2', title: 'ส่วนที่ 2: การอำนวยความสะดวก', keys: ['q2_1', 'q2_2', 'q2_3', 'q2_4'] },
+                    { id: 'part3', title: 'ส่วนที่ 3: คุณภาพการให้บริการ', keys: ['q3_1', 'q3_2', 'q3_3', 'q3_4', 'q3_5'] }
+                ];
 
-                    details.push({ id: k, q: questionsMap[k], mean: mean.toFixed(2), sd: sd.toFixed(2), interp: getInterpretation(mean) });
-                    chartData.push({
-                        name: k.replace('_', '.').replace('q',''),
-                        question: questionsMap[k],
-                        5: qStats[k].counts[5], 4: qStats[k].counts[4], 3: qStats[k].counts[3], 2: qStats[k].counts[2], 1: qStats[k].counts[1]
+                const groupedDetails = sections.map(sec => {
+                    let secValues = [];
+                    let secSum = 0;
+                    const items = sec.keys.map(k => {
+                        const values = qStats[k].values;
+                        const n = values.length;
+                        const mean = getMean(qStats[k].sum, n);
+                        const sd = getSD(values, mean);
+                        
+                        // SPSS additional stats
+                        const min = n > 0 ? Math.min(...values) : 0;
+                        const max = n > 0 ? Math.max(...values) : 0;
+                        
+                        allValues.push(...values);
+                        overallSum += qStats[k].sum;
+                        secValues.push(...values);
+                        secSum += qStats[k].sum;
+
+                        chartData.push({
+                            name: k.replace('_', '.').replace('q',''),
+                            question: questionsMap[k],
+                            5: qStats[k].counts[5], 4: qStats[k].counts[4], 3: qStats[k].counts[3], 2: qStats[k].counts[2], 1: qStats[k].counts[1]
+                        });
+
+                        return { id: k, q: questionsMap[k], n, min, max, mean: mean.toFixed(2), sd: sd.toFixed(3), interp: getInterpretation(mean) };
                     });
+
+                    const secMean = getMean(secSum, secValues.length);
+                    const secSD = getSD(secValues, secMean);
+
+                    return {
+                        title: sec.title,
+                        items: items,
+                        partMean: secMean.toFixed(2),
+                        partSD: secSD.toFixed(3),
+                        partInterp: getInterpretation(secMean)
+                    };
                 });
 
                 const overallMean = getMean(overallSum, allValues.length);
                 const overallSD = getSD(allValues, overallMean);
 
-                return { total, overallMean: overallMean.toFixed(2), overallSD: overallSD.toFixed(2), overallInterp: getInterpretation(overallMean), details, chartData, commentsList };
-            }, [surveys, selectedSurveyActivity]);
+                return { total, overallMean: overallMean.toFixed(2), overallSD: overallSD.toFixed(3), overallInterp: getInterpretation(overallMean), groupedDetails, chartData, commentsList, demoArray };
+            }, [surveys, selectedSurveyActivity, data]);
 
             const stats = useMemo(() => {
                 const studentData = filteredData.filter(r => r.FullName !== 'SYSTEM_ACTIVITY_DEF' && r.BloodGroup !== 'Activity');
@@ -1045,7 +1093,7 @@
                 { id: 'executive', icon: 'layout-dashboard', label: 'รายงานสรุปผู้บริหาร' },
                 { id: 'create_activity', icon: 'calendar-plus', label: 'สร้างกิจกรรม' },
                 { id: 'activity_summary', icon: 'radio', label: 'Real-Time Recording' },
-                { id: 'survey_summary', icon: 'star', label: 'สรุปแบบสอบถาม' }
+                { id: 'survey_summary', icon: 'star', label: 'สรุปแบบสอบถาม (SPSS)' }
             ];
 
             const pieTooltipStyle = { backgroundColor: isDarkMode ? 'rgba(24, 24, 27, 0.95)' : 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' };
@@ -1069,7 +1117,7 @@
                             {TABS.map(tab => (
                                 <button key={tab.id} onClick={() => { setActiveTab(tab.id); setCurrentPage(1); }} 
                                     className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all font-bold whitespace-nowrap btn-interactive text-sm
-                                    ${activeTab === tab.id ? (tab.id === 'activity_summary' ? 'bg-red-500 text-white shadow-glow-red hover:-translate-y-0.5' : 'bg-brand text-white shadow-glow-brand hover:-translate-y-0.5') : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white'}`}>
+                                    ${activeTab === tab.id ? (tab.id === 'activity_summary' ? 'bg-red-500 text-white shadow-glow-red hover:-translate-y-0.5' : tab.id === 'survey_summary' ? 'bg-yellow-500 text-white shadow-glow-brand hover:-translate-y-0.5' : 'bg-brand text-white shadow-glow-brand hover:-translate-y-0.5') : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white'}`}>
                                     <Icon name={tab.icon} size={18} className={activeTab === tab.id ? 'text-white' : 'text-slate-400'}/> {tab.label}
                                 </button>
                             ))}
@@ -1081,7 +1129,7 @@
                         {/* Header Action Bar */}
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center glass-panel p-5 md:px-8 md:py-6 rounded-[2.5rem] gap-4 no-print shadow-soft border border-slate-200/50 dark:border-white/5">
                             <h2 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3 whitespace-nowrap">
-                                <div className={`p-2.5 rounded-xl shadow-sm ${activeTab === 'activity_summary' ? 'bg-red-500/10 text-red-500' : 'bg-brand/10 text-brand'}`}><Icon name={(TABS.find(t=>t.id===activeTab) || {}).icon} size={20}/></div> {(TABS.find(t=>t.id===activeTab) || {}).label}
+                                <div className={`p-2.5 rounded-xl shadow-sm ${activeTab === 'activity_summary' ? 'bg-red-500/10 text-red-500' : activeTab === 'survey_summary' ? 'bg-yellow-500/10 text-yellow-600' : 'bg-brand/10 text-brand'}`}><Icon name={(TABS.find(t=>t.id===activeTab) || {}).icon} size={20}/></div> {(TABS.find(t=>t.id===activeTab) || {}).label}
                             </h2>
                             <div className="flex flex-col xl:flex-row flex-wrap w-full sm:w-auto gap-3 items-start xl:items-center">
                                 <div className="relative w-full sm:w-64">
@@ -1515,7 +1563,7 @@
                             </div>
                         )}
 
-                        {/* TAB 8: SURVEY SUMMARY (สรุปแบบสอบถามเชิงปริมาณ 13 ข้อ) */}
+                        {/* TAB 8: SURVEY SUMMARY (SPSS DATA ANALYSIS) */}
                         {activeTab === 'survey_summary' && (
                             <div className="space-y-6 animate-fade-in print:space-y-4">
                                 <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-yellow-500 shadow-soft relative overflow-hidden bg-gradient-to-b from-white to-yellow-50/30 dark:from-zinc-900 dark:to-zinc-900/50 print:border-none print:shadow-none print:bg-white print:p-0">
@@ -1526,9 +1574,9 @@
                                         <div>
                                             <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
                                                 <div className="p-3 bg-yellow-100 dark:bg-yellow-500/20 text-yellow-600 rounded-2xl shadow-inner print:hidden"><Icon name="bar-chart-2" size={24}/></div>
-                                                รายงานสถิติเชิงปริมาณ (Quantitative Analysis)
+                                                รายงานสถิติเชิงปริมาณ (SPSS Data Analysis)
                                             </h3>
-                                            <p className="text-slate-500 mt-2 font-medium text-sm">การวิเคราะห์ค่าเฉลี่ย (x̄) และส่วนเบี่ยงเบนมาตรฐาน (S.D.) จากแบบประเมินรวม 13 หัวข้อ</p>
+                                            <p className="text-slate-500 mt-2 font-medium text-sm">การวิเคราะห์ค่าทางสถิติ (N, Min, Max, x̄, S.D.) อ้างอิงตามรูปแบบงานวิจัย</p>
                                         </div>
                                         <div className="relative w-full md:w-80 print:hidden">
                                             <select className="w-full appearance-none input-modern rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold shadow-sm cursor-pointer border-slate-200 dark:border-white/10" value={selectedSurveyActivity} onChange={e => setSelectedSurveyActivity(e.target.value)}>
@@ -1544,34 +1592,112 @@
                                     <div className="glass-panel p-12 rounded-[2.5rem] flex flex-col items-center justify-center text-slate-400 shadow-soft border border-slate-200/50 dark:border-white/5"><Icon name="inbox" size={48} className="mb-4 opacity-30" /><p className="font-semibold text-lg">ยังไม่มีผู้ตอบแบบประเมินในหัวข้อนี้</p></div>
                                 ) : (
                                     <>
-                                        {/* KPI Cards */}
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 print:grid-cols-3">
-                                            <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-slate-200/50 dark:border-white/5 shadow-soft flex items-center justify-between group print:border-slate-300 print:shadow-none print:p-4">
-                                                <div>
-                                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1 print:text-black">จำนวนผู้ประเมิน (N)</p>
-                                                    <div className="text-4xl font-black text-slate-800 dark:text-white print:text-black">{surveyStats.total} <span className="text-sm font-bold text-slate-400">คน</span></div>
-                                                </div>
-                                                <div className="w-14 h-14 bg-slate-100 dark:bg-white/5 text-slate-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform print:hidden"><Icon name="users" size={28}/></div>
-                                            </div>
-                                            <div className="glass-panel p-6 md:p-8 rounded-[2rem] border-t-8 border-t-yellow-500 border-x border-b border-slate-200/50 dark:border-white/5 shadow-soft flex items-center justify-between group bg-gradient-to-br from-yellow-50/50 to-white dark:from-yellow-900/10 dark:to-zinc-900 print:border-slate-300 print:shadow-none print:p-4 avoid-break">
-                                                <div>
-                                                    <p className="text-xs font-bold text-yellow-600 dark:text-yellow-500 uppercase tracking-widest mb-1 print:text-black">ค่าเฉลี่ยรวม (x̄)</p>
-                                                    <div className="text-4xl font-black text-yellow-500 dark:text-yellow-400 flex items-baseline gap-1 print:text-black">{surveyStats.overallMean} <span className="text-sm font-bold text-slate-400">/ 5.00</span></div>
-                                                </div>
-                                                <div className="w-14 h-14 bg-yellow-100 dark:bg-yellow-500/20 text-yellow-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner print:hidden"><Icon name="star" size={28} className="fill-current"/></div>
-                                            </div>
-                                            <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-slate-200/50 dark:border-white/5 shadow-soft flex items-center justify-between group print:border-slate-300 print:shadow-none print:p-4 avoid-break">
-                                                <div>
-                                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1 print:text-black">ส่วนเบี่ยงเบนมาตรฐาน (S.D.)</p>
-                                                    <div className="text-4xl font-black text-slate-700 dark:text-slate-300 print:text-black">{surveyStats.overallSD}</div>
-                                                </div>
-                                                <div className="w-14 h-14 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform print:hidden"><Icon name="bar-chart" size={28}/></div>
+                                        {/* TABLE 1: Demographics (ประชากรศาสตร์) */}
+                                        <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-soft border border-slate-200/50 dark:border-white/5 print:border-slate-300 print:shadow-none print:break-inside-avoid">
+                                            <h4 className="text-lg font-black text-slate-800 dark:text-white mb-6 flex items-center gap-2 print:text-black">
+                                                ตารางที่ 1 ข้อมูลทั่วไปของผู้ตอบแบบสอบถาม (Demographic Data)
+                                            </h4>
+                                            <div className="overflow-x-auto custom-scrollbar">
+                                                <table className="w-full text-sm text-left border-t-2 border-b-2 border-slate-800 dark:border-white/80 print:border-black">
+                                                    <thead className="text-[12px] text-slate-700 dark:text-slate-300 font-bold border-b border-slate-300 dark:border-white/20 print:border-black print:text-black">
+                                                        <tr>
+                                                            <th className="py-3 px-4 w-1/2">ข้อมูลทั่วไป (สาขาวิชา)</th>
+                                                            <th className="py-3 px-4 text-center">จำนวน (N)</th>
+                                                            <th className="py-3 px-4 text-center">ร้อยละ (%)</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-slate-100 dark:divide-white/5 print:divide-slate-300">
+                                                        {surveyStats.demoArray.map((demo, idx) => (
+                                                            <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                                                                <td className="py-3 px-4 font-medium text-slate-700 dark:text-slate-300 print:text-black">{demo.major}</td>
+                                                                <td className="py-3 px-4 text-center font-medium text-slate-800 dark:text-white print:text-black">{demo.count}</td>
+                                                                <td className="py-3 px-4 text-center font-medium text-slate-800 dark:text-white print:text-black">{demo.percent}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                    <tfoot className="border-t-2 border-slate-800 dark:border-white/80 print:border-black font-black">
+                                                        <tr>
+                                                            <td className="py-3 px-4 text-right">รวมทั้งหมด (Total)</td>
+                                                            <td className="py-3 px-4 text-center text-brand print:text-black">{surveyStats.total}</td>
+                                                            <td className="py-3 px-4 text-center text-brand print:text-black">100.0</td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
                                             </div>
                                         </div>
 
-                                        {/* Quantitative Chart (100% Stacked Bar) */}
+                                        {/* TABLE 2: Descriptive Statistics (สถิติเชิงพรรณนา) */}
                                         <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-soft border border-slate-200/50 dark:border-white/5 print:border-slate-300 print:shadow-none print:break-inside-avoid">
-                                            <h4 className="text-lg font-black text-slate-800 dark:text-white mb-2 flex items-center gap-2 print:text-black"><Icon name="pie-chart" size={20} className="text-brand print:hidden"/> การแจกแจงความถี่ (ร้อยละ)</h4>
+                                            <h4 className="text-lg font-black text-slate-800 dark:text-white mb-6 flex items-center gap-2 print:text-black">
+                                                ตารางที่ 2 ค่าสถิติเชิงพรรณนา (Descriptive Statistics)
+                                            </h4>
+                                            <div className="overflow-x-auto -mx-2 px-2 custom-scrollbar">
+                                                <table className="w-full text-sm text-left min-w-[850px] border-t-2 border-b-2 border-slate-800 dark:border-white/80 print:border-black">
+                                                    <thead className="text-[12px] text-slate-700 dark:text-slate-300 font-bold border-b border-slate-300 dark:border-white/20 print:border-black print:text-black">
+                                                        <tr>
+                                                            <th className="py-3 px-4">ประเด็นการประเมิน</th>
+                                                            <th className="py-3 px-4 text-center w-16">N</th>
+                                                            <th className="py-3 px-4 text-center w-20">Minimum</th>
+                                                            <th className="py-3 px-4 text-center w-20">Maximum</th>
+                                                            <th className="py-3 px-4 text-center w-20">Mean</th>
+                                                            <th className="py-3 px-4 text-center w-24">Std. Deviation</th>
+                                                            <th className="py-3 px-4 text-center w-32">แปลความหมาย</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-slate-100 dark:divide-white/5 print:divide-slate-300">
+                                                        {surveyStats.groupedDetails.map((section, sIdx) => (
+                                                            <React.Fragment key={sIdx}>
+                                                                <tr className="bg-slate-50/80 dark:bg-white/5 print:bg-slate-100">
+                                                                    <td className="py-3 px-4 font-black text-slate-800 dark:text-white print:text-black" colSpan="7">
+                                                                        {section.title}
+                                                                    </td>
+                                                                </tr>
+                                                                {section.items.map((item, idx) => (
+                                                                    <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                                                                        <td className="py-4 px-4 font-semibold text-slate-700 dark:text-slate-300 leading-relaxed pr-6 pl-8 print:text-black print:pl-4">
+                                                                            <span className="text-slate-400 mr-2">{item.id.replace('_', '.').replace('q','')}</span>{item.q.substring(item.q.indexOf(' ')+1)}
+                                                                        </td>
+                                                                        <td className="py-4 px-4 text-center font-medium text-slate-600 dark:text-slate-400 print:text-black">{item.n}</td>
+                                                                        <td className="py-4 px-4 text-center font-medium text-slate-600 dark:text-slate-400 print:text-black">{item.min}</td>
+                                                                        <td className="py-4 px-4 text-center font-medium text-slate-600 dark:text-slate-400 print:text-black">{item.max}</td>
+                                                                        <td className="py-4 px-4 text-center font-black text-lg text-slate-800 dark:text-white print:text-black">{item.mean}</td>
+                                                                        <td className="py-4 px-4 text-center font-bold text-slate-500 print:text-slate-600">{item.sd}</td>
+                                                                        <td className="py-4 px-4 text-center">
+                                                                            <span className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-xs font-black shadow-sm border border-white/50 dark:border-black/20 print:border-slate-400 print:text-black print:bg-transparent ${item.interp.bg} ${item.interp.color}`}>
+                                                                                {item.interp.text}
+                                                                            </span>
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                            </React.Fragment>
+                                                        ))}
+                                                    </tbody>
+                                                    <tfoot className="border-t-2 border-slate-800 dark:border-white/80 print:border-black">
+                                                        <tr className="bg-brand/5 dark:bg-brand/10">
+                                                            <td className="py-4 px-4 text-right font-black text-brand uppercase tracking-widest print:text-black">
+                                                                สรุปภาพรวมทั้งหมด (Overall)
+                                                            </td>
+                                                            <td className="py-4 px-4 text-center font-black text-brand print:text-black">{surveyStats.total * 13}</td>
+                                                            <td className="py-4 px-4 text-center font-bold text-brand print:text-black">1</td>
+                                                            <td className="py-4 px-4 text-center font-bold text-brand print:text-black">5</td>
+                                                            <td className="py-4 px-4 text-center font-black text-xl text-brand print:text-black">{surveyStats.overallMean}</td>
+                                                            <td className="py-4 px-4 text-center font-bold text-brand print:text-black">{surveyStats.overallSD}</td>
+                                                            <td className="py-4 px-4 text-center">
+                                                                <span className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-xs font-black shadow-sm print:text-black print:bg-transparent print:border print:border-slate-400 ${surveyStats.overallInterp.bg} ${surveyStats.overallInterp.color}`}>
+                                                                    ระดับ{surveyStats.overallInterp.text}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        {/* TABLE 3: Frequencies (การแจกแจงความถี่แบบกราฟ) */}
+                                        <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-soft border border-slate-200/50 dark:border-white/5 print:border-slate-300 print:shadow-none print:break-inside-avoid">
+                                            <h4 className="text-lg font-black text-slate-800 dark:text-white mb-2 flex items-center gap-2 print:text-black">
+                                                ตารางที่ 3 การแจกแจงความถี่ของระดับความพึงพอใจ (Frequencies & Percentages)
+                                            </h4>
                                             <p className="text-xs font-bold text-slate-500 mb-6 print:text-slate-600">แสดงสัดส่วนการให้คะแนน (5 = มากที่สุด, 1 = น้อยที่สุด) ในแต่ละข้อ</p>
                                             
                                             <div className="w-full h-[800px] print:h-[600px]">
@@ -1596,51 +1722,6 @@
                                                         <Bar dataKey="1" stackId="a" fill="#ef4444" radius={[0, 0, 0, 0]} />
                                                     </BarChart>
                                                 </ResponsiveContainer>
-                                            </div>
-                                        </div>
-
-                                        {/* Detailed Table */}
-                                        <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-soft border border-slate-200/50 dark:border-white/5 print:border-slate-300 print:shadow-none">
-                                            <h4 className="text-lg font-black text-slate-800 dark:text-white mb-6 flex items-center gap-2 print:text-black"><Icon name="table" size={20} className="text-brand print:hidden"/> สรุปผลการประเมินรายข้อ</h4>
-                                            
-                                            <div className="overflow-x-auto -mx-2 px-2 custom-scrollbar">
-                                                <table className="w-full text-sm text-left min-w-[600px]">
-                                                    <thead className="text-[11px] text-slate-400 uppercase tracking-widest border-b border-slate-200 dark:border-white/10 print:border-black">
-                                                        <tr>
-                                                            <th className="py-3 px-2">ประเด็นการประเมิน</th>
-                                                            <th className="py-3 px-2 text-center w-24">x̄</th>
-                                                            <th className="py-3 px-2 text-center w-24">S.D.</th>
-                                                            <th className="py-3 px-2 text-center w-32">แปลความหมาย</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody className="divide-y divide-slate-100 dark:divide-white/5 print:divide-slate-300">
-                                                        {surveyStats.details.map((item, idx) => (
-                                                            <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
-                                                                <td className="py-4 px-2 font-semibold text-slate-700 dark:text-slate-300 leading-relaxed pr-6 print:text-black"><span className="text-slate-400 mr-2">{item.id.replace('_', '.').replace('q','')}</span>{item.q.substring(item.q.indexOf(' ')+1)}</td>
-                                                                <td className="py-4 px-2 text-center font-black text-lg text-slate-800 dark:text-white print:text-black">{item.mean}</td>
-                                                                <td className="py-4 px-2 text-center font-bold text-slate-500 print:text-slate-600">{item.sd}</td>
-                                                                <td className="py-4 px-2 text-center">
-                                                                    <span className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-xs font-black shadow-sm border border-white/50 dark:border-black/20 print:border-slate-400 print:text-black print:bg-transparent ${item.interp.bg} ${item.interp.color}`}>
-                                                                        {item.interp.text}
-                                                                    </span>
-                                                                </td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                            
-                                            <div className="mt-6 p-4 rounded-2xl bg-brand/5 border border-brand/20 flex flex-col sm:flex-row justify-between items-center print:bg-white print:border-slate-300">
-                                                <span className="font-bold text-brand uppercase tracking-widest text-sm">สรุประดับความพึงพอใจโดยรวม</span>
-                                                <div className="flex items-center gap-4 mt-2 sm:mt-0">
-                                                    <div className="text-right">
-                                                        <span className="text-[10px] font-bold text-slate-500 uppercase block print:text-black">Mean (x̄) / S.D.</span>
-                                                        <span className="text-xl font-black text-slate-800 dark:text-white print:text-black">{surveyStats.overallMean} <span className="text-sm font-semibold text-slate-400">/ {surveyStats.overallSD}</span></span>
-                                                    </div>
-                                                    <span className={`px-4 py-2 rounded-xl font-black text-sm shadow-sm border border-white/50 print:border-slate-400 print:bg-transparent print:text-black ${surveyStats.overallInterp.bg} ${surveyStats.overallInterp.color}`}>
-                                                        ระดับ{surveyStats.overallInterp.text}
-                                                    </span>
-                                                </div>
                                             </div>
                                         </div>
 
