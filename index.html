@@ -717,6 +717,7 @@
             const [editItem, setEditItem] = useState(null);
             const [activeTab, setActiveTab] = useState('overview');
             const [drilldownData, setDrilldownData] = useState({ title: '', list: [], type: '' });
+            const [showChartModal, setShowChartModal] = useState(false);
             const [currentPage, setCurrentPage] = useState(1);
             const [searchTerm, setSearchTerm] = useState('');
             const [executiveMajor, setExecutiveMajor] = useState('ทั้งหมด');
@@ -1727,34 +1728,22 @@
                                         </div>
 
                                         {/* TABLE 3: Frequencies (การแจกแจงความถี่แบบกราฟ) */}
-                                        <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-soft border border-slate-200/50 dark:border-white/5 print:border-slate-300 print:shadow-none print:break-inside-avoid">
-                                            <h4 className="text-lg font-black text-slate-800 dark:text-white mb-2 flex items-center gap-2 print:text-black">
-                                                ตารางที่ 3 การแจกแจงความถี่ของระดับความพึงพอใจ (Frequencies & Percentages)
-                                            </h4>
-                                            <p className="text-xs font-bold text-slate-500 mb-6 print:text-slate-600">แสดงสัดส่วนการให้คะแนน (5 = มากที่สุด, 1 = น้อยที่สุด) ในแต่ละข้อ</p>
-                                            
-                                            <div className="w-full h-[800px] print:h-[600px]">
-                                                <ResponsiveContainer width="100%" height="100%">
-                                                    <BarChart data={surveyStats.chartData} layout="vertical" margin={{ top: 0, right: 0, left: 10, bottom: 0 }} stackOffset="expand">
-                                                        <XAxis type="number" hide />
-                                                        <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: isDarkMode ? '#94a3b8' : '#475569', fontSize: 12, fontWeight: 'bold'}} />
-                                                        <Tooltip 
-                                                            cursor={{fill: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}} 
-                                                            contentStyle={pieTooltipStyle}
-                                                            formatter={(value, name, props) => {
-                                                                const count = props.payload[name];
-                                                                const percent = (value * 100).toFixed(1);
-                                                                return [`${count} คน (${percent}%)`, `${name} ดาว`];
-                                                            }}
-                                                        />
-                                                        <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{fontSize: '12px', fontWeight: 'bold'}} formatter={(value) => `${value} ดาว`}/>
-                                                        <Bar dataKey="5" stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} />
-                                                        <Bar dataKey="4" stackId="a" fill="#3b82f6" radius={[0, 0, 0, 0]} />
-                                                        <Bar dataKey="3" stackId="a" fill="#facc15" radius={[0, 0, 0, 0]} />
-                                                        <Bar dataKey="2" stackId="a" fill="#f97316" radius={[0, 0, 0, 0]} />
-                                                        <Bar dataKey="1" stackId="a" fill="#ef4444" radius={[0, 0, 0, 0]} />
-                                                    </BarChart>
-                                                </ResponsiveContainer>
+                                        <div onClick={() => setShowChartModal(true)} className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-soft border border-slate-200/50 dark:border-white/5 cursor-pointer hover:border-yellow-500 hover:shadow-md transition-all group btn-interactive print:hidden">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-14 h-14 rounded-2xl bg-yellow-100 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                        <Icon name="bar-chart-2" size={28} />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-lg font-black text-slate-800 dark:text-white mb-1">
+                                                            ตารางที่ 3 การแจกแจงความถี่ของระดับความพึงพอใจ
+                                                        </h4>
+                                                        <p className="text-xs font-bold text-slate-500">คลิกเพื่อดูกราฟสัดส่วนการให้คะแนนรายข้อ (Frequencies & Percentages)</p>
+                                                    </div>
+                                                </div>
+                                                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 text-slate-400 flex items-center justify-center group-hover:bg-yellow-500 group-hover:text-white transition-colors shadow-sm">
+                                                    <Icon name="chevron-right" size={20} />
+                                                </div>
                                             </div>
                                         </div>
 
@@ -1822,6 +1811,46 @@
                                             ))}
                                         </tbody>
                                     </table>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Chart Modal */}
+                    {showChartModal && (
+                        <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 dark:bg-black/90 backdrop-blur-lg animate-fade-in print:hidden">
+                            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 p-6 md:p-8 rounded-[2.5rem] w-full max-w-5xl max-h-[90vh] flex flex-col shadow-[0_20px_60px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.8)] animate-slide-up text-left overflow-hidden">
+                                <div className="flex justify-between items-center mb-6 shrink-0">
+                                    <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
+                                        <div className="p-3 rounded-2xl bg-yellow-500 text-white shadow-md"><Icon name="bar-chart-2" size={24}/></div>
+                                        การแจกแจงความถี่ของระดับความพึงพอใจ (Frequencies)
+                                    </h3>
+                                    <button onClick={() => setShowChartModal(false)} className="p-2.5 bg-slate-100 dark:bg-white/10 rounded-xl hover:bg-slate-200 transition-colors"><Icon name="x" size={20}/></button>
+                                </div>
+                                <div className="overflow-y-auto flex-1 custom-scrollbar -mx-2 px-2 pb-4">
+                                    <div className="w-full h-[800px]">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart data={surveyStats.chartData} layout="vertical" margin={{ top: 0, right: 0, left: 10, bottom: 0 }} stackOffset="expand">
+                                                <XAxis type="number" hide />
+                                                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: isDarkMode ? '#94a3b8' : '#475569', fontSize: 12, fontWeight: 'bold'}} />
+                                                <Tooltip 
+                                                    cursor={{fill: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}} 
+                                                    contentStyle={pieTooltipStyle}
+                                                    formatter={(value, name, props) => {
+                                                        const count = props.payload[name];
+                                                        const percent = (value * 100).toFixed(1);
+                                                        return [`${count} คน (${percent}%)`, `${name} ดาว`];
+                                                    }}
+                                                />
+                                                <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{fontSize: '12px', fontWeight: 'bold'}} formatter={(value) => `${value} ดาว`}/>
+                                                <Bar dataKey="5" stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} />
+                                                <Bar dataKey="4" stackId="a" fill="#3b82f6" radius={[0, 0, 0, 0]} />
+                                                <Bar dataKey="3" stackId="a" fill="#facc15" radius={[0, 0, 0, 0]} />
+                                                <Bar dataKey="2" stackId="a" fill="#f97316" radius={[0, 0, 0, 0]} />
+                                                <Bar dataKey="1" stackId="a" fill="#ef4444" radius={[0, 0, 0, 0]} />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
                                 </div>
                             </div>
                         </div>
