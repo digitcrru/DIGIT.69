@@ -141,33 +141,30 @@
             return <span ref={containerRef} className={`inline-flex items-center justify-center shrink-0 ${className}`} />;
         }
 
-        // ==========================================
-        // 🧩 UI Components (อัปเกรด StatCard ให้สวยงามและทันสมัย)
-        // ==========================================
         function StatCard({ label, value, icon, color, onClick, subtext }) {
             const colors = {
-                brand: { bg: 'bg-white dark:bg-zinc-800/90', iconBg: 'bg-gradient-to-br from-orange-400 to-brand text-white shadow-[0_0_15px_rgba(255,102,0,0.4)]', text: 'text-brand', hover: 'hover:border-brand/50 hover:-translate-y-1 hover:shadow-glow-brand' },
-                emerald: { bg: 'bg-white dark:bg-zinc-800/90', iconBg: 'bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]', text: 'text-emerald-600 dark:text-emerald-400', hover: 'hover:border-emerald-400/50 hover:-translate-y-1 hover:shadow-[0_0_25px_rgba(16,185,129,0.2)]' },
-                red: { bg: 'bg-white dark:bg-zinc-800/90', iconBg: 'bg-gradient-to-br from-red-400 to-red-600 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)]', text: 'text-red-600 dark:text-red-400', hover: 'hover:border-red-400/50 hover:-translate-y-1 hover:shadow-glow-red' },
-                purple: { bg: 'bg-white dark:bg-zinc-800/90', iconBg: 'bg-gradient-to-br from-purple-400 to-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]', text: 'text-purple-600 dark:text-purple-400', hover: 'hover:border-purple-400/50 hover:-translate-y-1 hover:shadow-[0_0_25px_rgba(168,85,247,0.2)]' },
-                blue: { bg: 'bg-white dark:bg-zinc-800/90', iconBg: 'bg-gradient-to-br from-blue-400 to-blue-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.4)]', text: 'text-blue-600 dark:text-blue-400', hover: 'hover:border-blue-400/50 hover:-translate-y-1 hover:shadow-[0_0_25px_rgba(59,130,246,0.2)]' },
-                pink: { bg: 'bg-white dark:bg-zinc-800/90', iconBg: 'bg-gradient-to-br from-pink-400 to-pink-600 text-white shadow-[0_0_15px_rgba(236,72,153,0.4)]', text: 'text-pink-600 dark:text-pink-400', hover: 'hover:border-pink-400/50 hover:-translate-y-1 hover:shadow-[0_0_25px_rgba(236,72,153,0.2)]' },
-            }[color] || { bg: 'bg-white dark:bg-zinc-800/90', iconBg: 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300', text: 'text-slate-600 dark:text-slate-400', hover: 'hover:border-slate-400/40 hover:-translate-y-1 hover:shadow-lg' };
+                brand: { bg: 'bg-orange-50 dark:bg-orange-500/10', text: 'text-brand', hover: 'hover:border-brand/40 hover:shadow-glow-brand/20' },
+                emerald: { bg: 'bg-emerald-50 dark:bg-emerald-500/10', text: 'text-emerald-600 dark:text-emerald-400', hover: 'hover:border-emerald-400/40 hover:shadow-lg' },
+                red: { bg: 'bg-red-50 dark:bg-red-500/10', text: 'text-red-600 dark:text-red-400', hover: 'hover:border-red-400/40 hover:shadow-glow-red/20' },
+                purple: { bg: 'bg-purple-50 dark:bg-purple-500/10', text: 'text-purple-600 dark:text-purple-400', hover: 'hover:border-purple-400/40 hover:shadow-lg' },
+                blue: { bg: 'bg-blue-50 dark:bg-blue-500/10', text: 'text-blue-600 dark:text-blue-400', hover: 'hover:border-blue-400/40 hover:shadow-lg' },
+                pink: { bg: 'bg-pink-50 dark:bg-pink-500/10', text: 'text-pink-600 dark:text-pink-400', hover: 'hover:border-pink-400/40 hover:shadow-lg' },
+            }[color] || { bg: 'bg-slate-50 dark:bg-white/5', text: 'text-slate-600 dark:text-slate-400', hover: 'hover:border-slate-400/40 hover:shadow-lg' };
 
             return (
-                <div onClick={onClick} className={`p-6 md:p-8 rounded-[2rem] border border-slate-200/60 dark:border-white/10 ${colors.bg} relative overflow-hidden shadow-sm ${onClick ? `cursor-pointer btn-interactive group ${colors.hover}` : ''} transition-all duration-300 flex flex-col justify-between`}>
-                    <div className={`absolute right-0 top-0 p-6 opacity-0 ${onClick ? 'group-hover:opacity-10 group-hover:scale-125' : 'opacity-5'} transition-all duration-500 transform translate-x-2 -translate-y-2 ${colors.text}`}>
+                <div onClick={onClick} className={`p-6 md:p-8 rounded-[2rem] border border-slate-200/50 dark:border-white/5 ${colors.bg} relative overflow-hidden shadow-soft ${onClick ? `cursor-pointer btn-interactive group ${colors.hover}` : ''} transition-all duration-300 flex flex-col justify-between`}>
+                    <div className={`absolute right-0 top-0 p-6 opacity-0 ${onClick ? 'group-hover:opacity-10 group-hover:scale-110' : 'opacity-5'} transition-all transform translate-x-2 -translate-y-2 ${colors.text}`}>
                         <Icon name={icon} size={100} />
                     </div>
-                    <div className="flex justify-between items-start mb-6 relative z-10">
-                        <div className={`p-4 rounded-2xl ${colors.iconBg}`}><Icon name={icon} size={28} /></div>
-                        {onClick && <div className={`p-2 bg-slate-100 dark:bg-white/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity border border-slate-200 dark:border-white/10 ${colors.text}`}><Icon name="search" size={16} /></div>}
+                    <div className="flex justify-between items-start mb-4 relative z-10">
+                        <div className={`p-3.5 rounded-[1rem] bg-white/60 dark:bg-black/20 ${colors.text} shadow-sm`}><Icon name={icon} size={28} /></div>
+                        {onClick && <div className={`p-2 bg-white/80 dark:bg-white/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity border border-slate-200 dark:border-white/10 ${colors.text}`}><Icon name="search" size={16} /></div>}
                     </div>
                     <div className="relative z-10">
-                        <p className="text-slate-500 dark:text-slate-400 text-sm font-black uppercase tracking-wider mb-2">{label}</p>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-wider mb-1">{label}</p>
                         <div className="flex items-end gap-3">
-                            <h3 className={`text-5xl md:text-6xl font-black ${colors.text} drop-shadow-sm leading-none tracking-tight`}>{value}</h3>
-                            {subtext && <span className="text-base font-bold text-slate-400 mb-1.5">{subtext}</span>}
+                            <h3 className={`text-5xl md:text-6xl font-black text-slate-800 dark:text-white drop-shadow-sm leading-none`}>{value}</h3>
+                            {subtext && <span className="text-base font-bold text-slate-500 mb-1">{subtext}</span>}
                         </div>
                     </div>
                 </div>
@@ -213,6 +210,9 @@
             );
         }
 
+        // ==========================================
+        // 🏠 Home View
+        // ==========================================
         function HomeView({ onSelectNewStudent, onSelectActivity, onAdminClick }) {
             const promptAdmin = () => {
                 Swal.fire({
@@ -269,6 +269,9 @@
             );
         }
 
+        // ==========================================
+        // ⚖️ PDPA Modal
+        // ==========================================
         function PdpaModal({ onAccept, onBack }) {
             const [isChecked, setIsChecked] = useState(false);
             const handleDecline = () => Swal.fire({ icon: 'warning', title: 'ไม่ยินยอม', text: 'คณะเทคโนโลยีดิจิทัล ให้ความสำคัญอย่างยิ่งกับการคุ้มครองข้อมูลส่วนบุคคลของท่าน', confirmButtonText: 'ตกลง', confirmButtonColor: '#ff6600', customClass: { popup: 'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white' } });
@@ -322,6 +325,9 @@
             );
         }
 
+        // ==========================================
+        // 📝 Registration Form
+        // ==========================================
         function RegistrationForm({ onBack, onSuccess }) {
             const [formData, setFormData] = useState({ FullName: '', StudentID: '', IDCard: '', Major: '', Religion: '', BloodGroup: '', StudentPhone: '', ParentPhone: '', FoodAllergy: '', SpecificDiet: 'ไม่มี', Disease: '', DrugAllergy: '' });
             const [hasFoodAllergy, setHasFoodAllergy] = useState(false);
@@ -417,6 +423,9 @@
             );
         }
 
+        // ==========================================
+        // 🎫 Activity Form 
+        // ==========================================
         function ActivityForm({ onBack, onSuccess }) {
             const [step, setStep] = useState(1);
             const [searchID, setSearchID] = useState('');
@@ -542,16 +551,59 @@
             );
         }
 
+        // ==========================================
+        // 📊 แบบประเมิน SurveyForm (ใหม่ 13 ข้อ)
+        // ==========================================
         function SurveyForm({ onBack, onSuccess, activityName, studentID }) {
-            const [ratings, setRatings] = useState({ q1: 0, q2: 0, q3: 0, q4: 0 });
+            const [ratings, setRatings] = useState({ 
+                q1_1: 0, q1_2: 0, q1_3: 0, q1_4: 0,
+                q2_1: 0, q2_2: 0, q2_3: 0, q2_4: 0,
+                q3_1: 0, q3_2: 0, q3_3: 0, q3_4: 0, q3_5: 0
+            });
             const [comment, setComment] = useState('');
             const [isSubmitting, setIsSubmitting] = useState(false);
 
-            const questions = [
-                { id: 'q1', text: '1. ความพึงพอใจในภาพรวมที่มีต่อโครงการ/กิจกรรมนี้' },
-                { id: 'q2', text: '2. ประโยชน์ที่ได้รับ และความสามารถในการนำความรู้/ประสบการณ์ไปปรับใช้ได้จริง' },
-                { id: 'q3', text: '3. ความเหมาะสมของรูปแบบงาน (เช่น ระยะเวลา, สถานที่, หรือความสะดวกในการเข้าใช้งานกรณีเป็นออนไลน์)' },
-                { id: 'q4', text: '4. การให้บริการและการอำนวยความสะดวก ของทีมงาน/เจ้าหน้าที่/วิทยากร' }
+            const surveySections = [
+                {
+                    title: "ส่วนที่ 1: กระบวนการ ขั้นตอนการให้บริการ",
+                    iconColor: "text-brand",
+                    bg: "bg-orange-50 dark:bg-orange-950/20",
+                    border: "border-orange-200 dark:border-orange-900/30",
+                    icon: "layers",
+                    questions: [
+                        { id: 'q1_1', text: '1.1 การประชาสัมพันธ์โครงการ ฯ' },
+                        { id: 'q1_2', text: '1.2 ความเหมาะสมของสถานที่' },
+                        { id: 'q1_3', text: '1.3 ความเหมาะสมของระยะเวลา' },
+                        { id: 'q1_4', text: '1.4 การจัดลำดับขั้นตอนของกิจกรรม' }
+                    ]
+                },
+                {
+                    title: "ส่วนที่ 2: การอำนวยความสะดวก",
+                    iconColor: "text-emerald-500",
+                    bg: "bg-emerald-50 dark:bg-emerald-950/20",
+                    border: "border-emerald-200 dark:border-emerald-900/30",
+                    icon: "coffee",
+                    questions: [
+                        { id: 'q2_1', text: '2.1 เอกสาร' },
+                        { id: 'q2_2', text: '2.2 โสตทัศนูปกรณ์' },
+                        { id: 'q2_3', text: '2.3 เจ้าหน้าที่สนับสนุน' },
+                        { id: 'q2_4', text: '2.4 อาหาร,เครื่องดื่มและสถานที่' }
+                    ]
+                },
+                {
+                    title: "ส่วนที่ 3: คุณภาพการให้บริการ",
+                    iconColor: "text-blue-500",
+                    bg: "bg-blue-50 dark:bg-blue-950/20",
+                    border: "border-blue-200 dark:border-blue-900/30",
+                    icon: "award",
+                    questions: [
+                        { id: 'q3_1', text: '3.1 ท่านได้รับความรู้ แนวคิด ทักษะและประสบการณ์ใหม่ ๆ จากโครงการ' },
+                        { id: 'q3_2', text: '3.2 ท่านสามารถนำสิ่งที่ได้รับจากโครงการ/กิจกรรมนี้ไปใช้ในการปฏิบัติงาน' },
+                        { id: 'q3_3', text: '3.3 สิ่งที่ท่านได้รับจากโครงการ/กิจกรรมครั้งนี้ตรงตามความคาดหวังของท่านหรือไม่' },
+                        { id: 'q3_4', text: '3.4 โครงการ/กิจกรรมนี้เอื้ออำนวยต่อการเรียนรู้และพัฒนาความสามารถของท่าน' },
+                        { id: 'q3_5', text: '3.5 ประโยชน์ที่ท่านได้รับจากโครงการ/กิจกรรม' }
+                    ]
+                }
             ];
 
             const RatingStars = ({ qId }) => {
@@ -559,12 +611,12 @@
                     <div className="mt-4">
                         <div className="flex items-center justify-between gap-1 sm:gap-2 max-w-md mx-auto sm:mx-0">
                             {[1, 2, 3, 4, 5].map((star) => (
-                                <button key={star} type="button" onClick={() => setRatings({ ...ratings, [qId]: star })} className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center font-black text-xl transition-all duration-300 btn-interactive ${ratings[qId] === star ? 'bg-purple-600 text-white shadow-[0_0_15px_rgba(147,51,234,0.4)] transform scale-110 ring-4 ring-purple-600/20' : 'bg-slate-100 dark:bg-white/5 text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10'}`}>
+                                <button key={star} type="button" onClick={() => setRatings({ ...ratings, [qId]: star })} className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center font-black text-lg transition-all duration-300 btn-interactive ${ratings[qId] === star ? 'bg-purple-600 text-white shadow-[0_0_15px_rgba(147,51,234,0.4)] transform scale-110 ring-4 ring-purple-600/20' : 'bg-white dark:bg-white/5 text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 shadow-sm'}`}>
                                     {star}
                                 </button>
                             ))}
                         </div>
-                        <div className="flex justify-between max-w-md mt-2 px-2 mx-auto sm:mx-0">
+                        <div className="flex justify-between max-w-md mt-2 px-1 mx-auto sm:mx-0">
                             <span className="text-[10px] font-bold text-slate-400">1 = น้อยที่สุด</span>
                             <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400">5 = มากที่สุด</span>
                         </div>
@@ -574,48 +626,57 @@
 
             const handleSubmit = async (e) => {
                 e.preventDefault();
-                if (!ratings.q1 || !ratings.q2 || !ratings.q3 || !ratings.q4) {
-                    Swal.fire({ icon: 'warning', title: 'กรุณาประเมินให้ครบ', text: 'โปรดให้คะแนนความพึงพอใจครบทั้ง 4 ข้อก่อนกดยืนยันครับ', customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
+                const allAnswered = Object.values(ratings).every(val => val > 0);
+                if (!allAnswered) {
+                    Swal.fire({ icon: 'warning', title: 'กรุณาประเมินให้ครบ', text: 'โปรดให้คะแนนความพึงพอใจครบทั้ง 13 ข้อก่อนกดยืนยันครับ', customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
                     return;
                 }
 
                 setIsSubmitting(true);
                 Swal.fire({ title: 'กรุณารอสักครู่', html: '<p class="text-sm text-slate-500 mt-2">กำลังซิงค์ข้อมูลประเมินผลเข้าสู่ระบบ...</p>', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
                 try {
-                    const res = await submitToAPI('save_survey', { ActivityName: activityName, StudentID: studentID, Rating1: ratings.q1, Rating2: ratings.q2, Rating3: ratings.q3, Rating4: ratings.q4, Comment: comment });
-                    if (res.success) { Swal.close(); onSuccess(); } else { throw new Error(res.message); }
+                    const res = await submitToAPI('save_survey', { 
+                        ActivityName: activityName, 
+                        StudentID: studentID, 
+                        ...ratings,
+                        Comment: comment 
+                    });
+                    if (res.success) { Swal.close(); onSuccess(); } 
+                    else { throw new Error(res.message); }
                 } catch (err) { Swal.fire({ icon: 'error', title: 'Error', text: err.message, customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} }); } 
                 finally { setIsSubmitting(false); }
             };
 
             return (
-                <div className="max-w-3xl mx-auto animate-fade-in pb-10">
+                <div className="max-w-4xl mx-auto animate-fade-in pb-10">
                     <div className="text-center mb-8">
                         <div className="inline-flex items-center justify-center p-4 bg-purple-100 dark:bg-purple-500/20 text-purple-600 rounded-[1.5rem] mb-4 shadow-sm"><Icon name="clipboard-list" size={32} /></div>
                         <h2 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white mb-2">แบบประเมินความพึงพอใจ</h2>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm font-semibold">{activityName}</p>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm font-semibold px-4">{activityName}</p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-purple-500 shadow-soft relative overflow-hidden">
-                            <div className="absolute right-0 top-0 p-8 opacity-5 text-purple-500 pointer-events-none transform translate-x-4 -translate-y-4"><Icon name="star" size={100} /></div>
-                            <h3 className="text-lg font-black text-slate-800 dark:text-white mb-6 relative z-10 border-b border-slate-200 dark:border-white/10 pb-4">ส่วนที่ 1: การประเมินความพึงพอใจ <span className="text-sm font-semibold text-slate-500 ml-2 hidden sm:inline-block">(1 = น้อยที่สุด, 5 = มากที่สุด)</span></h3>
-                            <div className="space-y-6 relative z-10">
-                                {questions.map(q => (
-                                    <div key={q.id} className="bg-slate-50/80 dark:bg-black/20 p-5 sm:p-6 rounded-3xl border border-slate-100 dark:border-white/5 hover:border-purple-200 dark:hover:border-purple-500/30 transition-colors shadow-sm">
-                                        <p className="text-sm sm:text-base font-bold text-slate-700 dark:text-slate-200 leading-relaxed">{q.text}</p>
-                                        <RatingStars qId={q.id} />
-                                    </div>
-                                ))}
+                        {surveySections.map((section, sIdx) => (
+                            <div key={sIdx} className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-soft border border-slate-200/50 dark:border-white/5 relative overflow-hidden">
+                                <div className={`absolute right-0 top-0 p-8 opacity-5 ${section.iconColor} pointer-events-none transform translate-x-4 -translate-y-4`}><Icon name={section.icon} size={100} /></div>
+                                <h3 className="text-lg sm:text-xl font-black text-slate-800 dark:text-white mb-6 relative z-10 border-b border-slate-200 dark:border-white/10 pb-4 flex items-center gap-3"><Icon name={section.icon} className={section.iconColor} size={24}/> {section.title}</h3>
+                                <div className="space-y-4 relative z-10">
+                                    {section.questions.map(q => (
+                                        <div key={q.id} className={`${section.bg} p-5 sm:p-6 rounded-3xl ${section.border} border transition-colors shadow-sm`}>
+                                            <p className="text-sm sm:text-base font-bold text-slate-700 dark:text-slate-200 leading-relaxed">{q.text}</p>
+                                            <RatingStars qId={q.id} />
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        ))}
 
                         <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-soft border border-slate-200/50 dark:border-white/5">
-                            <h3 className="text-lg font-black text-slate-800 dark:text-white mb-4 flex items-center gap-2"><Icon name="message-square" className="text-slate-400" size={20}/> ส่วนที่ 2: ข้อเสนอแนะ (คำถามปลายเปิด)</h3>
-                            <InputField label="5. ข้อเสนอแนะเพิ่มเติม (เช่น สิ่งที่ประทับใจ, สิ่งที่ควรปรับปรุงในครั้งต่อไป, หรือหัวข้อที่อยากให้จัดในอนาคต)" value={comment} onChange={v => setComment(v)} placeholder="พิมพ์ข้อเสนอแนะของท่านที่นี่..." rows={4} />
+                            <h3 className="text-lg font-black text-slate-800 dark:text-white mb-4 flex items-center gap-2"><Icon name="message-square" className="text-purple-500" size={24}/> ส่วนที่ 4: ข้อเสนอแนะ (คำถามปลายเปิด)</h3>
+                            <InputField label="ข้อเสนอแนะเพิ่มเติม (เช่น สิ่งที่ประทับใจ, สิ่งที่ควรปรับปรุงในครั้งต่อไป, หรือหัวข้อที่อยากให้จัดในอนาคต)" value={comment} onChange={v => setComment(v)} placeholder="พิมพ์ข้อเสนอแนะของท่านที่นี่..." rows={4} />
                         </div>
 
-                        <div className="pt-4 flex justify-center">
+                        <div className="pt-6 flex justify-center">
                             <button type="submit" disabled={isSubmitting} className="w-full md:w-auto min-w-[280px] py-4 px-8 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-2xl font-black text-lg shadow-[0_0_25px_rgba(168,85,247,0.3)] hover:shadow-[0_0_35px_rgba(168,85,247,0.5)] transform hover:-translate-y-1 transition-all btn-interactive flex items-center justify-center gap-2">
                                 {isSubmitting ? <Icon name="loader-2" className="animate-spin" /> : <Icon name="send" />} ส่งแบบประเมิน
                             </button>
@@ -625,6 +686,9 @@
             );
         }
 
+        // ==========================================
+        // ✅ Success View
+        // ==========================================
         function SuccessView({ onHome }) {
             return (
                 <div className="flex items-center justify-center min-h-[80vh] p-4 animate-fade-in">
@@ -643,6 +707,9 @@
             );
         }
 
+        // ==========================================
+        // 📊 Admin Dashboard
+        // ==========================================
         function AdminDashboard({ goBack }) {
             const { isDarkMode = false } = useContext(AppContext) || {};
             const [data, setData] = useState([]);
@@ -695,6 +762,101 @@
                 }
                 return result;
             }, [data, searchTerm, activeTab, executiveMajor]);
+
+            const surveyStats = useMemo(() => {
+                let filteredSurveys = surveys;
+                if (selectedSurveyActivity !== 'ทั้งหมด') {
+                    filteredSurveys = surveys.filter(s => s.ActivityName === selectedSurveyActivity);
+                }
+
+                let total = filteredSurveys.length;
+                let commentsList = [];
+                
+                // โครงสร้างสำหรับเก็บข้อมูล 13 ข้อเพื่อหาความถี่ (Frequency), ค่าเฉลี่ย (Mean)
+                let qStats = {
+                    q1_1: { sum: 0, values: [], counts: {5:0, 4:0, 3:0, 2:0, 1:0} },
+                    q1_2: { sum: 0, values: [], counts: {5:0, 4:0, 3:0, 2:0, 1:0} },
+                    q1_3: { sum: 0, values: [], counts: {5:0, 4:0, 3:0, 2:0, 1:0} },
+                    q1_4: { sum: 0, values: [], counts: {5:0, 4:0, 3:0, 2:0, 1:0} },
+                    q2_1: { sum: 0, values: [], counts: {5:0, 4:0, 3:0, 2:0, 1:0} },
+                    q2_2: { sum: 0, values: [], counts: {5:0, 4:0, 3:0, 2:0, 1:0} },
+                    q2_3: { sum: 0, values: [], counts: {5:0, 4:0, 3:0, 2:0, 1:0} },
+                    q2_4: { sum: 0, values: [], counts: {5:0, 4:0, 3:0, 2:0, 1:0} },
+                    q3_1: { sum: 0, values: [], counts: {5:0, 4:0, 3:0, 2:0, 1:0} },
+                    q3_2: { sum: 0, values: [], counts: {5:0, 4:0, 3:0, 2:0, 1:0} },
+                    q3_3: { sum: 0, values: [], counts: {5:0, 4:0, 3:0, 2:0, 1:0} },
+                    q3_4: { sum: 0, values: [], counts: {5:0, 4:0, 3:0, 2:0, 1:0} },
+                    q3_5: { sum: 0, values: [], counts: {5:0, 4:0, 3:0, 2:0, 1:0} }
+                };
+
+                const parseVal = (val) => { const n = Number(val); return isNaN(n) ? 0 : n; };
+
+                filteredSurveys.forEach(s => {
+                    const keys = Object.keys(qStats);
+                    keys.forEach((key) => {
+                        // แมปคีย์เช่น q1_1 ไปยัง Q1_1 ใน Sheet
+                        const sKey = `Q${key.split('q')[1].toUpperCase()}`;
+                        const v = parseVal(s[sKey]);
+                        if (v > 0) { 
+                            qStats[key].sum += v; 
+                            qStats[key].values.push(v); 
+                            qStats[key].counts[v] = (qStats[key].counts[v] || 0) + 1; 
+                        }
+                    });
+
+                    if (s.Comment && s.Comment.trim() !== '') {
+                        commentsList.push({ text: s.Comment, date: s.Timestamp, student: s.StudentID });
+                    }
+                });
+
+                // ฟังก์ชันหาค่าเฉลี่ย และ S.D.
+                const getMean = (sum, count) => count > 0 ? (sum / count) : 0;
+                const getSD = (values, mean) => {
+                    if (values.length <= 1) return 0;
+                    const variance = values.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / (values.length - 1);
+                    return Math.sqrt(variance);
+                };
+
+                const questionsMap = {
+                    q1_1: '1.1 การประชาสัมพันธ์โครงการ ฯ', q1_2: '1.2 ความเหมาะสมของสถานที่', q1_3: '1.3 ความเหมาะสมของระยะเวลา', q1_4: '1.4 การจัดลำดับขั้นตอนของกิจกรรม',
+                    q2_1: '2.1 เอกสาร', q2_2: '2.2 โสตทัศนูปกรณ์', q2_3: '2.3 เจ้าหน้าที่สนับสนุน', q2_4: '2.4 อาหาร,เครื่องดื่มและสถานที่',
+                    q3_1: '3.1 ท่านได้รับความรู้ แนวคิด ทักษะฯ', q3_2: '3.2 สามารถนำสิ่งที่ได้รับไปใช้ปฏิบัติงาน', q3_3: '3.3 สิ่งที่ได้รับตรงตามความคาดหวัง', q3_4: '3.4 เอื้ออำนวยต่อการเรียนรู้และพัฒนา', q3_5: '3.5 ประโยชน์ที่ได้รับจากกิจกรรม'
+                };
+
+                const getInterpretation = (mean) => {
+                    if (mean >= 4.50) return { text: 'มากที่สุด', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-500/20' };
+                    if (mean >= 3.50) return { text: 'มาก', color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-500/20' };
+                    if (mean >= 2.50) return { text: 'ปานกลาง', color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-100 dark:bg-yellow-500/20' };
+                    if (mean >= 1.50) return { text: 'น้อย', color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-100 dark:bg-orange-500/20' };
+                    if (mean > 0) return { text: 'น้อยที่สุด', color: 'text-red-600 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-500/20' };
+                    return { text: 'ไม่มีข้อมูล', color: 'text-slate-500', bg: 'bg-slate-100 dark:bg-white/5' };
+                };
+
+                let allValues = [];
+                let overallSum = 0;
+                const details = [];
+                const chartData = [];
+
+                Object.keys(qStats).forEach(k => {
+                    const mean = getMean(qStats[k].sum, qStats[k].values.length);
+                    const sd = getSD(qStats[k].values, mean);
+                    
+                    allValues.push(...qStats[k].values);
+                    overallSum += qStats[k].sum;
+
+                    details.push({ id: k, q: questionsMap[k], mean: mean.toFixed(2), sd: sd.toFixed(2), interp: getInterpretation(mean) });
+                    chartData.push({
+                        name: k.replace('_', '.').replace('q',''),
+                        question: questionsMap[k],
+                        5: qStats[k].counts[5], 4: qStats[k].counts[4], 3: qStats[k].counts[3], 2: qStats[k].counts[2], 1: qStats[k].counts[1]
+                    });
+                });
+
+                const overallMean = getMean(overallSum, allValues.length);
+                const overallSD = getSD(allValues, overallMean);
+
+                return { total, overallMean: overallMean.toFixed(2), overallSD: overallSD.toFixed(2), overallInterp: getInterpretation(overallMean), details, chartData, commentsList };
+            }, [surveys, selectedSurveyActivity]);
 
             const stats = useMemo(() => {
                 const studentData = filteredData.filter(r => r.FullName !== 'SYSTEM_ACTIVITY_DEF' && r.BloodGroup !== 'Activity');
@@ -751,92 +913,6 @@
 
                 return { total, pieData: pieDataList, COLORS: ['#ff6600', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#facc15', '#06b6d4'], foodAlert, healthAlert, surveillanceList, surveillancePieData, normalCount, transferCount, dietStats, foodAllergies, diseases, drugAllergies, execBreakdownList, groupedAllergies, uniqueStudents, studentData: uniqueStudents };
             }, [filteredData]);
-
-            const surveyStats = useMemo(() => {
-                let filteredSurveys = surveys;
-                if (selectedSurveyActivity !== 'ทั้งหมด') {
-                    filteredSurveys = surveys.filter(s => s.ActivityName === selectedSurveyActivity);
-                }
-
-                let total = filteredSurveys.length;
-                let commentsList = [];
-                
-                // โครงสร้างสำหรับเก็บข้อมูลเพื่อหาความถี่ (Frequency), ค่าเฉลี่ย (Mean) และ S.D.
-                let qStats = {
-                    q1: { sum: 0, values: [], counts: {5:0, 4:0, 3:0, 2:0, 1:0} },
-                    q2: { sum: 0, values: [], counts: {5:0, 4:0, 3:0, 2:0, 1:0} },
-                    q3: { sum: 0, values: [], counts: {5:0, 4:0, 3:0, 2:0, 1:0} },
-                    q4: { sum: 0, values: [], counts: {5:0, 4:0, 3:0, 2:0, 1:0} }
-                };
-
-                filteredSurveys.forEach(s => {
-                    const v1 = Number(s.Q1_Overall) || 0;
-                    const v2 = Number(s.Q2_Usefulness) || 0;
-                    const v3 = Number(s.Q3_Format) || 0;
-                    const v4 = Number(s.Q4_Service) || 0;
-
-                    if (v1 > 0) { qStats.q1.sum += v1; qStats.q1.values.push(v1); qStats.q1.counts[v1] = (qStats.q1.counts[v1] || 0) + 1; }
-                    if (v2 > 0) { qStats.q2.sum += v2; qStats.q2.values.push(v2); qStats.q2.counts[v2] = (qStats.q2.counts[v2] || 0) + 1; }
-                    if (v3 > 0) { qStats.q3.sum += v3; qStats.q3.values.push(v3); qStats.q3.counts[v3] = (qStats.q3.counts[v3] || 0) + 1; }
-                    if (v4 > 0) { qStats.q4.sum += v4; qStats.q4.values.push(v4); qStats.q4.counts[v4] = (qStats.q4.counts[v4] || 0) + 1; }
-
-                    if (s.Comment && s.Comment.trim() !== '') {
-                        commentsList.push({ text: s.Comment, date: s.Timestamp, student: s.StudentID });
-                    }
-                });
-
-                // ฟังก์ชันหาค่าเฉลี่ย
-                const getMean = (sum, count) => count > 0 ? (sum / count) : 0;
-                
-                // ฟังก์ชันหาส่วนเบี่ยงเบนมาตรฐาน (S.D.)
-                const getSD = (values, mean) => {
-                    if (values.length <= 1) return 0;
-                    const variance = values.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / (values.length - 1);
-                    return Math.sqrt(variance);
-                };
-
-                // คำนวณค่า x̄ และ S.D. รายข้อ
-                const meanQ1 = getMean(qStats.q1.sum, qStats.q1.values.length); const sdQ1 = getSD(qStats.q1.values, meanQ1);
-                const meanQ2 = getMean(qStats.q2.sum, qStats.q2.values.length); const sdQ2 = getSD(qStats.q2.values, meanQ2);
-                const meanQ3 = getMean(qStats.q3.sum, qStats.q3.values.length); const sdQ3 = getSD(qStats.q3.values, meanQ3);
-                const meanQ4 = getMean(qStats.q4.sum, qStats.q4.values.length); const sdQ4 = getSD(qStats.q4.values, meanQ4);
-
-                // คำนวณค่า x̄ และ S.D. รวมทั้งหมด (Overall)
-                const allValues = [...qStats.q1.values, ...qStats.q2.values, ...qStats.q3.values, ...qStats.q4.values];
-                const overallSum = qStats.q1.sum + qStats.q2.sum + qStats.q3.sum + qStats.q4.sum;
-                const overallMean = getMean(overallSum, allValues.length);
-                const overallSD = getSD(allValues, overallMean);
-
-                // ฟังก์ชันแปลความหมาย
-                const getInterpretation = (mean) => {
-                    if (mean >= 4.50) return { text: 'มากที่สุด', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-500/20' };
-                    if (mean >= 3.50) return { text: 'มาก', color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-500/20' };
-                    if (mean >= 2.50) return { text: 'ปานกลาง', color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-100 dark:bg-yellow-500/20' };
-                    if (mean >= 1.50) return { text: 'น้อย', color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-100 dark:bg-orange-500/20' };
-                    if (mean > 0) return { text: 'น้อยที่สุด', color: 'text-red-600 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-500/20' };
-                    return { text: 'ไม่มีข้อมูล', color: 'text-slate-500', bg: 'bg-slate-100 dark:bg-white/5' };
-                };
-
-                // เตรียมข้อมูลสำหรับกราฟแจกแจงความถี่ 100% Stacked Bar
-                const chartData = [
-                    { name: 'ข้อ 1', question: '1. ภาพรวมกิจกรรม', 5: qStats.q1.counts[5], 4: qStats.q1.counts[4], 3: qStats.q1.counts[3], 2: qStats.q1.counts[2], 1: qStats.q1.counts[1] },
-                    { name: 'ข้อ 2', question: '2. ประโยชน์และการนำไปใช้', 5: qStats.q2.counts[5], 4: qStats.q2.counts[4], 3: qStats.q2.counts[3], 2: qStats.q2.counts[2], 1: qStats.q2.counts[1] },
-                    { name: 'ข้อ 3', question: '3. ความเหมาะสมของรูปแบบงาน', 5: qStats.q3.counts[5], 4: qStats.q3.counts[4], 3: qStats.q3.counts[3], 2: qStats.q3.counts[2], 1: qStats.q3.counts[1] },
-                    { name: 'ข้อ 4', question: '4. การให้บริการ/วิทยากร', 5: qStats.q4.counts[5], 4: qStats.q4.counts[4], 3: qStats.q4.counts[3], 2: qStats.q4.counts[2], 1: qStats.q4.counts[1] }
-                ];
-
-                const details = [
-                    { q: '1. ความพึงพอใจในภาพรวมที่มีต่อโครงการ/กิจกรรมนี้', mean: meanQ1.toFixed(2), sd: sdQ1.toFixed(2), interp: getInterpretation(meanQ1) },
-                    { q: '2. ประโยชน์ที่ได้รับ และความสามารถในการนำความรู้/ประสบการณ์ไปปรับใช้ได้จริง', mean: meanQ2.toFixed(2), sd: sdQ2.toFixed(2), interp: getInterpretation(meanQ2) },
-                    { q: '3. ความเหมาะสมของรูปแบบงาน (เช่น ระยะเวลา, สถานที่, หรือความสะดวก)', mean: meanQ3.toFixed(2), sd: sdQ3.toFixed(2), interp: getInterpretation(meanQ3) },
-                    { q: '4. การให้บริการและการอำนวยความสะดวก ของทีมงาน/เจ้าหน้าที่/วิทยากร', mean: meanQ4.toFixed(2), sd: sdQ4.toFixed(2), interp: getInterpretation(meanQ4) }
-                ];
-
-                return { 
-                    total, overallMean: overallMean.toFixed(2), overallSD: overallSD.toFixed(2), overallInterp: getInterpretation(overallMean),
-                    details, chartData, commentsList 
-                };
-            }, [surveys, selectedSurveyActivity]);
 
             const handleDrilldown = (title, type, key) => {
                 let filtered = [];
@@ -935,7 +1011,15 @@
                         sheetName = "Activity_Attendees"; break;
                     case 'survey_summary':
                         if (surveys.length === 0) return;
-                        exportData = (selectedSurveyActivity === 'ทั้งหมด' ? surveys : surveys.filter(s => s.ActivityName === selectedSurveyActivity)).map(s => ({ 'ชื่อกิจกรรม': s.ActivityName, 'รหัสนักศึกษา': s.StudentID, '1.ภาพรวม': s.Q1_Overall, '2.ประโยชน์ที่ได้รับ': s.Q2_Usefulness, '3.รูปแบบงาน': s.Q3_Format, '4.การบริการ': s.Q4_Service, 'ข้อเสนอแนะ': s.Comment, 'เวลาประเมิน': new Date(s.Timestamp).toLocaleString('th-TH') }));
+                        exportData = (selectedSurveyActivity === 'ทั้งหมด' ? surveys : surveys.filter(s => s.ActivityName === selectedSurveyActivity)).map(s => ({ 
+                            'ชื่อกิจกรรม': s.ActivityName, 
+                            'รหัสนักศึกษา': s.StudentID, 
+                            '1.1 ประชาสัมพันธ์': s.Q1_1, '1.2 สถานที่': s.Q1_2, '1.3 ระยะเวลา': s.Q1_3, '1.4 ลำดับขั้นตอน': s.Q1_4,
+                            '2.1 เอกสาร': s.Q2_1, '2.2 โสตทัศนูปกรณ์': s.Q2_2, '2.3 จนท.สนับสนุน': s.Q2_3, '2.4 อาหาร/สถานที่': s.Q2_4,
+                            '3.1 ความรู้/ทักษะใหม่': s.Q3_1, '3.2 นำไปใช้ปฏิบัติงาน': s.Q3_2, '3.3 ตรงความคาดหวัง': s.Q3_3, '3.4 เอื้อต่อการเรียนรู้': s.Q3_4, '3.5 ประโยชน์': s.Q3_5,
+                            'ข้อเสนอแนะ': s.Comment, 
+                            'เวลาประเมิน': new Date(s.Timestamp).toLocaleString('th-TH') 
+                        }));
                         sheetName = "Survey_Results"; break;
                     default:
                         exportData = stats.studentData;
@@ -1431,7 +1515,7 @@
                             </div>
                         )}
 
-                        {/* TAB 8: SURVEY SUMMARY (สรุปแบบสอบถามเชิงปริมาณ) */}
+                        {/* TAB 8: SURVEY SUMMARY (สรุปแบบสอบถามเชิงปริมาณ 13 ข้อ) */}
                         {activeTab === 'survey_summary' && (
                             <div className="space-y-6 animate-fade-in print:space-y-4">
                                 <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-yellow-500 shadow-soft relative overflow-hidden bg-gradient-to-b from-white to-yellow-50/30 dark:from-zinc-900 dark:to-zinc-900/50 print:border-none print:shadow-none print:bg-white print:p-0">
@@ -1444,7 +1528,7 @@
                                                 <div className="p-3 bg-yellow-100 dark:bg-yellow-500/20 text-yellow-600 rounded-2xl shadow-inner print:hidden"><Icon name="bar-chart-2" size={24}/></div>
                                                 รายงานสถิติเชิงปริมาณ (Quantitative Analysis)
                                             </h3>
-                                            <p className="text-slate-500 mt-2 font-medium text-sm">การวิเคราะห์ค่าเฉลี่ย (x̄) และส่วนเบี่ยงเบนมาตรฐาน (S.D.) จากผู้ตอบแบบสอบถาม</p>
+                                            <p className="text-slate-500 mt-2 font-medium text-sm">การวิเคราะห์ค่าเฉลี่ย (x̄) และส่วนเบี่ยงเบนมาตรฐาน (S.D.) จากแบบประเมินรวม 13 หัวข้อ</p>
                                         </div>
                                         <div className="relative w-full md:w-80 print:hidden">
                                             <select className="w-full appearance-none input-modern rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold shadow-sm cursor-pointer border-slate-200 dark:border-white/10" value={selectedSurveyActivity} onChange={e => setSelectedSurveyActivity(e.target.value)}>
@@ -1460,6 +1544,7 @@
                                     <div className="glass-panel p-12 rounded-[2.5rem] flex flex-col items-center justify-center text-slate-400 shadow-soft border border-slate-200/50 dark:border-white/5"><Icon name="inbox" size={48} className="mb-4 opacity-30" /><p className="font-semibold text-lg">ยังไม่มีผู้ตอบแบบประเมินในหัวข้อนี้</p></div>
                                 ) : (
                                     <>
+                                        {/* KPI Cards */}
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 print:grid-cols-3">
                                             <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-slate-200/50 dark:border-white/5 shadow-soft flex items-center justify-between group print:border-slate-300 print:shadow-none print:p-4">
                                                 <div>
@@ -1484,15 +1569,25 @@
                                             </div>
                                         </div>
 
+                                        {/* Quantitative Chart (100% Stacked Bar) */}
                                         <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-soft border border-slate-200/50 dark:border-white/5 print:border-slate-300 print:shadow-none print:break-inside-avoid">
                                             <h4 className="text-lg font-black text-slate-800 dark:text-white mb-2 flex items-center gap-2 print:text-black"><Icon name="pie-chart" size={20} className="text-brand print:hidden"/> การแจกแจงความถี่ (ร้อยละ)</h4>
-                                            <p className="text-xs font-bold text-slate-500 mb-6 print:text-slate-600">แสดงสัดส่วนการให้คะแนน (5 = มากที่สุด, 1 = น้อยที่สุด) ในแต่ละหัวข้อ</p>
-                                            <div className="w-full h-[250px] print:h-[200px]">
+                                            <p className="text-xs font-bold text-slate-500 mb-6 print:text-slate-600">แสดงสัดส่วนการให้คะแนน (5 = มากที่สุด, 1 = น้อยที่สุด) ในแต่ละข้อ</p>
+                                            
+                                            <div className="w-full h-[800px] print:h-[600px]">
                                                 <ResponsiveContainer width="100%" height="100%">
-                                                    <BarChart data={surveyStats.chartData} layout="vertical" margin={{ top: 0, right: 0, left: -20, bottom: 0 }} stackOffset="expand">
+                                                    <BarChart data={surveyStats.chartData} layout="vertical" margin={{ top: 0, right: 0, left: 10, bottom: 0 }} stackOffset="expand">
                                                         <XAxis type="number" hide />
                                                         <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: isDarkMode ? '#94a3b8' : '#475569', fontSize: 12, fontWeight: 'bold'}} />
-                                                        <Tooltip cursor={{fill: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}} contentStyle={pieTooltipStyle} formatter={(value, name, props) => [`${props.payload[name]} คน (${(value * 100).toFixed(1)}%)`, `${name} ดาว`]}/>
+                                                        <Tooltip 
+                                                            cursor={{fill: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}} 
+                                                            contentStyle={pieTooltipStyle}
+                                                            formatter={(value, name, props) => {
+                                                                const count = props.payload[name];
+                                                                const percent = (value * 100).toFixed(1);
+                                                                return [`${count} คน (${percent}%)`, `${name} ดาว`];
+                                                            }}
+                                                        />
                                                         <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{fontSize: '12px', fontWeight: 'bold'}} formatter={(value) => `${value} ดาว`}/>
                                                         <Bar dataKey="5" stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} />
                                                         <Bar dataKey="4" stackId="a" fill="#3b82f6" radius={[0, 0, 0, 0]} />
@@ -1504,27 +1599,37 @@
                                             </div>
                                         </div>
 
+                                        {/* Detailed Table */}
                                         <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-soft border border-slate-200/50 dark:border-white/5 print:border-slate-300 print:shadow-none">
                                             <h4 className="text-lg font-black text-slate-800 dark:text-white mb-6 flex items-center gap-2 print:text-black"><Icon name="table" size={20} className="text-brand print:hidden"/> สรุปผลการประเมินรายข้อ</h4>
+                                            
                                             <div className="overflow-x-auto -mx-2 px-2 custom-scrollbar">
                                                 <table className="w-full text-sm text-left min-w-[600px]">
                                                     <thead className="text-[11px] text-slate-400 uppercase tracking-widest border-b border-slate-200 dark:border-white/10 print:border-black">
-                                                        <tr><th className="py-3 px-2">ประเด็นการประเมิน</th><th className="py-3 px-2 text-center w-24">x̄</th><th className="py-3 px-2 text-center w-24">S.D.</th><th className="py-3 px-2 text-center w-32">แปลความหมาย</th></tr>
+                                                        <tr>
+                                                            <th className="py-3 px-2">ประเด็นการประเมิน</th>
+                                                            <th className="py-3 px-2 text-center w-24">x̄</th>
+                                                            <th className="py-3 px-2 text-center w-24">S.D.</th>
+                                                            <th className="py-3 px-2 text-center w-32">แปลความหมาย</th>
+                                                        </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-slate-100 dark:divide-white/5 print:divide-slate-300">
                                                         {surveyStats.details.map((item, idx) => (
                                                             <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
-                                                                <td className="py-4 px-2 font-semibold text-slate-700 dark:text-slate-300 leading-relaxed pr-6 print:text-black">{item.q}</td>
+                                                                <td className="py-4 px-2 font-semibold text-slate-700 dark:text-slate-300 leading-relaxed pr-6 print:text-black"><span className="text-slate-400 mr-2">{item.id.replace('_', '.').replace('q','')}</span>{item.q.substring(item.q.indexOf(' ')+1)}</td>
                                                                 <td className="py-4 px-2 text-center font-black text-lg text-slate-800 dark:text-white print:text-black">{item.mean}</td>
                                                                 <td className="py-4 px-2 text-center font-bold text-slate-500 print:text-slate-600">{item.sd}</td>
                                                                 <td className="py-4 px-2 text-center">
-                                                                    <span className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-xs font-black shadow-sm border border-white/50 dark:border-black/20 print:border-slate-400 print:text-black print:bg-transparent ${item.interp.bg} ${item.interp.color}`}>{item.interp.text}</span>
+                                                                    <span className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-xs font-black shadow-sm border border-white/50 dark:border-black/20 print:border-slate-400 print:text-black print:bg-transparent ${item.interp.bg} ${item.interp.color}`}>
+                                                                        {item.interp.text}
+                                                                    </span>
                                                                 </td>
                                                             </tr>
                                                         ))}
                                                     </tbody>
                                                 </table>
                                             </div>
+                                            
                                             <div className="mt-6 p-4 rounded-2xl bg-brand/5 border border-brand/20 flex flex-col sm:flex-row justify-between items-center print:bg-white print:border-slate-300">
                                                 <span className="font-bold text-brand uppercase tracking-widest text-sm">สรุประดับความพึงพอใจโดยรวม</span>
                                                 <div className="flex items-center gap-4 mt-2 sm:mt-0">
@@ -1532,11 +1637,14 @@
                                                         <span className="text-[10px] font-bold text-slate-500 uppercase block print:text-black">Mean (x̄) / S.D.</span>
                                                         <span className="text-xl font-black text-slate-800 dark:text-white print:text-black">{surveyStats.overallMean} <span className="text-sm font-semibold text-slate-400">/ {surveyStats.overallSD}</span></span>
                                                     </div>
-                                                    <span className={`px-4 py-2 rounded-xl font-black text-sm shadow-sm border border-white/50 print:border-slate-400 print:bg-transparent print:text-black ${surveyStats.overallInterp.bg} ${surveyStats.overallInterp.color}`}>ระดับ{surveyStats.overallInterp.text}</span>
+                                                    <span className={`px-4 py-2 rounded-xl font-black text-sm shadow-sm border border-white/50 print:border-slate-400 print:bg-transparent print:text-black ${surveyStats.overallInterp.bg} ${surveyStats.overallInterp.color}`}>
+                                                        ระดับ{surveyStats.overallInterp.text}
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
 
+                                        {/* Feedback Section */}
                                         {surveyStats.commentsList.length > 0 && (
                                             <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-soft border border-slate-200/50 dark:border-white/5 print:border-slate-300 print:shadow-none">
                                                 <div className="flex items-center justify-between mb-6">
@@ -1548,7 +1656,8 @@
                                                             <Icon name="quote" size={24} className="text-slate-200 dark:text-white/5 absolute top-4 right-4 print:hidden" />
                                                             <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed relative z-10 font-medium mb-3 print:text-black">"{cmt.text}"</p>
                                                             <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-widest border-t border-slate-100 dark:border-white/5 pt-3 print:border-slate-200 print:text-slate-600">
-                                                                <span>รหัสนักศึกษา: {cmt.student}</span><span>{new Date(cmt.date).toLocaleDateString('th-TH')}</span>
+                                                                <span>รหัสนักศึกษา: {cmt.student}</span>
+                                                                <span>{new Date(cmt.date).toLocaleDateString('th-TH')}</span>
                                                             </div>
                                                         </div>
                                                     ))}
@@ -1561,14 +1670,15 @@
                         )}
                     </div>
 
-                    {/* Drilldown Modal */}
+                    {/* MODALS: Drilldown */}
                     {drilldownData.list.length > 0 && (
                         <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 dark:bg-black/90 backdrop-blur-lg animate-fade-in print:hidden">
                             <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 p-6 md:p-8 rounded-[2.5rem] w-full max-w-5xl max-h-[90vh] flex flex-col shadow-[0_20px_60px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.8)] animate-slide-up text-left overflow-hidden">
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 shrink-0">
                                     <div>
                                         <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
-                                            <div className={`p-3 rounded-2xl text-white shadow-md ${drilldownHeaderColor}`}><Icon name={drilldownIcon} size={24}/></div> {drilldownData.title}
+                                            <div className={`p-3 rounded-2xl text-white shadow-md ${drilldownHeaderColor}`}><Icon name={drilldownIcon} size={24}/></div>
+                                            {drilldownData.title}
                                         </h3>
                                         <p className="text-sm font-semibold text-slate-500 mt-2">พบทั้งหมด <span className="text-brand font-black bg-brand/10 px-2 py-0.5 rounded-md">{drilldownData.list.length}</span> รายการ</p>
                                     </div>
@@ -1577,7 +1687,12 @@
                                 <div className="overflow-y-auto flex-1 custom-scrollbar -mx-2 px-2">
                                     <table className="w-full text-sm text-left">
                                         <thead className="text-xs text-slate-500 uppercase tracking-widest bg-slate-100/80 dark:bg-zinc-800/80 sticky top-0 rounded-xl z-10 shadow-sm backdrop-blur-md">
-                                            <tr><th className="px-6 py-5 rounded-l-xl font-black">ชื่อ-นามสกุล</th><th className="px-6 py-5 font-black">รหัสนักศึกษา</th><th className="px-6 py-5 font-black">สาขาวิชา</th><th className="px-6 py-5 rounded-r-xl font-black">ข้อมูลติดต่อ</th></tr>
+                                            <tr>
+                                                <th className="px-6 py-5 rounded-l-xl font-black">ชื่อ-นามสกุล</th>
+                                                <th className="px-6 py-5 font-black">รหัสนักศึกษา</th>
+                                                <th className="px-6 py-5 font-black">สาขาวิชา</th>
+                                                <th className="px-6 py-5 rounded-r-xl font-black">ข้อมูลติดต่อ</th>
+                                            </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                                             {drilldownData.list.map((row, idx) => (
