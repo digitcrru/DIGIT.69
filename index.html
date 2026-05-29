@@ -845,6 +845,9 @@
                 </div>
             );
 
+            // =====================================
+            // การตั้งชื่อแท็บ ตามที่ผู้ใช้ต้องการ
+            // =====================================
             const TABS = [
                 { id: 'overview', icon: 'layout-dashboard', label: 'ภาพรวม' },
                 { id: 'majors', icon: 'pie-chart', label: 'สาขาวิชา' },
@@ -856,8 +859,6 @@
 
             const pieTooltipStyle = { backgroundColor: isDarkMode ? 'rgba(24, 24, 27, 0.95)' : 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' };
             const pieItemStyle = { fontWeight: 'bold', color: isDarkMode ? '#fff' : '#1e293b' };
-            const drilldownIcon = drilldownData.type === 'activity_regs' || drilldownData.type === 'activity_major' ? "calendar-check" : "users";
-            const drilldownHeaderColor = (drilldownData.type === 'activity_regs' || drilldownData.type === 'activity_major') ? 'bg-purple-500 shadow-glow-brand' : (drilldownData.type.includes('diet') || drilldownData.type.includes('food') || drilldownData.type === 'allergy_group') ? 'bg-orange-500 shadow-glow-brand' : (drilldownData.type === 'demographics' || drilldownData.type === 'major_breakdown' || drilldownData.type === 'majors') ? 'bg-blue-500' : drilldownData.title.includes('ทั้งหมด') ? 'bg-brand shadow-glow-brand' : drilldownData.type === 'healthy' ? 'bg-emerald-500' : 'bg-red-500 shadow-glow-red';
 
             return (
                 <div className="flex flex-col md:flex-row gap-6 animate-fade-in pb-20 items-start w-full">
@@ -889,7 +890,7 @@
                                     <input type="text" placeholder="ค้นหาชื่อ, รหัสนศ..." value={searchTerm} onChange={(e) => {setSearchTerm(e.target.value); setCurrentPage(1);}} className="w-full pl-10 pr-8 py-2.5 rounded-xl input-modern text-sm font-semibold"/>
                                 </div>
                                 <div className="flex flex-wrap w-full sm:w-auto gap-2 justify-start sm:justify-end">
-                                    <button onClick={handleExport} className="px-5 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-xl font-bold text-sm flex items-center gap-2 transition-all btn-interactive shadow-sm whitespace-nowrap"><Icon name="download" size={16} /> Export {(TABS.find(t=>t.id===activeTab) || {}).label}</button>
+                                    <button onClick={exportExcel} className="px-5 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-xl font-bold text-sm flex items-center gap-2 transition-all btn-interactive shadow-sm whitespace-nowrap"><Icon name="download" size={16} /> Export {(TABS.find(t=>t.id===activeTab) || {}).label}</button>
                                     <button onClick={goBack} className="p-2.5 bg-red-50 dark:bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white btn-interactive shadow-sm"><Icon name="log-out" size={18}/></button>
                                 </div>
                             </div>
@@ -942,7 +943,10 @@
                         {activeTab === 'majors' && (
                             <div className="grid lg:grid-cols-5 gap-6 animate-fade-in">
                                 <div className="lg:col-span-2 glass-panel p-6 md:p-8 rounded-[2rem] shadow-sm flex flex-col items-center justify-center min-h-[450px] border border-slate-200/50 dark:border-white/5 relative overflow-hidden">
-                                    <div className="w-full mb-2 text-center relative z-10"><h3 className="text-2xl font-black text-slate-800 dark:text-white">สัดส่วนสาขาวิชา</h3><p className="text-xs font-bold text-emerald-500 mt-1 uppercase tracking-widest flex items-center justify-center gap-1"><Icon name="check-circle" size={12}/> ข้อมูลผ่านการตรวจสอบซ้ำแล้ว</p></div>
+                                    <div className="w-full mb-2 text-center relative z-10">
+                                        <h3 className="text-2xl font-black text-slate-800 dark:text-white">สัดส่วนสาขาวิชา</h3>
+                                        <p className="text-xs font-bold text-emerald-500 mt-1 uppercase tracking-widest flex items-center justify-center gap-1"><Icon name="check-circle" size={12}/> ข้อมูลผ่านการตรวจสอบซ้ำแล้ว</p>
+                                    </div>
                                     <div className="w-full flex-1 relative min-h-[320px] mt-4 z-10">
                                         {stats.pieData.length === 0 ? <div className="w-full h-full flex items-center justify-center text-slate-400">ไม่มีข้อมูล</div> : (
                                             <ResponsiveContainer width="100%" height="100%">
@@ -1018,7 +1022,20 @@
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <StatCard label="ผู้ที่มีโรคประจำตัว" value={stats.diseases.length} icon="activity" color="pink" onClick={() => handleDrilldown('รายชื่อผู้มีโรคประจำตัว', 'disease', '')} subtext="คน" />
                                     <StatCard label="ผู้ที่มีประวัติแพ้ยา" value={stats.drugAllergies.length} icon="pill" color="purple" onClick={() => handleDrilldown('รายชื่อผู้มีประวัติแพ้ยา', 'drug_allergy', '')} subtext="คน" />
-                                    <StatCard label="กลุ่มเปราะบาง (เสี่ยงรวม)" value={stats.healthAlert} icon="shield-alert" color="red" onClick={() => handleDrilldown('กลุ่มเปราะบาง (เฝ้าระวังพิเศษ)', 'health_alert', '')} subtext="คน" />
+                                    <div onClick={() => handleDrilldown('กลุ่มเปราะบาง (เสี่ยงรวม)', 'health_alert', '')} className="p-6 md:p-8 rounded-[2rem] border border-red-200 dark:border-red-900/50 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/40 dark:to-red-900/20 relative overflow-hidden shadow-glow-red cursor-pointer btn-interactive group transition-all flex flex-col justify-between min-h-[180px]">
+                                        <div className="absolute right-0 top-0 p-6 opacity-10 group-hover:opacity-20 transition-all transform translate-x-2 -translate-y-2 text-red-600"><Icon name="shield-alert" size={100} /></div>
+                                        <div className="flex justify-between items-start mb-4 relative z-10">
+                                            <div className="p-3.5 rounded-[1rem] bg-red-500 text-white shadow-sm"><Icon name="shield-alert" size={28} /></div>
+                                            <div className="p-2 bg-white/50 dark:bg-black/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity text-red-600 border border-red-200 dark:border-red-800"><Icon name="search" size={16} /></div>
+                                        </div>
+                                        <div className="relative z-10">
+                                            <p className="text-red-700 dark:text-red-400 text-sm font-bold uppercase tracking-wider mb-1">กลุ่มเปราะบาง (เสี่ยงรวม)</p>
+                                            <div className="flex items-end gap-3">
+                                                <h3 className="text-5xl md:text-6xl font-black text-red-600 dark:text-red-400 drop-shadow-sm leading-none">{stats.healthAlert}</h3>
+                                                <span className="text-base font-bold text-red-500/70 mb-1">คน</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-soft border border-slate-200/50 dark:border-white/5">
                                     <div className="p-6 md:px-8 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex items-center gap-3">
@@ -1057,6 +1074,7 @@
                                 <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-soft relative overflow-hidden border-t-[8px] border-t-purple-500 border border-slate-200/50 dark:border-white/5">
                                     <div className="absolute top-0 right-0 p-8 opacity-5 text-purple-500 pointer-events-none transform translate-x-4 -translate-y-4"><Icon name="calendar-plus" size={120} /></div>
                                     <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white mb-8 flex items-center gap-3 relative z-10"><div className="p-3 bg-purple-100 dark:bg-purple-500/20 text-purple-600 rounded-2xl shadow-inner"><Icon name="calendar-plus" size={24}/></div> สร้างกิจกรรมใหม่</h3>
+                                    
                                     <form onSubmit={handleCreateActivity} className="relative z-10 space-y-6">
                                         <div className="grid grid-cols-1 gap-6">
                                             <InputField label="ชื่อกิจกรรม" value={activityForm.name} onChange={v => setActivityForm({...activityForm, name: v})} placeholder="เช่น ปฐมนิเทศนักศึกษาใหม่" required />
@@ -1076,7 +1094,9 @@
                                         <div className="p-6 md:px-8 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5"><h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-3"><Icon name="list" className="text-slate-400" size={18}/> รายการกิจกรรมทั้งหมด <span className="text-xs bg-purple-100 dark:bg-purple-500/20 text-purple-600 px-2 py-1 rounded-md font-semibold ml-2">(คลิกเปิด-ปิดสถานะ หรือดูผู้ลงทะเบียน)</span></h3></div>
                                         <div className="overflow-x-auto p-2 custom-scrollbar">
                                             <table className="w-full text-sm text-left min-w-[700px]">
-                                                <thead className="text-[11px] text-slate-400 uppercase tracking-widest bg-transparent"><tr><th className="px-6 py-3">ชื่อกิจกรรม</th><th className="px-6 py-3">วันที่และเวลา</th><th className="px-6 py-3">สถานที่จัดกิจกรรม</th><th className="px-6 py-3 text-center">สถานะ (เปิด/ปิด)</th><th className="px-6 py-3 text-center">ผู้เข้าร่วม (คน)</th><th className="px-6 py-3"></th></tr></thead>
+                                                <thead className="text-[11px] text-slate-400 uppercase tracking-widest bg-transparent">
+                                                    <tr><th className="px-6 py-3">ชื่อกิจกรรม</th><th className="px-6 py-3">วันที่และเวลา</th><th className="px-6 py-3">สถานที่จัดกิจกรรม</th><th className="px-6 py-3 text-center">สถานะ (เปิด/ปิด)</th><th className="px-6 py-3 text-center">ผู้เข้าร่วม (คน)</th><th className="px-6 py-3"></th></tr>
+                                                </thead>
                                                 <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                                                     {activityDefs.map((act, idx) => {
                                                         const attendeesCount = activityLogs.filter(r => r.ActivityName === act.ActivityName).length;
@@ -1211,7 +1231,7 @@
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 shrink-0">
                                     <div>
                                         <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
-                                            <div className={`p-3 rounded-2xl text-white shadow-md ${drilldownData.type === 'activity_regs' || drilldownData.type === 'activity_major' ? 'bg-pink-500 shadow-glow-brand' : drilldownData.type.includes('diet') || drilldownData.type.includes('food') || drilldownData.type === 'allergy_group' ? 'bg-orange-500 shadow-glow-brand' : drilldownData.type === 'demographics' || drilldownData.type === 'major_breakdown' || drilldownData.type === 'majors' ? 'bg-blue-500' : drilldownData.title.includes('ทั้งหมด') ? 'bg-brand shadow-glow-brand' : drilldownData.type === 'healthy' ? 'bg-emerald-500' : 'bg-red-500 shadow-glow-red'}`}><Icon name={drilldownData.type === 'activity_regs' || drilldownData.type === 'activity_major' ? "calendar-check" : "users"} size={24}/></div>
+                                            <div className={`p-3 rounded-2xl text-white shadow-md ${drilldownHeaderColor}`}><Icon name={drilldownIcon} size={24}/></div>
                                             {drilldownData.title}
                                         </h3>
                                         <p className="text-sm font-semibold text-slate-500 mt-2">พบทั้งหมด <span className="text-brand font-black bg-brand/10 px-2 py-0.5 rounded-md">{drilldownData.list.length}</span> รายการ</p>
