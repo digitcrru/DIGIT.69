@@ -471,9 +471,10 @@
                 try {
                     const payload = { StudentID: formData.StudentID, FullName: formData.FullName, Major: formData.Major, IDCard: formData.IDCard, StudentPhone: formData.StudentPhone, ActivityName: formData.ActivityName };
                     const res = await submitToAPI('log_activity', payload); 
-                    if (res.success) { Swal.close(); onSuccess(); } else { throw new Error(res.message); }
+                    if (res.success) { Swal.close(); onSuccess(formData.ActivityName, formData.StudentID); } 
+                    else { throw new Error(res.message); }
                 } catch (err) {
-                    Swal.fire({ icon: 'error', title: 'Error', text: err.message, customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
+                    Swal.fire({ icon: 'error', title: 'ไม่สามารถลงทะเบียนได้', text: err.message, customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
                 } finally { setIsSubmitting(false); }
             };
 
@@ -547,7 +548,7 @@
         }
 
         // ==========================================
-        // 📊 แบบประเมิน SurveyForm
+        // 📊 แบบประเมิน SurveyForm (ใหม่)
         // ==========================================
         function SurveyForm({ onBack, onSuccess, activityName, studentID }) {
             const [rating, setRating] = useState(5);
@@ -637,6 +638,7 @@
             const [drilldownData, setDrilldownData] = useState({ title: '', list: [], type: '' });
             const [currentPage, setCurrentPage] = useState(1);
             const [searchTerm, setSearchTerm] = useState('');
+            const [executiveMajor, setExecutiveMajor] = useState('ทั้งหมด');
             const [activityDefs, setActivityDefs] = useState([]);
             const [activityLogs, setActivityLogs] = useState([]);
             const [activityForm, setActivityForm] = useState({ name: '', date: '', location: '' });
@@ -659,14 +661,23 @@
                 return () => clearInterval(intervalId);
             }, []);
 
+            const executiveBaseMajors = useMemo(() => {
+                const mSet = new Set();
+                data.filter(r => r.FullName !== 'SYSTEM_ACTIVITY_DEF' && r.BloodGroup !== 'Activity').forEach(r => { if(r.Major) mSet.add(r.Major.replace(/\s*\(เทียบโอน\)/g, '').trim()); });
+                return Array.from(mSet).sort();
+            }, [data]);
+
             const filteredData = useMemo(() => {
                 let result = data;
                 if (searchTerm) {
                     const s = searchTerm.toLowerCase();
                     result = result.filter(r => (r.FullName || '').toLowerCase().includes(s) || (r.StudentID || '').toLowerCase().includes(s) || (r.Major || '').toLowerCase().includes(s) || (r.StudentPhone || '').includes(s) || (r.ParentPhone || '').includes(s));
                 }
+                if (activeTab === 'executive' && executiveMajor !== 'ทั้งหมด') {
+                    result = result.filter(r => { const baseMajor = r.Major ? r.Major.replace(/\s*\(เทียบโอน\)/g, '').trim() : ''; return baseMajor === executiveMajor; });
+                }
                 return result;
-            }, [data, searchTerm]);
+            }, [data, searchTerm, activeTab, executiveMajor]);
 
             const stats = useMemo(() => {
                 const studentData = filteredData.filter(r => r.FullName !== 'SYSTEM_ACTIVITY_DEF' && r.BloodGroup !== 'Activity');
@@ -677,12 +688,16 @@
                 let total = uniqueStudents.length, normalCount = 0, transferCount = 0, foodAlert = 0, healthAlert = 0;
                 let majorCount = {}, dietStats = { 'ฮาลาล': 0, 'มังสวิรัติ': 0, 'เจ': 0, 'อาหารปกติ': 0 }, foodAllergies = [], diseases = [], drugAllergies = [];
                 const surveillanceList = []; let surveillanceRiskPie = { 'ด้านการแพทย์': 0, 'ด้านโภชนาการ': 0, 'ความเสี่ยงซ้อน (ทั้งสอง)': 0 };
-                let allergyCounts = {};
+                let execBreakdownMap = {}; let allergyCounts = {};
 
                 uniqueStudents.forEach(s => {
                     if(s.Major) {
                         majorCount[s.Major] = (majorCount[s.Major] || 0) + 1;
                         s.Major.includes("เทียบโอน") ? transferCount++ : normalCount++;
+                        const baseName = s.Major.replace(/\s*\(เทียบโอน\)/g, '').trim();
+                        if (!execBreakdownMap[baseName]) execBreakdownMap[baseName] = { name: baseName, normal: 0, transfer: 0, total: 0 };
+                        s.Major.includes('เทียบโอน') ? execBreakdownMap[baseName].transfer++ : execBreakdownMap[baseName].normal++;
+                        execBreakdownMap[baseName].total++;
                     }
                     let hasF = s.FoodAllergy !== 'ไม่แพ้' || s.SpecificDiet !== 'ไม่มี';
                     let hasH = s.Disease !== 'ไม่มี' || s.DrugAllergy !== 'ไม่แพ้';
@@ -714,9 +729,10 @@
 
                 const surveillancePieData = Object.keys(surveillanceRiskPie).map(k => ({name: k, value: surveillanceRiskPie[k]})).filter(d => d.value > 0);
                 const pieDataList = Object.keys(majorCount).map(k=>({name:k, value:majorCount[k]}));
+                const execBreakdownList = Object.values(execBreakdownMap).sort((a,b) => b.total - a.total);
                 const groupedAllergies = Object.keys(allergyCounts).map(name => ({name, count: allergyCounts[name]})).sort((a,b) => b.count - a.count);
 
-                return { total, pieData: pieDataList, COLORS: ['#ff6600', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#facc15', '#06b6d4'], foodAlert, healthAlert, surveillanceList, surveillancePieData, normalCount, transferCount, dietStats, foodAllergies, diseases, drugAllergies, groupedAllergies, uniqueStudents, studentData: uniqueStudents };
+                return { total, pieData: pieDataList, COLORS: ['#ff6600', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#facc15', '#06b6d4'], foodAlert, healthAlert, surveillanceList, surveillancePieData, normalCount, transferCount, dietStats, foodAllergies, diseases, drugAllergies, execBreakdownList, groupedAllergies, uniqueStudents, studentData: uniqueStudents };
             }, [filteredData]);
 
             const handleDrilldown = (title, type, key) => {
@@ -729,15 +745,28 @@
                 else if (type === 'health_alert') filtered = stats.uniqueStudents.filter(s => (s.Disease && s.Disease !== 'ไม่มี') || (s.DrugAllergy && s.DrugAllergy !== 'ไม่แพ้'));
                 else if (type === 'disease') filtered = stats.uniqueStudents.filter(s => s.Disease && s.Disease !== 'ไม่มี');
                 else if (type === 'drug_allergy') filtered = stats.uniqueStudents.filter(s => s.DrugAllergy && s.DrugAllergy !== 'ไม่แพ้');
-                else if (type === 'majors') filtered = stats.uniqueStudents.filter(s => s.Major && s.Major.includes(key));
-                else if (type === 'surveillance_all') filtered = stats.surveillanceList;
-                else if (type === 'surveillance_pie') {
+                else if (type === 'demographics') {
+                    if (key === 'normal') filtered = stats.uniqueStudents.filter(s => s.Major && !s.Major.includes('เทียบโอน'));
+                    else if (key === 'transfer') filtered = stats.uniqueStudents.filter(s => s.Major && s.Major.includes('เทียบโอน'));
+                } else if (type === 'major_breakdown') {
+                    if (key.type === 'normal') filtered = stats.uniqueStudents.filter(s => s.Major && s.Major.includes(key.major) && !s.Major.includes('เทียบโอน'));
+                    else if (key.type === 'transfer') filtered = stats.uniqueStudents.filter(s => s.Major && s.Major.includes(key.major) && s.Major.includes('เทียบโอน'));
+                    else filtered = stats.uniqueStudents.filter(s => s.Major && s.Major.includes(key.major));
+                } else if (type === 'majors') {
+                    filtered = stats.uniqueStudents.filter(s => s.Major && s.Major.includes(key));
+                } else if (type === 'surveillance_all') {
+                    filtered = stats.surveillanceList;
+                } else if (type === 'surveillance_pie') {
                     if (key === 'ด้านโภชนาการ') filtered = stats.surveillanceList.filter(s => (s.FoodAllergy !== 'ไม่แพ้' || s.SpecificDiet !== 'ไม่มี') && !(s.Disease !== 'ไม่มี' || s.DrugAllergy !== 'ไม่แพ้'));
                     else if (key === 'ด้านการแพทย์') filtered = stats.surveillanceList.filter(s => !(s.FoodAllergy !== 'ไม่แพ้' || s.SpecificDiet !== 'ไม่มี') && (s.Disease !== 'ไม่มี' || s.DrugAllergy !== 'ไม่แพ้'));
                     else if (key === 'ความเสี่ยงซ้อน (ทั้งสอง)') filtered = stats.surveillanceList.filter(s => (s.FoodAllergy !== 'ไม่แพ้' || s.SpecificDiet !== 'ไม่มี') && (s.Disease !== 'ไม่มี' || s.DrugAllergy !== 'ไม่แพ้'));
-                } else if (type === 'allergy_group') filtered = stats.uniqueStudents.filter(s => s.FoodAllergy && s.FoodAllergy.includes(key));
-                else if (type === 'activity_regs') filtered = activityLogs.filter(r => r.ActivityName === key);
-                else if (type === 'activity_major') filtered = activityLogs.filter(r => r.ActivityName === key.activity && (r.Major || 'ไม่ระบุ') === key.major);
+                } else if (type === 'allergy_group') {
+                    filtered = stats.uniqueStudents.filter(s => s.FoodAllergy && s.FoodAllergy.includes(key));
+                } else if (type === 'activity_regs') {
+                    filtered = activityLogs.filter(r => r.ActivityName === key);
+                } else if (type === 'activity_major') {
+                    filtered = activityLogs.filter(r => r.ActivityName === key.activity && (r.Major || 'ไม่ระบุ') === key.major);
+                }
                 setDrilldownData({ title, type, list: filtered });
             };
 
@@ -771,7 +800,7 @@
                 } catch (err) { Swal.fire({ icon: 'error', title: 'Error', text: err.message, customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} }); }
             };
 
-            const exportExcel = () => {
+            const handleExport = () => {
                 let exportData = [];
                 let sheetName = "Export";
                 let fileName = `DIGIT_Export_${activeTab}_${new Date().toISOString().slice(0,10)}.xlsx`;
@@ -784,24 +813,40 @@
                         break;
                     case 'majors':
                         if (stats.pieData.length === 0) return;
-                        exportData = stats.pieData.sort((a,b) => b.value - a.value).map(item => ({ 'สาขาวิชา': item.name, 'จำนวน (คน)': item.value, 'สัดส่วน (%)': ((item.value / stats.total) * 100).toFixed(2) + '%' }));
+                        exportData = stats.pieData.sort((a,b) => b.value - a.value).map(item => ({
+                            'สาขาวิชา': item.name, 'จำนวน (คน)': item.value, 'สัดส่วน (%)': ((item.value / stats.total) * 100).toFixed(2) + '%'
+                        }));
                         exportData.push({ 'สาขาวิชา': 'รวมทั้งหมด', 'จำนวน (คน)': stats.total, 'สัดส่วน (%)': '100.00%' });
                         sheetName = "Majors_Summary";
                         break;
                     case 'health_diet':
-                        exportData = stats.studentData.filter(r => r.SpecificDiet !== 'ไม่มี' || r.FoodAllergy !== 'ไม่แพ้').map(r => ({ 'รหัสนักศึกษา': r.StudentID, 'ชื่อ-นามสกุล': r.FullName, 'สาขาวิชา': r.Major, 'อาหารเฉพาะทาง': r.SpecificDiet, 'ประวัติแพ้อาหาร': r.FoodAllergy, 'เบอร์โทร นศ.': r.StudentPhone }));
+                        const dietData = stats.studentData.filter(r => r.SpecificDiet !== 'ไม่มี' || r.FoodAllergy !== 'ไม่แพ้').map(r => ({
+                            'รหัสนักศึกษา': r.StudentID, 'ชื่อ-นามสกุล': r.FullName, 'สาขาวิชา': r.Major, 'อาหารเฉพาะทาง': r.SpecificDiet, 'ประวัติแพ้อาหาร': r.FoodAllergy, 'เบอร์โทร นศ.': r.StudentPhone
+                        }));
+                        exportData = dietData;
                         sheetName = "Health_Diet_Alerts";
                         break;
                     case 'surveillance':
-                        exportData = stats.surveillanceList.map(r => ({ 'รหัสนักศึกษา': r.StudentID, 'ชื่อ-นามสกุล': r.FullName, 'สาขาวิชา': r.Major, 'โรคประจำตัว': r.Disease, 'แพ้ยา': r.DrugAllergy, 'แพ้อาหาร': r.FoodAllergy, 'อาหารเฉพาะ': r.SpecificDiet, 'เบอร์ นศ.': r.StudentPhone, 'เบอร์ ผปค.': r.ParentPhone }));
+                        if (stats.surveillanceList.length === 0) return;
+                        exportData = stats.surveillanceList.map(r => ({
+                            'รหัสนักศึกษา': r.StudentID, 'ชื่อ-นามสกุล': r.FullName, 'สาขาวิชา': r.Major, 
+                            'โรคประจำตัว': r.Disease, 'แพ้ยา': r.DrugAllergy, 'แพ้อาหาร': r.FoodAllergy, 'อาหารเฉพาะ': r.SpecificDiet,
+                            'เบอร์ นศ.': r.StudentPhone, 'เบอร์ ผปค.': r.ParentPhone
+                        }));
                         sheetName = "Surveillance_List";
                         break;
                     case 'create_activity':
-                        exportData = activityDefs.map(a => ({ 'ชื่อกิจกรรม': a.ActivityName, 'วันที่จัด': new Date(a.ActivityDate).toLocaleString('th-TH'), 'สถานที่': a.Location, 'สถานะ': a.Status === 'CLOSED' ? 'ปิด' : 'เปิด', 'จำนวนผู้ลงทะเบียน': activityLogs.filter(l => l.ActivityName === a.ActivityName).length }));
+                        if (activityDefs.length === 0) return;
+                        exportData = activityDefs.map(a => ({
+                            'ชื่อกิจกรรม': a.ActivityName, 'วันที่จัด': new Date(a.ActivityDate).toLocaleString('th-TH'), 'สถานที่': a.Location, 'สถานะ': a.Status === 'CLOSED' ? 'ปิด' : 'เปิด', 'จำนวนผู้ลงทะเบียน': activityLogs.filter(l => l.ActivityName === a.ActivityName).length
+                        }));
                         sheetName = "Activities_List";
                         break;
                     case 'activity_summary':
-                        exportData = activityLogs.map(l => ({ 'ชื่อกิจกรรม': l.ActivityName, 'รหัสนักศึกษา': l.StudentID, 'ชื่อ-นามสกุล': l.FullName, 'สาขาวิชา': l.Major, 'เวลาลงทะเบียน': new Date(l.Timestamp).toLocaleString('th-TH') }));
+                        if (activityLogs.length === 0) return;
+                        exportData = activityLogs.map(l => ({
+                            'ชื่อกิจกรรม': l.ActivityName, 'รหัสนักศึกษา': l.StudentID, 'ชื่อ-นามสกุล': l.FullName, 'สาขาวิชา': l.Major, 'เวลาลงทะเบียน': new Date(l.Timestamp).toLocaleString('th-TH')
+                        }));
                         sheetName = "Activity_Attendees";
                         break;
                     default:
@@ -814,7 +859,7 @@
                     window.XLSX.utils.book_append_sheet(wb, ws, sheetName); 
                     window.XLSX.writeFile(wb, fileName);
                 } else {
-                    Swal.fire({ icon: 'info', title: 'ไม่มีข้อมูล', text: 'ไม่มีข้อมูลสำหรับดาวน์โหลด', customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
+                    Swal.fire({ icon: 'info', title: 'ไม่มีข้อมูล', text: 'ไม่มีข้อมูลสำหรับดาวน์โหลดในหมวดหมู่นี้', customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
                 }
             };
 
@@ -830,6 +875,7 @@
                 { id: 'majors', icon: 'pie-chart', label: 'สาขาวิชา' },
                 { id: 'health_diet', icon: 'utensils', label: 'โภชนาการ' },
                 { id: 'surveillance', icon: 'shield-alert', label: 'กลุ่มเฝ้าระวัง' },
+                { id: 'executive', icon: 'layout-dashboard', label: 'รายงานสรุปผู้บริหาร' },
                 { id: 'create_activity', icon: 'calendar-plus', label: 'สร้างกิจกรรม' },
                 { id: 'activity_summary', icon: 'bar-chart-2', label: 'สรุปกิจกรรม' }
             ];
@@ -839,6 +885,7 @@
 
             return (
                 <div className="flex flex-col md:flex-row gap-6 animate-fade-in pb-20 items-start w-full">
+                    {/* Admin Sidebar */}
                     <div className="w-full md:w-64 glass-panel p-5 rounded-[2rem] flex flex-col md:sticky md:top-24 z-20 shrink-0 no-print shadow-soft">
                         <div className="flex items-center gap-4 mb-8 px-2 pt-2">
                             <div className="w-12 h-12 bg-slate-900 dark:bg-white rounded-[1rem] flex items-center justify-center text-white dark:text-black shadow-lg"><Icon name="command" size={24}/></div>
@@ -853,7 +900,9 @@
                         </div>
                     </div>
 
+                    {/* Admin Main Content */}
                     <div className="flex-1 w-full space-y-6 print-area min-w-0">
+                        {/* Header Action Bar */}
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center glass-panel p-5 md:px-8 md:py-6 rounded-[2.5rem] gap-4 no-print shadow-soft">
                             <h2 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3 whitespace-nowrap">
                                 <div className="p-2.5 bg-brand/10 text-brand rounded-xl shadow-sm"><Icon name={(TABS.find(t=>t.id===activeTab) || {}).icon} size={20}/></div> {(TABS.find(t=>t.id===activeTab) || {}).label}
@@ -861,10 +910,10 @@
                             <div className="flex flex-col xl:flex-row flex-wrap w-full sm:w-auto gap-3 items-start xl:items-center">
                                 <div className="relative w-full sm:w-64">
                                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400"><Icon name="search" size={16}/></div>
-                                    <input type="text" placeholder="ค้นหา..." value={searchTerm} onChange={(e) => {setSearchTerm(e.target.value); setCurrentPage(1);}} className="w-full pl-10 pr-8 py-2.5 rounded-xl input-modern text-sm font-semibold"/>
+                                    <input type="text" placeholder="ค้นหาชื่อ, รหัสนศ..." value={searchTerm} onChange={(e) => {setSearchTerm(e.target.value); setCurrentPage(1);}} className="w-full pl-10 pr-8 py-2.5 rounded-xl input-modern text-sm font-semibold"/>
                                 </div>
                                 <div className="flex flex-wrap w-full sm:w-auto gap-2 justify-start sm:justify-end">
-                                    <button onClick={exportExcel} className="px-5 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-xl font-bold text-sm flex items-center gap-2 transition-all btn-interactive shadow-sm"><Icon name="download" size={16} /> Export {(TABS.find(t=>t.id===activeTab) || {}).label}</button>
+                                    <button onClick={handleExport} className="px-5 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-xl font-bold text-sm flex items-center gap-2 transition-all btn-interactive shadow-sm whitespace-nowrap"><Icon name="download" size={16} /> Export {(TABS.find(t=>t.id===activeTab) || {}).label}</button>
                                     <button onClick={goBack} className="p-2.5 bg-red-50 dark:bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white btn-interactive shadow-sm"><Icon name="log-out" size={18}/></button>
                                 </div>
                             </div>
@@ -1024,12 +1073,63 @@
                             </div>
                         )}
 
-                        {/* TAB 5: CREATE ACTIVITY */}
+                        {/* TAB 5: EXECUTIVE REPORT */}
+                        {activeTab === 'executive' && (
+                            <div className="space-y-6 animate-fade-in print:space-y-4">
+                                <div className="glass-panel p-8 md:p-10 rounded-[2.5rem] border-l-[12px] border-brand relative overflow-hidden bg-gradient-to-br from-white to-orange-50/50 dark:from-zinc-900 dark:to-zinc-800 shadow-soft border border-slate-200/50 dark:border-white/5 print:bg-white print:border-l-4 print:shadow-none print:p-6 avoid-break">
+                                    <div className="absolute -right-10 -bottom-10 opacity-5 dark:opacity-10 text-brand transform -rotate-12 pointer-events-none print:hidden"><Icon name="award" size={280} /></div>
+                                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8 print:gap-4">
+                                        <div className="flex-1">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-brand bg-brand/10 px-3 py-1.5 rounded-lg mb-4 inline-block border border-brand/20 shadow-sm print:border-none print:bg-transparent print:p-0 print:mb-1">Executive Report</span>
+                                            <h2 className="text-4xl md:text-5xl font-black text-slate-800 dark:text-white tracking-tight mb-4 print:text-2xl print:mb-2 print:text-black">รายงานสรุปผู้บริหาร</h2>
+                                            <div className="relative w-full max-w-xs mt-4">
+                                                <select className="w-full appearance-none input-modern rounded-xl pl-4 pr-10 py-3 text-sm font-bold shadow-sm cursor-pointer" value={executiveMajor} onChange={(e) => setExecutiveMajor(e.target.value)}>
+                                                    <option value="ทั้งหมด">รวมทุกสาขาวิชา</option>
+                                                    {executiveBaseMajors.map(m => <option key={m} value={m}>{m}</option>)}
+                                                </select>
+                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><Icon name="chevron-down" size={16}/></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 print:grid-cols-2 print:gap-4">
+                                    <div className="lg:col-span-2 space-y-6 print:space-y-4">
+                                        <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[6px] border-t-red-500 shadow-soft border border-slate-200/50 dark:border-white/5 relative overflow-hidden print:border print:border-slate-300 print:bg-white print:shadow-none print:p-4 avoid-break">
+                                            <div className="absolute top-0 right-0 p-8 opacity-5 text-red-500 pointer-events-none transform rotate-12 print:hidden"><Icon name="activity" size={100} /></div>
+                                            <h3 className="text-xl font-black text-slate-800 dark:text-white mb-6 relative z-10"><Icon name="ambulance" size={24} className="inline mr-2 text-red-500"/> ระเบียบความปลอดภัยการแพทย์</h3>
+                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 relative z-10">
+                                                {[ {l:'สุขภาพแข็งแรง', v:(stats.total - stats.healthAlert), k:'', t:'healthy', c:'text-slate-600 dark:text-slate-300', bg:'bg-slate-400', hc:'hover:border-slate-300'}, {l:'มีโรคประจำตัว', v:stats.diseases.length, k:'', t:'disease', c:'text-pink-600 dark:text-pink-400', bg:'bg-pink-500', hc:'hover:border-pink-300'}, {l:'ประวัติแพ้ยา', v:stats.drugAllergies.length, k:'', t:'drug_allergy', c:'text-purple-600 dark:text-purple-400', bg:'bg-purple-500', hc:'hover:border-purple-300'} ].map((itm,i) => (
+                                                    <div key={i} onClick={() => { if(itm.l !== 'สุขภาพแข็งแรง') handleDrilldown(itm.l, itm.t, itm.k) }} className={`group ${itm.l !== 'สุขภาพแข็งแรง' ? 'cursor-pointer' : ''} p-4 rounded-2xl bg-white/60 dark:bg-zinc-900/50 border border-slate-200 dark:border-white/10 ${itm.hc} hover:shadow-md transition-all btn-interactive print:bg-white print:border-slate-200 print:shadow-none print:p-2 avoid-break`}>
+                                                        <div className="flex justify-between items-end mb-3 print:mb-1"><span className={`text-xs font-bold text-slate-600 dark:text-slate-300 group-hover:${itm.c.split(' ')[0]} transition-colors flex items-center gap-1 print:text-black`}>{itm.l !== 'สุขภาพแข็งแรง' && <Icon name="search" size={10} className="opacity-0 group-hover:opacity-100 transition-opacity print:hidden"/>} {itm.l}</span><span className={`font-black text-2xl leading-none ${itm.c} print:text-xl`}>{itm.v}</span></div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[6px] border-t-orange-500 shadow-soft border border-slate-200/50 dark:border-white/5 relative overflow-hidden print:border print:border-slate-300 print:bg-white print:shadow-none print:p-4 avoid-break">
+                                            <div className="absolute top-0 right-0 p-8 opacity-5 text-orange-500 pointer-events-none transform -rotate-12 print:hidden"><Icon name="pizza" size={100} /></div>
+                                            <h3 className="text-xl font-black text-slate-800 dark:text-white mb-6 relative z-10"><Icon name="utensils" size={24} className="inline mr-2 text-orange-500"/> บริหารการจัดเตรียมโภชนาการ</h3>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 relative z-10">
+                                                {[ {l:'ทานได้ทุกอย่าง', v:(stats.total - stats.foodAlert), k:'ไม่มี', t:'food_alert', c:'text-slate-600 dark:text-slate-300', bg:'bg-slate-400', hc:'hover:border-slate-300'}, {l:'ฮาลาล', v:stats.dietStats['ฮาลาล'], k:'ฮาลาล', t:'religion_diet', c:'text-blue-600 dark:text-blue-400', bg:'bg-blue-500', hc:'hover:border-blue-300'}, {l:'มังสวิรัติ', v:stats.dietStats['มังสวิรัติ'], k:'มังสวิรัติ', t:'religion_diet', c:'text-emerald-600 dark:text-emerald-400', bg:'bg-emerald-500', hc:'hover:border-emerald-300'}, {l:'เจ', v:stats.dietStats['เจ'], k:'เจ', t:'religion_diet', c:'text-yellow-600 dark:text-yellow-500', bg:'bg-yellow-400', hc:'hover:border-yellow-300'}].map((itm,i) => (
+                                                    <div key={i} onClick={() => { if(itm.l !== 'ทานได้ทุกอย่าง') handleDrilldown(itm.l, itm.t, itm.k) }} className={`group ${itm.l !== 'ทานได้ทุกอย่าง' ? 'cursor-pointer' : ''} p-4 rounded-2xl bg-white/60 dark:bg-zinc-900/50 border border-slate-200 dark:border-white/10 ${itm.hc} hover:shadow-md transition-all btn-interactive print:bg-white print:border-slate-200 print:shadow-none print:p-2 avoid-break`}>
+                                                        <div className="flex justify-between items-end mb-3 print:mb-1"><span className={`text-xs font-bold text-slate-600 dark:text-slate-300 group-hover:${itm.c.split(' ')[0]} transition-colors flex items-center gap-1 print:text-black`}>{itm.l !== 'ทานได้ทุกอย่าง' && <Icon name="search" size={10} className="opacity-0 group-hover:opacity-100 transition-opacity print:hidden"/>} {itm.l}</span><span className={`font-black text-2xl leading-none ${itm.c} print:text-xl`}>{itm.v}</span></div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* TAB 6: CREATE ACTIVITY */}
                         {activeTab === 'create_activity' && (
                             <div className="space-y-6 animate-fade-in">
                                 <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-soft relative overflow-hidden border-t-[8px] border-t-purple-500">
                                     <div className="absolute top-0 right-0 p-8 opacity-5 text-purple-500 pointer-events-none transform translate-x-4 -translate-y-4"><Icon name="calendar-plus" size={120} /></div>
-                                    <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white mb-8 flex items-center gap-3 relative z-10"><div className="p-3 bg-purple-100 dark:bg-purple-500/20 text-purple-600 rounded-2xl shadow-inner"><Icon name="calendar-plus" size={24}/></div> สร้างกิจกรรมใหม่</h3>
+                                    <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white mb-8 flex items-center gap-3 relative z-10"><div className="p-3 bg-purple-100 dark:bg-purple-500/20 text-purple-600 rounded-2xl shadow-inner"><Icon name="calendar-plus" size={24}/></div> สร้างกิจกรรม</h3>
+                                    
                                     <form onSubmit={handleCreateActivity} className="relative z-10 space-y-6">
                                         <div className="grid grid-cols-1 gap-6">
                                             <InputField label="ชื่อกิจกรรม" value={activityForm.name} onChange={v => setActivityForm({...activityForm, name: v})} placeholder="เช่น ปฐมนิเทศนักศึกษาใหม่" required />
@@ -1072,12 +1172,16 @@
                             </div>
                         )}
 
-                        {/* TAB 6: ACTIVITY SUMMARY */}
+                        {/* TAB 7: ACTIVITY SUMMARY */}
                         {activeTab === 'activity_summary' && (
                             <div className="space-y-6 animate-fade-in print:space-y-4">
-                                <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-pink-500 shadow-soft relative overflow-hidden bg-gradient-to-b from-white to-pink-50/30 dark:from-zinc-900 dark:to-zinc-900/50">
+                                <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-pink-500 shadow-soft relative overflow-hidden bg-gradient-to-b from-white to-pink-50/30 dark:from-zinc-900 dark:to-zinc-900/50 print:border-none print:shadow-none print:bg-white print:p-0">
                                     <div className="absolute top-0 right-0 p-8 opacity-5 text-pink-500 pointer-events-none transform translate-x-4 -translate-y-4 print:hidden"><Icon name="bar-chart-2" size={120} /></div>
-                                    <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3 relative z-10 print:text-black print:text-2xl"><div className="p-3 bg-pink-100 dark:bg-pink-500/20 text-pink-600 rounded-2xl shadow-inner print:hidden"><Icon name="bar-chart-2" size={24}/></div> สรุปจำนวนผู้เข้าร่วมกิจกรรม</h3>
+                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10 print:mb-6">
+                                        <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3 print:text-black print:text-2xl">
+                                            <div className="p-3 bg-pink-100 dark:bg-pink-500/20 text-pink-600 rounded-2xl shadow-inner print:hidden"><Icon name="bar-chart-2" size={24}/></div> สรุปจำนวนผู้เข้าร่วมกิจกรรม
+                                        </h3>
+                                    </div>
                                 </div>
 
                                 {activityDefs.length === 0 ? (
@@ -1105,13 +1209,11 @@
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    
                                                     <div className="flex flex-row md:flex-col items-center md:items-end gap-4 shrink-0">
                                                         <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm uppercase tracking-wider border ${act.Status !== 'CLOSED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30' : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'} print:border-none print:bg-transparent`}>
                                                             <span className={`w-2 h-2 rounded-full ${act.Status !== 'CLOSED' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'} print:hidden`}></span>
                                                             {act.Status !== 'CLOSED' ? 'กำลังเปิดรับ' : 'ปิดลงทะเบียน'}
                                                         </span>
-                                                        
                                                         <div onClick={() => handleDrilldown(`รายชื่อผู้ร่วมกิจกรรม: ${act.ActivityName}`, 'activity_regs', act.ActivityName)} className="flex items-center gap-4 bg-slate-50 dark:bg-black/20 hover:bg-pink-50 dark:hover:bg-pink-500/10 border border-slate-200 dark:border-white/10 hover:border-pink-200 dark:hover:border-pink-500/30 px-5 py-3 rounded-2xl cursor-pointer transition-all btn-interactive group/btn print:border-none print:bg-transparent print:p-0">
                                                             <div className="text-right">
                                                                 <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-0.5 print:text-slate-600">ผู้เข้าร่วมรวม</p>
@@ -1215,7 +1317,7 @@
                         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 dark:bg-black/90 backdrop-blur-lg animate-fade-in print:hidden">
                             <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 p-6 md:p-8 rounded-[2.5rem] w-full max-w-lg max-h-[90vh] flex flex-col shadow-[0_20px_60px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.8)] animate-slide-up text-left overflow-hidden">
                                 <div className="flex justify-between items-center mb-6 shrink-0">
-                                    <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3"><Icon name="edit" size={24}/> แก้ไขข้อมูลนักศึกษา</h3>
+                                    <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3"><Icon name="edit" size={24}/> แก้ไขข้อมูล</h3>
                                     <button onClick={() => setEditItem(null)} className="p-2.5 bg-slate-100 dark:bg-white/10 rounded-xl hover:bg-slate-200 transition-colors"><Icon name="x" size={20}/></button>
                                 </div>
                                 <form onSubmit={handleSaveEdit} className="space-y-5 overflow-y-auto flex-1 custom-scrollbar pr-2 pb-4">
@@ -1223,7 +1325,7 @@
                                         <InputField label="ชื่อ-นามสกุล" value={editItem.FullName} onChange={v => setEditItem({...editItem, FullName: v})} />
                                         <div className="grid grid-cols-2 gap-4">
                                             <InputField label="รหัสนักศึกษา" numeric maxLength="9" value={editItem.StudentID} onChange={v => setEditItem({...editItem, StudentID: v})} />
-                                            <InputField label="บัตรประชาชน/Passport" maxLength="20" value={editItem.IDCard || ''} onChange={v => setEditItem({...editItem, IDCard: v})} />
+                                            <InputField label="Thai ID / Passport" maxLength="20" value={editItem.IDCard || ''} onChange={v => setEditItem({...editItem, IDCard: v})} />
                                         </div>
                                         <InputField label="สาขาวิชา" value={editItem.Major} onChange={v => setEditItem({...editItem, Major: v})} />
                                         <div className="grid grid-cols-2 gap-4">
@@ -1256,11 +1358,12 @@
         }
 
         // ==========================================
-        // 🚀 Main App 
+        // 🚀 Main Application Boot
         // ==========================================
         function App() {
             const [isDarkMode, setIsDarkMode] = useState(false);
             const [currentView, setCurrentView] = useState('home'); 
+            const [regData, setRegData] = useState({ activityName: '', studentID: '' });
             
             useEffect(() => {
                 const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -1278,7 +1381,8 @@
                         {currentView === 'home' && <HomeView onSelectNewStudent={() => setCurrentView('pdpa')} onSelectActivity={() => setCurrentView('activity_form')} onAdminClick={() => setCurrentView('admin')} />}
                         {currentView === 'pdpa' && <PdpaModal onAccept={() => setCurrentView('register')} onBack={() => setCurrentView('home')} />}
                         {currentView === 'register' && <RegistrationForm onBack={() => setCurrentView('home')} onSuccess={() => setCurrentView('success')} />}
-                        {currentView === 'activity_form' && <ActivityForm onBack={() => setCurrentView('home')} onSuccess={() => setCurrentView('success')} />}
+                        {currentView === 'activity_form' && <ActivityForm onBack={() => setCurrentView('home')} onSuccess={(act, sid) => { setRegData({activityName: act, studentID: sid}); setCurrentView('survey'); }} />}
+                        {currentView === 'survey' && <SurveyForm onBack={() => setCurrentView('home')} onSuccess={() => setCurrentView('success')} activityName={regData.activityName} studentID={regData.studentID} />}
                         {currentView === 'success' && <SuccessView onHome={() => setCurrentView('home')} />}
                         {currentView === 'admin' && <AdminDashboard goBack={() => setCurrentView('home')} />}
 
