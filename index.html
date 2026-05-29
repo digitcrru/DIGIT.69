@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DIGIT.69</title>
     
-    <!-- Tailwind CSS with Dark Mode Support -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -36,7 +35,6 @@
         }
     </script>
     
-    <!-- Fonts & Libraries -->
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -97,7 +95,7 @@
 
     <script type="text/babel">
         const { useState, useEffect, useMemo, useRef, createContext, useContext } = React;
-        const { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } = window.Recharts || {};
+        const { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } = window.Recharts || {};
 
         const AppContext = createContext();
 
@@ -107,6 +105,7 @@
         const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Registration`;
         const ACTIVITY_SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Activities`;
         const LOGS_SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Logs`;
+        const SURVEY_SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Surveys`;
         
         const MAJOR_LIST = [
             "เทคโนโลยีดิจิทัลเพื่อธุรกิจ", "เทคโนโลยีดิจิทัลเพื่อธุรกิจ(เทียบโอน)",
@@ -116,7 +115,7 @@
             "วิศวกรรมคอมพิวเตอร์"
         ];
 
-        const cleanMajor = (str) => str ? str.replace(/\s*\([a-zA-Z\s]+\)/g, '').trim() : '';
+        const cleanMajor = (str) => str ? str.replace(/\s*\([^)]*\)/g, '').trim() : '';
 
         const submitToAPI = async (action, payload) => {
             try {
@@ -449,7 +448,8 @@
                             Swal.fire({ icon: 'error', title: 'ไม่พบข้อมูล', text: 'ไม่พบข้อมูลนักศึกษาที่ตรงกับรหัสที่คุณกรอก กรุณาตรวจสอบอีกครั้ง หรือไปที่เมนู "1. ขึ้นทะเบียนนักศึกษาใหม่" ก่อนครับ', customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
                         }
                         setIsSearching(false);
-                    }
+                    },
+                    error: () => { Swal.fire({ icon: 'error', title: 'Error', text: 'การเชื่อมต่อฐานข้อมูลล้มเหลว', customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} }); setIsSearching(false); }
                 });
             };
 
@@ -507,7 +507,6 @@
                                         </div>
                                         <div className="flex flex-wrap gap-2 justify-center sm:justify-start mt-4">
                                             <span className="bg-indigo-50 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 px-3 py-1.5 rounded-lg text-xs font-bold border border-indigo-100 dark:border-indigo-500/30 flex items-center gap-1.5 shadow-sm"><Icon name="graduation-cap" size={12}/> {formData.Major}</span>
-                                            {formData.StudentPhone && <span className="bg-emerald-50 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-100 dark:border-emerald-500/30 flex items-center gap-1.5 shadow-sm"><Icon name="phone" size={12}/> {formData.StudentPhone}</span>}
                                         </div>
                                     </div>
                                 </div>
@@ -623,9 +622,6 @@
             );
         }
 
-        // ==========================================
-        // ✅ Success View
-        // ==========================================
         function SuccessView({ onHome }) {
             return (
                 <div className="flex items-center justify-center min-h-[80vh] p-4 animate-fade-in">
@@ -634,7 +630,7 @@
                             <Icon name="check-circle" size={48} className="relative z-10" />
                             <div className="absolute inset-0 bg-emerald-400 rounded-full blur-xl opacity-30 animate-pulse"></div>
                         </div>
-                        <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-3 tracking-tight">ดำเนินการสำเร็จ!</h2>
+                        <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-3 tracking-tight">ทำรายการสำเร็จ!</h2>
                         <p className="text-slate-500 dark:text-slate-400 font-medium mb-8 leading-relaxed">ระบบได้รับข้อมูลของท่านเรียบร้อยแล้ว ขอบคุณที่ให้ความร่วมมือครับ</p>
                         <button onClick={onHome} className="w-full py-4 bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-white rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-white/20 transition-colors shadow-sm flex justify-center items-center gap-2 btn-interactive">
                             <Icon name="home" size={18} /> กลับสู่หน้าแรก
@@ -653,8 +649,11 @@
             const [drilldownData, setDrilldownData] = useState({ title: '', list: [], type: '' });
             const [currentPage, setCurrentPage] = useState(1);
             const [searchTerm, setSearchTerm] = useState('');
+            const [executiveMajor, setExecutiveMajor] = useState('ทั้งหมด');
+            const [selectedSurveyActivity, setSelectedSurveyActivity] = useState('ทั้งหมด');
             const [activityDefs, setActivityDefs] = useState([]);
             const [activityLogs, setActivityLogs] = useState([]);
+            const [surveys, setSurveys] = useState([]);
             const [activityForm, setActivityForm] = useState({ name: '', date: '', location: '' });
 
             const loadData = (isSilent = false) => {
@@ -668,12 +667,19 @@
 
             const loadActivities = () => { Papa.parse(ACTIVITY_SHEET_CSV_URL + `&_cb=${new Date().getTime()}`, { download: true, header: true, complete: (res) => { setActivityDefs(res.data.filter(row => row.ActivityName)); } }); };
             const loadLogs = () => { Papa.parse(LOGS_SHEET_CSV_URL + `&_cb=${new Date().getTime()}`, { download: true, header: true, complete: (res) => { setActivityLogs(res.data.filter(row => row.ActivityName)); } }); };
+            const loadSurveys = () => { Papa.parse(SURVEY_SHEET_CSV_URL + `&_cb=${new Date().getTime()}`, { download: true, header: true, complete: (res) => { setSurveys(res.data.filter(row => row.ActivityName)); } }); };
 
             useEffect(() => { 
-                loadData(); loadActivities(); loadLogs();
-                const intervalId = setInterval(() => { loadData(true); loadActivities(); loadLogs(); }, 3000);
+                loadData(); loadActivities(); loadLogs(); loadSurveys();
+                const intervalId = setInterval(() => { loadData(true); loadActivities(); loadLogs(); loadSurveys(); }, 3000);
                 return () => clearInterval(intervalId);
             }, []);
+
+            const executiveBaseMajors = useMemo(() => {
+                const mSet = new Set();
+                data.filter(r => r.FullName !== 'SYSTEM_ACTIVITY_DEF' && r.BloodGroup !== 'Activity').forEach(r => { if(r.Major) mSet.add(r.Major.replace(/\s*\([^)]*\)/g, '').trim()); });
+                return Array.from(mSet).sort();
+            }, [data]);
 
             const filteredData = useMemo(() => {
                 let result = data;
@@ -681,8 +687,11 @@
                     const s = searchTerm.toLowerCase();
                     result = result.filter(r => (r.FullName || '').toLowerCase().includes(s) || (r.StudentID || '').toLowerCase().includes(s) || (r.Major || '').toLowerCase().includes(s) || (r.StudentPhone || '').includes(s) || (r.ParentPhone || '').includes(s));
                 }
+                if (activeTab === 'executive' && executiveMajor !== 'ทั้งหมด') {
+                    result = result.filter(r => { const baseMajor = r.Major ? r.Major.replace(/\s*\([^)]*\)/g, '').trim() : ''; return baseMajor === executiveMajor; });
+                }
                 return result;
-            }, [data, searchTerm]);
+            }, [data, searchTerm, activeTab, executiveMajor]);
 
             const stats = useMemo(() => {
                 const studentData = filteredData.filter(r => r.FullName !== 'SYSTEM_ACTIVITY_DEF' && r.BloodGroup !== 'Activity');
@@ -693,12 +702,16 @@
                 let total = uniqueStudents.length, normalCount = 0, transferCount = 0, foodAlert = 0, healthAlert = 0;
                 let majorCount = {}, dietStats = { 'ฮาลาล': 0, 'มังสวิรัติ': 0, 'เจ': 0, 'อาหารปกติ': 0 }, foodAllergies = [], diseases = [], drugAllergies = [];
                 const surveillanceList = []; let surveillanceRiskPie = { 'ด้านการแพทย์': 0, 'ด้านโภชนาการ': 0, 'ความเสี่ยงซ้อน (ทั้งสอง)': 0 };
-                let allergyCounts = {};
+                let execBreakdownMap = {}; let allergyCounts = {};
 
                 uniqueStudents.forEach(s => {
                     if(s.Major) {
                         majorCount[s.Major] = (majorCount[s.Major] || 0) + 1;
                         s.Major.includes("เทียบโอน") ? transferCount++ : normalCount++;
+                        const baseName = s.Major.replace(/\s*\([^)]*\)/g, '').trim();
+                        if (!execBreakdownMap[baseName]) execBreakdownMap[baseName] = { name: baseName, normal: 0, transfer: 0, total: 0 };
+                        s.Major.includes('เทียบโอน') ? execBreakdownMap[baseName].transfer++ : execBreakdownMap[baseName].normal++;
+                        execBreakdownMap[baseName].total++;
                     }
                     let hasF = s.FoodAllergy !== 'ไม่แพ้' || s.SpecificDiet !== 'ไม่มี';
                     let hasH = s.Disease !== 'ไม่มี' || s.DrugAllergy !== 'ไม่แพ้';
@@ -730,10 +743,40 @@
 
                 const surveillancePieData = Object.keys(surveillanceRiskPie).map(k => ({name: k, value: surveillanceRiskPie[k]})).filter(d => d.value > 0);
                 const pieDataList = Object.keys(majorCount).map(k=>({name:k, value:majorCount[k]}));
+                const execBreakdownList = Object.values(execBreakdownMap).sort((a,b) => b.total - a.total);
                 const groupedAllergies = Object.keys(allergyCounts).map(name => ({name, count: allergyCounts[name]})).sort((a,b) => b.count - a.count);
 
-                return { total, pieData: pieDataList, COLORS: ['#ff6600', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#facc15', '#06b6d4'], foodAlert, healthAlert, surveillanceList, surveillancePieData, normalCount, transferCount, dietStats, foodAllergies, diseases, drugAllergies, groupedAllergies, uniqueStudents, studentData: uniqueStudents };
+                return { total, pieData: pieDataList, COLORS: ['#ff6600', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#facc15', '#06b6d4'], foodAlert, healthAlert, surveillanceList, surveillancePieData, normalCount, transferCount, dietStats, foodAllergies, diseases, drugAllergies, execBreakdownList, groupedAllergies, uniqueStudents, studentData: uniqueStudents };
             }, [filteredData]);
+
+            const surveyStats = useMemo(() => {
+                let filteredSurveys = surveys;
+                if (selectedSurveyActivity !== 'ทั้งหมด') {
+                    filteredSurveys = surveys.filter(s => s.ActivityName === selectedSurveyActivity);
+                }
+
+                let total = filteredSurveys.length;
+                let sumQ1 = 0, sumQ2 = 0, sumQ3 = 0, sumQ4 = 0;
+                let commentsList = [];
+
+                filteredSurveys.forEach(s => {
+                    sumQ1 += Number(s.Q1_Overall) || 0;
+                    sumQ2 += Number(s.Q2_Usefulness) || 0;
+                    sumQ3 += Number(s.Q3_Format) || 0;
+                    sumQ4 += Number(s.Q4_Service) || 0;
+                    if (s.Comment && s.Comment.trim() !== '') {
+                        commentsList.push({ text: s.Comment, date: s.Timestamp, student: s.StudentID });
+                    }
+                });
+
+                let avgQ1 = total > 0 ? (sumQ1 / total).toFixed(2) : 0;
+                let avgQ2 = total > 0 ? (sumQ2 / total).toFixed(2) : 0;
+                let avgQ3 = total > 0 ? (sumQ3 / total).toFixed(2) : 0;
+                let avgQ4 = total > 0 ? (sumQ4 / total).toFixed(2) : 0;
+                let overallAvg = total > 0 ? ((Number(avgQ1) + Number(avgQ2) + Number(avgQ3) + Number(avgQ4)) / 4).toFixed(2) : 0;
+
+                return { total, avgQ1, avgQ2, avgQ3, avgQ4, overallAvg, commentsList };
+            }, [surveys, selectedSurveyActivity]);
 
             const handleDrilldown = (title, type, key) => {
                 let filtered = [];
@@ -745,7 +788,14 @@
                 else if (type === 'health_alert') filtered = stats.uniqueStudents.filter(s => (s.Disease && s.Disease !== 'ไม่มี') || (s.DrugAllergy && s.DrugAllergy !== 'ไม่แพ้'));
                 else if (type === 'disease') filtered = stats.uniqueStudents.filter(s => s.Disease && s.Disease !== 'ไม่มี');
                 else if (type === 'drug_allergy') filtered = stats.uniqueStudents.filter(s => s.DrugAllergy && s.DrugAllergy !== 'ไม่แพ้');
-                else if (type === 'majors') {
+                else if (type === 'demographics') {
+                    if (key === 'normal') filtered = stats.uniqueStudents.filter(s => s.Major && !s.Major.includes('เทียบโอน'));
+                    else if (key === 'transfer') filtered = stats.uniqueStudents.filter(s => s.Major && s.Major.includes('เทียบโอน'));
+                } else if (type === 'major_breakdown') {
+                    if (key.type === 'normal') filtered = stats.uniqueStudents.filter(s => s.Major && s.Major.includes(key.major) && !s.Major.includes('เทียบโอน'));
+                    else if (key.type === 'transfer') filtered = stats.uniqueStudents.filter(s => s.Major && s.Major.includes(key.major) && s.Major.includes('เทียบโอน'));
+                    else filtered = stats.uniqueStudents.filter(s => s.Major && s.Major.includes(key.major));
+                } else if (type === 'majors') {
                     filtered = stats.uniqueStudents.filter(s => s.Major && s.Major.includes(key));
                 } else if (type === 'surveillance_all') {
                     filtered = stats.surveillanceList;
@@ -793,8 +843,11 @@
                 } catch (err) { Swal.fire({ icon: 'error', title: 'Error', text: err.message, customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} }); }
             };
 
-            const exportExcel = () => {
-                let exportData = []; let sheetName = "Export"; let fileName = `DIGIT_Export_${activeTab}_${new Date().toISOString().slice(0,10)}.xlsx`;
+            const handleExport = () => {
+                let exportData = [];
+                let sheetName = "Export";
+                let fileName = `DIGIT_Export_${activeTab}_${new Date().toISOString().slice(0,10)}.xlsx`;
+
                 switch(activeTab) {
                     case 'overview':
                         if (stats.studentData.length === 0) return;
@@ -820,8 +873,14 @@
                         if (activityLogs.length === 0) return;
                         exportData = activityLogs.map(l => ({ 'ชื่อกิจกรรม': l.ActivityName, 'รหัสนักศึกษา': l.StudentID, 'ชื่อ-นามสกุล': l.FullName, 'สาขาวิชา': l.Major, 'เวลาลงทะเบียน': new Date(l.Timestamp).toLocaleString('th-TH') }));
                         sheetName = "Activity_Attendees"; break;
-                    default: exportData = stats.studentData;
+                    case 'survey_summary':
+                        if (surveys.length === 0) return;
+                        exportData = (selectedSurveyActivity === 'ทั้งหมด' ? surveys : surveys.filter(s => s.ActivityName === selectedSurveyActivity)).map(s => ({ 'ชื่อกิจกรรม': s.ActivityName, 'รหัสนักศึกษา': s.StudentID, '1.ภาพรวม': s.Q1_Overall, '2.ประโยชน์ที่ได้รับ': s.Q2_Usefulness, '3.รูปแบบงาน': s.Q3_Format, '4.การบริการ': s.Q4_Service, 'ข้อเสนอแนะ': s.Comment, 'เวลาประเมิน': new Date(s.Timestamp).toLocaleString('th-TH') }));
+                        sheetName = "Survey_Results"; break;
+                    default:
+                        exportData = stats.studentData;
                 }
+
                 if (exportData && exportData.length > 0) {
                     const ws = window.XLSX.utils.json_to_sheet(exportData); const wb = window.XLSX.utils.book_new(); window.XLSX.utils.book_append_sheet(wb, ws, sheetName); window.XLSX.writeFile(wb, fileName);
                 } else { Swal.fire({ icon: 'info', title: 'ไม่มีข้อมูล', text: 'ไม่มีข้อมูลสำหรับดาวน์โหลดในหมวดหมู่นี้', customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} }); }
@@ -839,17 +898,20 @@
                 { id: 'majors', icon: 'pie-chart', label: 'สาขาวิชา' },
                 { id: 'health_diet', icon: 'utensils', label: 'โภชนาการ' },
                 { id: 'surveillance', icon: 'shield-alert', label: 'กลุ่มเฝ้าระวัง' },
+                { id: 'executive', icon: 'layout-dashboard', label: 'รายงานสรุปผู้บริหาร' },
                 { id: 'create_activity', icon: 'calendar-plus', label: 'สร้างกิจกรรม' },
-                { id: 'activity_summary', icon: 'radio', label: 'Real-Time Recording' }
+                { id: 'activity_summary', icon: 'bar-chart-2', label: 'สรุปกิจกรรม' },
+                { id: 'survey_summary', icon: 'star', label: 'สรุปแบบสอบถาม' }
             ];
 
             const pieTooltipStyle = { backgroundColor: isDarkMode ? 'rgba(24, 24, 27, 0.95)' : 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' };
-            const pieItemStyle = { fontWeight: 'bold', color: isDarkMode ? '#fff' : '#1e293b' };
+            const pieItemStyle = {fontWeight: 'bold', color: isDarkMode ? '#fff' : '#1e293b'};
             const drilldownIcon = drilldownData.type === 'activity_regs' || drilldownData.type === 'activity_major' ? "calendar-check" : "users";
             const drilldownHeaderColor = (drilldownData.type === 'activity_regs' || drilldownData.type === 'activity_major') ? 'bg-purple-500 shadow-glow-brand' : (drilldownData.type.includes('diet') || drilldownData.type.includes('food') || drilldownData.type === 'allergy_group') ? 'bg-orange-500 shadow-glow-brand' : (drilldownData.type === 'demographics' || drilldownData.type === 'major_breakdown' || drilldownData.type === 'majors') ? 'bg-blue-500' : drilldownData.title.includes('ทั้งหมด') ? 'bg-brand shadow-glow-brand' : drilldownData.type === 'healthy' ? 'bg-emerald-500' : 'bg-red-500 shadow-glow-red';
 
             return (
                 <div className="flex flex-col md:flex-row gap-6 animate-fade-in pb-20 items-start w-full">
+                    {/* Admin Sidebar */}
                     <div className="w-full md:w-64 glass-panel p-5 rounded-[2rem] flex flex-col md:sticky md:top-24 z-20 shrink-0 no-print shadow-soft border border-slate-200/50 dark:border-white/5">
                         <div className="flex items-center gap-4 mb-8 px-2 pt-2">
                             <div className="w-12 h-12 bg-slate-900 dark:bg-white rounded-[1rem] flex items-center justify-center text-white dark:text-black shadow-lg"><Icon name="command" size={24}/></div>
@@ -864,6 +926,7 @@
                         </div>
                     </div>
 
+                    {/* Admin Main Content */}
                     <div className="flex-1 w-full space-y-6 print-area min-w-0">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center glass-panel p-5 md:px-8 md:py-6 rounded-[2.5rem] gap-4 no-print shadow-soft border border-slate-200/50 dark:border-white/5">
                             <h2 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3 whitespace-nowrap">
@@ -875,12 +938,13 @@
                                     <input type="text" placeholder="ค้นหาชื่อ, รหัสนศ..." value={searchTerm} onChange={(e) => {setSearchTerm(e.target.value); setCurrentPage(1);}} className="w-full pl-10 pr-8 py-2.5 rounded-xl input-modern text-sm font-semibold"/>
                                 </div>
                                 <div className="flex flex-wrap w-full sm:w-auto gap-2 justify-start sm:justify-end">
-                                    <button onClick={exportExcel} className="px-5 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-xl font-bold text-sm flex items-center gap-2 transition-all btn-interactive shadow-sm whitespace-nowrap"><Icon name="download" size={16} /> Export {(TABS.find(t=>t.id===activeTab) || {}).label}</button>
+                                    <button onClick={handleExport} className="px-5 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-xl font-bold text-sm flex items-center gap-2 transition-all btn-interactive shadow-sm whitespace-nowrap"><Icon name="download" size={16} /> Export {(TABS.find(t=>t.id===activeTab) || {}).label}</button>
                                     <button onClick={goBack} className="p-2.5 bg-red-50 dark:bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white btn-interactive shadow-sm"><Icon name="log-out" size={18}/></button>
                                 </div>
                             </div>
                         </div>
 
+                        {/* TAB 1: OVERVIEW */}
                         {activeTab === 'overview' && (
                             <div className="space-y-6 animate-fade-in">
                                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
@@ -923,6 +987,7 @@
                             </div>
                         )}
 
+                        {/* TAB 2: MAJORS SUMMARY */}
                         {activeTab === 'majors' && (
                             <div className="grid lg:grid-cols-5 gap-6 animate-fade-in">
                                 <div className="lg:col-span-2 glass-panel p-6 md:p-8 rounded-[2rem] shadow-sm flex flex-col items-center justify-center min-h-[450px] border border-slate-200/50 dark:border-white/5 relative overflow-hidden">
@@ -972,6 +1037,7 @@
                             </div>
                         )}
 
+                        {/* TAB 3: HEALTH & DIET */}
                         {activeTab === 'health_diet' && (
                             <div className="space-y-6 animate-fade-in">
                                 <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
@@ -998,6 +1064,7 @@
                             </div>
                         )}
 
+                        {/* TAB 4: SURVEILLANCE */}
                         {activeTab === 'surveillance' && (
                             <div className="space-y-6 animate-fade-in">
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1049,11 +1116,307 @@
                             </div>
                         )}
 
+                        {/* TAB 5: EXECUTIVE REPORT */}
+                        {activeTab === 'executive' && (
+                            <div className="space-y-6 animate-fade-in print:space-y-4">
+                                <div className="glass-panel p-8 md:p-10 rounded-[2.5rem] border-l-[12px] border-brand relative overflow-hidden bg-gradient-to-br from-white to-orange-50/50 dark:from-zinc-900 dark:to-zinc-800 shadow-soft border border-slate-200/50 dark:border-white/5 print:bg-white print:border-l-4 print:shadow-none print:p-6 avoid-break">
+                                    <div className="absolute -right-10 -bottom-10 opacity-5 dark:opacity-10 text-brand transform -rotate-12 pointer-events-none print:hidden"><Icon name="award" size={280} /></div>
+                                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8 print:gap-4">
+                                        <div className="flex-1">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-brand bg-brand/10 px-3 py-1.5 rounded-lg mb-4 inline-block border border-brand/20 shadow-sm print:border-none print:bg-transparent print:p-0 print:mb-1">Executive Report</span>
+                                            <h2 className="text-4xl md:text-5xl font-black text-slate-800 dark:text-white tracking-tight mb-4 print:text-2xl print:mb-2 print:text-black">รายงานสรุปผู้บริหาร</h2>
+                                            <p className="text-slate-600 dark:text-slate-400 text-base font-medium max-w-xl leading-relaxed mb-6 print:text-sm print:mb-2 print:text-black">แดชบอร์ดสรุปผลภาพรวมการขึ้นทะเบียนนักศึกษาใหม่ รหัส 69 พร้อมการวิเคราะห์ความเสี่ยง</p>
+
+                                            <div className="flex items-center gap-3 print:hidden">
+                                                <div className="p-3 bg-brand/10 text-brand rounded-xl shrink-0 shadow-sm"><Icon name="filter" size={20}/></div>
+                                                <div className="relative w-full max-w-xs">
+                                                    <select 
+                                                        className="w-full appearance-none input-modern rounded-xl pl-4 pr-10 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 bg-white/80 dark:bg-black/40 cursor-pointer shadow-sm border-slate-200 dark:border-white/10 backdrop-blur-md"
+                                                        value={executiveMajor}
+                                                        onChange={(e) => setExecutiveMajor(e.target.value)}
+                                                    >
+                                                        <option value="ทั้งหมด">รวมทุกสาขาวิชา</option>
+                                                        {executiveBaseMajors.map(m => <option key={m} value={m}>{m}</option>)}
+                                                    </select>
+                                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><Icon name="chevron-down" size={16}/></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-4 shrink-0 mt-6 md:mt-0">
+                                            <div onClick={() => handleDrilldown('นักศึกษาที่ขึ้นทะเบียนทั้งหมด', 'all', '')} className="bg-white/80 dark:bg-black/40 backdrop-blur-xl p-8 md:p-12 rounded-[2.5rem] border border-white dark:border-white/10 shadow-lg text-center min-w-[280px] md:min-w-[320px] relative overflow-hidden group hover:border-brand/50 transition-all cursor-pointer btn-interactive print:border-slate-300 print:shadow-none print:p-6 print:min-w-[200px]">
+                                                <div className="absolute inset-0 bg-brand/5 dark:bg-brand/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500 print:hidden"></div>
+                                                <div className="absolute top-4 right-4 text-brand opacity-0 group-hover:opacity-100 transition-opacity print:hidden"><Icon name="search" size={20}/></div>
+                                                <div className="relative z-10">
+                                                    <p className="text-base md:text-lg font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4 print:text-sm print:mb-2 print:text-slate-600">ยอดขึ้นทะเบียนรวม</p>
+                                                    <div className="flex items-baseline justify-center gap-3">
+                                                        <span className="text-8xl md:text-9xl font-black text-brand drop-shadow-md group-hover:scale-110 transition-transform print:text-5xl print:drop-shadow-none print:text-brand">{stats.total}</span>
+                                                        <span className="text-xl md:text-2xl font-bold text-slate-400 print:text-base print:text-slate-600">คน</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 print:grid-cols-2 print:gap-4">
+                                    <div className="lg:col-span-2 space-y-6 print:space-y-4">
+                                        <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[6px] border-t-red-500 shadow-soft border border-slate-200/50 dark:border-white/5 relative overflow-hidden print:border print:border-slate-300 print:bg-white print:shadow-none print:p-4 avoid-break">
+                                            <div className="absolute top-0 right-0 p-8 opacity-5 text-red-500 pointer-events-none transform rotate-12 print:hidden"><Icon name="activity" size={100} /></div>
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 relative z-10 gap-4 print:mb-4">
+                                                <h3 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-3 print:text-lg print:text-black">
+                                                    <div className="p-3 bg-red-100 dark:bg-red-500/20 text-red-600 rounded-xl shadow-inner print:hidden"><Icon name="ambulance" size={24}/></div> 
+                                                    ระเบียบความปลอดภัยการแพทย์
+                                                </h3>
+                                            </div>
+                                            <div className="flex flex-col gap-2 mb-6 relative z-10">
+                                                <div className="flex w-full h-3 gap-1 opacity-90">
+                                                    <div className="bg-slate-300 dark:bg-slate-600 rounded-l-full h-full transition-all duration-1000 shadow-inner print:bg-slate-300 print:opacity-100 print:color-adjust-exact" style={{width: `${stats.total ? ((stats.total - stats.healthAlert) / stats.total) * 100 : 0}%`, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>
+                                                    <div className="bg-red-500 rounded-r-full h-full transition-all duration-1000 shadow-inner print:bg-red-500 print:opacity-100 print:color-adjust-exact" style={{width: `${stats.total ? (stats.healthAlert / stats.total) * 100 : 0}%`, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>
+                                                </div>
+                                                <div className="flex justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest print:text-black">
+                                                    <span>สุขภาพแข็งแรง ({(stats.total - stats.healthAlert)})</span>
+                                                    <span className="text-red-600 dark:text-red-400">เฝ้าระวังพิเศษ ({stats.healthAlert})</span>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 relative z-10 print:grid-cols-3 print:gap-2">
+                                                {[ 
+                                                   {l:'สุขภาพแข็งแรง', v:(stats.total - stats.healthAlert), k:'', t:'healthy', c:'text-slate-600 dark:text-slate-300', bg:'bg-slate-400', hc:'hover:border-slate-300 dark:hover:border-slate-500/50'}, 
+                                                   {l:'มีโรคประจำตัว', v:stats.diseases.length, k:'', t:'disease', c:'text-pink-600 dark:text-pink-400', bg:'bg-pink-500', hc:'hover:border-pink-300 dark:hover:border-pink-500/50'}, 
+                                                   {l:'ประวัติแพ้ยา', v:stats.drugAllergies.length, k:'', t:'drug_allergy', c:'text-purple-600 dark:text-purple-400', bg:'bg-purple-500', hc:'hover:border-purple-300 dark:hover:border-purple-500/50'} 
+                                                ].map((itm,i) => (
+                                                    <div key={i} onClick={() => { if(itm.l !== 'สุขภาพแข็งแรง') handleDrilldown(itm.l, itm.t, itm.k) }} className={`group ${itm.l !== 'สุขภาพแข็งแรง' ? 'cursor-pointer' : ''} p-4 rounded-2xl bg-white/60 dark:bg-zinc-900/50 border border-slate-200 dark:border-white/10 ${itm.hc} hover:shadow-md transition-all btn-interactive print:bg-white print:border-slate-200 print:shadow-none print:p-2 avoid-break`}>
+                                                        <div className="flex justify-between items-end mb-3 print:mb-1">
+                                                            <span className={`text-xs font-bold text-slate-600 dark:text-slate-300 group-hover:${itm.c.split(' ')[0]} transition-colors flex items-center gap-1 print:text-black`}>
+                                                                {itm.l !== 'สุขภาพแข็งแรง' && <Icon name="search" size={10} className="opacity-0 group-hover:opacity-100 transition-opacity print:hidden"/>} {itm.l}
+                                                            </span>
+                                                            <span className={`font-black text-2xl leading-none ${itm.c} print:text-xl`}>{itm.v}</span>
+                                                        </div>
+                                                        <div className="w-full bg-slate-200/50 dark:bg-white/10 rounded-full h-1.5 overflow-hidden shadow-inner print:bg-slate-200">
+                                                            <div className={`h-1.5 rounded-full ${itm.bg} shadow-sm transition-all duration-1000 print:color-adjust-exact`} style={{ width: `${stats.total > 0 ? (itm.v / stats.total * 100) : 0}%`, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}></div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                                <div onClick={() => handleDrilldown('เฝ้าระวังด้านการแพทย์', 'health_alert', '')} className="col-span-2 md:col-span-3 group cursor-pointer p-4 md:p-5 rounded-2xl bg-red-50/50 dark:bg-red-950/20 border border-red-200 dark:border-red-500/20 hover:border-red-400 hover:shadow-md transition-all btn-interactive print:bg-white print:border-slate-200 print:shadow-none print:p-3 avoid-break">
+                                                    <div className="flex justify-between items-end mb-3 print:mb-1">
+                                                        <span className={`text-sm font-bold text-red-800 dark:text-red-300 group-hover:text-red-600 transition-colors flex items-center gap-1 print:text-black`}><Icon name="search" size={12} className="opacity-0 group-hover:opacity-100 transition-opacity print:hidden"/> กลุ่มเปราะบางเฝ้าระวังสูงสุด (Medical Risk)</span>
+                                                        <span className="font-black text-3xl leading-none text-red-600 print:text-xl">{stats.healthAlert} <span className="text-xs text-red-400 font-semibold ml-1">คน</span></span>
+                                                    </div>
+                                                    <div className="w-full bg-red-200/50 dark:bg-white/10 rounded-full h-2 overflow-hidden shadow-inner print:bg-slate-200">
+                                                        <div className="h-2 rounded-full bg-red-500 shadow-sm transition-all duration-1000 print:color-adjust-exact" style={{ width: `${stats.total > 0 ? (stats.healthAlert / stats.total * 100) : 0}%`, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[6px] border-t-orange-500 shadow-soft border border-slate-200/50 dark:border-white/5 relative overflow-hidden print:border print:border-slate-300 print:bg-white print:shadow-none print:p-4 avoid-break">
+                                            <div className="absolute top-0 right-0 p-8 opacity-5 text-orange-500 pointer-events-none transform -rotate-12 print:hidden"><Icon name="pizza" size={100} /></div>
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 relative z-10 gap-4 print:mb-4">
+                                                <h3 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-3 print:text-lg print:text-black">
+                                                    <div className="p-3 bg-orange-100 dark:bg-orange-500/20 text-orange-600 rounded-xl shadow-inner print:hidden"><Icon name="utensils" size={24}/></div> 
+                                                    บริหารการจัดเตรียมโภชนาการ
+                                                </h3>
+                                            </div>
+                                            <div className="flex flex-col gap-2 mb-6 relative z-10">
+                                                <div className="flex w-full h-3 gap-1 opacity-90">
+                                                    <div className="bg-slate-300 dark:bg-slate-600 rounded-l-full h-full transition-all duration-1000 shadow-inner print:bg-slate-300 print:opacity-100 print:color-adjust-exact" style={{width: `${stats.total ? ((stats.total - stats.foodAlert) / stats.total) * 100 : 0}%`, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>
+                                                    <div className="bg-orange-500 rounded-r-full h-full transition-all duration-1000 shadow-inner print:bg-orange-500 print:opacity-100 print:color-adjust-exact" style={{width: `${stats.total ? (stats.foodAlert / stats.total) * 100 : 0}%`, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>
+                                                </div>
+                                                <div className="flex justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest print:text-black">
+                                                    <span>ทานได้ทุกอย่าง ({(stats.total - stats.foodAlert)})</span>
+                                                    <span className="text-orange-600 dark:text-orange-400">ต้องจัดเตรียมพิเศษ ({stats.foodAlert})</span>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 relative z-10 print:grid-cols-4 print:gap-2">
+                                                {[ 
+                                                   {l:'ทานได้ทุกอย่าง', v:(stats.total - stats.foodAlert), k:'ไม่มี', t:'food_alert', c:'text-slate-600 dark:text-slate-300', bg:'bg-slate-400', hc:'hover:border-slate-300 dark:hover:border-slate-500/50'}, 
+                                                   {l:'ฮาลาล', v:stats.dietStats['ฮาลาล'], k:'ฮาลาล', t:'religion_diet', c:'text-blue-600 dark:text-blue-400', bg:'bg-blue-500', hc:'hover:border-blue-300 dark:hover:border-blue-500/50'}, 
+                                                   {l:'มังสวิรัติ', v:stats.dietStats['มังสวิรัติ'], k:'มังสวิรัติ', t:'religion_diet', c:'text-emerald-600 dark:text-emerald-400', bg:'bg-emerald-500', hc:'hover:border-emerald-300 dark:hover:border-emerald-500/50'}, 
+                                                   {l:'เจ', v:stats.dietStats['เจ'], k:'เจ', t:'religion_diet', c:'text-yellow-600 dark:text-yellow-500', bg:'bg-yellow-400', hc:'hover:border-yellow-300 dark:hover:border-yellow-500/50'}
+                                                ].map((itm,i) => (
+                                                    <div key={i} onClick={() => { if(itm.l !== 'ทานได้ทุกอย่าง') handleDrilldown(itm.l, itm.t, itm.k) }} className={`group ${itm.l !== 'ทานได้ทุกอย่าง' ? 'cursor-pointer' : ''} p-4 rounded-2xl bg-white/60 dark:bg-zinc-900/50 border border-slate-200 dark:border-white/10 ${itm.hc} hover:shadow-md transition-all btn-interactive print:bg-white print:border-slate-200 print:shadow-none print:p-2 avoid-break`}>
+                                                        <div className="flex justify-between items-end mb-3 print:mb-1">
+                                                            <span className={`text-xs font-bold text-slate-600 dark:text-slate-300 group-hover:${itm.c.split(' ')[0]} transition-colors flex items-center gap-1 print:text-black`}>
+                                                                {itm.l !== 'ทานได้ทุกอย่าง' && <Icon name="search" size={10} className="opacity-0 group-hover:opacity-100 transition-opacity print:hidden"/>} {itm.l}
+                                                            </span>
+                                                            <span className={`font-black text-2xl leading-none ${itm.c} print:text-xl`}>{itm.v}</span>
+                                                        </div>
+                                                        <div className="w-full bg-slate-200/50 dark:bg-white/10 rounded-full h-1.5 overflow-hidden shadow-inner print:bg-slate-200">
+                                                            <div className={`h-1.5 rounded-full ${itm.bg} shadow-sm transition-all duration-1000 print:color-adjust-exact`} style={{ width: `${stats.total > 0 ? (itm.v / stats.total * 100) : 0}%`, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}></div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                                <div onClick={() => handleDrilldown('แพ้อาหารเฉพาะกลุ่ม', 'food_allergy', '')} className="col-span-2 md:col-span-4 group cursor-pointer p-4 md:p-5 rounded-2xl bg-orange-50/50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-500/20 hover:border-orange-400 hover:shadow-md transition-all btn-interactive print:bg-white print:border-slate-200 print:shadow-none print:p-3 avoid-break">
+                                                    <div className="flex justify-between items-end mb-3 print:mb-1">
+                                                        <span className={`text-sm font-bold text-orange-800 dark:text-orange-300 group-hover:text-orange-600 transition-colors flex items-center gap-1 print:text-black`}><Icon name="search" size={12} className="opacity-0 group-hover:opacity-100 transition-opacity print:hidden"/> มีประวัติแพ้อาหารเฉพาะกลุ่ม (Food Allergies)</span>
+                                                        <span className="font-black text-3xl leading-none text-orange-600 print:text-xl">{stats.foodAllergies.length} <span className="text-xs text-orange-400 font-semibold ml-1">คน</span></span>
+                                                    </div>
+                                                    {stats.groupedAllergies.length > 0 && (
+                                                        <div className="mt-4 pt-4 border-t border-orange-200/50 dark:border-orange-500/30 print:mt-2 print:pt-2">
+                                                            <p className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-2 print:text-black">สรุปรายการอาหารที่แพ้</p>
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {stats.groupedAllergies.map((alg, idx) => (
+                                                                    <span key={idx} onClick={(e) => { e.stopPropagation(); handleDrilldown(`นักศึกษาที่แพ้: ${alg.name}`, 'allergy_group', alg.name); }} className="cursor-pointer hover:bg-orange-200 dark:hover:bg-orange-800 transition-colors bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800/50 px-2.5 py-1 rounded-lg text-xs font-semibold shadow-sm print:bg-white print:border-slate-300 print:text-black">
+                                                                        {alg.name} <span className="font-black ml-1 bg-white dark:bg-black/20 px-1.5 rounded-md print:bg-slate-100">{alg.count}</span>
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-6 print:space-y-4">
+                                        <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[6px] border-t-blue-500 shadow-soft border border-slate-200/50 dark:border-white/5 h-full flex flex-col print:border print:border-slate-300 print:bg-white print:shadow-none print:p-4 avoid-break">
+                                            <h3 className="text-lg font-black text-slate-800 dark:text-white mb-6 flex items-center gap-3 print:text-lg print:text-black print:mb-4">
+                                                <div className="p-2.5 bg-blue-100 dark:bg-blue-500/20 text-blue-600 rounded-xl print:hidden"><Icon name="pie-chart" size={20}/></div>
+                                                โครงสร้างประชากร
+                                            </h3>
+                                            
+                                            <div className="space-y-4 flex-1 print:space-y-2">
+                                                <div onClick={() => handleDrilldown('นักศึกษาปกติ', 'demographics', 'normal')} className="p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/40 dark:to-cyan-900/20 border border-blue-200/50 dark:border-blue-500/30 flex items-center justify-between cursor-pointer hover:shadow-lg hover:from-blue-100 dark:hover:from-blue-800/50 transition-all btn-interactive group relative overflow-hidden print:bg-white print:border-slate-300">
+                                                    <div className="absolute right-0 top-0 opacity-[0.05] text-blue-600 transform translate-x-2 -translate-y-2 pointer-events-none group-hover:scale-110 transition-transform duration-500 print:hidden"><Icon name="graduation-cap" size={110}/></div>
+                                                    <div className="flex items-center gap-4 relative z-10">
+                                                        <div className="p-3 bg-white dark:bg-blue-800/80 rounded-xl text-blue-500 shadow-sm group-hover:bg-blue-500 group-hover:text-white transition-colors duration-300 print:hidden"><Icon name="search" size={24}/></div>
+                                                        <span className="font-bold text-base md:text-lg text-blue-900 dark:text-blue-100 print:text-slate-800">นักศึกษาปกติ</span>
+                                                    </div>
+                                                    <span className="text-4xl md:text-5xl font-black text-blue-600 dark:text-blue-400 relative z-10 drop-shadow-sm print:text-blue-600 print:drop-shadow-none">{stats.normalCount}</span>
+                                                </div>
+                                                
+                                                <div onClick={() => handleDrilldown('นักศึกษาเทียบโอน', 'demographics', 'transfer')} className="p-6 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/40 dark:to-purple-900/20 border border-indigo-200/50 dark:border-indigo-500/30 flex items-center justify-between cursor-pointer hover:shadow-lg hover:from-indigo-100 dark:hover:from-indigo-800/50 transition-all btn-interactive group relative overflow-hidden print:bg-white print:border-slate-300">
+                                                    <div className="absolute right-0 top-0 opacity-[0.05] text-indigo-600 transform translate-x-2 -translate-y-2 pointer-events-none group-hover:scale-110 transition-transform duration-500 print:hidden"><Icon name="refresh-cw" size={110}/></div>
+                                                    <div className="flex items-center gap-4 relative z-10">
+                                                        <div className="p-3 bg-white dark:bg-indigo-800/80 rounded-xl text-indigo-500 shadow-sm group-hover:bg-indigo-500 group-hover:text-white transition-colors duration-300 print:hidden"><Icon name="search" size={24}/></div>
+                                                        <span className="font-bold text-base md:text-lg text-indigo-900 dark:text-indigo-100 print:text-slate-800">นักศึกษาเทียบโอน</span>
+                                                    </div>
+                                                    <span className="text-4xl md:text-5xl font-black text-indigo-600 dark:text-indigo-400 relative z-10 drop-shadow-sm print:text-indigo-600 print:drop-shadow-none">{stats.transferCount}</span>
+                                                </div>
+                                            </div>
+
+                                            {executiveMajor === 'ทั้งหมด' && stats.execBreakdownList && stats.execBreakdownList.length > 0 && (
+                                                <div className="mt-8 relative p-6 md:p-8 rounded-[2.5rem] bg-slate-50 dark:bg-zinc-900/80 border border-slate-200/80 dark:border-white/5 shadow-inner print:bg-white print:border-none print:shadow-none print:p-0 print:mt-4 avoid-break">
+                                                    <div className="flex items-center gap-3 mb-6 print:mb-4">
+                                                        <div className="p-2.5 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 rounded-xl shadow-sm print:hidden"><Icon name="layers" size={20}/></div>
+                                                        <div>
+                                                            <h4 className="text-lg font-black text-slate-800 dark:text-white leading-none">เจาะลึกรายสาขาวิชา</h4>
+                                                            <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-widest">สัดส่วน ปกติ / เทียบโอน</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4 sm:gap-5 print:grid-cols-2">
+                                                        {stats.execBreakdownList.map((item, idx) => {
+                                                            const mName = item.name;
+                                                            const normalPercent = item.total ? (item.normal / item.total) * 100 : 0;
+                                                            const transferPercent = item.total ? (item.transfer / item.total) * 100 : 0;
+                                                            
+                                                            return (
+                                                                <div key={idx} className="bg-white dark:bg-zinc-800/80 border border-slate-200/80 dark:border-white/10 rounded-3xl p-5 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-300 flex flex-col group print:border-slate-300 print:shadow-none print:transform-none avoid-break">
+                                                                    <div className="flex justify-between items-start gap-3 mb-4">
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <h5 className="font-bold text-base text-slate-800 dark:text-white leading-snug truncate group-hover:text-brand transition-colors" title={mName}>{mName}</h5>
+                                                                        </div>
+                                                                        <div onClick={() => handleDrilldown(mName, 'major_breakdown', {major: item.name, type: 'all'})} className="px-4 py-1.5 bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-200 rounded-xl text-sm font-black cursor-pointer hover:bg-brand hover:text-white transition-colors shadow-sm print:bg-slate-100 print:text-slate-800 btn-interactive shrink-0 flex items-center gap-1.5" title="ดูรายชื่อทั้งหมด">
+                                                                            {item.total} <span className="text-[10px] font-semibold opacity-70">คน</span>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div className="flex w-full h-3 mb-5 gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity">
+                                                                        {normalPercent > 0 && <div className="bg-blue-500 rounded-full h-full transition-all duration-1000 shadow-inner print:bg-blue-500 print:opacity-100 print:color-adjust-exact" style={{width: `${normalPercent}%`, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>}
+                                                                        {transferPercent > 0 && <div className="bg-purple-500 rounded-full h-full transition-all duration-1000 shadow-inner print:bg-purple-500 print:opacity-100 print:color-adjust-exact" style={{width: `${transferPercent}%`, WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>}
+                                                                    </div>
+
+                                                                    <div className="grid grid-cols-2 gap-3 mt-auto">
+                                                                        <div onClick={() => handleDrilldown(`${mName} (ปกติ)`, 'major_breakdown', {major: item.name, type: 'normal'})} className="bg-blue-50/50 dark:bg-blue-900/20 p-3.5 rounded-2xl border border-blue-100/50 dark:border-blue-800/30 cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-all flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 group/btn print:bg-white print:border-slate-200 btn-interactive relative overflow-hidden">
+                                                                            <div className="flex items-center gap-2 z-10">
+                                                                                <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm print:bg-blue-500 print:color-adjust-exact" style={{WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>
+                                                                                <span className="text-xs font-bold text-slate-500 dark:text-slate-400">ปกติ</span>
+                                                                            </div>
+                                                                            <div className="flex items-end gap-2 z-10">
+                                                                                <span className="text-2xl font-black text-blue-700 dark:text-blue-400 leading-none group-hover/btn:scale-110 transition-transform origin-bottom-right print:text-blue-700">{item.normal}</span>
+                                                                                <span className="text-[10px] font-bold text-blue-500 bg-blue-100/50 dark:bg-blue-900/40 px-1.5 py-0.5 rounded-md print:bg-transparent">{normalPercent.toFixed(0)}%</span>
+                                                                            </div>
+                                                                            <div className="absolute right-2 top-2 opacity-0 group-hover/btn:opacity-10 text-blue-500 transition-opacity transform translate-x-1 -translate-y-1 print:hidden"><Icon name="users" size={40}/></div>
+                                                                        </div>
+                                                                        <div onClick={() => handleDrilldown(`${mName} (เทียบโอน)`, 'major_breakdown', {major: item.name, type: 'transfer'})} className="bg-purple-50/50 dark:bg-purple-900/20 p-3.5 rounded-2xl border border-purple-100/50 dark:border-purple-800/30 cursor-pointer hover:border-purple-300 hover:bg-purple-50 transition-all flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 group/btn print:bg-white print:border-slate-200 btn-interactive relative overflow-hidden">
+                                                                            <div className="flex items-center gap-2 z-10">
+                                                                                <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm print:bg-purple-500 print:color-adjust-exact" style={{WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>
+                                                                                <span className="text-xs font-bold text-slate-500 dark:text-slate-400">เทียบโอน</span>
+                                                                            </div>
+                                                                            <div className="flex items-end gap-2 z-10">
+                                                                                <span className="text-2xl font-black text-purple-700 dark:text-purple-400 leading-none group-hover/btn:scale-110 transition-transform origin-bottom-right print:text-purple-700">{item.transfer}</span>
+                                                                                <span className="text-[10px] font-bold text-purple-500 bg-purple-100/50 dark:bg-purple-900/40 px-1.5 py-0.5 rounded-md print:bg-transparent">{transferPercent.toFixed(0)}%</span>
+                                                                            </div>
+                                                                            <div className="absolute right-2 top-2 opacity-0 group-hover/btn:opacity-10 text-purple-500 transition-opacity transform translate-x-1 -translate-y-1 print:hidden"><Icon name="refresh-cw" size={40}/></div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            
+                                            <div className="mt-6 md:mt-8 relative p-8 rounded-[2.5rem] bg-gradient-to-br from-slate-50 to-white dark:from-zinc-900/80 dark:to-black border border-slate-200/80 dark:border-white/5 shadow-inner overflow-hidden print:border print:border-slate-300 print:bg-none print:shadow-none print:p-6 avoid-break">
+                                                <div className="absolute -top-10 -right-10 w-40 h-40 bg-red-500/20 blur-[50px] rounded-full pointer-events-none print:hidden"></div>
+                                                <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-orange-500/20 blur-[50px] rounded-full pointer-events-none print:hidden"></div>
+
+                                                <div className="relative z-10 flex flex-col items-center">
+                                                    <div className="flex items-center gap-2 mb-8 bg-white/80 dark:bg-white/10 backdrop-blur-md px-5 py-2.5 rounded-full border border-slate-200/50 dark:border-white/5 shadow-sm print:bg-white print:border-none print:shadow-none print:mb-4">
+                                                        <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse print:animate-none print:bg-red-500 print:color-adjust-exact" style={{WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}}></div>
+                                                        <p className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest print:text-slate-800">อัตราความเสี่ยงรวม</p>
+                                                    </div>
+
+                                                    <div className="relative flex items-center justify-center w-48 h-48 mb-8 cursor-pointer group btn-interactive print:w-32 print:h-32 print:mb-4" onClick={() => handleDrilldown('กลุ่มเฝ้าระวังพิเศษ (เสี่ยงรวม)', 'health_alert', '')}>
+                                                        <svg className="w-full h-full transform -rotate-90 drop-shadow-xl group-hover:scale-105 transition-transform print:drop-shadow-none" viewBox="0 0 36 36">
+                                                            <defs>
+                                                                <linearGradient id="riskGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                                    <stop offset="0%" stopColor="#ef4444" />
+                                                                    <stop offset="100%" stopColor="#f97316" />
+                                                                </linearGradient>
+                                                            </defs>
+                                                            <path className="text-slate-200/50 dark:text-white/5 print:text-slate-200" strokeWidth="2.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                                            <path stroke="url(#riskGradient)" className="transition-all duration-1000 ease-out print:stroke-red-500 print:color-adjust-exact" strokeDasharray={`${stats.total ? (((new Set(stats.surveillanceList.map(s => s.StudentID))).size) / stats.total) * 100 : 0}, 100`} strokeWidth="4" fill="none" strokeLinecap="round" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" style={{WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact'}} />
+                                                        </svg>
+                                                        <div className="absolute flex flex-col items-center justify-center text-center bg-white dark:bg-zinc-800 w-32 h-32 rounded-full shadow-lg border border-slate-100 dark:border-white/5 z-10 group-hover:shadow-xl transition-shadow print:shadow-none print:border-none print:bg-transparent print:w-auto print:h-auto">
+                                                            <span className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-orange-500 drop-shadow-sm print:text-red-500 print:bg-none print:drop-shadow-none print:text-3xl">{stats.total ? (((new Set(stats.surveillanceList.map(s => s.StudentID))).size) / stats.total * 100).toFixed(0) : 0}%</span>
+                                                            <span className="text-[10px] font-black text-slate-400 uppercase mt-1 tracking-wider flex items-center gap-1 print:text-slate-600"><Icon name="search" size={10} className="print:hidden"/> ดูรายชื่อ</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="w-full flex gap-4 print:gap-2">
+                                                        <div onClick={() => handleDrilldown('เฝ้าระวังด้านการแพทย์', 'health_alert', '')} className="flex-1 bg-white/70 dark:bg-white/5 backdrop-blur-sm border border-slate-200/50 dark:border-white/5 rounded-[1.25rem] p-4 flex flex-col items-center justify-center hover:bg-red-50 dark:hover:bg-red-500/10 hover:border-red-200 dark:hover:border-red-500/30 transition-all btn-interactive cursor-pointer group shadow-sm print:bg-white print:border-slate-300 print:shadow-none print:p-2">
+                                                            <Icon name="activity" size={20} className="text-red-500 mb-1.5 group-hover:scale-110 transition-transform print:hidden"/>
+                                                            <span className="text-[11px] text-slate-500 font-bold uppercase group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors flex items-center gap-1 print:text-slate-800">แพทย์ <Icon name="search" size={10} className="opacity-0 group-hover:opacity-100 print:hidden"/></span>
+                                                            <span className="text-2xl font-black text-red-600 dark:text-red-400 leading-none mt-1.5 print:text-red-600 print:text-lg">{stats.healthAlert}</span>
+                                                        </div>
+                                                        <div onClick={() => handleDrilldown('เฝ้าระวังด้านโภชนาการ', 'food_alert', '')} className="flex-1 bg-white/70 dark:bg-white/5 backdrop-blur-sm border border-slate-200/50 dark:border-white/5 rounded-[1.25rem] p-4 flex flex-col items-center justify-center hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:border-orange-200 dark:hover:border-orange-500/30 transition-all btn-interactive cursor-pointer group shadow-sm print:bg-white print:border-slate-300 print:shadow-none print:p-2">
+                                                            <Icon name="pizza" size={20} className="text-orange-500 mb-1.5 group-hover:scale-110 transition-transform print:hidden"/>
+                                                            <span className="text-[11px] text-slate-500 font-bold uppercase group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors flex items-center gap-1 print:text-slate-800">อาหาร <Icon name="search" size={10} className="opacity-0 group-hover:opacity-100 print:hidden"/></span>
+                                                            <span className="text-2xl font-black text-orange-600 dark:text-orange-400 leading-none mt-1.5 print:text-orange-600 print:text-lg">{stats.foodAlert}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* TAB 6: CREATE ACTIVITY */}
                         {activeTab === 'create_activity' && (
                             <div className="space-y-6 animate-fade-in">
-                                <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-soft relative overflow-hidden border-t-[8px] border-t-purple-500 border border-slate-200/50 dark:border-white/5">
-                                    <div className="absolute top-0 right-0 p-8 opacity-5 text-purple-500 pointer-events-none transform translate-x-4 -translate-y-4"><Icon name="calendar-plus" size={120} /></div>
-                                    <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white mb-8 flex items-center gap-3 relative z-10"><div className="p-3 bg-purple-100 dark:bg-purple-500/20 text-purple-600 rounded-2xl shadow-inner"><Icon name="calendar-plus" size={24}/></div> สร้างกิจกรรมใหม่</h3>
+                                <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-purple-500 shadow-soft flex flex-col relative overflow-hidden bg-gradient-to-b from-white to-purple-50/30 dark:from-zinc-900 dark:to-zinc-900/50">
+                                    <div className="absolute top-0 right-0 p-8 opacity-5 text-purple-500 pointer-events-none transform translate-x-4 -translate-y-4">
+                                        <Icon name="calendar-plus" size={120} />
+                                    </div>
+                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 relative z-10">
+                                        <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
+                                            <div className="p-3 bg-purple-100 dark:bg-purple-500/20 text-purple-600 rounded-2xl shadow-inner"><Icon name="calendar-plus" size={24}/></div>
+                                            สร้างกิจกรรม
+                                        </h3>
+                                    </div>
                                     
                                     <form onSubmit={handleCreateActivity} className="relative z-10 space-y-6">
                                         <div className="grid grid-cols-1 gap-6">
@@ -1064,18 +1427,29 @@
                                             </div>
                                         </div>
                                         <div className="pt-4 flex justify-end">
-                                            <button type="submit" className="w-full md:w-auto px-8 py-3.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-black text-lg transition-colors btn-interactive flex items-center justify-center gap-2 shadow-sm"><Icon name="plus-circle" size={20} /> บันทึกกิจกรรม</button>
+                                            <button type="submit" className="w-full md:w-auto px-8 py-3.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-black text-lg transition-colors btn-interactive flex items-center justify-center gap-2 shadow-sm">
+                                                <Icon name="plus-circle" size={20} /> บันทึกกิจกรรม
+                                            </button>
                                         </div>
                                     </form>
                                 </div>
 
                                 {activityDefs.length > 0 && (
-                                    <div className="glass-panel rounded-[2rem] overflow-hidden shadow-soft border border-slate-200/50 dark:border-white/5">
-                                        <div className="p-6 md:px-8 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5"><h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-3"><Icon name="list" className="text-slate-400" size={18}/> รายการกิจกรรมทั้งหมด <span className="text-xs bg-purple-100 dark:bg-purple-500/20 text-purple-600 px-2 py-1 rounded-md font-semibold ml-2">(คลิกเปิด-ปิดสถานะ หรือดูผู้ลงทะเบียน)</span></h3></div>
+                                    <div className="glass-panel rounded-[2rem] overflow-hidden border border-slate-200/50 dark:border-white/5 shadow-soft">
+                                        <div className="p-6 md:px-8 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex justify-between items-center">
+                                            <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-3"><Icon name="list" className="text-slate-400" size={18}/> รายการกิจกรรมทั้งหมด <span className="text-xs bg-purple-100 dark:bg-purple-500/20 text-purple-600 px-2 py-1 rounded-md font-semibold">(คลิกเปิด-ปิดสถานะ หรือดูผู้ลงทะเบียน)</span></h3>
+                                        </div>
                                         <div className="overflow-x-auto p-2 custom-scrollbar">
                                             <table className="w-full text-sm text-left min-w-[700px]">
                                                 <thead className="text-[11px] text-slate-400 uppercase tracking-widest bg-transparent">
-                                                    <tr><th className="px-6 py-3">ชื่อกิจกรรม</th><th className="px-6 py-3">วันที่และเวลา</th><th className="px-6 py-3">สถานที่จัดกิจกรรม</th><th className="px-6 py-3 text-center">สถานะ (เปิด/ปิด)</th><th className="px-6 py-3 text-center">ผู้เข้าร่วม (คน)</th><th className="px-6 py-3"></th></tr>
+                                                    <tr>
+                                                        <th className="px-6 py-3">ชื่อกิจกรรม</th>
+                                                        <th className="px-6 py-3">วันที่และเวลา</th>
+                                                        <th className="px-6 py-3">สถานที่จัดกิจกรรม</th>
+                                                        <th className="px-6 py-3 text-center">สถานะ (เปิด/ปิด)</th>
+                                                        <th className="px-6 py-3 text-center">ผู้เข้าร่วม (คน)</th>
+                                                        <th className="px-6 py-3"></th>
+                                                    </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                                                     {activityDefs.map((act, idx) => {
@@ -1086,11 +1460,16 @@
                                                                 <td className="px-6 py-4 text-slate-500 font-mono text-xs">{new Date(act.ActivityDate).toLocaleString('th-TH')}</td>
                                                                 <td className="px-6 py-4 text-slate-600 dark:text-slate-400 flex items-center gap-2"><Icon name="map-pin" size={14} className="text-slate-400"/> {act.Location}</td>
                                                                 <td className="px-6 py-4 text-center" onClick={(e) => e.stopPropagation()}>
-                                                                    <button onClick={() => handleToggleActivity(act.ActivityName, act.Status)} className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none shadow-sm ${act.Status !== 'CLOSED' ? 'bg-emerald-500 hover:bg-emerald-400' : 'bg-slate-300 dark:bg-slate-600 hover:bg-slate-500'}`}>
+                                                                    <button 
+                                                                        onClick={() => handleToggleActivity(act.ActivityName, act.Status)} 
+                                                                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none shadow-sm ${act.Status !== 'CLOSED' ? 'bg-emerald-500 hover:bg-emerald-400' : 'bg-slate-300 dark:bg-slate-600 hover:bg-slate-400'}`}
+                                                                    >
                                                                         <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${act.Status !== 'CLOSED' ? 'translate-x-5' : 'translate-x-0'}`} />
                                                                     </button>
                                                                 </td>
-                                                                <td className="px-6 py-4 text-center"><span className="inline-flex items-center justify-center bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 px-3 py-1 rounded-full text-xs font-black shadow-sm">{attendeesCount}</span></td>
+                                                                <td className="px-6 py-4 text-center">
+                                                                    <span className="inline-flex items-center justify-center bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 px-3 py-1 rounded-full text-xs font-black shadow-sm">{attendeesCount}</span>
+                                                                </td>
                                                                 <td className="px-6 py-4 text-right text-slate-300 group-hover:text-purple-500 transition-colors"><Icon name="chevron-right" size={20}/></td>
                                                             </tr>
                                                         );
@@ -1103,14 +1482,17 @@
                             </div>
                         )}
 
+                        {/* TAB 7: ACTIVITY SUMMARY */}
                         {activeTab === 'activity_summary' && (
                             <div className="space-y-6 animate-fade-in print:space-y-4">
                                 <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-pink-500 shadow-soft relative overflow-hidden bg-gradient-to-b from-white to-pink-50/30 dark:from-zinc-900 dark:to-zinc-900/50 print:border-none print:shadow-none print:bg-white print:p-0">
-                                    <div className="absolute top-0 right-0 p-8 opacity-5 text-pink-500 pointer-events-none transform translate-x-4 -translate-y-4 print:hidden"><Icon name="radio" size={120} /></div>
+                                    <div className="absolute top-0 right-0 p-8 opacity-5 text-pink-500 pointer-events-none transform translate-x-4 -translate-y-4 print:hidden">
+                                        <Icon name="bar-chart-2" size={120} />
+                                    </div>
                                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10 print:mb-6">
                                         <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3 print:text-black print:text-2xl">
                                             <div className="p-3 bg-pink-100 dark:bg-pink-500/20 text-pink-600 rounded-2xl shadow-inner print:hidden relative flex items-center justify-center">
-                                                <Icon name="radio" size={24}/>
+                                                <Icon name="bar-chart-2" size={24}/>
                                                 <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-ping"></span>
                                             </div> 
                                             Real-Time Recording
@@ -1122,11 +1504,18 @@
                                 </div>
 
                                 {activityDefs.length === 0 ? (
-                                    <div className="glass-panel p-12 rounded-[2.5rem] flex flex-col items-center justify-center text-slate-400 shadow-soft border border-slate-200/50 dark:border-white/5"><Icon name="inbox" size={48} className="mb-4 opacity-30" /><p className="font-semibold text-lg">ยังไม่มีกิจกรรมที่ถูกสร้างในระบบ</p></div>
+                                    <div className="glass-panel p-12 rounded-[2.5rem] flex flex-col items-center justify-center text-slate-400 shadow-soft border border-slate-200/50 dark:border-white/5">
+                                        <Icon name="inbox" size={48} className="mb-4 opacity-30" />
+                                        <p className="font-semibold text-lg">ยังไม่มีกิจกรรมที่ถูกสร้างในระบบ</p>
+                                    </div>
                                 ) : (
                                     activityDefs.map((act, idx) => {
                                         const attendees = activityLogs.filter(log => log.ActivityName === act.ActivityName);
-                                        const majorCounts = attendees.reduce((acc, curr) => { const m = curr.Major || 'ไม่ระบุ'; acc[m] = (acc[m] || 0) + 1; return acc; }, {});
+                                        const majorCounts = attendees.reduce((acc, curr) => {
+                                            const m = curr.Major || 'ไม่ระบุ';
+                                            acc[m] = (acc[m] || 0) + 1;
+                                            return acc;
+                                        }, {});
                                         const totalAttendees = attendees.length;
 
                                         return (
@@ -1177,7 +1566,9 @@
                                                                                     <div className="mt-1 print:hidden"><div className="w-2.5 h-2.5 rounded-full bg-pink-500 shadow-sm"></div></div>
                                                                                     <span className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-snug group-hover:text-pink-600 transition-colors line-clamp-2 print:text-slate-800">{major}</span>
                                                                                 </div>
-                                                                                <div className="text-right shrink-0"><span className="text-xl font-black text-slate-800 dark:text-white leading-none print:text-black">{count}</span></div>
+                                                                                <div className="text-right shrink-0">
+                                                                                    <span className="text-xl font-black text-slate-800 dark:text-white leading-none print:text-black">{count}</span>
+                                                                                </div>
                                                                             </div>
                                                                             <div className="mt-auto flex items-center justify-between">
                                                                                 <span className="text-[10px] font-bold text-slate-500 bg-slate-100 dark:bg-white/5 px-2 py-1 rounded-md print:border print:border-slate-200 print:bg-transparent">{percent}%</span>
@@ -1201,9 +1592,101 @@
                                 )}
                             </div>
                         )}
+
+                        {/* TAB 8: SURVEY SUMMARY (สรุปแบบสอบถาม) */}
+                        {activeTab === 'survey_summary' && (
+                            <div className="space-y-6 animate-fade-in print:space-y-4">
+                                <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-yellow-500 shadow-soft relative overflow-hidden bg-gradient-to-b from-white to-yellow-50/30 dark:from-zinc-900 dark:to-zinc-900/50">
+                                    <div className="absolute top-0 right-0 p-8 opacity-5 text-yellow-500 pointer-events-none transform translate-x-4 -translate-y-4 print:hidden">
+                                        <Icon name="star" size={120} />
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                                        <div>
+                                            <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
+                                                <div className="p-3 bg-yellow-100 dark:bg-yellow-500/20 text-yellow-600 rounded-2xl shadow-inner print:hidden"><Icon name="star" size={24}/></div>
+                                                รายงานสรุปผลประเมินความพึงพอใจ
+                                            </h3>
+                                            <p className="text-slate-500 mt-2 font-medium text-sm">ข้อมูลจากการประเมินหลังจบกิจกรรม</p>
+                                        </div>
+                                        <div className="relative w-full md:w-80">
+                                            <select className="w-full appearance-none input-modern rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold shadow-sm cursor-pointer border-slate-200 dark:border-white/10" value={selectedSurveyActivity} onChange={e => setSelectedSurveyActivity(e.target.value)}>
+                                                <option value="ทั้งหมด">รวมทุกกิจกรรม</option>
+                                                {activityDefs.map((a, i) => <option key={i} value={a.ActivityName}>{a.ActivityName}</option>)}
+                                            </select>
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><Icon name="chevron-down" size={16}/></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {surveyStats.total === 0 ? (
+                                    <div className="glass-panel p-12 rounded-[2.5rem] flex flex-col items-center justify-center text-slate-400 shadow-soft border border-slate-200/50 dark:border-white/5"><Icon name="inbox" size={48} className="mb-4 opacity-30" /><p className="font-semibold text-lg">ยังไม่มีผู้ตอบแบบประเมินในหัวข้อนี้</p></div>
+                                ) : (
+                                    <>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="glass-panel p-8 rounded-[2.5rem] border border-slate-200/50 dark:border-white/5 shadow-soft flex items-center justify-between group">
+                                                <div>
+                                                    <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">ผู้ตอบแบบประเมินรวม</p>
+                                                    <div className="text-5xl font-black text-slate-800 dark:text-white">{surveyStats.total} <span className="text-base text-slate-400">คน</span></div>
+                                                </div>
+                                                <div className="w-16 h-16 bg-blue-50 dark:bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform"><Icon name="users" size={32}/></div>
+                                            </div>
+                                            <div className="glass-panel p-8 rounded-[2.5rem] border border-slate-200/50 dark:border-white/5 shadow-soft flex items-center justify-between group bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-yellow-200/50 dark:border-yellow-500/20">
+                                                <div>
+                                                    <p className="text-sm font-bold text-yellow-700 dark:text-yellow-500 uppercase tracking-widest mb-1">ความพึงพอใจเฉลี่ยรวม</p>
+                                                    <div className="text-5xl font-black text-yellow-600 dark:text-yellow-400 flex items-baseline gap-2">{surveyStats.overallAvg} <span className="text-xl">/ 5</span></div>
+                                                </div>
+                                                <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-500/20 text-yellow-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner"><Icon name="star" size={32} className="fill-current"/></div>
+                                            </div>
+                                        </div>
+
+                                        <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-soft border border-slate-200/50 dark:border-white/5">
+                                            <h4 className="text-lg font-black text-slate-800 dark:text-white mb-6 flex items-center gap-2"><Icon name="bar-chart" size={20} className="text-brand"/> คะแนนเฉลี่ยรายหัวข้อ</h4>
+                                            <div className="space-y-6">
+                                                {[
+                                                    { q: '1. ความพึงพอใจในภาพรวมที่มีต่อโครงการ/กิจกรรมนี้', score: surveyStats.avgQ1, color: 'bg-blue-500' },
+                                                    { q: '2. ประโยชน์ที่ได้รับ และความสามารถในการนำความรู้/ประสบการณ์ไปปรับใช้ได้จริง', score: surveyStats.avgQ2, color: 'bg-emerald-500' },
+                                                    { q: '3. ความเหมาะสมของรูปแบบงาน (เช่น ระยะเวลา, สถานที่, หรือความสะดวกในการเข้าใช้งานกรณีเป็นออนไลน์)', score: surveyStats.avgQ3, color: 'bg-purple-500' },
+                                                    { q: '4. การให้บริการและการอำนวยความสะดวก ของทีมงาน/เจ้าหน้าที่/วิทยากร', score: surveyStats.avgQ4, color: 'bg-pink-500' }
+                                                ].map((item, idx) => (
+                                                    <div key={idx} className="relative">
+                                                        <div className="flex justify-between items-end mb-2">
+                                                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300 pr-4">{item.q}</span>
+                                                            <span className="font-black text-lg text-slate-800 dark:text-white shrink-0">{item.score} <span className="text-xs text-slate-400 font-semibold">/ 5</span></span>
+                                                        </div>
+                                                        <div className="w-full bg-slate-100 dark:bg-white/5 rounded-full h-3 overflow-hidden shadow-inner">
+                                                            <div className={`h-full ${item.color} rounded-full transition-all duration-1000`} style={{ width: `${(item.score / 5) * 100}%` }}></div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {surveyStats.commentsList.length > 0 && (
+                                            <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-soft border border-slate-200/50 dark:border-white/5">
+                                                <div className="flex items-center justify-between mb-6">
+                                                    <h4 className="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2"><Icon name="message-square" size={20} className="text-brand"/> ข้อเสนอแนะเพิ่มเติม ({surveyStats.commentsList.length})</h4>
+                                                </div>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto custom-scrollbar pr-2 pb-2">
+                                                    {surveyStats.commentsList.map((cmt, idx) => (
+                                                        <div key={idx} className="bg-white dark:bg-zinc-800/80 p-5 rounded-2xl border border-slate-200/60 dark:border-white/10 hover:shadow-md transition-shadow relative">
+                                                            <Icon name="quote" size={24} className="text-slate-200 dark:text-white/5 absolute top-4 right-4" />
+                                                            <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed relative z-10 font-medium mb-3">"{cmt.text}"</p>
+                                                            <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-widest border-t border-slate-100 dark:border-white/5 pt-3">
+                                                                <span>รหัสนักศึกษา: {cmt.student}</span>
+                                                                <span>{new Date(cmt.date).toLocaleDateString('th-TH')}</span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        )}
                     </div>
 
-                    {/* MODALS: Drilldown */}
+                    {}
                     {drilldownData.list.length > 0 && (
                         <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 dark:bg-black/90 backdrop-blur-lg animate-fade-in print:hidden">
                             <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 p-6 md:p-8 rounded-[2.5rem] w-full max-w-5xl max-h-[90vh] flex flex-col shadow-[0_20px_60px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.8)] animate-slide-up text-left overflow-hidden">
@@ -1246,7 +1729,7 @@
                         </div>
                     )}
 
-                    {/* MODALS: Edit Modal */}
+                    {/* Edit Modal */}
                     {editItem && (
                         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 dark:bg-black/90 backdrop-blur-lg animate-fade-in print:hidden">
                             <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 p-6 md:p-8 rounded-[2.5rem] w-full max-w-lg max-h-[90vh] flex flex-col shadow-[0_20px_60px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.8)] animate-slide-up text-left overflow-hidden">
