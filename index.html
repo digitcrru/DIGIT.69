@@ -207,7 +207,8 @@
                     customClass: {
                         popup: 'rounded-[2rem] bg-white dark:bg-zinc-900 border border-slate-200/50 dark:border-white/5 shadow-2xl',
                         input: 'text-center font-mono text-2xl tracking-[0.5em] rounded-xl bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white py-4 shadow-inner focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all',
-                        confirmButton: 'rounded-xl font-bold px-8 py-3.5 shadow-md', cancelButton: 'rounded-xl font-bold px-8 py-3.5'
+                        confirmButton: 'rounded-xl font-bold px-8 py-3.5 shadow-md hover:shadow-lg transition-all',
+                        cancelButton: 'rounded-xl font-bold px-8 py-3.5 transition-all'
                     }
                 }).then((result) => {
                     if (result.isConfirmed) {
@@ -219,7 +220,9 @@
 
             return (
                 <div className="flex flex-col items-center justify-center min-h-[85vh] animate-fade-in relative">
-                    <button onClick={promptAdmin} className="absolute top-0 right-0 p-3.5 text-slate-400 hover:text-brand bg-white/50 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 backdrop-blur-md transition-all z-20 rounded-full shadow-sm border border-slate-200/50 dark:border-white/5 btn-interactive" title="เข้าสู่ระบบผู้ดูแล"><Icon name="lock" size={20} /></button>
+                    <button onClick={promptAdmin} className="absolute top-0 right-0 p-3.5 text-slate-400 hover:text-brand bg-white/50 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 backdrop-blur-md transition-all z-20 rounded-full shadow-sm border border-slate-200/50 dark:border-white/5 btn-interactive" title="เข้าสู่ระบบผู้ดูแล">
+                        <Icon name="lock" size={20} />
+                    </button>
                     <div className="text-center mb-10 md:mb-12 mt-10">
                         <div className="inline-flex items-center justify-center p-5 bg-brand/10 text-brand rounded-[2rem] shadow-glow-brand mb-6 transform hover:scale-110 transition-transform duration-500"><Icon name="box" size={56} /></div>
                         <h1 className="text-5xl md:text-6xl font-black text-slate-800 dark:text-white tracking-tight mb-4">DIGIT<span className="brand-text-gradient">.69</span></h1>
@@ -319,7 +322,7 @@
                 
                 const finalData = { ...formData, FoodAllergy: hasFoodAllergy ? formData.FoodAllergy : 'ไม่แพ้', Disease: hasDisease ? formData.Disease : 'ไม่มี', DrugAllergy: hasDrugAllergy ? formData.DrugAllergy : 'ไม่แพ้' };
                 setIsSubmitting(true);
-                Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
+                Swal.fire({ title: 'Real-Time Recording...', html: '<p class="text-sm text-slate-500 mt-2">กำลังซิงค์ข้อมูลเข้าสู่ระบบ...</p>', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
 
                 try {
                     const res = await submitToAPI('register', finalData);
@@ -446,14 +449,15 @@
                 if (!formData.ActivityName.trim()) { Swal.fire({ icon: 'warning', title: 'แจ้งเตือน', text: 'กรุณาระบุชื่อกิจกรรมที่เข้าร่วม', customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} }); return; }
 
                 setIsSubmitting(true);
-                Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
+                Swal.fire({ title: 'Real-Time Recording...', html: '<p class="text-sm text-slate-500 mt-2">กำลังซิงค์ข้อมูลเข้าสู่ระบบ...</p>', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
 
                 try {
                     const payload = { StudentID: formData.StudentID, FullName: formData.FullName, Major: formData.Major, IDCard: formData.IDCard, StudentPhone: formData.StudentPhone, ActivityName: formData.ActivityName };
                     const res = await submitToAPI('log_activity', payload); 
-                    if (res.success) { Swal.close(); onSuccess(); } else { throw new Error(res.message); }
+                    if (res.success) { Swal.close(); onSuccess(formData.ActivityName, formData.StudentID); } 
+                    else { throw new Error(res.message); }
                 } catch (err) {
-                    Swal.fire({ icon: 'error', title: 'Error', text: err.message, customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
+                    Swal.fire({ icon: 'error', title: 'ไม่สามารถลงทะเบียนได้', text: err.message, customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
                 } finally { setIsSubmitting(false); }
             };
 
@@ -494,6 +498,7 @@
                                         </div>
                                         <div className="flex flex-wrap gap-2 justify-center sm:justify-start mt-4">
                                             <span className="bg-indigo-50 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 px-3 py-1.5 rounded-lg text-xs font-bold border border-indigo-100 dark:border-indigo-500/30 flex items-center gap-1.5 shadow-sm"><Icon name="graduation-cap" size={12}/> {formData.Major}</span>
+                                            {formData.StudentPhone && <span className="bg-emerald-50 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-100 dark:border-emerald-500/30 flex items-center gap-1.5 shadow-sm"><Icon name="phone" size={12}/> {formData.StudentPhone}</span>}
                                         </div>
                                     </div>
                                 </div>
@@ -527,6 +532,99 @@
         }
 
         // ==========================================
+        // 📊 แบบประเมิน SurveyForm (ใหม่)
+        // ==========================================
+        function SurveyForm({ onBack, onSuccess, activityName, studentID }) {
+            const [ratings, setRatings] = useState({ q1: 0, q2: 0, q3: 0, q4: 0 });
+            const [comment, setComment] = useState('');
+            const [isSubmitting, setIsSubmitting] = useState(false);
+
+            const questions = [
+                { id: 'q1', text: '1. ความพึงพอใจในภาพรวมที่มีต่อโครงการ/กิจกรรมนี้' },
+                { id: 'q2', text: '2. ประโยชน์ที่ได้รับ และความสามารถในการนำความรู้/ประสบการณ์ไปปรับใช้ได้จริง' },
+                { id: 'q3', text: '3. ความเหมาะสมของรูปแบบงาน (เช่น ระยะเวลา, สถานที่, หรือความสะดวกในการเข้าใช้งานกรณีเป็นออนไลน์)' },
+                { id: 'q4', text: '4. การให้บริการและการอำนวยความสะดวก ของทีมงาน/เจ้าหน้าที่/วิทยากร' }
+            ];
+
+            const RatingStars = ({ qId }) => {
+                return (
+                    <div className="flex items-center gap-2 sm:gap-4 mt-3">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                            <button key={star} type="button" onClick={() => setRatings({ ...ratings, [qId]: star })} className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center font-black text-lg transition-all btn-interactive ${ratings[qId] === star ? 'bg-brand text-white shadow-glow-brand transform scale-110' : 'bg-slate-100 dark:bg-white/5 text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'}`}>
+                                {star}
+                            </button>
+                        ))}
+                    </div>
+                );
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (!ratings.q1 || !ratings.q2 || !ratings.q3 || !ratings.q4) {
+                    Swal.fire({ icon: 'warning', title: 'กรุณาประเมินให้ครบ', text: 'โปรดให้คะแนนความพึงพอใจครบทั้ง 4 ข้อก่อนกดยืนยันครับ', customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
+                    return;
+                }
+
+                setIsSubmitting(true);
+                Swal.fire({ title: 'Real-Time Recording...', html: '<p class="text-sm text-slate-500 mt-2">กำลังซิงค์ข้อมูลประเมินผลเข้าสู่ระบบ...</p>', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
+                try {
+                    const res = await submitToAPI('save_survey', { 
+                        ActivityName: activityName, 
+                        StudentID: studentID, 
+                        Rating1: ratings.q1,
+                        Rating2: ratings.q2,
+                        Rating3: ratings.q3,
+                        Rating4: ratings.q4,
+                        Comment: comment 
+                    });
+                    if (res.success) { Swal.close(); onSuccess(); } 
+                    else { throw new Error(res.message); }
+                } catch (err) { Swal.fire({ icon: 'error', title: 'Error', text: err.message, customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} }); } 
+                finally { setIsSubmitting(false); }
+            };
+
+            return (
+                <div className="max-w-3xl mx-auto animate-fade-in pb-10">
+                    <div className="text-center mb-8">
+                        <div className="inline-flex items-center justify-center p-4 bg-purple-100 dark:bg-purple-500/20 text-purple-600 rounded-[1.5rem] mb-4 shadow-sm"><Icon name="clipboard-list" size={32} /></div>
+                        <h2 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white mb-2">แบบประเมินความพึงพอใจ</h2>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm font-semibold">{activityName}</p>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-purple-500 shadow-soft relative overflow-hidden">
+                            <div className="absolute right-0 top-0 p-8 opacity-5 text-purple-500 pointer-events-none transform translate-x-4 -translate-y-4"><Icon name="star" size={100} /></div>
+                            <h3 className="text-lg font-black text-slate-800 dark:text-white mb-6 relative z-10 border-b border-slate-200 dark:border-white/10 pb-4">ส่วนที่ 1: การประเมินความพึงพอใจ <span className="text-sm font-semibold text-slate-500 ml-2">(1 = น้อยที่สุด, 5 = มากที่สุด)</span></h3>
+                            
+                            <div className="space-y-8 relative z-10">
+                                {questions.map(q => (
+                                    <div key={q.id} className="bg-slate-50/50 dark:bg-black/20 p-5 rounded-2xl border border-slate-100 dark:border-white/5">
+                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-1">{q.text}</p>
+                                        <RatingStars qId={q.id} />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-soft border border-slate-200/50 dark:border-white/5">
+                            <h3 className="text-lg font-black text-slate-800 dark:text-white mb-4 flex items-center gap-2"><Icon name="message-square" className="text-slate-400" size={20}/> ส่วนที่ 2: ข้อเสนอแนะ (ทางเลือก)</h3>
+                            <div className="flex flex-col gap-1.5 w-full">
+                                <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">5. ข้อเสนอแนะเพิ่มเติม</label>
+                                <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="เช่น สิ่งที่ประทับใจ, สิ่งที่ควรปรับปรุงในครั้งต่อไป, หรือหัวข้อที่อยากให้จัดในอนาคต..." rows="4" className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-medium shadow-sm resize-none custom-scrollbar"></textarea>
+                            </div>
+                        </div>
+
+                        <div className="pt-4 flex justify-center">
+                            <button type="submit" disabled={isSubmitting} className="w-full md:w-auto min-w-[280px] py-4 px-8 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-2xl font-black text-lg shadow-[0_0_25px_rgba(168,85,247,0.3)] hover:shadow-[0_0_35px_rgba(168,85,247,0.5)] transform hover:-translate-y-1 transition-all btn-interactive flex items-center justify-center gap-2">
+                                {isSubmitting ? <Icon name="loader-2" className="animate-spin" /> : <Icon name="send" />} ส่งแบบประเมิน
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            );
+        }
+
+        // ==========================================
         // ✅ Success View
         // ==========================================
         function SuccessView({ onHome }) {
@@ -537,7 +635,7 @@
                             <Icon name="check-circle" size={48} className="relative z-10" />
                             <div className="absolute inset-0 bg-emerald-400 rounded-full blur-xl opacity-30 animate-pulse"></div>
                         </div>
-                        <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-3 tracking-tight">ลงทะเบียนสำเร็จ!</h2>
+                        <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-3 tracking-tight">ดำเนินการสำเร็จ!</h2>
                         <p className="text-slate-500 dark:text-slate-400 font-medium mb-8 leading-relaxed">ระบบได้รับข้อมูลของท่านเรียบร้อยแล้ว ขอบคุณที่ให้ความร่วมมือครับ</p>
                         <button onClick={onHome} className="w-full py-4 bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-white rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-white/20 transition-colors shadow-sm flex justify-center items-center gap-2 btn-interactive">
                             <Icon name="home" size={18} /> กลับสู่หน้าแรก
@@ -747,32 +845,31 @@
                 </div>
             );
 
-            // =====================================
-            // การตั้งชื่อแท็บ ตามที่ผู้ใช้ต้องการ
-            // =====================================
             const TABS = [
                 { id: 'overview', icon: 'layout-dashboard', label: 'ภาพรวม' },
                 { id: 'majors', icon: 'pie-chart', label: 'สาขาวิชา' },
                 { id: 'health_diet', icon: 'utensils', label: 'โภชนาการ' },
                 { id: 'surveillance', icon: 'shield-alert', label: 'กลุ่มเฝ้าระวัง' },
                 { id: 'create_activity', icon: 'calendar-plus', label: 'สร้างกิจกรรม' },
-                { id: 'activity_summary', icon: 'bar-chart-2', label: 'สรุปกิจกรรม' }
+                { id: 'activity_summary', icon: 'radio', label: 'Real-Time Recording' }
             ];
 
             const pieTooltipStyle = { backgroundColor: isDarkMode ? 'rgba(24, 24, 27, 0.95)' : 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' };
             const pieItemStyle = {fontWeight: 'bold', color: isDarkMode ? '#fff' : '#1e293b'};
+            const drilldownIcon = drilldownData.type === 'activity_regs' || drilldownData.type === 'activity_major' ? "calendar-check" : "users";
+            const drilldownHeaderColor = (drilldownData.type === 'activity_regs' || drilldownData.type === 'activity_major') ? 'bg-purple-500 shadow-glow-brand' : (drilldownData.type.includes('diet') || drilldownData.type.includes('food') || drilldownData.type === 'allergy_group') ? 'bg-orange-500 shadow-glow-brand' : (drilldownData.type === 'demographics' || drilldownData.type === 'major_breakdown' || drilldownData.type === 'majors') ? 'bg-blue-500' : drilldownData.title.includes('ทั้งหมด') ? 'bg-brand shadow-glow-brand' : drilldownData.type === 'healthy' ? 'bg-emerald-500' : 'bg-red-500 shadow-glow-red';
 
             return (
                 <div className="flex flex-col md:flex-row gap-6 animate-fade-in pb-20 items-start w-full">
                     {/* Admin Sidebar */}
-                    <div className="w-full md:w-64 glass-panel p-5 rounded-[2rem] flex flex-col md:sticky md:top-24 z-20 shrink-0 no-print shadow-soft">
+                    <div className="w-full md:w-64 glass-panel p-5 rounded-[2rem] flex flex-col md:sticky md:top-24 z-20 shrink-0 no-print shadow-soft border border-slate-200/50 dark:border-white/5">
                         <div className="flex items-center gap-4 mb-8 px-2 pt-2">
                             <div className="w-12 h-12 bg-slate-900 dark:bg-white rounded-[1rem] flex items-center justify-center text-white dark:text-black shadow-lg"><Icon name="command" size={24}/></div>
                             <div><p className="text-[10px] text-brand font-black tracking-widest uppercase">Admin Portal</p><h3 className="font-black text-slate-800 dark:text-white leading-none text-lg mt-0.5">แดชบอร์ด</h3></div>
                         </div>
                         <div className="flex flex-row md:flex-col overflow-x-auto hide-scrollbar gap-2 pb-2 md:pb-0">
                             {TABS.map(tab => (
-                                <button key={tab.id} onClick={() => { setActiveTab(tab.id); setCurrentPage(1); }} className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all font-bold whitespace-nowrap btn-interactive text-sm ${activeTab === tab.id ? 'bg-brand text-white shadow-glow-brand hover:-translate-y-0.5' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white'}`}>
+                                <button key={tab.id} onClick={() => { setActiveTab(tab.id); setCurrentPage(1); }} className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all font-bold whitespace-nowrap btn-interactive text-sm ${activeTab === tab.id ? (tab.id === 'activity_summary' ? 'bg-red-500 text-white shadow-glow-red hover:-translate-y-0.5' : 'bg-brand text-white shadow-glow-brand hover:-translate-y-0.5') : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white'}`}>
                                     <Icon name={tab.icon} size={18} className={activeTab === tab.id ? 'text-white' : 'text-slate-400'}/> {tab.label}
                                 </button>
                             ))}
@@ -782,9 +879,9 @@
                     {/* Admin Main Content */}
                     <div className="flex-1 w-full space-y-6 print-area min-w-0">
                         {/* Header Action Bar */}
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center glass-panel p-5 md:px-8 md:py-6 rounded-[2.5rem] gap-4 no-print shadow-soft">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center glass-panel p-5 md:px-8 md:py-6 rounded-[2.5rem] gap-4 no-print shadow-soft border border-slate-200/50 dark:border-white/5">
                             <h2 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3 whitespace-nowrap">
-                                <div className="p-2.5 bg-brand/10 text-brand rounded-xl shadow-sm"><Icon name={(TABS.find(t=>t.id===activeTab) || {}).icon} size={20}/></div> {(TABS.find(t=>t.id===activeTab) || {}).label}
+                                <div className={`p-2.5 rounded-xl shadow-sm ${activeTab === 'activity_summary' ? 'bg-red-500/10 text-red-500' : 'bg-brand/10 text-brand'}`}><Icon name={(TABS.find(t=>t.id===activeTab) || {}).icon} size={20}/></div> {(TABS.find(t=>t.id===activeTab) || {}).label}
                             </h2>
                             <div className="flex flex-col xl:flex-row flex-wrap w-full sm:w-auto gap-3 items-start xl:items-center">
                                 <div className="relative w-full sm:w-64">
@@ -807,7 +904,7 @@
                                     <StatCard label="เฝ้าระวัง (การแพทย์)" value={stats.healthAlert} icon="activity" color="red" onClick={() => handleDrilldown('กลุ่มเปราะบาง (การแพทย์)', 'health_alert', '')} subtext="คน" />
                                     <StatCard label="เฝ้าระวัง (อาหาร)" value={stats.foodAlert} icon="alert-triangle" color="orange" onClick={() => handleDrilldown('จัดการอาหารพิเศษ', 'food_alert', '')} subtext="คน" />
                                 </div>
-                                <div className="glass-panel rounded-[2rem] overflow-hidden shadow-soft">
+                                <div className="glass-panel rounded-[2rem] overflow-hidden shadow-soft border border-slate-200/50 dark:border-white/5">
                                     <div className="p-6 md:px-8 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5"><h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-3"><Icon name="list" className="text-slate-400" size={18}/> รายชื่ออัปเดตล่าสุด</h3></div>
                                     <div className="overflow-x-auto p-2 custom-scrollbar">
                                         <table className="w-full text-sm text-left min-w-[700px]">
@@ -819,7 +916,7 @@
                                                         <tr key={i} onClick={() => setEditItem({...row, oldStudentID: row.StudentID})} className="hover:bg-slate-50/80 dark:hover:bg-white/5 transition-colors cursor-pointer group">
                                                             <td className="px-6 py-4 font-bold text-slate-800 dark:text-slate-200 group-hover:text-brand transition-colors">{row.FullName}</td>
                                                             <td className="px-6 py-4 text-xs font-medium text-slate-500">{row.Major}</td>
-                                                            <td className="px-6 py-4 text-center">{isRisk ? <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-[10px] font-bold shadow-sm"><Icon name="shield-alert" size={12}/> เฝ้าระวัง</span> : <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold shadow-sm"><Icon name="check-circle" size={12}/> ปกติ</span>}</td>
+                                                            <td className="px-6 py-4 text-center">{isRisk ? <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-[10px] font-bold shadow-sm border border-red-200 dark:border-red-500/20"><Icon name="shield-alert" size={12}/> เฝ้าระวัง</span> : <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold shadow-sm border border-emerald-200 dark:border-emerald-500/20"><Icon name="check-circle" size={12}/> ปกติ</span>}</td>
                                                             <td className="px-6 py-4 text-xs"><div className="text-slate-500 dark:text-slate-400 font-semibold flex items-center gap-1.5"><Icon name="phone" size={12}/> {row.StudentPhone || '-'}</div></td>
                                                         </tr>
                                                     );
@@ -844,9 +941,9 @@
                         {/* TAB 2: MAJORS SUMMARY */}
                         {activeTab === 'majors' && (
                             <div className="grid lg:grid-cols-5 gap-6 animate-fade-in">
-                                <div className="lg:col-span-2 glass-panel p-6 md:p-8 rounded-[2rem] shadow-sm flex flex-col items-center justify-center min-h-[450px]">
-                                    <div className="w-full mb-2 text-center"><h3 className="text-2xl font-black text-slate-800 dark:text-white">สัดส่วนสาขาวิชา</h3><p className="text-xs font-bold text-emerald-500 mt-1 uppercase tracking-widest flex items-center justify-center gap-1"><Icon name="check-circle" size={12}/> ข้อมูลผ่านการตรวจสอบซ้ำแล้ว</p></div>
-                                    <div className="w-full flex-1 relative min-h-[320px] mt-4">
+                                <div className="lg:col-span-2 glass-panel p-6 md:p-8 rounded-[2rem] shadow-sm flex flex-col items-center justify-center min-h-[450px] border border-slate-200/50 dark:border-white/5 relative overflow-hidden">
+                                    <div className="w-full mb-2 text-center relative z-10"><h3 className="text-2xl font-black text-slate-800 dark:text-white">สัดส่วนสาขาวิชา</h3><p className="text-xs font-bold text-emerald-500 mt-1 uppercase tracking-widest flex items-center justify-center gap-1"><Icon name="check-circle" size={12}/> ข้อมูลผ่านการตรวจสอบซ้ำแล้ว</p></div>
+                                    <div className="w-full flex-1 relative min-h-[320px] mt-4 z-10">
                                         {stats.pieData.length === 0 ? <div className="w-full h-full flex items-center justify-center text-slate-400">ไม่มีข้อมูล</div> : (
                                             <ResponsiveContainer width="100%" height="100%">
                                                 <PieChart>
@@ -863,20 +960,22 @@
                                         )}
                                     </div>
                                 </div>
-                                <div className="lg:col-span-3 glass-panel p-6 md:p-8 rounded-[2rem] shadow-sm flex flex-col">
+                                <div className="lg:col-span-3 glass-panel p-6 md:p-8 rounded-[2rem] shadow-sm flex flex-col border border-slate-200/50 dark:border-white/5">
                                     <h3 className="text-lg font-black mb-4 text-slate-800 dark:text-white flex items-center gap-2"><Icon name="bar-chart" size={18} className="text-blue-500"/> จำนวนแยกตามสาขาวิชา</h3>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto custom-scrollbar flex-1 pr-2 max-h-[450px]">
                                         {[...stats.pieData].sort((a,b) => b.value - a.value).map((entry, idx) => (
-                                            <div key={idx} onClick={() => handleDrilldown(`นักศึกษา: ${entry.name}`, 'majors', entry.name)} className="p-5 rounded-2xl bg-white dark:bg-zinc-800/80 border border-slate-200/60 dark:border-white/10 hover:border-brand/50 hover:shadow-md transition-all cursor-pointer group btn-interactive relative overflow-hidden flex flex-col justify-between min-h-[110px]">
-                                                <div className="absolute inset-y-0 left-0 opacity-10 transition-all duration-700" style={{ width: `${stats.total ? (entry.value / stats.total) * 100 : 0}%`, backgroundColor: stats.COLORS[idx % stats.COLORS.length] }}></div>
-                                                <div className="relative z-10 flex items-start gap-3 mb-2">
-                                                    <div className="w-3 h-3 rounded-full mt-1 shrink-0" style={{ backgroundColor: stats.COLORS[idx % stats.COLORS.length] }}></div>
-                                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-snug group-hover:text-brand transition-colors">{entry.name}</span>
-                                                </div>
-                                                <div className="relative z-10 flex items-end justify-between w-full mt-auto">
-                                                    <div className="p-1.5 bg-slate-100 dark:bg-white/5 rounded-lg text-slate-400 group-hover:text-brand transition-colors"><Icon name="users" size={16}/></div>
-                                                    <div className="text-right">
-                                                        <span className="text-3xl font-black text-slate-800 dark:text-white leading-none">{entry.value} <span className="text-xs font-bold text-slate-400">คน</span></span>
+                                            <div key={idx} onClick={() => handleDrilldown(`นักศึกษา: ${entry.name}`, 'majors', entry.name)} className="relative py-4 px-5 md:px-6 rounded-2xl bg-white dark:bg-zinc-800/80 border border-slate-200/60 dark:border-white/10 hover:border-brand/50 hover:shadow-md transition-all duration-300 cursor-pointer overflow-hidden group btn-interactive min-h-[72px] flex items-center">
+                                                <div className="absolute inset-y-0 left-0 opacity-[0.06] dark:opacity-[0.12] transition-all duration-700 ease-out" style={{ width: `${stats.total ? (entry.value / stats.total) * 100 : 0}%`, backgroundColor: stats.COLORS[idx % stats.COLORS.length] }}></div>
+                                                <div className="relative z-10 flex items-center justify-between gap-4 w-full">
+                                                    <div className="flex items-center gap-4 overflow-hidden flex-1">
+                                                        <div className="w-4 h-4 rounded-full shrink-0 shadow-sm border-2 border-white dark:border-zinc-800 transition-transform group-hover:scale-125" style={{ backgroundColor: stats.COLORS[idx % stats.COLORS.length] }}></div>
+                                                        <span className="text-sm md:text-base font-bold text-slate-700 dark:text-slate-200 truncate group-hover:text-brand transition-colors leading-normal" title={entry.name}>{entry.name}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-4 shrink-0">
+                                                        <div className="flex flex-col items-end justify-center">
+                                                            <span className="text-2xl font-black text-slate-800 dark:text-white leading-none">{entry.value}</span>
+                                                        </div>
+                                                        <div className="text-slate-300 group-hover:text-brand transition-colors flex items-center h-full"><Icon name="chevron-right" size={20}/></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -897,7 +996,7 @@
                                     <StatCard label="แพ้อาหาร" value={stats.foodAllergies.length} icon="alert-triangle" color="orange" onClick={() => handleDrilldown('ประวัติแพ้อาหาร', 'food_allergy', '')} />
                                 </div>
 
-                                <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-soft">
+                                <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-soft border border-slate-200/50 dark:border-white/5">
                                     <div className="flex items-center gap-3 mb-6"><div className="p-3 bg-orange-100 dark:bg-orange-500/20 text-orange-600 rounded-2xl"><Icon name="pizza" size={24}/></div><h3 className="text-xl font-black text-slate-800 dark:text-white">เจาะลึกรายการอาหารที่แพ้</h3></div>
                                     {stats.groupedAllergies.length > 0 ? (
                                         <div className="flex flex-wrap gap-3">
@@ -921,7 +1020,7 @@
                                     <StatCard label="ผู้ที่มีประวัติแพ้ยา" value={stats.drugAllergies.length} icon="pill" color="purple" onClick={() => handleDrilldown('รายชื่อผู้มีประวัติแพ้ยา', 'drug_allergy', '')} subtext="คน" />
                                     <StatCard label="กลุ่มเปราะบาง (เสี่ยงรวม)" value={stats.healthAlert} icon="shield-alert" color="red" onClick={() => handleDrilldown('กลุ่มเปราะบาง (เฝ้าระวังพิเศษ)', 'health_alert', '')} subtext="คน" />
                                 </div>
-                                <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-soft">
+                                <div className="glass-panel rounded-[2.5rem] overflow-hidden shadow-soft border border-slate-200/50 dark:border-white/5">
                                     <div className="p-6 md:px-8 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex items-center gap-3">
                                         <Icon name="users" className="text-red-500" size={20}/><h3 className="font-bold text-slate-800 dark:text-white">รายชื่อกลุ่มเปราะบางทั้งหมด</h3>
                                     </div>
@@ -955,7 +1054,7 @@
                         {/* TAB 5: CREATE ACTIVITY */}
                         {activeTab === 'create_activity' && (
                             <div className="space-y-6 animate-fade-in">
-                                <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-soft relative overflow-hidden border-t-[8px] border-t-purple-500">
+                                <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-soft relative overflow-hidden border-t-[8px] border-t-purple-500 border border-slate-200/50 dark:border-white/5">
                                     <div className="absolute top-0 right-0 p-8 opacity-5 text-purple-500 pointer-events-none transform translate-x-4 -translate-y-4"><Icon name="calendar-plus" size={120} /></div>
                                     <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white mb-8 flex items-center gap-3 relative z-10"><div className="p-3 bg-purple-100 dark:bg-purple-500/20 text-purple-600 rounded-2xl shadow-inner"><Icon name="calendar-plus" size={24}/></div> สร้างกิจกรรมใหม่</h3>
                                     <form onSubmit={handleCreateActivity} className="relative z-10 space-y-6">
@@ -973,27 +1072,29 @@
                                 </div>
 
                                 {activityDefs.length > 0 && (
-                                    <div className="glass-panel rounded-[2rem] overflow-hidden shadow-soft">
-                                        <div className="p-6 md:px-8 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5"><h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-3"><Icon name="list" className="text-slate-400" size={18}/> รายการกิจกรรมทั้งหมด</h3></div>
+                                    <div className="glass-panel rounded-[2rem] overflow-hidden shadow-soft border border-slate-200/50 dark:border-white/5">
+                                        <div className="p-6 md:px-8 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5"><h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-3"><Icon name="list" className="text-slate-400" size={18}/> รายการกิจกรรมทั้งหมด <span className="text-xs bg-purple-100 dark:bg-purple-500/20 text-purple-600 px-2 py-1 rounded-md font-semibold ml-2">(คลิกเปิด-ปิดสถานะ หรือดูผู้ลงทะเบียน)</span></h3></div>
                                         <div className="overflow-x-auto p-2 custom-scrollbar">
                                             <table className="w-full text-sm text-left min-w-[700px]">
-                                                <thead className="text-[11px] text-slate-400 uppercase tracking-widest bg-transparent">
-                                                    <tr><th className="px-6 py-3">ชื่อกิจกรรม</th><th className="px-6 py-3">วันที่และเวลา</th><th className="px-6 py-3">สถานที่จัดกิจกรรม</th><th className="px-6 py-3 text-center">เปิด/ปิด รับลงทะเบียน</th><th className="px-6 py-3"></th></tr>
-                                                </thead>
+                                                <thead className="text-[11px] text-slate-400 uppercase tracking-widest bg-transparent"><tr><th className="px-6 py-3">ชื่อกิจกรรม</th><th className="px-6 py-3">วันที่และเวลา</th><th className="px-6 py-3">สถานที่จัดกิจกรรม</th><th className="px-6 py-3 text-center">สถานะ (เปิด/ปิด)</th><th className="px-6 py-3 text-center">ผู้เข้าร่วม (คน)</th><th className="px-6 py-3"></th></tr></thead>
                                                 <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                                                    {activityDefs.map((act, idx) => (
-                                                        <tr key={idx} className="hover:bg-purple-50/50 dark:hover:bg-purple-900/10 transition-colors group">
-                                                            <td className="px-6 py-4 font-bold text-slate-800 dark:text-slate-200">{act.ActivityName}</td>
-                                                            <td className="px-6 py-4 text-slate-500 font-mono text-xs">{new Date(act.ActivityDate).toLocaleString('th-TH')}</td>
-                                                            <td className="px-6 py-4 text-slate-600 dark:text-slate-400 flex items-center gap-2"><Icon name="map-pin" size={14} className="text-slate-400"/> {act.Location}</td>
-                                                            <td className="px-6 py-4 text-center">
-                                                                <button onClick={() => handleToggleActivity(act.ActivityName, act.Status)} className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none shadow-sm ${act.Status !== 'CLOSED' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
-                                                                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${act.Status !== 'CLOSED' ? 'translate-x-5' : 'translate-x-0'}`} />
-                                                                </button>
-                                                            </td>
-                                                            <td className="px-6 py-4 text-right text-purple-500"><Icon name="calendar-check" size={20}/></td>
-                                                        </tr>
-                                                    ))}
+                                                    {activityDefs.map((act, idx) => {
+                                                        const attendeesCount = activityLogs.filter(r => r.ActivityName === act.ActivityName).length;
+                                                        return (
+                                                            <tr key={idx} onClick={() => handleDrilldown(`รายชื่อผู้ลงทะเบียน: ${act.ActivityName}`, 'activity_regs', act.ActivityName)} className="hover:bg-purple-50/50 dark:hover:bg-purple-900/10 transition-colors group cursor-pointer">
+                                                                <td className="px-6 py-4 font-bold text-slate-800 dark:text-slate-200 group-hover:text-purple-600 transition-colors">{act.ActivityName}</td>
+                                                                <td className="px-6 py-4 text-slate-500 font-mono text-xs">{new Date(act.ActivityDate).toLocaleString('th-TH')}</td>
+                                                                <td className="px-6 py-4 text-slate-600 dark:text-slate-400 flex items-center gap-2"><Icon name="map-pin" size={14} className="text-slate-400"/> {act.Location}</td>
+                                                                <td className="px-6 py-4 text-center" onClick={(e) => e.stopPropagation()}>
+                                                                    <button onClick={() => handleToggleActivity(act.ActivityName, act.Status)} className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none shadow-sm ${act.Status !== 'CLOSED' ? 'bg-emerald-500 hover:bg-emerald-400' : 'bg-slate-300 dark:bg-slate-600 hover:bg-slate-500'}`}>
+                                                                        <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${act.Status !== 'CLOSED' ? 'translate-x-5' : 'translate-x-0'}`} />
+                                                                    </button>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-center"><span className="inline-flex items-center justify-center bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 px-3 py-1 rounded-full text-xs font-black shadow-sm">{attendeesCount}</span></td>
+                                                                <td className="px-6 py-4 text-right text-slate-300 group-hover:text-purple-500 transition-colors"><Icon name="chevron-right" size={20}/></td>
+                                                            </tr>
+                                                        );
+                                                    })}
                                                 </tbody>
                                             </table>
                                         </div>
@@ -1002,12 +1103,23 @@
                             </div>
                         )}
 
-                        {/* TAB 6: ACTIVITY SUMMARY */}
+                        {/* TAB 7: ACTIVITY SUMMARY / REAL-TIME RECORDING */}
                         {activeTab === 'activity_summary' && (
                             <div className="space-y-6 animate-fade-in print:space-y-4">
-                                <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-pink-500 shadow-soft relative overflow-hidden bg-gradient-to-b from-white to-pink-50/30 dark:from-zinc-900 dark:to-zinc-900/50">
-                                    <div className="absolute top-0 right-0 p-8 opacity-5 text-pink-500 pointer-events-none transform translate-x-4 -translate-y-4 print:hidden"><Icon name="bar-chart-2" size={120} /></div>
-                                    <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3 relative z-10 print:text-black print:text-2xl"><div className="p-3 bg-pink-100 dark:bg-pink-500/20 text-pink-600 rounded-2xl shadow-inner print:hidden"><Icon name="bar-chart-2" size={24}/></div> สรุปจำนวนผู้เข้าร่วมกิจกรรม</h3>
+                                <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-pink-500 shadow-soft relative overflow-hidden bg-gradient-to-b from-white to-pink-50/30 dark:from-zinc-900 dark:to-zinc-900/50 print:border-none print:shadow-none print:bg-white print:p-0">
+                                    <div className="absolute top-0 right-0 p-8 opacity-5 text-pink-500 pointer-events-none transform translate-x-4 -translate-y-4 print:hidden"><Icon name="radio" size={120} /></div>
+                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10 print:mb-6">
+                                        <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3 print:text-black print:text-2xl">
+                                            <div className="p-3 bg-pink-100 dark:bg-pink-500/20 text-pink-600 rounded-2xl shadow-inner print:hidden relative flex items-center justify-center">
+                                                <Icon name="radio" size={24}/>
+                                                <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-ping"></span>
+                                            </div> 
+                                            Real-Time Recording
+                                        </h3>
+                                        <div className="flex items-center gap-2 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 px-4 py-2 rounded-xl font-bold text-sm shadow-sm border border-red-100 dark:border-red-500/20 print:hidden">
+                                            <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></span> LIVE อัปเดตข้อมูลอัตโนมัติ
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {activityDefs.length === 0 ? (
