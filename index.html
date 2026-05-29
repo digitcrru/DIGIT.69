@@ -35,8 +35,6 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-is@18/umd/react-is.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prop-types/15.8.1/prop-types.min.js"></script>
     <script src="https://unpkg.com/recharts@2.1.12/umd/Recharts.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -201,7 +199,7 @@
         }
 
         // ==========================================
-        // 🏠 Home View 
+        // 🏠 Home View (Landing Page)
         // ==========================================
         function HomeView({ onSelectNewStudent, onSelectActivity, onAdminClick }) {
             const promptAdmin = () => {
@@ -213,25 +211,42 @@
                     showCancelButton: true, confirmButtonText: 'เข้าสู่ระบบ', cancelButtonText: 'ยกเลิก', confirmButtonColor: '#ff6600', cancelButtonColor: '#64748b',
                     customClass: {
                         popup: 'rounded-[2rem] bg-white dark:bg-zinc-900 border border-slate-200/50 dark:border-white/5 shadow-2xl',
-                        input: 'text-center font-mono text-2xl tracking-[0.5em] rounded-xl bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white py-4 shadow-inner focus:border-brand focus:ring-1 outline-none transition-all',
-                        confirmButton: 'rounded-xl font-bold px-8 py-3.5 shadow-md', cancelButton: 'rounded-xl font-bold px-8 py-3.5'
+                        input: 'text-center font-mono text-2xl tracking-[0.5em] rounded-xl bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white py-4 shadow-inner focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all',
+                        confirmButton: 'rounded-xl font-bold px-8 py-3.5 shadow-md hover:shadow-lg transition-all',
+                        cancelButton: 'rounded-xl font-bold px-8 py-3.5 transition-all'
                     }
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        if (result.value === '000000') onAdminClick();
-                        else Swal.fire({ icon: 'error', title: 'รหัสผ่านไม่ถูกต้อง', confirmButtonColor: '#ff6600', customClass: { popup: 'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white' }});
+                        if (result.value === '000000') {
+                            onAdminClick();
+                        } else {
+                            Swal.fire({
+                                icon: 'error', title: 'รหัสผ่านไม่ถูกต้อง', text: 'กรุณาลองใหม่อีกครั้ง',
+                                confirmButtonText: 'ตกลง', confirmButtonColor: '#ff6600',
+                                customClass: { 
+                                    popup: 'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white border border-slate-200/50 dark:border-white/5',
+                                    confirmButton: 'rounded-xl font-bold px-8 py-3.5 shadow-md'
+                                }
+                            });
+                        }
                     }
                 });
             };
 
             return (
                 <div className="flex flex-col items-center justify-center min-h-[85vh] animate-fade-in relative">
-                    <button onClick={promptAdmin} className="absolute top-0 right-0 p-3.5 text-slate-400 hover:text-brand bg-white/50 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 backdrop-blur-md transition-all z-20 rounded-full shadow-sm border border-slate-200/50 dark:border-white/5 btn-interactive"><Icon name="lock" size={20} /></button>
+                    <button onClick={promptAdmin} className="absolute top-0 right-0 p-3.5 text-slate-400 hover:text-brand bg-white/50 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 backdrop-blur-md transition-all z-20 rounded-full shadow-sm border border-slate-200/50 dark:border-white/5 btn-interactive" title="เข้าสู่ระบบผู้ดูแล">
+                        <Icon name="lock" size={20} />
+                    </button>
+
                     <div className="text-center mb-10 md:mb-12 mt-10">
-                        <div className="inline-flex items-center justify-center p-5 bg-brand/10 text-brand rounded-[2rem] shadow-glow-brand mb-6 transform hover:scale-110 transition-transform duration-500"><Icon name="box" size={56} /></div>
+                        <div className="inline-flex items-center justify-center p-5 bg-brand/10 text-brand rounded-[2rem] shadow-glow-brand mb-6 transform hover:scale-110 transition-transform duration-500">
+                            <Icon name="box" size={56} />
+                        </div>
                         <h1 className="text-5xl md:text-6xl font-black text-slate-800 dark:text-white tracking-tight mb-4">DIGIT<span className="brand-text-gradient">.69</span></h1>
                         <p className="text-slate-500 dark:text-slate-400 font-bold text-sm md:text-base uppercase tracking-widest">Student Service Portal</p>
                     </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl px-2">
                         <div onClick={onSelectNewStudent} className="glass-panel p-8 md:p-10 rounded-[2.5rem] border-t-[8px] border-t-brand shadow-soft hover:shadow-[0_20px_40px_-10px_rgba(255,102,0,0.2)] hover:-translate-y-2 transition-all duration-300 cursor-pointer group flex flex-col items-center text-center relative overflow-hidden">
                             <div className="absolute -right-10 -top-10 opacity-5 text-brand group-hover:scale-125 transition-transform duration-500 pointer-events-none"><Icon name="user-plus" size={150}/></div>
@@ -240,6 +255,7 @@
                             <p className="text-slate-500 dark:text-slate-400 font-medium relative z-10 text-sm">บันทึกประวัติส่วนตัว ข้อมูลสุขภาพ และโภชนาการสำหรับนักศึกษาใหม่</p>
                             <div className="mt-8 px-6 py-3 bg-slate-100 dark:bg-white/5 rounded-xl font-bold text-slate-600 dark:text-slate-300 group-hover:bg-brand group-hover:text-white transition-colors flex items-center gap-2 relative z-10">เริ่มต้นใช้งาน <Icon name="arrow-right" size={16}/></div>
                         </div>
+
                         <div onClick={onSelectActivity} className="glass-panel p-8 md:p-10 rounded-[2.5rem] border-t-[8px] border-t-purple-500 shadow-soft hover:shadow-[0_20px_40px_-10px_rgba(168,85,247,0.2)] hover:-translate-y-2 transition-all duration-300 cursor-pointer group flex flex-col items-center text-center relative overflow-hidden">
                             <div className="absolute -right-10 -top-10 opacity-5 text-purple-500 group-hover:scale-125 transition-transform duration-500 pointer-events-none"><Icon name="calendar-check" size={150}/></div>
                             <div className="w-20 h-20 bg-purple-50 dark:bg-purple-500/10 text-purple-600 rounded-[1.5rem] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-inner relative z-10"><Icon name="calendar-check" size={40} /></div>
@@ -261,7 +277,7 @@
 
             return (
                 <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-slate-900/80 dark:bg-black/90 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white dark:bg-zinc-900 w-full sm:max-w-3xl relative flex flex-col h-[92vh] sm:h-auto sm:max-h-[90vh] rounded-t-[2rem] sm:rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.3)] animate-slide-up overflow-hidden">
+                    <div className="bg-white dark:bg-zinc-900 w-full sm:max-w-3xl relative flex flex-col h-[92vh] sm:h-auto sm:max-h-[90vh] rounded-t-[2rem] sm:rounded-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.2)] sm:shadow-[0_20px_60px_rgba(0,0,0,0.3)] animate-slide-up overflow-hidden">
                         <div className="absolute top-0 left-0 right-0 h-1.5 sm:h-2 brand-gradient z-20"></div>
                         <div className="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-full sm:hidden z-20"></div>
                         <button onClick={onBack} className="absolute top-4 sm:top-5 right-4 sm:right-5 p-2.5 sm:p-3 text-slate-400 hover:text-brand bg-slate-50/50 dark:bg-black/20 hover:bg-slate-100 dark:hover:bg-white/10 backdrop-blur-md transition-all z-20 rounded-full shadow-sm hover:shadow-md btn-interactive"><Icon name="x" size={16} /></button>
@@ -407,7 +423,7 @@
         }
 
         // ==========================================
-        // 🎫 Activity Form 
+        // 🎫 Activity Form Component (อัปเดต Step 2 ใหม่)
         // ==========================================
         function ActivityForm({ onBack, onSuccess }) {
             const [step, setStep] = useState(1);
@@ -490,14 +506,38 @@
                         <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in">
                             <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-purple-500 border border-slate-200/50 dark:border-white/5 shadow-soft">
                                 <SectionHeader icon="user-check" title="ยืนยันข้อมูลนักศึกษา" colorClass="bg-purple-100 dark:bg-purple-500/20 text-purple-600" />
-                                <div className="bg-slate-50 dark:bg-white/5 p-6 rounded-2xl border border-slate-200 dark:border-white/10 mb-8 flex flex-col sm:flex-row gap-6 items-center sm:items-start shadow-inner">
-                                    <div className="w-20 h-20 bg-slate-200 dark:bg-black/30 rounded-full flex items-center justify-center text-slate-400 shrink-0 border border-slate-300 dark:border-white/10 shadow-sm"><Icon name="user" size={40}/></div>
-                                    <div className="flex-1 text-center sm:text-left">
-                                        <h3 className="text-xl font-black text-slate-800 dark:text-white mb-1">{formData.FullName}</h3>
-                                        <p className="text-brand font-bold mb-3 tracking-wider">รหัสนักศึกษา: {formData.StudentID}</p>
-                                        <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                                            <span className="bg-slate-200/70 dark:bg-white/10 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-white/5">{formData.Major}</span>
-                                            <span className="bg-slate-200/70 dark:bg-white/10 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-white/5 flex items-center"><Icon name="phone" size={12} className="mr-1.5"/>{formData.StudentPhone}</span>
+                                
+                                {/* 👤 ส่วนแสดงข้อมูลนักศึกษาที่ปรับปรุงใหม่ (มีการแสดง StudentID, IDCard, FullName, Major อย่างชัดเจน) */}
+                                <div className="bg-slate-50/80 dark:bg-black/20 p-6 md:p-8 rounded-3xl border border-slate-200/60 dark:border-white/10 mb-8 flex flex-col sm:flex-row gap-6 md:gap-8 items-center sm:items-start shadow-inner relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-6 opacity-[0.03] text-purple-500 pointer-events-none transform translate-x-4 -translate-y-4">
+                                        <Icon name="user-check" size={150} />
+                                    </div>
+                                    <div className="w-24 h-24 bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/40 dark:to-indigo-900/40 rounded-full flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0 border border-white dark:border-white/5 shadow-md relative z-10">
+                                        <Icon name="user" size={48} />
+                                    </div>
+                                    <div className="flex-1 text-center sm:text-left relative z-10 w-full">
+                                        <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-2">{formData.FullName}</h3>
+                                        
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mt-4">
+                                            <div className="bg-white dark:bg-zinc-800/80 p-3 rounded-xl border border-slate-100 dark:border-white/5 shadow-sm text-left">
+                                                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">รหัสนักศึกษา</p>
+                                                <p className="font-mono font-bold text-brand dark:text-brandLight">{formData.StudentID || '-'}</p>
+                                            </div>
+                                            <div className="bg-white dark:bg-zinc-800/80 p-3 rounded-xl border border-slate-100 dark:border-white/5 shadow-sm text-left">
+                                                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">รหัสประจำตัว ปชช. / Passport</p>
+                                                <p className="font-mono font-bold text-slate-700 dark:text-slate-300">{formData.IDCard || '-'}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-wrap gap-2 justify-center sm:justify-start mt-4">
+                                            <span className="bg-indigo-50 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 px-3 py-1.5 rounded-lg text-xs font-bold border border-indigo-100 dark:border-indigo-500/30 flex items-center gap-1.5 shadow-sm">
+                                                <Icon name="graduation-cap" size={12}/> {formData.Major}
+                                            </span>
+                                            {formData.StudentPhone && (
+                                                <span className="bg-emerald-50 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-100 dark:border-emerald-500/30 flex items-center gap-1.5 shadow-sm">
+                                                    <Icon name="phone" size={12}/> {formData.StudentPhone}
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -925,7 +965,7 @@
                             </div>
                         )}
 
-                        {/* TAB 6: CREATE ACTIVITY */}
+                        {/* TAB 5: CREATE ACTIVITY */}
                         {activeTab === 'create_activity' && (
                             <div className="space-y-6 animate-fade-in">
                                 <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-soft relative overflow-hidden border-t-[8px] border-t-purple-500">
@@ -973,7 +1013,7 @@
                             </div>
                         )}
 
-                        {/* TAB 7: ACTIVITY SUMMARY */}
+                        {/* TAB 6: ACTIVITY SUMMARY */}
                         {activeTab === 'activity_summary' && (
                             <div className="space-y-6 animate-fade-in print:space-y-4">
                                 <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-pink-500 shadow-soft relative overflow-hidden bg-gradient-to-b from-white to-pink-50/30 dark:from-zinc-900 dark:to-zinc-900/50">
@@ -1029,7 +1069,7 @@
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 shrink-0">
                                     <div>
                                         <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
-                                            <div className="p-3 rounded-2xl text-white shadow-md bg-brand shadow-glow-brand"><Icon name="users" size={24}/></div> {drilldownData.title}
+                                            <div className={`p-3 rounded-2xl text-white shadow-md bg-brand shadow-glow-brand`}><Icon name="users" size={24}/></div> {drilldownData.title}
                                         </h3>
                                         <p className="text-sm font-semibold text-slate-500 mt-2">พบทั้งหมด <span className="text-brand font-black bg-brand/10 px-2 py-0.5 rounded-md">{drilldownData.list.length}</span> รายการ</p>
                                     </div>
