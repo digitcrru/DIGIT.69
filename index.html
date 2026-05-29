@@ -776,6 +776,7 @@
                 let total = filteredSurveys.length;
                 let commentsList = [];
                 let majorDemographics = {}; 
+                let genderDemographics = { 'ชาย': 0, 'หญิง': 0, 'ไม่ระบุ': 0 };
                 
                 let qStats = {
                     q1_1: { sum: 0, values: [], counts: {5:0, 4:0, 3:0, 2:0, 1:0} },
@@ -818,6 +819,19 @@
                     }
                     majorDemographics[major] = (majorDemographics[major] || 0) + 1;
 
+                    if (student && student.FullName) {
+                        const fname = student.FullName.trim();
+                        if (fname.startsWith('นาย')) {
+                            genderDemographics['ชาย']++;
+                        } else if (fname.startsWith('นางสาว') || fname.startsWith('นาง')) {
+                            genderDemographics['หญิง']++;
+                        } else {
+                            genderDemographics['ไม่ระบุ']++;
+                        }
+                    } else {
+                        genderDemographics['ไม่ระบุ']++;
+                    }
+
                     const keys = Object.keys(qStats);
                     keys.forEach((key) => {
                         let val = getVal(s, key);
@@ -839,6 +853,24 @@
                     count: majorDemographics[k],
                     percent: total > 0 ? ((majorDemographics[k] / total) * 100).toFixed(1) : 0
                 })).sort((a,b) => b.count - a.count);
+
+                const genderArray = Object.keys(genderDemographics).map(k => ({
+                    label: k,
+                    count: genderDemographics[k],
+                    percent: total > 0 ? ((genderDemographics[k] / total) * 100).toFixed(1) : 0
+                })).filter(d => d.count > 0).sort((a,b) => b.count - a.count);
+
+                let table1Summary = "";
+                if (genderArray.length >= 1) {
+                    const first = genderArray[0];
+                    const second = genderArray.length > 1 ? genderArray[1] : null;
+                    table1Summary = `จากตารางที่ 1 พบว่า ผู้ตอบแบบสอบถามส่วนใหญ่เป็นเพศ${first.label} จำนวน ${first.count} คน คิดเป็นร้อยละ ${first.percent}`;
+                    if (second && second.label !== 'ไม่ระบุ') {
+                        table1Summary += ` และเพศ${second.label} จำนวน ${second.count} คน คิดเป็นร้อยละ ${second.percent}`;
+                    } else if (second) {
+                        table1Summary += ` และ${second.label} จำนวน ${second.count} คน คิดเป็นร้อยละ ${second.percent}`;
+                    }
+                }
 
                 const getMean = (sum, count) => count > 0 ? (sum / count) : 0;
                 const getSD = (values, mean) => {
@@ -865,6 +897,7 @@
                 let allValues = [];
                 let overallSum = 0;
                 const chartData = [];
+                let allQuestionsFlat = [];
 
                 const sections = [
                     { id: 'part1', title: 'ส่วนที่ 1: กระบวนการ ขั้นตอนการให้บริการ', keys: ['q1_1', 'q1_2', 'q1_3', 'q1_4'] },
@@ -895,7 +928,9 @@
                             5: qStats[k].counts[5], 4: qStats[k].counts[4], 3: qStats[k].counts[3], 2: qStats[k].counts[2], 1: qStats[k].counts[1]
                         });
 
-                        return { id: k, q: questionsMap[k], n, min, max, mean: mean.toFixed(2), sd: sd.toFixed(3), interp: getInterpretation(mean) };
+                        const itemObj = { id: k, q: questionsMap[k], n, min, max, mean: mean.toFixed(2), sd: sd.toFixed(3), interp: getInterpretation(mean) };
+                        allQuestionsFlat.push(itemObj);
+                        return itemObj;
                     });
 
                     const secMean = getMean(secSum, secValues.length);
@@ -912,8 +947,25 @@
 
                 const overallMean = getMean(overallSum, allValues.length);
                 const overallSD = getSD(allValues, overallMean);
+                const overallInterp = getInterpretation(overallMean);
 
-                return { total, overallMean: overallMean.toFixed(2), overallSD: overallSD.toFixed(3), overallInterp: getInterpretation(overallMean), groupedDetails, chartData, commentsList, demoArray };
+                allQuestionsFlat.sort((a, b) => parseFloat(b.mean) - parseFloat(a.mean));
+                const top1 = allQuestionsFlat[0];
+                const top2 = allQuestionsFlat[1];
+                const top3 = allQuestionsFlat[2];
+
+                let table2Summary = `ผลการสำรวจความพึงพอใจในการจัดกิจกรรม พบว่า ผู้ตอบแบบสอบถามส่วนใหญ่มีความพึงพอใจในระดับ${overallInterp.text} โดยมีค่าเฉลี่ยเท่ากับ ${overallMean.toFixed(2)}`;
+                if (top1) {
+                    table2Summary += ` ซึ่งเมื่อพิจารณาเป็นรายข้อ พบว่า ${top1.q.substring(top1.q.indexOf(' ') + 1)} (ค่าเฉลี่ย ${top1.mean})`;
+                    if (top2) {
+                        table2Summary += ` รองลงมาคือ ${top2.q.substring(top2.q.indexOf(' ') + 1)} (ค่าเฉลี่ย ${top2.mean})`;
+                    }
+                    if (top3) {
+                        table2Summary += ` อันดับที่ 3 คือ ${top3.q.substring(top3.q.indexOf(' ') + 1)} (ค่าเฉลี่ย ${top3.mean})`;
+                    }
+                }
+
+                return { total, overallMean: overallMean.toFixed(2), overallSD: overallSD.toFixed(3), overallInterp, groupedDetails, chartData, commentsList, demoArray, genderArray, table1Summary, table2Summary };
             }, [surveys, selectedSurveyActivity, data]);
 
             const stats = useMemo(() => {
@@ -1635,15 +1687,24 @@
                                                 <table className="w-full text-sm text-left border-t-2 border-b-2 border-slate-800 dark:border-white/80 print:border-black">
                                                     <thead className="text-[12px] text-slate-700 dark:text-slate-300 font-bold border-b border-slate-300 dark:border-white/20 print:border-black print:text-black">
                                                         <tr>
-                                                            <th className="py-3 px-4 w-1/2">ข้อมูลทั่วไป (สาขาวิชา)</th>
+                                                            <th className="py-3 px-4 w-1/2">ข้อมูลทั่วไป</th>
                                                             <th className="py-3 px-4 text-center">จำนวน (N)</th>
                                                             <th className="py-3 px-4 text-center">ร้อยละ (%)</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-slate-100 dark:divide-white/5 print:divide-slate-300">
+                                                        <tr className="bg-slate-50 dark:bg-white/5 print:bg-slate-100"><td colSpan="3" className="py-2 px-4 font-bold text-slate-800 dark:text-white print:text-black">เพศ (Gender)</td></tr>
+                                                        {surveyStats.genderArray.map((g, idx) => (
+                                                            <tr key={'g'+idx} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                                                                <td className="py-3 px-4 pl-8 font-medium text-slate-700 dark:text-slate-300 print:text-black print:pl-6">{g.label}</td>
+                                                                <td className="py-3 px-4 text-center font-medium text-slate-800 dark:text-white print:text-black">{g.count}</td>
+                                                                <td className="py-3 px-4 text-center font-medium text-slate-800 dark:text-white print:text-black">{g.percent}</td>
+                                                            </tr>
+                                                        ))}
+                                                        <tr className="bg-slate-50 dark:bg-white/5 print:bg-slate-100"><td colSpan="3" className="py-2 px-4 font-bold text-slate-800 dark:text-white print:text-black">สาขาวิชา (Major)</td></tr>
                                                         {surveyStats.demoArray.map((demo, idx) => (
-                                                            <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
-                                                                <td className="py-3 px-4 font-medium text-slate-700 dark:text-slate-300 print:text-black">{demo.major}</td>
+                                                            <tr key={'m'+idx} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                                                                <td className="py-3 px-4 pl-8 font-medium text-slate-700 dark:text-slate-300 print:text-black print:pl-6">{demo.major}</td>
                                                                 <td className="py-3 px-4 text-center font-medium text-slate-800 dark:text-white print:text-black">{demo.count}</td>
                                                                 <td className="py-3 px-4 text-center font-medium text-slate-800 dark:text-white print:text-black">{demo.percent}</td>
                                                             </tr>
@@ -1658,6 +1719,12 @@
                                                     </tfoot>
                                                 </table>
                                             </div>
+
+                                            {surveyStats.total > 0 && (
+                                                <div className="mt-6 p-5 bg-slate-50 dark:bg-zinc-800/50 rounded-2xl text-sm text-slate-700 dark:text-slate-300 leading-relaxed border border-slate-200 dark:border-white/10 print:bg-transparent print:border-none print:p-0 print:mt-4">
+                                                    <span className="font-bold text-brand print:text-black">สรุปผล: </span> {surveyStats.table1Summary}
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* TABLE 2: Descriptive Statistics (สถิติเชิงพรรณนา) */}
@@ -1725,6 +1792,12 @@
                                                     </tfoot>
                                                 </table>
                                             </div>
+
+                                            {surveyStats.total > 0 && (
+                                                <div className="mt-6 p-5 bg-slate-50 dark:bg-zinc-800/50 rounded-2xl text-sm text-slate-700 dark:text-slate-300 leading-relaxed border border-slate-200 dark:border-white/10 print:bg-transparent print:border-none print:p-0 print:mt-4">
+                                                    <span className="font-bold text-brand print:text-black">สรุปผล: </span> {surveyStats.table2Summary}
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* TABLE 3: Frequencies (การแจกแจงความถี่แบบกราฟ) */}
