@@ -555,12 +555,18 @@
 
             const RatingStars = ({ qId }) => {
                 return (
-                    <div className="flex items-center gap-2 sm:gap-4 mt-3">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                            <button key={star} type="button" onClick={() => setRatings({ ...ratings, [qId]: star })} className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center font-black text-lg transition-all btn-interactive ${ratings[qId] === star ? 'bg-brand text-white shadow-glow-brand transform scale-110' : 'bg-slate-100 dark:bg-white/5 text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'}`}>
-                                {star}
-                            </button>
-                        ))}
+                    <div className="mt-4">
+                        <div className="flex items-center justify-between gap-1 sm:gap-2 max-w-md mx-auto sm:mx-0">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                                <button key={star} type="button" onClick={() => setRatings({ ...ratings, [qId]: star })} className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center font-black text-xl transition-all duration-300 btn-interactive ${ratings[qId] === star ? 'bg-purple-600 text-white shadow-[0_0_15px_rgba(147,51,234,0.4)] transform scale-110 ring-4 ring-purple-600/20' : 'bg-slate-100 dark:bg-white/5 text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10'}`}>
+                                    {star}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="flex justify-between max-w-md mt-2 px-2 mx-auto sm:mx-0">
+                            <span className="text-[10px] font-bold text-slate-400">1 = น้อยที่สุด</span>
+                            <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400">5 = มากที่สุด</span>
+                        </div>
                     </div>
                 );
             };
@@ -592,11 +598,11 @@
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-purple-500 shadow-soft relative overflow-hidden">
                             <div className="absolute right-0 top-0 p-8 opacity-5 text-purple-500 pointer-events-none transform translate-x-4 -translate-y-4"><Icon name="star" size={100} /></div>
-                            <h3 className="text-lg font-black text-slate-800 dark:text-white mb-6 relative z-10 border-b border-slate-200 dark:border-white/10 pb-4">ส่วนที่ 1: การประเมินความพึงพอใจ <span className="text-sm font-semibold text-slate-500 ml-2">(1 = น้อยที่สุด, 5 = มากที่สุด)</span></h3>
-                            <div className="space-y-8 relative z-10">
+                            <h3 className="text-lg font-black text-slate-800 dark:text-white mb-6 relative z-10 border-b border-slate-200 dark:border-white/10 pb-4">ส่วนที่ 1: การประเมินความพึงพอใจ <span className="text-sm font-semibold text-slate-500 ml-2 hidden sm:inline-block">(1 = น้อยที่สุด, 5 = มากที่สุด)</span></h3>
+                            <div className="space-y-6 relative z-10">
                                 {questions.map(q => (
-                                    <div key={q.id} className="bg-slate-50/50 dark:bg-black/20 p-5 rounded-2xl border border-slate-100 dark:border-white/5">
-                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-1">{q.text}</p>
+                                    <div key={q.id} className="bg-slate-50/80 dark:bg-black/20 p-5 sm:p-6 rounded-3xl border border-slate-100 dark:border-white/5 hover:border-purple-200 dark:hover:border-purple-500/30 transition-colors shadow-sm">
+                                        <p className="text-sm sm:text-base font-bold text-slate-700 dark:text-slate-200 leading-relaxed">{q.text}</p>
                                         <RatingStars qId={q.id} />
                                     </div>
                                 ))}
@@ -604,8 +610,8 @@
                         </div>
 
                         <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] shadow-soft border border-slate-200/50 dark:border-white/5">
-                            <h3 className="text-lg font-black text-slate-800 dark:text-white mb-4 flex items-center gap-2"><Icon name="message-square" className="text-slate-400" size={20}/> ส่วนที่ 2: ข้อเสนอแนะ (ทางเลือก)</h3>
-                            <InputField label="5. ข้อเสนอแนะเพิ่มเติม" value={comment} onChange={v => setComment(v)} placeholder="เช่น สิ่งที่ประทับใจ, สิ่งที่ควรปรับปรุงในครั้งต่อไป..." rows={4} />
+                            <h3 className="text-lg font-black text-slate-800 dark:text-white mb-4 flex items-center gap-2"><Icon name="message-square" className="text-slate-400" size={20}/> ส่วนที่ 2: ข้อเสนอแนะ (คำถามปลายเปิด)</h3>
+                            <InputField label="5. ข้อเสนอแนะเพิ่มเติม (เช่น สิ่งที่ประทับใจ, สิ่งที่ควรปรับปรุงในครั้งต่อไป, หรือหัวข้อที่อยากให้จัดในอนาคต)" value={comment} onChange={v => setComment(v)} placeholder="พิมพ์ข้อเสนอแนะของท่านที่นี่..." rows={4} />
                         </div>
 
                         <div className="pt-4 flex justify-center">
