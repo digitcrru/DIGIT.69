@@ -719,11 +719,67 @@
                 } catch (err) { Swal.fire({ icon: 'error', title: 'Error', text: err.message, customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} }); }
             };
 
-            const exportExcel = () => {
-                if (stats.studentData.length === 0) return;
-                const exportData = stats.studentData.map(r => ({ 'วันที่': r.Timestamp||'', 'รหัสนักศึกษา': r.StudentID||'', 'ชื่อ-นามสกุล': r.FullName||'', 'สาขาวิชา': r.Major||'', 'ศาสนา': r.Religion||'', 'กรุ๊ปเลือด': r.BloodGroup||'', 'เบอร์ นศ.': r.StudentPhone||'', 'เบอร์ ผปค.': r.ParentPhone||'', 'แพ้อาหาร': r.FoodAllergy||'', 'อาหารเฉพาะ': r.SpecificDiet||'', 'โรคประจำตัว': r.Disease||'', 'แพ้ยา': r.DrugAllergy||'' }));
-                const ws = window.XLSX.utils.json_to_sheet(exportData);
-                const wb = window.XLSX.utils.book_new(); window.XLSX.utils.book_append_sheet(wb, ws, "Students"); window.XLSX.writeFile(wb, `DIGIT_Export_${new Date().toISOString().slice(0,10)}.xlsx`);
+            const handleExport = () => {
+                let exportData = [];
+                let sheetName = "Export";
+                let fileName = `DIGIT_Export_${activeTab}_${new Date().toISOString().slice(0,10)}.xlsx`;
+
+                switch(activeTab) {
+                    case 'overview':
+                        if (stats.studentData.length === 0) return;
+                        exportData = stats.studentData.map(r => ({ 'วันที่': r.Timestamp||'', 'รหัสนักศึกษา': r.StudentID||'', 'ชื่อ-นามสกุล': r.FullName||'', 'สาขาวิชา': r.Major||'', 'ศาสนา': r.Religion||'', 'กรุ๊ปเลือด': r.BloodGroup||'', 'เบอร์ นศ.': r.StudentPhone||'', 'เบอร์ ผปค.': r.ParentPhone||'', 'แพ้อาหาร': r.FoodAllergy||'', 'อาหารเฉพาะ': r.SpecificDiet||'', 'โรคประจำตัว': r.Disease||'', 'แพ้ยา': r.DrugAllergy||'' }));
+                        sheetName = "Students_All";
+                        break;
+                    case 'majors':
+                        if (stats.pieData.length === 0) return;
+                        exportData = stats.pieData.sort((a,b) => b.value - a.value).map(item => ({
+                            'สาขาวิชา': item.name, 'จำนวน (คน)': item.value, 'สัดส่วน (%)': ((item.value / stats.total) * 100).toFixed(2) + '%'
+                        }));
+                        exportData.push({ 'สาขาวิชา': 'รวมทั้งหมด', 'จำนวน (คน)': stats.total, 'สัดส่วน (%)': '100.00%' });
+                        sheetName = "Majors_Summary";
+                        break;
+                    case 'health_diet':
+                        const dietData = stats.studentData.filter(r => r.SpecificDiet !== 'ไม่มี' || r.FoodAllergy !== 'ไม่แพ้').map(r => ({
+                            'รหัสนักศึกษา': r.StudentID, 'ชื่อ-นามสกุล': r.FullName, 'สาขาวิชา': r.Major, 'อาหารเฉพาะทาง': r.SpecificDiet, 'ประวัติแพ้อาหาร': r.FoodAllergy, 'เบอร์โทร นศ.': r.StudentPhone
+                        }));
+                        exportData = dietData;
+                        sheetName = "Health_Diet_Alerts";
+                        break;
+                    case 'surveillance':
+                        if (stats.surveillanceList.length === 0) return;
+                        exportData = stats.surveillanceList.map(r => ({
+                            'รหัสนักศึกษา': r.StudentID, 'ชื่อ-นามสกุล': r.FullName, 'สาขาวิชา': r.Major, 
+                            'โรคประจำตัว': r.Disease, 'แพ้ยา': r.DrugAllergy, 'แพ้อาหาร': r.FoodAllergy, 'อาหารเฉพาะ': r.SpecificDiet,
+                            'เบอร์ นศ.': r.StudentPhone, 'เบอร์ ผปค.': r.ParentPhone
+                        }));
+                        sheetName = "Surveillance_List";
+                        break;
+                    case 'create_activity':
+                        if (activityDefs.length === 0) return;
+                        exportData = activityDefs.map(a => ({
+                            'ชื่อกิจกรรม': a.ActivityName, 'วันที่จัด': new Date(a.ActivityDate).toLocaleString('th-TH'), 'สถานที่': a.Location, 'สถานะ': a.Status === 'CLOSED' ? 'ปิด' : 'เปิด', 'จำนวนผู้ลงทะเบียน': activityLogs.filter(l => l.ActivityName === a.ActivityName).length
+                        }));
+                        sheetName = "Activities_List";
+                        break;
+                    case 'activity_summary':
+                        if (activityLogs.length === 0) return;
+                        exportData = activityLogs.map(l => ({
+                            'ชื่อกิจกรรม': l.ActivityName, 'รหัสนักศึกษา': l.StudentID, 'ชื่อ-นามสกุล': l.FullName, 'สาขาวิชา': l.Major, 'เวลาลงทะเบียน': new Date(l.Timestamp).toLocaleString('th-TH')
+                        }));
+                        sheetName = "Activity_Attendees";
+                        break;
+                    default:
+                        exportData = stats.studentData;
+                }
+
+                if (exportData && exportData.length > 0) {
+                    const ws = window.XLSX.utils.json_to_sheet(exportData);
+                    const wb = window.XLSX.utils.book_new(); 
+                    window.XLSX.utils.book_append_sheet(wb, ws, sheetName); 
+                    window.XLSX.writeFile(wb, fileName);
+                } else {
+                    Swal.fire({ icon: 'info', title: 'ไม่มีข้อมูล', text: 'ไม่มีข้อมูลสำหรับดาวน์โหลดในหมวดหมู่นี้', customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
+                }
             };
 
             if (loading && stats.total === 0) return (
@@ -778,7 +834,7 @@
                                     <input type="text" placeholder="ค้นหาชื่อ, รหัสนศ..." value={searchTerm} onChange={(e) => {setSearchTerm(e.target.value); setCurrentPage(1);}} className="w-full pl-10 pr-8 py-2.5 rounded-xl input-modern text-sm font-semibold"/>
                                 </div>
                                 <div className="flex flex-wrap w-full sm:w-auto gap-2 justify-start sm:justify-end">
-                                    <button onClick={exportExcel} className="px-5 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-xl font-bold text-sm flex items-center gap-2 transition-all btn-interactive shadow-sm"><Icon name="download" size={16} /> Excel</button>
+                                    <button onClick={handleExport} className="px-5 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-xl font-bold text-sm flex items-center gap-2 transition-all btn-interactive shadow-sm whitespace-nowrap"><Icon name="download" size={16} /> Export {(TABS.find(t=>t.id===activeTab) || {}).label}</button>
                                     <button onClick={goBack} className="p-2.5 bg-red-50 dark:bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white btn-interactive shadow-sm"><Icon name="log-out" size={18}/></button>
                                 </div>
                             </div>
