@@ -335,7 +335,7 @@
                 
                 const finalData = { ...formData, FoodAllergy: hasFoodAllergy ? formData.FoodAllergy : 'ไม่แพ้', Disease: hasDisease ? formData.Disease : 'ไม่มี', DrugAllergy: hasDrugAllergy ? formData.DrugAllergy : 'ไม่แพ้' };
                 setIsSubmitting(true);
-                Swal.fire({ title: 'Real-Time Recording...', html: '<p class="text-sm text-slate-500 mt-2">กำลังซิงค์ข้อมูลเข้าสู่ระบบ...</p>', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
+                Swal.fire({ title: 'กรุณารอสักครู่', html: '<p class="text-sm text-slate-500 mt-2">กำลังซิงค์ข้อมูลเข้าสู่ระบบ...</p>', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
 
                 try {
                     const res = await submitToAPI('register', finalData);
@@ -449,8 +449,7 @@
                             Swal.fire({ icon: 'error', title: 'ไม่พบข้อมูล', text: 'ไม่พบข้อมูลนักศึกษาที่ตรงกับรหัสที่คุณกรอก กรุณาตรวจสอบอีกครั้ง หรือไปที่เมนู "1. ขึ้นทะเบียนนักศึกษาใหม่" ก่อนครับ', customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
                         }
                         setIsSearching(false);
-                    },
-                    error: () => { Swal.fire({ icon: 'error', title: 'Error', text: 'การเชื่อมต่อฐานข้อมูลล้มเหลว', customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} }); setIsSearching(false); }
+                    }
                 });
             };
 
@@ -459,7 +458,7 @@
                 if (!formData.ActivityName.trim()) { Swal.fire({ icon: 'warning', title: 'แจ้งเตือน', text: 'กรุณาระบุชื่อกิจกรรมที่เข้าร่วม', customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} }); return; }
 
                 setIsSubmitting(true);
-                Swal.fire({ title: 'Real-Time Recording...', html: '<p class="text-sm text-slate-500 mt-2">กำลังซิงค์ข้อมูลเข้าสู่ระบบ...</p>', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
+                Swal.fire({ title: 'กรุณารอสักครู่', html: '<p class="text-sm text-slate-500 mt-2">กำลังซิงค์ข้อมูลเข้าสู่ระบบ...</p>', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
 
                 try {
                     const payload = { StudentID: formData.StudentID, FullName: formData.FullName, Major: formData.Major, IDCard: formData.IDCard, StudentPhone: formData.StudentPhone, ActivityName: formData.ActivityName };
@@ -579,7 +578,7 @@
                 }
 
                 setIsSubmitting(true);
-                Swal.fire({ title: 'Real-Time Recording...', html: '<p class="text-sm text-slate-500 mt-2">กำลังซิงค์ข้อมูลประเมินผลเข้าสู่ระบบ...</p>', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
+                Swal.fire({ title: 'กรุณารอสักครู่', html: '<p class="text-sm text-slate-500 mt-2">กำลังซิงค์ข้อมูลประเมินผลเข้าสู่ระบบ...</p>', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
                 try {
                     const res = await submitToAPI('save_survey', { ActivityName: activityName, StudentID: studentID, Rating1: ratings.q1, Rating2: ratings.q2, Rating3: ratings.q3, Rating4: ratings.q4, Comment: comment });
                     if (res.success) { Swal.close(); onSuccess(); } else { throw new Error(res.message); }
