@@ -103,15 +103,27 @@
 
         const cleanMajor = (str) => str ? str.replace(/\s*\([a-zA-Z\s]+\)/g, '').trim() : '';
 
-        const submitToAPI = async (action, payload) => {
+        // ฟังก์ชันส่งข้อมูลไปยัง API พร้อมระบบ Timeout ป้องกันจอค้าง
+        const submitToAPI = async (action, payload, timeoutMs = 15000) => {
+            // สร้างตัวควบคุมสำหรับการยกเลิก Request
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action, payload })
+                    body: JSON.stringify({ action, payload }),
+                    signal: controller.signal // ผูก signal เพื่อให้สามารถสั่ง abort ได้
                 });
+                clearTimeout(timeoutId); // ถ้าสำเร็จก่อนเวลาที่กำหนด ให้ยกเลิกตัวนับเวลา
                 return await response.json();
             } catch (err) {
+                clearTimeout(timeoutId);
+                // ตรวจสอบว่า Error เกิดจากการหมดเวลา (Timeout) หรือไม่
+                if (err.name === 'AbortError') {
+                    throw new Error("การเชื่อมต่อใช้เวลานานเกินไป (Timeout) กรุณาตรวจสอบอินเทอร์เน็ตและลองใหม่อีกครั้ง");
+                }
                 throw new Error("การเชื่อมต่อระบบล้มเหลว กรุณาลองใหม่อีกครั้ง");
             }
         };
