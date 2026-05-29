@@ -794,6 +794,21 @@
 
                 const parseVal = (val) => { const n = Number(val); return isNaN(n) ? 0 : n; };
 
+                // ฟังก์ชันอัจฉริยะ ดึงคะแนนรองรับหัวตารางทุกรูปแบบ
+                const getVal = (row, key) => {
+                    const exactKeys = [key, key.toUpperCase(), `Q${key.replace('q','')}`, `q${key.replace('q','')}`];
+                    for (let ek of exactKeys) {
+                        if (row[ek] !== undefined && row[ek] !== '') return row[ek];
+                    }
+                    const numStr = key.replace('q', '').replace('_', '.');
+                    for (let header in row) {
+                        if (header.includes(numStr) || header.toLowerCase().includes(key)) {
+                            if (row[header] !== undefined && row[header] !== '') return row[header];
+                        }
+                    }
+                    return undefined;
+                };
+
                 filteredSurveys.forEach(s => {
                     const student = data.find(st => st.StudentID === s.StudentID);
                     let major = 'ไม่ระบุสาขา / บุคคลภายนอก';
@@ -804,12 +819,7 @@
 
                     const keys = Object.keys(qStats);
                     keys.forEach((key) => {
-                        // รองรับชื่อคอลัมน์หลายรูปแบบ (q1_1, Q1_1, 1_1) ป้องกันปัญหาข้อมูลไม่ขึ้น
-                        let val = s[key];
-                        if (val === undefined) val = s[key.toUpperCase()];
-                        if (val === undefined) val = s[`Q${key.replace('q', '')}`];
-                        if (val === undefined) val = s[`Q${key.replace('q', '').toUpperCase()}`];
-                        
+                        let val = getVal(s, key);
                         const v = parseVal(val);
                         if (v > 0) { 
                             qStats[key].sum += v; 
@@ -1031,6 +1041,20 @@
                 let sheetName = "Export";
                 let fileName = `DIGIT_Export_${activeTab}_${new Date().toISOString().slice(0,10)}.xlsx`;
 
+                const getVal = (row, key) => {
+                    const exactKeys = [key, key.toUpperCase(), `Q${key.replace('q','')}`, `q${key.replace('q','')}`];
+                    for (let ek of exactKeys) {
+                        if (row[ek] !== undefined && row[ek] !== '') return row[ek];
+                    }
+                    const numStr = key.replace('q', '').replace('_', '.');
+                    for (let header in row) {
+                        if (header.includes(numStr) || header.toLowerCase().includes(key)) {
+                            if (row[header] !== undefined && row[header] !== '') return row[header];
+                        }
+                    }
+                    return '';
+                };
+
                 switch(activeTab) {
                     case 'overview':
                         if (stats.studentData.length === 0) return;
@@ -1061,19 +1085,19 @@
                         exportData = (selectedSurveyActivity === 'ทั้งหมด' ? surveys : surveys.filter(s => s.ActivityName === selectedSurveyActivity)).map(s => ({ 
                             'ชื่อกิจกรรม': s.ActivityName, 
                             'รหัสนักศึกษา': s.StudentID, 
-                            '1.1 ประชาสัมพันธ์': s.q1_1 || s.Q1_1,
-                            '1.2 สถานที่': s.q1_2 || s.Q1_2,
-                            '1.3 ระยะเวลา': s.q1_3 || s.Q1_3,
-                            '1.4 ลำดับขั้นตอน': s.q1_4 || s.Q1_4,
-                            '2.1 เอกสาร': s.q2_1 || s.Q2_1,
-                            '2.2 โสตทัศนูปกรณ์': s.q2_2 || s.Q2_2,
-                            '2.3 จนท.สนับสนุน': s.q2_3 || s.Q2_3,
-                            '2.4 อาหาร/สถานที่': s.q2_4 || s.Q2_4,
-                            '3.1 ความรู้/ทักษะใหม่': s.q3_1 || s.Q3_1,
-                            '3.2 นำไปใช้ปฏิบัติงาน': s.q3_2 || s.Q3_2,
-                            '3.3 ตรงความคาดหวัง': s.q3_3 || s.Q3_3,
-                            '3.4 เอื้อต่อการเรียนรู้': s.q3_4 || s.Q3_4,
-                            '3.5 ประโยชน์': s.q3_5 || s.Q3_5,
+                            '1.1 ประชาสัมพันธ์': getVal(s, 'q1_1'),
+                            '1.2 สถานที่': getVal(s, 'q1_2'),
+                            '1.3 ระยะเวลา': getVal(s, 'q1_3'),
+                            '1.4 ลำดับขั้นตอน': getVal(s, 'q1_4'),
+                            '2.1 เอกสาร': getVal(s, 'q2_1'),
+                            '2.2 โสตทัศนูปกรณ์': getVal(s, 'q2_2'),
+                            '2.3 จนท.สนับสนุน': getVal(s, 'q2_3'),
+                            '2.4 อาหาร/สถานที่': getVal(s, 'q2_4'),
+                            '3.1 ความรู้/ทักษะใหม่': getVal(s, 'q3_1'),
+                            '3.2 นำไปใช้ปฏิบัติงาน': getVal(s, 'q3_2'),
+                            '3.3 ตรงความคาดหวัง': getVal(s, 'q3_3'),
+                            '3.4 เอื้อต่อการเรียนรู้': getVal(s, 'q3_4'),
+                            '3.5 ประโยชน์': getVal(s, 'q3_5'),
                             'ข้อเสนอแนะ': s.Comment, 
                             'เวลาประเมิน': new Date(s.Timestamp).toLocaleString('th-TH') 
                         }));
