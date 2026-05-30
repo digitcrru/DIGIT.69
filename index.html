@@ -1698,36 +1698,91 @@
                                     activityDefs.map((act, idx) => {
                                         const attendees = activityLogs.filter(log => log.ActivityName === act.ActivityName);
                                         const majorCounts = attendees.reduce((acc, curr) => { const m = curr.Major || 'ไม่ระบุ'; acc[m] = (acc[m] || 0) + 1; return acc; }, {});
+                                        const totalAttendees = attendees.length;
 
                                         return (
-                                            <div key={idx} className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-l-[8px] border-l-pink-500 shadow-soft relative overflow-hidden mb-6 print:border-l-4 print:border-slate-300 print:shadow-none print:break-inside-avoid">
-                                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-slate-100 dark:border-white/5 pb-6 print:mb-4 print:pb-4">
-                                                    <div>
-                                                        <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white mb-2 print:text-black">{act.ActivityName}</h3>
-                                                        <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400 font-semibold print:text-slate-600">
-                                                            <span className="flex items-center gap-1.5"><Icon name="calendar" size={14} className="text-pink-500 print:hidden"/> {new Date(act.ActivityDate).toLocaleString('th-TH')}</span>
-                                                            <span className="flex items-center gap-1.5"><Icon name="map-pin" size={14} className="text-pink-500 print:hidden"/> {act.Location}</span>
+                                            <div key={idx} className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-l-[8px] border-l-pink-500 shadow-soft relative overflow-hidden mb-8 print:border-l-4 print:border-slate-300 print:shadow-none print:break-inside-avoid print:mb-6 group/card">
+                                                
+                                                <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 mb-8 border-b border-slate-100 dark:border-white/5 pb-8 print:mb-4 print:pb-4">
+                                                    
+                                                    {/* 1️⃣ ข้อมูลฝั่งซ้าย: รายละเอียด + กล่องยอดรวมใหญ่ */}
+                                                    <div className="flex-1 flex flex-col justify-between">
+                                                        <div className="mb-6">
+                                                            <div className="flex items-center gap-3 mb-3">
+                                                                <span className={`px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest shadow-sm uppercase ${act.Status !== 'CLOSED' ? 'bg-emerald-500 text-white animate-pulse' : 'bg-slate-300 text-slate-600 dark:bg-slate-700 dark:text-slate-400'}`}>
+                                                                    {act.Status !== 'CLOSED' ? '🔴 LIVE (เปิดรับ)' : 'CLOSED (ปิด)'}
+                                                                </span>
+                                                            </div>
+                                                            <h3 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white leading-tight mb-4 print:text-black">{act.ActivityName}</h3>
+                                                            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-500 dark:text-slate-400 font-semibold print:text-slate-600">
+                                                                <span className="flex items-center gap-1.5 bg-slate-50 dark:bg-white/5 px-3 py-1.5 rounded-lg border border-slate-100 dark:border-white/5"><Icon name="calendar" size={16} className="text-pink-500 print:hidden"/> {new Date(act.ActivityDate).toLocaleString('th-TH')}</span>
+                                                                <span className="flex items-center gap-1.5 bg-slate-50 dark:bg-white/5 px-3 py-1.5 rounded-lg border border-slate-100 dark:border-white/5"><Icon name="map-pin" size={16} className="text-pink-500 print:hidden"/> {act.Location}</span>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* กล่องยอดผู้เข้าร่วมรวมที่โดดเด่น */}
+                                                        <div onClick={() => handleDrilldown(`รายชื่อผู้ร่วมกิจกรรม: ${act.ActivityName}`, 'activity_regs', act.ActivityName)} className="mt-auto bg-gradient-to-br from-pink-500 to-rose-600 p-6 md:p-8 rounded-[2rem] text-white shadow-[0_10px_30px_-10px_rgba(236,72,153,0.5)] cursor-pointer hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-10px_rgba(236,72,153,0.6)] transition-all duration-300 group relative overflow-hidden print:bg-white print:border print:border-slate-300 print:text-black print:shadow-none">
+                                                            <div className="absolute right-0 top-0 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-110 group-hover:rotate-12 transition-all duration-700 print:hidden">
+                                                                <Icon name="users" size={150} />
+                                                            </div>
+                                                            <div className="relative z-10 flex items-center justify-between">
+                                                                <div>
+                                                                    <p className="text-pink-100 font-bold uppercase tracking-widest text-xs md:text-sm mb-1.5 flex items-center gap-2 print:text-slate-500">
+                                                                        <Icon name="search" size={14} className="opacity-0 group-hover:opacity-100 transition-opacity transform -translate-x-4 group-hover:translate-x-0 absolute print:hidden"/> 
+                                                                        <span className="group-hover:ml-6 transition-all duration-300">ยอดผู้เข้าร่วมรวมทั้งหมด</span>
+                                                                    </p>
+                                                                    <div className="text-6xl md:text-7xl font-black drop-shadow-md print:drop-shadow-none">{totalAttendees} <span className="text-lg md:text-2xl font-bold text-pink-200 print:text-slate-600">คน</span></div>
+                                                                </div>
+                                                                <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm group-hover:bg-white group-hover:text-pink-600 transition-colors shadow-sm print:hidden">
+                                                                    <Icon name="arrow-right" size={24} />
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                    <div onClick={() => handleDrilldown(`รายชื่อผู้ร่วมกิจกรรม: ${act.ActivityName}`, 'activity_regs', act.ActivityName)} className="bg-pink-50 dark:bg-pink-500/10 text-pink-600 px-6 py-4 rounded-2xl text-center border border-pink-100 dark:border-pink-500/20 cursor-pointer hover:shadow-md hover:bg-pink-100 dark:hover:bg-pink-500/20 transition-all btn-interactive group print:border-slate-300 print:bg-transparent print:text-black">
-                                                        <div className="text-xs font-bold uppercase tracking-widest mb-1 flex items-center justify-center gap-1 print:text-slate-500"><Icon name="search" size={12} className="opacity-0 group-hover:opacity-100 transition-opacity print:hidden"/> ยอดผู้เข้าร่วมรวม</div>
-                                                        <div className="text-4xl font-black print:text-3xl">{attendees.length}</div>
+
+                                                    {/* 2️⃣ ข้อมูลฝั่งขวา: กราฟสัดส่วน */}
+                                                    <div className="w-full lg:w-5/12 bg-slate-50 dark:bg-black/20 rounded-3xl p-6 border border-slate-100 dark:border-white/5 flex flex-col print:border-slate-300 print:bg-transparent min-h-[300px]">
+                                                        <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-6 flex items-center gap-2 print:text-black"><Icon name="bar-chart-2" size={18} className="text-pink-500 print:hidden"/> กราฟสัดส่วนผู้เข้าร่วม</h4>
+                                                        <div className="flex-1 w-full relative">
+                                                            {totalAttendees === 0 ? (
+                                                                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
+                                                                    <Icon name="inbox" size={32} className="mb-2 opacity-30"/>
+                                                                    <span className="text-xs font-semibold">ไม่มีข้อมูลกราฟ</span>
+                                                                </div>
+                                                            ) : (
+                                                                <ResponsiveContainer width="100%" height={Math.max(250, Object.keys(majorCounts).length * 40)}>
+                                                                    <BarChart data={Object.entries(majorCounts).map(([name, value]) => ({name, value})).sort((a,b)=>b.value-a.value)} layout="vertical" margin={{ top: 0, right: 30, left: -20, bottom: 0 }}>
+                                                                        <XAxis type="number" hide />
+                                                                        <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: isDarkMode ? '#cbd5e1' : '#475569', fontSize: 11, fontWeight: 700}} width={140} />
+                                                                        <Tooltip cursor={{fill: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}} contentStyle={pieTooltipStyle} itemStyle={pieItemStyle} formatter={(value) => [value + ' คน', 'จำนวน']} />
+                                                                        <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={16} label={{ position: 'right', fill: isDarkMode ? '#fff' : '#0f172a', fontSize: 12, fontWeight: 'bold' }}>
+                                                                            {Object.entries(majorCounts).sort((a,b)=>b[1]-a[1]).map((e, i) => <Cell key={i} fill={stats.COLORS[i % stats.COLORS.length]} />)}
+                                                                        </Bar>
+                                                                    </BarChart>
+                                                                </ResponsiveContainer>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
 
-                                                <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2 print:text-black"><Icon name="pie-chart" size={16} className="text-pink-500 print:hidden"/> แยกตามสาขาวิชา</h4>
+                                                {/* 3️⃣ การ์ดแจกแจงรายสาขา */}
+                                                <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2 print:text-black"><Icon name="pie-chart" size={18} className="text-pink-500 print:hidden"/> แยกตามสาขาวิชาที่เข้าร่วม</h4>
                                                 
                                                 {Object.keys(majorCounts).length > 0 ? (
-                                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 print:grid-cols-3 print:gap-2">
+                                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                                         {Object.entries(majorCounts).sort((a,b)=>b[1]-a[1]).map(([major, count], mIdx) => (
-                                                            <div key={mIdx} onClick={() => handleDrilldown(`ผู้เข้าร่วม: ${act.ActivityName} (${major})`, 'activity_major', {activity: act.ActivityName, major})} className="p-4 rounded-2xl bg-slate-50/80 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 hover:border-pink-400 hover:shadow-md transition-all cursor-pointer group btn-interactive relative overflow-hidden print:border-slate-300 print:bg-white print:p-3 print:shadow-none">
-                                                                 <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-10 text-pink-500 transition-opacity transform translate-x-2 -translate-y-2 print:hidden"><Icon name="search" size={32}/></div>
-                                                                 <div className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 truncate group-hover:text-pink-600 transition-colors print:text-slate-600" title={major}>{major}</div>
-                                                                 <div className="text-2xl font-black text-slate-800 dark:text-white group-hover:text-pink-600 transition-colors origin-left print:text-black print:text-xl">{count} <span className="text-xs font-semibold text-slate-400 ml-1">คน</span></div>
+                                                            <div key={mIdx} onClick={() => handleDrilldown(`ผู้เข้าร่วม: ${act.ActivityName} (${major})`, 'activity_major', {activity: act.ActivityName, major})} className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-zinc-800/80 border border-slate-200/80 dark:border-white/10 hover:border-pink-400 hover:shadow-[0_8px_30px_rgb(236,72,153,0.15)] transition-all cursor-pointer group btn-interactive relative overflow-hidden flex flex-col justify-between min-h-[110px] print:border-slate-300 print:shadow-none">
+                                                                <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-10 text-pink-500 transition-opacity transform translate-x-2 -translate-y-2 print:hidden"><Icon name="search" size={32}/></div>
+                                                                <div className="absolute inset-y-0 left-0 bg-pink-50 dark:bg-pink-900/20 transition-all duration-700 ease-out z-0 print:hidden" style={{ width: `${(count / totalAttendees) * 100}%` }}></div>
+                                                                <div className="relative z-10 text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-400 mb-3 line-clamp-2 group-hover:text-pink-600 transition-colors pr-4 print:text-slate-800">{major}</div>
+                                                                <div className="relative z-10 flex items-end justify-between mt-auto">
+                                                                    <div className="text-3xl font-black text-slate-800 dark:text-white group-hover:text-pink-600 transition-colors leading-none print:text-black">{count}</div>
+                                                                    <span className="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-white/5 px-2 py-1 rounded-md print:bg-transparent print:border print:border-slate-300">{((count / totalAttendees) * 100).toFixed(1)}%</span>
+                                                                </div>
                                                             </div>
                                                         ))}
                                                     </div>
-                                                ) : <div className="text-center p-6 text-slate-400 font-semibold bg-slate-50 dark:bg-white/5 rounded-2xl border border-dashed border-slate-200 dark:border-white/10 print:border-none">ยังไม่มีผู้ลงทะเบียนเข้าร่วมกิจกรรมนี้</div>}
+                                                ) : <div className="text-center p-8 text-slate-400 font-semibold bg-slate-50 dark:bg-white/5 rounded-2xl border border-dashed border-slate-200 dark:border-white/10 print:border-none">ยังไม่มีผู้ลงทะเบียนเข้าร่วมกิจกรรมนี้</div>}
                                             </div>
                                         )
                                     })
