@@ -372,9 +372,9 @@
                             <div className="glass-panel p-6 md:p-10 rounded-[2.5rem] border-t-[8px] border-t-blue-500 border border-slate-200/50 dark:border-white/5 shadow-soft text-center">
                                 <div className="w-20 h-20 bg-blue-100 dark:bg-blue-500/20 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner"><Icon name="history" size={40} /></div>
                                 <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-2">ตรวจสอบการเข้าร่วมกิจกรรม</h2>
-                                <p className="text-slate-500 dark:text-slate-400 mb-8 font-medium">กรุณากรอกรหัสนักศึกษา, บัตร ปชช. หรือ Passport เพื่อดูประวัติ</p>
+                                <p className="text-slate-500 dark:text-slate-400 mb-8 font-medium">กรุณากรอกรหัสนักศึกษา, บัตร ปชช.เพื่อดูประวัติ</p>
                                 <div className="max-w-md mx-auto">
-                                    <input type="text" value={searchID} onChange={e => setSearchID(e.target.value)} placeholder="รหัสนักศึกษา / เลขบัตร ปชช. / Passport" className="w-full input-modern rounded-xl px-4 py-4 text-center font-mono text-lg font-bold shadow-sm mb-6 placeholder-slate-400 focus:border-blue-500 focus:ring-blue-500" maxLength="20" required />
+                                    <input type="text" value={searchID} onChange={e => setSearchID(e.target.value)} placeholder="รหัสนักศึกษา / เลขบัตร ปชช." className="w-full input-modern rounded-xl px-4 py-4 text-center font-mono text-lg font-bold shadow-sm mb-6 placeholder-slate-400 focus:border-blue-500 focus:ring-blue-500" maxLength="20" required />
                                     <button type="submit" disabled={isSearching} className="w-full py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl font-black text-lg shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:shadow-[0_0_30px_rgba(59,130,246,0.5)] transform hover:-translate-y-1 transition-all btn-interactive flex items-center justify-center gap-2">
                                         {isSearching ? <Icon name="loader-2" className="animate-spin" /> : <Icon name="search" />} ค้นหาข้อมูล
                                     </button>
@@ -663,9 +663,9 @@
                             <div className="glass-panel p-6 md:p-10 rounded-[2.5rem] border-t-[8px] border-t-purple-500 border border-slate-200/50 dark:border-white/5 shadow-soft text-center">
                                 <div className="w-20 h-20 bg-purple-100 dark:bg-purple-500/20 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner"><Icon name="search" size={40} /></div>
                                 <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-2">ค้นหาข้อมูลนักศึกษา</h2>
-                                <p className="text-slate-500 dark:text-slate-400 mb-8 font-medium">กรุณากรอกรหัสนักศึกษา, บัตร ปชช. หรือ Passport เพื่อดึงข้อมูล</p>
+                                <p className="text-slate-500 dark:text-slate-400 mb-8 font-medium">กรุณากรอกรหัสนักศึกษา, บัตร ปชช.เพื่อดึงข้อมูล</p>
                                 <div className="max-w-md mx-auto">
-                                    <input type="text" value={searchID} onChange={e => setSearchID(e.target.value)} placeholder="รหัสนักศึกษา / เลขบัตร ปชช. / Passport" className="w-full input-modern rounded-xl px-4 py-4 text-center font-mono text-lg font-bold shadow-sm mb-6 placeholder-slate-400" maxLength="20" required />
+                                    <input type="text" value={searchID} onChange={e => setSearchID(e.target.value)} placeholder="รหัสนักศึกษา / เลขบัตร ปชช." className="w-full input-modern rounded-xl px-4 py-4 text-center font-mono text-lg font-bold shadow-sm mb-6 placeholder-slate-400" maxLength="20" required />
                                     <button type="submit" disabled={isSearching} className="w-full py-4 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl font-black text-lg shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transform hover:-translate-y-1 transition-all btn-interactive flex items-center justify-center gap-2">
                                         {isSearching ? <Icon name="loader-2" className="animate-spin" /> : <Icon name="search" />} ค้นหาข้อมูล
                                     </button>
