@@ -102,7 +102,7 @@
         const API_URL = "https://script.google.com/macros/s/AKfycbwviBRd_BbtvGyEpZSq5ab5A0iEpXkG9iMwAUQyGyZb-nDI2R5-x8GE5ZEI3gpmzA3zug/exec";
         const SHEET_ID = "1MoZpnDniVF5pKr0tEgmYwlPO3wZdA7DaO_MvZjbC-ec";
         
-        const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Registration`;
+        const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Registration69`;
         const ACTIVITY_SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Activities`;
         const LOGS_SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Logs`;
         const SURVEY_SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Surveys`;
@@ -371,7 +371,7 @@
                                 <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-2">ตรวจสอบการเข้าร่วมกิจกรรม</h2>
                                 <p className="text-slate-500 dark:text-slate-400 mb-8 font-medium">กรุณากรอกรหัสนักศึกษา, บัตร ปชช. หรือ Passport เพื่อดูประวัติ</p>
                                 <div className="max-w-md mx-auto">
-                                    <input type="text" value={searchID} onChange={e => setSearchID(e.target.value)} placeholder="รหัสนักศึกษา / เลขบัตร ปชช." className="w-full input-modern rounded-xl px-4 py-4 text-center font-mono text-lg font-bold shadow-sm mb-6 placeholder-slate-400 focus:border-blue-500 focus:ring-blue-500" maxLength="20" required />
+                                    <input type="text" value={searchID} onChange={e => setSearchID(e.target.value)} placeholder="รหัสนักศึกษา / เลขบัตร ปชช. / Passport" className="w-full input-modern rounded-xl px-4 py-4 text-center font-mono text-lg font-bold shadow-sm mb-6 placeholder-slate-400 focus:border-blue-500 focus:ring-blue-500" maxLength="20" required />
                                     <button type="submit" disabled={isSearching} className="w-full py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl font-black text-lg shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:shadow-[0_0_30px_rgba(59,130,246,0.5)] transform hover:-translate-y-1 transition-all btn-interactive flex items-center justify-center gap-2">
                                         {isSearching ? <Icon name="loader-2" className="animate-spin" /> : <Icon name="search" />} ค้นหาข้อมูล
                                     </button>
@@ -660,7 +660,7 @@
                                 <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-2">ค้นหาข้อมูลนักศึกษา</h2>
                                 <p className="text-slate-500 dark:text-slate-400 mb-8 font-medium">กรุณากรอกรหัสนักศึกษา, บัตร ปชช. หรือ Passport เพื่อดึงข้อมูล</p>
                                 <div className="max-w-md mx-auto">
-                                    <input type="text" value={searchID} onChange={e => setSearchID(e.target.value)} placeholder="รหัสนักศึกษา / เลขบัตร ปชช." className="w-full input-modern rounded-xl px-4 py-4 text-center font-mono text-lg font-bold shadow-sm mb-6 placeholder-slate-400" maxLength="20" required />
+                                    <input type="text" value={searchID} onChange={e => setSearchID(e.target.value)} placeholder="รหัสนักศึกษา / เลขบัตร ปชช. / Passport" className="w-full input-modern rounded-xl px-4 py-4 text-center font-mono text-lg font-bold shadow-sm mb-6 placeholder-slate-400" maxLength="20" required />
                                     <button type="submit" disabled={isSearching} className="w-full py-4 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl font-black text-lg shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transform hover:-translate-y-1 transition-all btn-interactive flex items-center justify-center gap-2">
                                         {isSearching ? <Icon name="loader-2" className="animate-spin" /> : <Icon name="search" />} ค้นหาข้อมูล
                                     </button>
@@ -1667,7 +1667,7 @@
                                                                 <td className="px-6 py-4 text-xs font-medium text-slate-500">{row.Major}</td>
                                                                 <td className="px-6 py-4 text-center">
                                                                     {isRisk ? <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-[10px] font-bold border border-red-200 dark:border-red-500/20 shadow-sm"><Icon name="shield-alert" size={12}/> เฝ้าระวัง</span> 
-                                                                            : <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold border border-emerald-200 dark:border-emerald-500/20 shadow-sm"><Icon name="check-circle" size={12}/> ปกติ</span>}
+                                                                        : <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold border border-emerald-200 dark:border-emerald-500/20 shadow-sm"><Icon name="check-circle" size={12}/> ปกติ</span>}
                                                                 </td>
                                                                 <td className="px-6 py-4 text-xs">
                                                                     <div className="text-slate-500 dark:text-slate-400 font-semibold flex items-center gap-1.5"><Icon name="user" size={12}/> {row.StudentPhone || '-'}</div>
@@ -2534,7 +2534,7 @@
                                     <div className="flex flex-col gap-1.5 w-full">
                                         <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">ระดับสิทธิ์การใช้งาน (Role)</label>
                                         <div className="relative">
-                                            <select value={userForm.role} onChange={e => setUserForm({...userForm, role: e.target.value})} className="w-full appearance-none input-modern rounded-xl pl-4 pr-10 py-3.5 text-sm font-semibold shadow-sm cursor-pointer">
+                                            <select value={userForm.role} onChange={e => setUserForm({...userForm, role: e.target.value})} className="w-full appearance-none input-modern rounded-xl pl-4 pr-10 py-3.5 text-sm font-semibold shadow-sm cursor-pointer border border-slate-200 dark:border-white/10">
                                                 <option value="Super Admin">Super Admin (ดูได้ทุกเมนู + จัดการผู้ใช้งานได้)</option>
                                                 <option value="Manager">Manager (จัดการข้อมูล + ดูรีพอร์ตได้)</option>
                                                 <option value="Viewer">Viewer (ดูรีพอร์ตได้อย่างเดียว)</option>
@@ -2546,7 +2546,7 @@
                                     <div className="flex flex-col gap-1.5 w-full">
                                         <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">สถานะการใช้งาน</label>
                                         <div className="relative">
-                                            <select value={userForm.status} onChange={e => setUserForm({...userForm, status: e.target.value})} className="w-full appearance-none input-modern rounded-xl pl-4 pr-10 py-3.5 text-sm font-semibold shadow-sm cursor-pointer">
+                                            <select value={userForm.status} onChange={e => setUserForm({...userForm, status: e.target.value})} className="w-full appearance-none input-modern rounded-xl pl-4 pr-10 py-3.5 text-sm font-semibold shadow-sm cursor-pointer border border-slate-200 dark:border-white/10">
                                                 <option value="Active">เปิดใช้งาน (Active)</option>
                                                 <option value="Inactive">ระงับสิทธิ์ (Inactive)</option>
                                             </select>
@@ -2577,7 +2577,7 @@
 
             // Mock Data สำหรับระบบจำลองสิทธิ์
             const [mockUsers] = useState([
-                { id: 1, username: 'admin', password: '0001', role: 'Super Admin', status: 'Active' },
+                { id: 1, username: 'admin', password: '123', role: 'Super Admin', status: 'Active' },
                 { id: 2, username: 'staff1', password: '123', role: 'Manager', status: 'Active' },
                 { id: 3, username: 'guest', password: '123', role: 'Viewer', status: 'Active' }
             ]);
