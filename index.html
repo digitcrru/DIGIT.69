@@ -213,31 +213,58 @@
         // ==========================================
         // 🏠 Home View
         // ==========================================
-        function HomeView({ onSelectNewStudent, onSelectActivity, onCheckActivity, onAdminClick }) {
+        function HomeView({ onSelectNewStudent, onSelectActivity, onCheckActivity, onAdminClick, mockUsers }) {
             const promptAdmin = () => {
                 Swal.fire({
-                    title: '<h3 class="text-2xl font-black text-slate-800 dark:text-white">เข้าสู่ระบบผู้ดูแล</h3>',
-                    input: 'password',
-                    inputAttributes: { autocapitalize: 'off', autocorrect: 'off', placeholder: '••••••', maxlength: '6' },
+                    title: '<h3 class="text-2xl font-black text-slate-800 dark:text-white mb-2">Admin Login</h3>',
+                    html: `
+                        <div class="flex flex-col gap-4 text-left px-2">
+                            <div>
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5 block">Username</label>
+                                <input id="swal-user" class="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm" placeholder="กรอกชื่อผู้ใช้งาน" autocapitalize="off" autocorrect="off">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5 block">Password</label>
+                                <input id="swal-pass" type="password" class="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm tracking-widest font-mono" placeholder="••••••••">
+                            </div>
+                        </div>
+                    `,
                     showCancelButton: true, confirmButtonText: 'เข้าสู่ระบบ', cancelButtonText: 'ยกเลิก', confirmButtonColor: '#ff6600', cancelButtonColor: '#64748b',
+                    focusConfirm: false,
                     customClass: {
-                        popup: 'rounded-[2rem] bg-white dark:bg-zinc-900 border border-slate-200/50 dark:border-white/5 shadow-2xl',
-                        input: 'text-center font-mono text-2xl tracking-[0.5em] rounded-xl bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white py-4 shadow-inner focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all',
-                        confirmButton: 'rounded-xl font-bold px-8 py-3.5 shadow-md hover:shadow-lg transition-all',
-                        cancelButton: 'rounded-xl font-bold px-8 py-3.5 transition-all'
+                        popup: 'rounded-[2rem] bg-white dark:bg-zinc-900 border border-slate-200/50 dark:border-white/5 shadow-2xl pb-6',
+                        confirmButton: 'rounded-xl font-bold px-8 py-3.5 shadow-md hover:shadow-lg transition-all w-full sm:w-auto',
+                        cancelButton: 'rounded-xl font-bold px-8 py-3.5 transition-all w-full sm:w-auto',
+                        actions: 'flex gap-3 w-full justify-center px-6 mt-6'
+                    },
+                    preConfirm: () => {
+                        const user = document.getElementById('swal-user').value.trim();
+                        const pass = document.getElementById('swal-pass').value.trim();
+                        if (!user || !pass) {
+                            Swal.showValidationMessage('กรุณากรอก Username และ Password ให้ครบถ้วน');
+                        }
+                        return { user, pass };
                     }
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        if (result.value === '000000') onAdminClick();
-                        else Swal.fire({ icon: 'error', title: 'รหัสผ่านไม่ถูกต้อง', confirmButtonColor: '#ff6600', customClass: { popup: 'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white' }});
+                        const { user, pass } = result.value;
+                        
+                        const foundUser = mockUsers.find(u => u.username === user && u.password === pass && u.status === 'Active');
+
+                        if (foundUser) {
+                            onAdminClick(foundUser);
+                        } else {
+                            Swal.fire({ icon: 'error', title: 'เข้าสู่ระบบล้มเหลว', text: 'ชื่อผู้ใช้งาน หรือรหัสผ่านไม่ถูกต้อง (หรือถูกระงับสิทธิ์)', confirmButtonColor: '#ff6600', customClass: { popup: 'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white' }});
+                        }
                     }
                 });
             };
 
             return (
                 <div className="flex flex-col items-center justify-center min-h-[85vh] animate-fade-in relative">
-                    <button onClick={promptAdmin} className="absolute top-0 right-0 p-3.5 text-slate-400 hover:text-brand bg-white/50 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 backdrop-blur-md transition-all z-20 rounded-full shadow-sm border border-slate-200/50 dark:border-white/5 btn-interactive" title="เข้าสู่ระบบผู้ดูแล">
-                        <Icon name="lock" size={20} />
+                    <button onClick={promptAdmin} className="absolute top-0 right-0 p-3.5 text-slate-400 hover:text-brand bg-white/50 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 backdrop-blur-md transition-all z-20 rounded-full shadow-sm border border-slate-200/50 dark:border-white/5 btn-interactive flex items-center gap-2" title="เข้าสู่ระบบผู้ดูแล">
+                        <span className="text-xs font-bold uppercase tracking-widest hidden sm:inline-block pl-2">Staff Login</span>
+                        <Icon name="log-in" size={18} />
                     </button>
 
                     <div className="text-center mb-10 md:mb-12 mt-10">
@@ -268,7 +295,7 @@
                         <div onClick={onCheckActivity} className="glass-panel p-8 rounded-[2.5rem] border-t-[8px] border-t-blue-500 shadow-soft hover:shadow-[0_20px_40px_-10px_rgba(59,130,246,0.2)] hover:-translate-y-2 transition-all duration-300 cursor-pointer group flex flex-col items-center text-center relative overflow-hidden">
                             <div className="absolute -right-10 -top-10 opacity-5 text-blue-500 group-hover:scale-125 transition-transform duration-500 pointer-events-none"><Icon name="history" size={150}/></div>
                             <div className="w-20 h-20 bg-blue-50 dark:bg-blue-500/10 text-blue-600 rounded-[1.5rem] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-inner relative z-10"><Icon name="history" size={40} /></div>
-                            <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white mb-4 relative z-10">3. ตรวจสอบการเข้าร่วม</h3>
+                            <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white mb-4 relative z-10">3. ตรวจสอบประวัติ</h3>
                             <p className="text-slate-500 dark:text-slate-400 font-medium relative z-10 text-sm">ตรวจสอบประวัติการลงทะเบียนและเช็คชื่อกิจกรรมของคุณ</p>
                             <div className="mt-8 w-full py-3 bg-slate-100 dark:bg-white/5 rounded-xl font-bold text-slate-600 dark:text-slate-300 group-hover:bg-blue-500 group-hover:text-white transition-colors flex items-center justify-center gap-2 relative z-10">ตรวจสอบประวัติ <Icon name="arrow-right" size={16}/></div>
                         </div>
@@ -679,7 +706,7 @@
                                 </div>
                             </div>
                             <div className="pt-4 flex justify-center">
-                                <button type="submit" disabled={isSubmitting} className="w-full md:w-auto min-w-[280px] py-4 px-8 rounded-2xl font-black text-lg transition-all btn-interactive flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-[0_0_25px_rgba(168,85,247,0.3)] hover:shadow-[0_0_35px_rgba(168,85,247,0.5)] transform hover:-translate-y-1">
+                                <button type="submit" disabled={isSubmitting || availableActivities.length === 0} className={`w-full md:w-auto min-w-[280px] py-4 px-8 rounded-2xl font-black text-lg transition-all btn-interactive flex items-center justify-center gap-2 ${availableActivities.length === 0 ? 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-[0_0_25px_rgba(168,85,247,0.3)] hover:shadow-[0_0_35px_rgba(168,85,247,0.5)] transform hover:-translate-y-1'}`}>
                                     {isSubmitting ? <Icon name="loader-2" className="animate-spin" /> : <Icon name="check-circle" />} ยืนยันการลงทะเบียนกิจกรรม
                                 </button>
                             </div>
@@ -693,6 +720,7 @@
         // 📊 แบบประเมิน SurveyForm (13 ข้อ)
         // ==========================================
         function SurveyForm({ onBack, onSuccess, activityName, studentID }) {
+            const { isDarkMode } = useContext(AppContext);
             const [ratings, setRatings] = useState({ 
                 q1_1: 0, q1_2: 0, q1_3: 0, q1_4: 0,
                 q2_1: 0, q2_2: 0, q2_3: 0, q2_4: 0,
@@ -704,9 +732,9 @@
             const surveySections = [
                 {
                     title: "ส่วนที่ 1: กระบวนการ ขั้นตอนการให้บริการ",
-                    iconColor: "text-brand",
-                    bg: "bg-orange-50 dark:bg-orange-950/20",
-                    border: "border-orange-200 dark:border-orange-900/30",
+                    iconColor: "text-orange-500",
+                    bg: "bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-950/20 dark:to-orange-900/10",
+                    border: "border-orange-200 dark:border-orange-800/50",
                     headerBg: "bg-orange-100 dark:bg-orange-500/20",
                     icon: "layers",
                     questions: [
@@ -875,7 +903,7 @@
         // ==========================================
         // 📊 Admin Dashboard
         // ==========================================
-        function AdminDashboard({ goBack }) {
+        function AdminDashboard({ goBack, currentUser }) {
             const { isDarkMode = false } = useContext(AppContext) || {};
             const [data, setData] = useState([]);
             const [loading, setLoading] = useState(true);
@@ -891,6 +919,15 @@
             const [activityLogs, setActivityLogs] = useState([]);
             const [surveys, setSurveys] = useState([]);
             const [activityForm, setActivityForm] = useState({ name: '', date: '', location: '' });
+
+            // User Management State (Mocked logic for UI demonstration)
+            const [adminList, setAdminList] = useState([
+                { id: 1, username: 'admin', role: 'Super Admin', status: 'Active' },
+                { id: 2, username: 'staff1', role: 'Manager', status: 'Active' },
+                { id: 3, username: 'guest', role: 'Viewer', status: 'Inactive' }
+            ]);
+            const [userForm, setUserForm] = useState({ id: null, username: '', password: '', role: 'Manager', status: 'Active' });
+            const [showUserModal, setShowUserModal] = useState(false);
 
             const loadData = (isSilent = false) => {
                 if (!isSilent) setLoading(true);
@@ -1244,6 +1281,43 @@
                 } catch (err) { Swal.fire({ icon: 'error', title: 'Error', text: err.message, customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} }); }
             };
 
+            // User Management Actions
+            const handleSaveUser = (e) => {
+                e.preventDefault();
+                if (!userForm.username || (!userForm.password && !userForm.id)) {
+                    Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูลให้ครบ', customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} }); return;
+                }
+                
+                // จำลองการบันทึกข้อมูลลง Local State (ในระบบจริงต้องยิง API)
+                if (userForm.id) {
+                    setAdminList(prev => prev.map(u => u.id === userForm.id ? { ...u, username: userForm.username, role: userForm.role, status: userForm.status, password: userForm.password ? userForm.password : u.password } : u));
+                    Swal.fire({ icon: 'success', title: 'อัปเดตข้อมูลสำเร็จ', timer: 1500, showConfirmButton: false, customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
+                } else {
+                    const newUser = { id: Date.now(), username: userForm.username, password: userForm.password, role: userForm.role, status: 'Active' };
+                    setAdminList([...adminList, newUser]);
+                    Swal.fire({ icon: 'success', title: 'สร้างผู้ใช้งานสำเร็จ', timer: 1500, showConfirmButton: false, customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
+                }
+                setShowUserModal(false);
+            };
+
+            const handleDeleteUser = (id) => {
+                Swal.fire({
+                    title: 'ยืนยันการลบ?',
+                    text: "คุณต้องการลบผู้ใช้งานนี้ใช่หรือไม่",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'ใช่, ลบเลย',
+                    customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'}
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        setAdminList(prev => prev.filter(u => u.id !== id));
+                        Swal.fire({ icon: 'success', title: 'ลบสำเร็จ', timer: 1500, showConfirmButton: false, customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
+                    }
+                })
+            };
+
             const exportExcel = () => {
                 let exportData = [];
                 let sheetName = "Export";
@@ -1471,7 +1545,6 @@
                     </html>
                 `;
 
-                // Add Byte Order Mark (BOM) to force UTF-8 in Word
                 const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
@@ -1482,6 +1555,28 @@
                 document.body.removeChild(link);
             };
 
+            // Role-Based Tab Filtering
+            const ALL_TABS = [
+                { id: 'overview', icon: 'users', label: 'ภาพรวม', roles: ['Super Admin', 'Manager', 'Viewer'] },
+                { id: 'majors', icon: 'pie-chart', label: 'สาขาวิชา', roles: ['Super Admin', 'Manager', 'Viewer'] },
+                { id: 'health_diet', icon: 'activity', label: 'โภชนาการ', roles: ['Super Admin', 'Manager'] },
+                { id: 'surveillance', icon: 'shield-alert', label: 'กลุ่มเฝ้าระวัง', roles: ['Super Admin', 'Manager'] },
+                { id: 'executive', icon: 'layout-dashboard', label: 'รายงานสรุปผู้บริหาร', roles: ['Super Admin', 'Viewer'] },
+                { id: 'create_activity', icon: 'calendar-plus', label: 'สร้างกิจกรรม', roles: ['Super Admin', 'Manager'] },
+                { id: 'activity_summary', icon: 'radio', label: 'Real-Time Recording', roles: ['Super Admin', 'Manager', 'Viewer'] },
+                { id: 'survey_summary', icon: 'star', label: 'สรุปแบบสอบถาม (SPSS)', roles: ['Super Admin', 'Manager', 'Viewer'] },
+                { id: 'admin_users', icon: 'users-cog', label: 'จัดการผู้ดูแลระบบ', roles: ['Super Admin'] }
+            ];
+
+            const TABS = useMemo(() => ALL_TABS.filter(tab => tab.roles.includes(currentUser?.role || 'Viewer')), [currentUser]);
+
+            // Ensure activeTab is valid for current user
+            useEffect(() => {
+                if (!TABS.find(t => t.id === activeTab)) {
+                    setActiveTab(TABS[0].id);
+                }
+            }, [activeTab, TABS]);
+
             if (loading && stats.total === 0) return (
                 <div className="flex flex-col justify-center items-center h-[70vh]">
                     <div className="p-4 bg-brand/10 rounded-2xl mb-4 animate-pulse-slow shadow-glow-brand"><Icon name="loader-2" size={40} className="text-brand animate-spin" /></div>
@@ -1489,39 +1584,27 @@
                 </div>
             );
 
-            const TABS = [
-                { id: 'overview', icon: 'layout-dashboard', label: 'ภาพรวม' },
-                { id: 'majors', icon: 'pie-chart', label: 'สาขาวิชา' },
-                { id: 'health_diet', icon: 'utensils', label: 'โภชนาการ' },
-                { id: 'surveillance', icon: 'shield-alert', label: 'กลุ่มเฝ้าระวัง' },
-                { id: 'executive', icon: 'layout-dashboard', label: 'รายงานสรุปผู้บริหาร' },
-                { id: 'create_activity', icon: 'calendar-plus', label: 'สร้างกิจกรรม' },
-                { id: 'activity_summary', icon: 'radio', label: 'Real-Time Recording' },
-                { id: 'survey_summary', icon: 'star', label: 'สรุปแบบสอบถาม (SPSS)' }
-            ];
-
             const pieTooltipStyle = { backgroundColor: isDarkMode ? 'rgba(24, 24, 27, 0.95)' : 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' };
             const pieItemStyle = {fontWeight: 'bold', color: isDarkMode ? '#fff' : '#1e293b'};
             const drilldownIcon = drilldownData.type === 'activity_regs' || drilldownData.type === 'activity_major' ? "calendar-check" : "users";
             const drilldownHeaderColor = (drilldownData.type === 'activity_regs' || drilldownData.type === 'activity_major') ? 'bg-purple-500 shadow-glow-brand' : (drilldownData.type.includes('diet') || drilldownData.type.includes('food') || drilldownData.type === 'allergy_group') ? 'bg-orange-500 shadow-glow-brand' : (drilldownData.type === 'demographics' || drilldownData.type === 'major_breakdown' || drilldownData.type === 'majors') ? 'bg-blue-500' : drilldownData.title.includes('ทั้งหมด') ? 'bg-brand shadow-glow-brand' : drilldownData.type === 'healthy' ? 'bg-emerald-500' : 'bg-red-500 shadow-glow-red';
-            const showConditions = !['demographics', 'major_breakdown', 'majors', 'activity_regs', 'activity_major', 'healthy'].includes(drilldownData.type) && !drilldownData.title.includes('ทั้งหมด');
 
             return (
                 <div className="flex flex-col md:flex-row gap-6 animate-fade-in pb-20 items-start w-full">
                     {/* Admin Sidebar */}
                     <div className="w-full md:w-64 glass-panel p-5 rounded-[2rem] flex flex-col md:sticky md:top-24 z-20 shrink-0 no-print border border-slate-200/50 dark:border-white/5 shadow-soft">
-                        <div className="flex items-center gap-4 mb-8 px-2 pt-2">
-                            <div className="w-12 h-12 bg-slate-900 dark:bg-white rounded-[1rem] flex items-center justify-center text-white dark:text-black shadow-lg"><Icon name="command" size={24}/></div>
-                            <div>
-                                <p className="text-[10px] text-brand font-black tracking-widest uppercase">Admin Portal</p>
-                                <h3 className="font-black text-slate-800 dark:text-white leading-none text-lg mt-0.5">แดชบอร์ด</h3>
+                        <div className="flex items-center gap-4 mb-6 px-2 pt-2">
+                            <div className="w-12 h-12 bg-slate-900 dark:bg-white rounded-[1rem] flex items-center justify-center text-white dark:text-black shadow-lg shrink-0"><Icon name="command" size={24}/></div>
+                            <div className="overflow-hidden">
+                                <p className="text-[10px] text-brand font-black tracking-widest uppercase truncate">{currentUser?.username || 'Admin'}</p>
+                                <h3 className="font-black text-slate-800 dark:text-white leading-none text-base mt-1 truncate">{currentUser?.role || 'Staff'}</h3>
                             </div>
                         </div>
                         <div className="flex flex-row md:flex-col overflow-x-auto hide-scrollbar gap-2 pb-2 md:pb-0">
                             {TABS.map(tab => (
                                 <button key={tab.id} onClick={() => { setActiveTab(tab.id); setCurrentPage(1); }} 
                                     className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all font-bold whitespace-nowrap btn-interactive text-sm
-                                    ${activeTab === tab.id ? (tab.id === 'activity_summary' ? 'bg-red-500 text-white shadow-glow-red hover:-translate-y-0.5' : tab.id === 'survey_summary' ? 'bg-yellow-500 text-white shadow-glow-brand hover:-translate-y-0.5' : 'bg-brand text-white shadow-glow-brand hover:-translate-y-0.5') : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white'}`}>
+                                    ${activeTab === tab.id ? (tab.id === 'activity_summary' ? 'bg-red-500 text-white shadow-glow-red hover:-translate-y-0.5' : tab.id === 'survey_summary' ? 'bg-yellow-500 text-white shadow-glow-brand hover:-translate-y-0.5' : tab.id === 'admin_users' ? 'bg-slate-800 text-white shadow-lg hover:-translate-y-0.5' : 'bg-brand text-white shadow-glow-brand hover:-translate-y-0.5') : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white'}`}>
                                     <Icon name={tab.icon} size={18} className={activeTab === tab.id ? 'text-white' : 'text-slate-400'}/> {tab.label}
                                 </button>
                             ))}
@@ -1533,7 +1616,7 @@
                         {/* Header Action Bar */}
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center glass-panel p-5 md:px-8 md:py-6 rounded-[2.5rem] gap-4 no-print shadow-soft border border-slate-200/50 dark:border-white/5">
                             <h2 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3 whitespace-nowrap">
-                                <div className={`p-2.5 rounded-xl shadow-sm ${activeTab === 'activity_summary' ? 'bg-red-500/10 text-red-500' : activeTab === 'survey_summary' ? 'bg-yellow-500/10 text-yellow-600' : 'bg-brand/10 text-brand'}`}><Icon name={(TABS.find(t=>t.id===activeTab) || {}).icon} size={20}/></div> {(TABS.find(t=>t.id===activeTab) || {}).label}
+                                <div className={`p-2.5 rounded-xl shadow-sm ${activeTab === 'activity_summary' ? 'bg-red-500/10 text-red-500' : activeTab === 'survey_summary' ? 'bg-yellow-500/10 text-yellow-600' : activeTab === 'admin_users' ? 'bg-slate-800/10 text-slate-800 dark:text-white' : 'bg-brand/10 text-brand'}`}><Icon name={(TABS.find(t=>t.id===activeTab) || {}).icon} size={20}/></div> {(TABS.find(t=>t.id===activeTab) || {}).label}
                             </h2>
                             <div className="flex flex-col xl:flex-row flex-wrap w-full sm:w-auto gap-3 items-start xl:items-center">
                                 <div className="relative w-full sm:w-64">
@@ -1541,8 +1624,8 @@
                                     <input type="text" placeholder="ค้นหาชื่อ, รหัสนศ..." value={searchTerm} onChange={(e) => {setSearchTerm(e.target.value); setCurrentPage(1);}} className="w-full pl-10 pr-8 py-2.5 rounded-xl input-modern text-sm font-semibold"/>
                                 </div>
                                 <div className="flex flex-wrap w-full sm:w-auto gap-2 justify-start sm:justify-end">
-                                    <button onClick={exportExcel} className="px-5 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-xl font-bold text-sm flex items-center gap-2 transition-all btn-interactive shadow-sm whitespace-nowrap"><Icon name="download" size={16} /> Export {(TABS.find(t=>t.id===activeTab) || {}).label}</button>
-                                    <button onClick={goBack} className="p-2.5 bg-red-50 dark:bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white btn-interactive shadow-sm"><Icon name="log-out" size={18}/></button>
+                                    {activeTab !== 'admin_users' && <button onClick={exportExcel} className="px-5 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-xl font-bold text-sm flex items-center gap-2 transition-all btn-interactive shadow-sm whitespace-nowrap"><Icon name="download" size={16} /> Export</button>}
+                                    <button onClick={goBack} className="px-5 py-2.5 bg-red-50 dark:bg-red-500/10 text-red-500 rounded-xl hover:bg-red-50 hover:text-white font-bold text-sm btn-interactive shadow-sm flex items-center gap-2 whitespace-nowrap"><Icon name="log-out" size={16}/> ออกจากระบบ</button>
                                 </div>
                             </div>
                         </div>
@@ -1579,7 +1662,7 @@
                                                         const isRisk = (row.FoodAllergy && row.FoodAllergy !== 'ไม่แพ้') || (row.SpecificDiet && row.SpecificDiet !== 'ไม่มี') || (row.Disease && row.Disease !== 'ไม่มี') || (row.DrugAllergy && row.DrugAllergy !== 'ไม่แพ้');
 
                                                         return (
-                                                            <tr key={i} onClick={() => setEditItem({...row, oldStudentID: row.StudentID})} className="hover:bg-slate-50/80 dark:hover:bg-white/5 transition-colors cursor-pointer group">
+                                                            <tr key={i} onClick={() => currentUser?.role === 'Super Admin' || currentUser?.role === 'Manager' ? setEditItem({...row, oldStudentID: row.StudentID}) : null} className={`hover:bg-slate-50/80 dark:hover:bg-white/5 transition-colors group ${currentUser?.role === 'Super Admin' || currentUser?.role === 'Manager' ? 'cursor-pointer' : ''}`}>
                                                                 <td className="px-6 py-4 font-bold text-slate-800 dark:text-slate-200 group-hover:text-brand transition-colors">{row.FullName}</td>
                                                                 <td className="px-6 py-4 text-xs font-medium text-slate-500">{row.Major}</td>
                                                                 <td className="px-6 py-4 text-center">
@@ -1695,7 +1778,7 @@
                                                         <XAxis type="number" hide />
                                                         <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: isDarkMode ? '#cbd5e1' : '#475569', fontSize: 13, fontWeight: 700}} width={80} />
                                                         <Tooltip cursor={{fill: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}} contentStyle={pieTooltipStyle} />
-                                                        <Bar dataKey="value" radius={[0, 16, 16, 0]} barSize={32} label={{ position: 'right', fill: isDarkMode ? '#fff' : '#0f172a', fontSize: 16, fontWeight: '900' }}>
+                                                        <Bar dataKey="value" radius={[0, 16, 16, 0]} barSize={32} label={{ position: 'right', fill: isDarkMode ? '#fff' : '#0f172a', fontSize: 16, fontWeight: '900' }} onClick={(data) => handleDrilldown(`โภชนาการ: ${data.name}`, data.name === 'แพ้อาหาร' ? 'food_allergy' : 'religion_diet', data.name === 'แพ้อาหาร' ? '' : data.name)} className="cursor-pointer hover:opacity-80">
                                                             {[{fill: '#ea580c'},{fill: '#3b82f6'}, {fill: '#10b981'}, {fill: '#eab308'}].map((e, i) => <Cell key={i} fill={e.fill} />)}
                                                         </Bar>
                                                     </BarChart>
@@ -1714,7 +1797,7 @@
                                                         <XAxis type="number" hide />
                                                         <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: isDarkMode ? '#cbd5e1' : '#475569', fontSize: 13, fontWeight: 700}} width={100} />
                                                         <Tooltip cursor={{fill: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}} contentStyle={pieTooltipStyle} />
-                                                        <Bar dataKey="value" radius={[0, 16, 16, 0]} barSize={32} label={{ position: 'right', fill: isDarkMode ? '#fff' : '#0f172a', fontSize: 16, fontWeight: '900' }}>
+                                                        <Bar dataKey="value" radius={[0, 16, 16, 0]} barSize={32} label={{ position: 'right', fill: isDarkMode ? '#fff' : '#0f172a', fontSize: 16, fontWeight: '900' }} onClick={(data) => handleDrilldown(`การแพทย์: ${data.name}`, data.name === 'โรคประจำตัว' ? 'disease' : 'drug_allergy', '')} className="cursor-pointer hover:opacity-80">
                                                             {[{fill: '#ec4899'}, {fill: '#a855f7'}].map((e, i) => <Cell key={i} fill={e.fill} />)}
                                                         </Bar>
                                                     </BarChart>
@@ -1722,6 +1805,61 @@
                                             )}
                                         </div>
                                     </div>
+                                </div>
+                                
+                                {/* Nutrition Details Table */}
+                                <div className="glass-panel rounded-[2rem] overflow-hidden border border-slate-200/50 dark:border-white/5 shadow-soft">
+                                    <div className="p-6 md:px-8 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex justify-between items-center">
+                                        <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-3"><Icon name="pizza" className="text-orange-500" size={18}/> รายชื่อนักศึกษาที่ต้องดูแลโภชนาการ</h3>
+                                    </div>
+                                    <div className="overflow-x-auto p-2 custom-scrollbar">
+                                        <table className="w-full text-sm text-left min-w-[800px]">
+                                            <thead className="text-[11px] text-slate-400 uppercase tracking-widest bg-transparent">
+                                                <tr>
+                                                    <th className="px-6 py-3 w-1/3">ชื่อ-นามสกุล / สาขา</th>
+                                                    <th className="px-6 py-3 w-1/4">อาหารเฉพาะทาง</th>
+                                                    <th className="px-6 py-3 w-1/4">ประวัติแพ้อาหาร</th>
+                                                    <th className="px-6 py-3">เบอร์ติดต่อ</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                                                {(() => {
+                                                    const dietList = stats.studentData.filter(r => r.SpecificDiet !== 'ไม่มี' || r.FoodAllergy !== 'ไม่แพ้');
+                                                    const itemsPerPage = 8;
+                                                    const indexOfLastItem = currentPage * itemsPerPage;
+                                                    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+                                                    const currentItems = dietList.slice(indexOfFirstItem, indexOfLastItem);
+                                                    
+                                                    if (currentItems.length === 0) return <tr><td colSpan="4" className="text-center py-12 text-slate-400 font-medium">ไม่พบผู้ที่ต้องการดูแลเรื่องอาหาร</td></tr>;
+                                                    
+                                                    return currentItems.map((row, i) => (
+                                                        <tr key={i} className="hover:bg-orange-50/30 dark:hover:bg-orange-900/10 transition-colors">
+                                                            <td className="px-6 py-4">
+                                                                <div className="font-bold text-slate-800 dark:text-slate-200">{row.FullName}</div>
+                                                                <div className="text-xs text-slate-500 mt-1">{row.Major}</div>
+                                                            </td>
+                                                            <td className="px-6 py-4">
+                                                                {row.SpecificDiet !== 'ไม่มี' ? <span className="inline-flex px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-xs font-bold">{row.SpecificDiet}</span> : '-'}
+                                                            </td>
+                                                            <td className="px-6 py-4">
+                                                                {row.FoodAllergy !== 'ไม่แพ้' ? <span className="inline-flex px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded-lg text-xs font-bold border border-orange-200 dark:border-orange-800">{row.FoodAllergy}</span> : '-'}
+                                                            </td>
+                                                            <td className="px-6 py-4 font-mono text-sm text-slate-600 dark:text-slate-400">{row.StudentPhone}</td>
+                                                        </tr>
+                                                    ));
+                                                })()}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {stats.studentData.filter(r => r.SpecificDiet !== 'ไม่มี' || r.FoodAllergy !== 'ไม่แพ้').length > 0 && (
+                                        <div className="flex flex-col sm:flex-row justify-between items-center p-5 border-t border-slate-100 dark:border-white/5 gap-4 bg-slate-50/50 dark:bg-transparent">
+                                            <span className="text-xs font-semibold text-slate-500">Page {currentPage} of {Math.ceil(stats.studentData.filter(r => r.SpecificDiet !== 'ไม่มี' || r.FoodAllergy !== 'ไม่แพ้').length / 8) || 1}</span>
+                                            <div className="flex gap-2">
+                                                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-2.5 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm disabled:opacity-50 btn-interactive"><Icon name="chevron-left" size={16}/></button>
+                                                <button onClick={() => setCurrentPage(p => Math.min(Math.ceil(stats.studentData.filter(r => r.SpecificDiet !== 'ไม่มี' || r.FoodAllergy !== 'ไม่แพ้').length / 8), p + 1))} disabled={currentPage === Math.ceil(stats.studentData.filter(r => r.SpecificDiet !== 'ไม่มี' || r.FoodAllergy !== 'ไม่แพ้').length / 8) || Math.ceil(stats.studentData.filter(r => r.SpecificDiet !== 'ไม่มี' || r.FoodAllergy !== 'ไม่แพ้').length / 8) === 0} className="p-2.5 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm disabled:opacity-50 btn-interactive"><Icon name="chevron-right" size={16}/></button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -1771,7 +1909,7 @@
                                                         <thead className="text-[11px] text-slate-400 uppercase tracking-widest bg-transparent"><tr><th className="px-6 py-4">ชื่อ-นามสกุล</th><th className="px-6 py-4">สาขาวิชา</th><th className="px-6 py-4">ประเด็นเสี่ยง</th><th className="px-6 py-4 text-right"></th></tr></thead>
                                                         <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                                                             {stats.surveillanceList.slice((currentPage - 1) * 8, currentPage * 8).map((row, i) => (
-                                                                <tr key={i} onClick={() => setEditItem({...row, oldStudentID: row.StudentID})} className="hover:bg-red-50/50 dark:hover:bg-red-900/10 transition-colors group cursor-pointer">
+                                                                <tr key={i} onClick={() => currentUser?.role === 'Super Admin' || currentUser?.role === 'Manager' ? setEditItem({...row, oldStudentID: row.StudentID}) : null} className={`hover:bg-red-50/50 dark:hover:bg-red-900/10 transition-colors group ${currentUser?.role === 'Super Admin' || currentUser?.role === 'Manager' ? 'cursor-pointer' : ''}`}>
                                                                     <td className="px-6 py-4 font-bold text-slate-800 dark:text-slate-200 group-hover:text-red-600 transition-colors">{row.FullName}</td>
                                                                     <td className="px-6 py-4 text-xs font-semibold text-slate-500">{row.Major}</td>
                                                                     <td className="px-6 py-4"><span className="inline-flex items-center justify-center bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 w-6 h-6 rounded-full text-xs font-bold shadow-sm">{row.issues.length}</span></td>
@@ -1908,7 +2046,7 @@
                         {/* TAB 7: ACTIVITY SUMMARY */}
                         {activeTab === 'activity_summary' && (
                             <div className="space-y-6 animate-fade-in print:space-y-4">
-                                <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-pink-500 shadow-soft relative overflow-hidden bg-gradient-to-b from-white to-pink-50/30 dark:from-zinc-900 dark:to-zinc-900/50 print:border-none print:shadow-none print:bg-white print:p-0">
+                                <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-pink-500 shadow-soft relative overflow-hidden bg-gradient-to-b from-white to-pink-50/30 dark:from-zinc-900 dark:to-zinc-900/50">
                                     <div className="absolute top-0 right-0 p-8 opacity-5 text-pink-500 pointer-events-none transform translate-x-4 -translate-y-4 print:hidden"><Icon name="bar-chart-2" size={120} /></div>
                                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10 print:mb-6">
                                         <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3 print:text-black print:text-2xl">
@@ -2183,6 +2321,77 @@
                                 )}
                             </div>
                         )}
+                        
+                        {/* TAB 9: USER MANAGEMENT (สำหรับ Super Admin เท่านั้น) */}
+                        {activeTab === 'admin_users' && (
+                            <div className="space-y-6 animate-fade-in print:hidden">
+                                <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-slate-800 dark:border-t-white shadow-soft relative overflow-hidden bg-gradient-to-b from-white to-slate-50/50 dark:from-zinc-900 dark:to-zinc-900/50">
+                                    <div className="absolute top-0 right-0 p-8 opacity-5 text-slate-800 dark:text-white pointer-events-none transform translate-x-4 -translate-y-4"><Icon name="users-cog" size={120} /></div>
+                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10">
+                                        <div>
+                                            <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
+                                                <div className="p-3 bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-white rounded-2xl shadow-inner"><Icon name="shield" size={24}/></div>
+                                                จัดการสิทธิ์และผู้ใช้งานระบบ
+                                            </h3>
+                                            <p className="text-slate-500 mt-2 font-medium text-sm">เพิ่ม ลบ และกำหนดสิทธิ์การเข้าถึงข้อมูลของเจ้าหน้าที่แต่ละระดับ (Role-Based Access Control)</p>
+                                        </div>
+                                        <button onClick={() => { setUserForm({ id: null, username: '', password: '', role: 'Manager', status: 'Active' }); setShowUserModal(true); }} className="w-full sm:w-auto px-5 py-3.5 bg-slate-800 dark:bg-white text-white dark:text-black hover:bg-slate-700 dark:hover:bg-slate-200 rounded-xl font-black text-sm shadow-md transition-all btn-interactive flex items-center justify-center gap-2 whitespace-nowrap">
+                                            <Icon name="user-plus" size={16} /> สร้างผู้ใช้งานใหม่
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Table of Users */}
+                                <div className="glass-panel rounded-[2rem] overflow-hidden border border-slate-200/50 dark:border-white/5 shadow-soft">
+                                    <div className="overflow-x-auto p-2 custom-scrollbar">
+                                        <table className="w-full text-sm text-left min-w-[700px]">
+                                            <thead className="text-[11px] text-slate-400 uppercase tracking-widest bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5">
+                                                <tr>
+                                                    <th className="px-6 py-4 rounded-tl-xl">ชื่อผู้ใช้งาน (Username)</th>
+                                                    <th className="px-6 py-4">ระดับสิทธิ์ (Role)</th>
+                                                    <th className="px-6 py-4 text-center">สถานะ</th>
+                                                    <th className="px-6 py-4 text-right rounded-tr-xl">จัดการ</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                                                {adminList.map((user) => (
+                                                    <tr key={user.id} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                                                        <td className="px-6 py-4">
+                                                            <div className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                                                                <Icon name="user" size={14} className="text-slate-400"/> {user.username}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold shadow-sm border
+                                                                ${user.role === 'Super Admin' ? 'bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20' : 
+                                                                  user.role === 'Manager' ? 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20' : 
+                                                                  'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'}`}>
+                                                                {user.role === 'Super Admin' ? <Icon name="shield-alert" size={12}/> : user.role === 'Manager' ? <Icon name="edit-3" size={12}/> : <Icon name="eye" size={12}/>}
+                                                                {user.role}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-center">
+                                                            <span className={`inline-block w-2.5 h-2.5 rounded-full mr-2 ${user.status === 'Active' ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
+                                                            <span className="text-xs font-semibold text-slate-500">{user.status}</span>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-right">
+                                                            <div className="flex justify-end gap-2">
+                                                                <button onClick={() => { setUserForm({ ...user, password: '' }); setShowUserModal(true); }} className="p-2 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400 transition-colors btn-interactive" title="แก้ไข">
+                                                                    <Icon name="edit" size={16}/>
+                                                                </button>
+                                                                <button onClick={() => handleDeleteUser(user.id)} disabled={user.username === 'admin'} className="p-2 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-colors btn-interactive disabled:opacity-30" title="ลบ">
+                                                                    <Icon name="trash-2" size={16}/>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* MODALS: Drilldown */}
@@ -2268,7 +2477,7 @@
                         </div>
                     )}
 
-                    {/* Edit Modal */}
+                    {/* Edit Student Modal */}
                     {editItem && (
                         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 dark:bg-black/90 backdrop-blur-lg animate-fade-in print:hidden">
                             <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 p-6 md:p-8 rounded-[2.5rem] w-full max-w-lg max-h-[90vh] flex flex-col shadow-[0_20px_60px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.8)] animate-slide-up text-left overflow-hidden">
@@ -2309,6 +2518,50 @@
                             </div>
                         </div>
                     )}
+
+                    {/* Edit Admin User Modal */}
+                    {showUserModal && (
+                        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 dark:bg-black/90 backdrop-blur-lg animate-fade-in print:hidden">
+                            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 p-6 md:p-8 rounded-[2.5rem] w-full max-w-md max-h-[90vh] flex flex-col shadow-[0_20px_60px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.8)] animate-slide-up text-left overflow-hidden">
+                                <div className="flex justify-between items-center mb-6 shrink-0">
+                                    <h3 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-3"><Icon name={userForm.id ? "edit-3" : "user-plus"} size={24}/> {userForm.id ? 'แก้ไขผู้ใช้งาน' : 'สร้างผู้ใช้งานใหม่'}</h3>
+                                    <button onClick={() => setShowUserModal(false)} className="p-2.5 bg-slate-100 dark:bg-white/10 rounded-xl hover:bg-slate-200 transition-colors"><Icon name="x" size={20}/></button>
+                                </div>
+                                <form onSubmit={handleSaveUser} className="space-y-5 overflow-y-auto flex-1 custom-scrollbar pr-2 pb-4">
+                                    <InputField label="ชื่อผู้ใช้งาน (Username)" value={userForm.username} onChange={v => setUserForm({...userForm, username: v})} required />
+                                    <InputField type="password" label={`รหัสผ่าน (Password) ${userForm.id ? '(เว้นว่างไว้ถ้าไม่ต้องการเปลี่ยน)' : ''}`} value={userForm.password} onChange={v => setUserForm({...userForm, password: v})} required={!userForm.id} />
+                                    
+                                    <div className="flex flex-col gap-1.5 w-full">
+                                        <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">ระดับสิทธิ์การใช้งาน (Role)</label>
+                                        <div className="relative">
+                                            <select value={userForm.role} onChange={e => setUserForm({...userForm, role: e.target.value})} className="w-full appearance-none input-modern rounded-xl pl-4 pr-10 py-3.5 text-sm font-semibold shadow-sm cursor-pointer">
+                                                <option value="Super Admin">Super Admin (ดูได้ทุกเมนู + จัดการผู้ใช้งานได้)</option>
+                                                <option value="Manager">Manager (จัดการข้อมูล + ดูรีพอร์ตได้)</option>
+                                                <option value="Viewer">Viewer (ดูรีพอร์ตได้อย่างเดียว)</option>
+                                            </select>
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><Icon name="chevron-down" size={16}/></div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col gap-1.5 w-full">
+                                        <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">สถานะการใช้งาน</label>
+                                        <div className="relative">
+                                            <select value={userForm.status} onChange={e => setUserForm({...userForm, status: e.target.value})} className="w-full appearance-none input-modern rounded-xl pl-4 pr-10 py-3.5 text-sm font-semibold shadow-sm cursor-pointer">
+                                                <option value="Active">เปิดใช้งาน (Active)</option>
+                                                <option value="Inactive">ระงับสิทธิ์ (Inactive)</option>
+                                            </select>
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><Icon name="chevron-down" size={16}/></div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-4 pt-6 mt-6">
+                                        <button type="button" onClick={() => setShowUserModal(false)} className="flex-1 py-4 bg-slate-100 dark:bg-white/5 text-sm rounded-xl font-bold btn-interactive hover:bg-slate-200 dark:hover:bg-white/10 transition-colors text-slate-600 dark:text-slate-300">ยกเลิก</button>
+                                        <button type="submit" className="flex-1 py-4 brand-gradient text-white text-sm rounded-xl font-bold shadow-glow-brand btn-interactive transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"><Icon name="save" size={18}/> บันทึกข้อมูล</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         }
@@ -2320,6 +2573,14 @@
             const [isDarkMode, setIsDarkMode] = useState(false);
             const [currentView, setCurrentView] = useState('home'); 
             const [surveyData, setSurveyData] = useState({ act: '', sid: '' });
+            const [currentUser, setCurrentUser] = useState(null);
+
+            // Mock Data สำหรับระบบจำลองสิทธิ์
+            const [mockUsers] = useState([
+                { id: 1, username: 'admin', password: '0001', role: 'Super Admin', status: 'Active' },
+                { id: 2, username: 'staff1', password: '123', role: 'Manager', status: 'Active' },
+                { id: 3, username: 'guest', password: '123', role: 'Viewer', status: 'Active' }
+            ]);
             
             useEffect(() => {
                 const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -2334,14 +2595,14 @@
             return (
                 <AppContext.Provider value={{ isDarkMode }}>
                     <div className="min-h-screen p-4 md:p-6 transition-colors duration-300 relative">
-                        {currentView === 'home' && <HomeView onSelectNewStudent={() => setCurrentView('pdpa')} onSelectActivity={() => setCurrentView('activity_form')} onCheckActivity={() => setCurrentView('check_activity')} onAdminClick={() => setCurrentView('admin')} />}
+                        {currentView === 'home' && <HomeView onSelectNewStudent={() => setCurrentView('pdpa')} onSelectActivity={() => setCurrentView('activity_form')} onCheckActivity={() => setCurrentView('check_activity')} onAdminClick={(user) => { setCurrentUser(user); setCurrentView('admin'); }} mockUsers={mockUsers} />}
                         {currentView === 'pdpa' && <PdpaModal onAccept={() => setCurrentView('register')} onBack={() => setCurrentView('home')} />}
                         {currentView === 'register' && <RegistrationForm onBack={() => setCurrentView('home')} onSuccess={() => setCurrentView('success')} />}
                         {currentView === 'activity_form' && <ActivityForm onBack={() => setCurrentView('home')} onSuccess={(act, sid) => { setSurveyData({act, sid}); setCurrentView('survey_form'); }} />}
-                        {currentView === 'survey_form' && <SurveyForm onBack={() => setCurrentView('home')} onSuccess={() => setCurrentView('success')} activityName={surveyData.act} studentID={surveyData.sid} />}
                         {currentView === 'check_activity' && <CheckActivityView onBack={() => setCurrentView('home')} />}
+                        {currentView === 'survey_form' && <SurveyForm onBack={() => setCurrentView('home')} onSuccess={() => setCurrentView('success')} activityName={surveyData.act} studentID={surveyData.sid} />}
                         {currentView === 'success' && <SuccessView onHome={() => setCurrentView('home')} />}
-                        {currentView === 'admin' && <AdminDashboard goBack={() => setCurrentView('home')} />}
+                        {currentView === 'admin' && <AdminDashboard goBack={() => { setCurrentUser(null); setCurrentView('home'); }} currentUser={currentUser} />}
 
                         <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-50 print:hidden">
                             <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-12 h-12 bg-white dark:bg-zinc-800 text-slate-800 dark:text-white rounded-full shadow-lg border border-slate-200 dark:border-zinc-700 hover:scale-110 transition-transform flex items-center justify-center" title="สลับโหมดกลางคืน">
