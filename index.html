@@ -1250,6 +1250,110 @@
                 } else { Swal.fire({ icon: 'info', title: 'ไม่มีข้อมูล', text: 'ไม่มีข้อมูลสำหรับดาวน์โหลดในหมวดหมู่นี้', customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} }); }
             };
 
+            const handleExportWord = () => {
+                if (surveyStats.total === 0) {
+                    Swal.fire({ icon: 'info', title: 'ไม่มีข้อมูล', text: 'ไม่มีข้อมูลสำหรับดาวน์โหลด', customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
+                    return;
+                }
+
+                let htmlContent = `
+                    <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                    <head>
+                        <meta charset='utf-8'>
+                        <style>
+                            body { font-family: 'TH SarabunPSK', 'Sarabun', sans-serif; font-size: 16pt; }
+                            table { border-collapse: collapse; width: 100%; margin-bottom: 20px; border: 1px solid black; }
+                            th, td { border: 1px solid black; padding: 8px; text-align: left; }
+                            th { text-align: center; font-weight: bold; background-color: #f2f2f2; }
+                            .text-center { text-align: center; }
+                            .text-right { text-align: right; }
+                        </style>
+                    </head>
+                    <body>
+                        <h2 style="text-align: center; font-weight: bold;">รายงานผลการวิเคราะห์ข้อมูล</h2>
+                        <h3 style="text-align: center;">${selectedSurveyActivity === 'ทั้งหมด' ? 'รวมข้อมูลทุกกิจกรรม' : selectedSurveyActivity}</h3>
+                        <br/>
+                        
+                        <h4>ตารางที่ 1 ข้อมูลทั่วไปของผู้ตอบแบบสอบถาม (Demographic Data)</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ข้อมูลทั่วไป</th>
+                                    <th>จำนวน (N)</th>
+                                    <th>ร้อยละ (%)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="3"><b>เพศ (Gender)</b></td></tr>
+                                ${surveyStats.genderArray.map(g => `
+                                    <tr>
+                                        <td style="padding-left: 20px;">${g.label}</td>
+                                        <td class="text-center">${g.count}</td>
+                                        <td class="text-center">${g.percent}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td class="text-right"><b>รวมทั้งหมด (Total)</b></td>
+                                    <td class="text-center"><b>${surveyStats.total}</b></td>
+                                    <td class="text-center"><b>100.0</b></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        <p style="text-indent: 36pt;"><b>สรุปผล:</b> ${surveyStats.table1Summary}</p>
+                        <br/>
+
+                        <h4>ตารางที่ 2 ค่าสถิติเชิงพรรณนา (Descriptive Statistics)</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ประเด็นการประเมิน</th>
+                                    <th>ค่าเฉลี่ย (Mean)</th>
+                                    <th>S.D.</th>
+                                    <th>ระดับความคิดเห็น</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${surveyStats.groupedDetails.map(sec => `
+                                    <tr>
+                                        <td colspan="4" style="background-color: #f9f9f9;"><b>${sec.title}</b></td>
+                                    </tr>
+                                    ${sec.items.map(item => `
+                                        <tr>
+                                            <td style="padding-left: 20px;">${item.id.replace('_', '.').replace('q','')} ${item.q.substring(item.q.indexOf(' ')+1)}</td>
+                                            <td class="text-center">${item.mean}</td>
+                                            <td class="text-center">${item.sd}</td>
+                                            <td class="text-center">${item.interp.text}</td>
+                                        </tr>
+                                    `).join('')}
+                                `).join('')}
+                            </tbody>
+                            <tfoot>
+                                <tr style="background-color: #f2f2f2;">
+                                    <td class="text-right"><b>สรุปภาพรวมทั้งหมด (Overall)</b></td>
+                                    <td class="text-center"><b>${surveyStats.overallMean}</b></td>
+                                    <td class="text-center"><b>${surveyStats.overallSD}</b></td>
+                                    <td class="text-center"><b>ระดับ${surveyStats.overallInterp.text}</b></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        <p style="text-indent: 36pt;"><b>สรุปผล:</b> ${surveyStats.table2Summary}</p>
+                    </body>
+                    </html>
+                `;
+
+                // Add Byte Order Mark (BOM) to force UTF-8 in Word
+                const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `Survey_Report_Word_${new Date().toISOString().slice(0,10)}.doc`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
             if (loading && stats.total === 0) return (
                 <div className="flex flex-col justify-center items-center h-[70vh]">
                     <div className="p-4 bg-brand/10 rounded-2xl mb-4 animate-pulse-slow shadow-glow-brand"><Icon name="loader-2" size={40} className="text-brand animate-spin" /></div>
@@ -2085,6 +2189,9 @@
                                                 </select>
                                                 <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><Icon name="chevron-down" size={16}/></div>
                                             </div>
+                                            <button onClick={handleExportWord} className="w-full sm:w-auto px-5 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm shadow-sm transition-all btn-interactive flex items-center justify-center gap-2 whitespace-nowrap">
+                                                <Icon name="file-text" size={16} /> Export Word
+                                            </button>
                                             <button onClick={() => { 
                                                 Swal.fire({ title: 'กำลังอัปเดตข้อมูล...', html: '<p class="text-sm text-slate-500 mt-2">กรุณารอสักครู่ ระบบกำลังดึงข้อมูลล่าสุดจากฐานข้อมูล</p>', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
                                                 loadSurveys();
