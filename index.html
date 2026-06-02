@@ -1370,7 +1370,7 @@
                         sheetName = "Activities_List"; break;
                     case 'activity_summary':
                         if (activityLogs.length === 0) return;
-                        exportData = activityLogs.map(l => ({ 'ชื่อกิจกรรม': l.ActivityName, 'รหัสนักศึกษา': l.StudentID, 'ชื่อ-นามสกุล': l.FullName, 'สาขาวิชา': l.Major, 'เวลาลงทะเบียน': new Date(l.Timestamp).toLocaleString('th-TH') }));
+                        exportData = activityLogs.map(l => ({ 'รหัสนักศึกษา': l.StudentID, 'ชื่อ-นามสกุล': l.FullName, 'สาขาวิชา': l.Major, 'รหัสประจำตัว ปชช.': l.IDCard || '-', 'ชื่อกิจกรรม': l.ActivityName, 'เวลาลงทะเบียน': new Date(l.Timestamp).toLocaleString('th-TH') }));
                         sheetName = "Activity_Attendees"; break;
                     case 'survey_summary':
                         if (surveys.length === 0 || surveyStats.total === 0) {
