@@ -1,368 +1,929 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th" class="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DIGIT.69</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIGIT.69 - CRRU</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Prompt','sans-serif']},colors:{brand:'#ff6600',brandDark:'#cc5200',brandLight:'#ff8533'},boxShadow:{'glow-brand':'0 0 25px rgba(255,102,0,0.4)','glow-red':'0 0 25px rgba(239,68,68,0.4)','soft':'0 20px 50px -12px rgba(0,0,0,0.1)'},animation:{'fade-in':'fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards','slide-up':'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards','pulse-slow':'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite'},keyframes:{fadeIn:{'0%':{opacity:'0'},'100%':{opacity:'1'}},slideUp:{'0%':{opacity:'0',transform:'translateY(30px)'},'100%':{opacity:'1',transform:'translateY(0)'}}}}}}
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- PapaParse -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-is@18/umd/react-is.production.min.js"></script>
-    <script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
-    <script src="https://unpkg.com/recharts@2.1.12/umd/Recharts.js"></script>
+    <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css" rel="stylesheet" id="swal-theme">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Sarabun', 'sans-serif'] },
+                    colors: { 
+                        primary: '#4f46e5', // Indigo-600
+                        primaryLight: '#818cf8', // Indigo-400
+                        secondary: '#f43f5e', // Rose-500
+                        darkbg: '#0f172a' // Slate-900
+                    },
+                    animation: { 
+                        'blob': 'blob 15s infinite alternate',
+                        'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'fade-in': 'fadeIn 0.4s ease-out forwards'
+                    },
+                    keyframes: { 
+                        blob: { 
+                            '0%': { transform: 'translate(0, 0) scale(1)' }, 
+                            '100%': { transform: 'translate(20px, -20px) scale(1.1)' } 
+                        },
+                        slideUp: {
+                            '0%': { opacity: 0, transform: 'translateY(20px)' },
+                            '100%': { opacity: 1, transform: 'translateY(0)' }
+                        },
+                        fadeIn: {
+                            '0%': { opacity: 0 },
+                            '100%': { opacity: 1 }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
-        body{background-color:#f8fafc;color:#334155;overflow-x:hidden;scroll-behavior:smooth;}
-        .dark body{background-color:#050507;color:#cbd5e1;}
-        body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:radial-gradient(at 10% 10%,hsla(28,100%,74%,0.15) 0px,transparent 60%),radial-gradient(at 90% 10%,hsla(250,100%,74%,0.12) 0px,transparent 60%),radial-gradient(at 50% 90%,hsla(340,100%,74%,0.1) 0px,transparent 60%);}
-        .dark body::before{background-image:radial-gradient(at 10% 10%,hsla(28,100%,50%,0.08) 0px,transparent 60%),radial-gradient(at 90% 10%,hsla(250,100%,50%,0.05) 0px,transparent 60%),radial-gradient(at 50% 90%,hsla(340,100%,50%,0.05) 0px,transparent 60%);}
-        .glass-panel{background:rgba(255,255,255,0.75);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.8);box-shadow:0 20px 40px -10px rgba(0,0,0,0.05);transition:all 0.4s cubic-bezier(0.4, 0, 0.2, 1);}
-        .dark .glass-panel{background:rgba(20,20,23,0.75);border:1px solid rgba(255,255,255,0.05);box-shadow:0 20px 40px -10px rgba(0,0,0,0.5);}
-        .input-modern{outline:none;background:rgba(255,255,255,0.9);border:1px solid #cbd5e1;color:#0f172a;transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);border-radius:1rem;}
-        .input-modern:focus{border-color:#ff6600;box-shadow:0 0 0 4px rgba(255,102,0,0.15);background:#ffffff;transform:translateY(-1px);}
-        .dark .input-modern{background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);color:#f8fafc;}
-        .dark .input-modern:focus{border-color:#ff6600;box-shadow:0 0 0 4px rgba(255,102,0,0.2);background:rgba(0,0,0,0.6);}
-        .brand-gradient{background:linear-gradient(135deg,#ff8533 0%,#ff6600 100%);}
-        .brand-text-gradient{background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-image:linear-gradient(135deg,#ff8533,#ff6600);}
-        .btn-interactive{transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);}.btn-interactive:active:not(:disabled){transform:scale(0.96);}
-        .hover-card:hover{transform:translateY(-4px);box-shadow:0 25px 50px -12px rgba(0,0,0,0.15);}
-        ::-webkit-scrollbar{width:8px;height:8px;}::-webkit-scrollbar-track{background:transparent;}.light-mode ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px;}.dark ::-webkit-scrollbar-thumb{background:#3f3f46;border-radius:10px;}
-        .custom-scrollbar::-webkit-scrollbar{width:6px;height:6px;}.custom-scrollbar::-webkit-scrollbar-track{background:transparent;}.custom-scrollbar::-webkit-scrollbar-thumb{background:rgba(156,163,175,0.5);border-radius:10px;}
-        @media print{body{background:white!important;color:black!important;}body::before{display:none;}.no-print{display:none!important;}.print-area{display:block!important;width:100%!important;margin:0!important;padding:0!important;}.glass-panel{border:none!important;box-shadow:none!important;background:white!important;}.avoid-break{break-inside:avoid;}}
+        body { 
+            font-family: 'Sarabun', sans-serif; 
+            background-color: #f8fafc; 
+            min-height: 100vh; 
+            overflow-x: hidden; 
+            transition: background-color 0.4s ease; 
+        }
+        .dark body { background-color: #020617; } /* Very dark slate */
+        
+        /* Modern Aurora Background */
+        .mesh-bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+        .mesh-blob { position: absolute; filter: blur(100px); opacity: 0.6; border-radius: 50%; animation: blob 15s infinite alternate; }
+        .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: #c7d2fe; }
+        .blob-2 { bottom: -20%; right: -10%; width: 60vw; height: 60vw; background: #fecdd3; animation-delay: -5s; }
+        .blob-3 { top: 30%; left: 40%; width: 40vw; height: 40vw; background: #e0f2fe; animation-delay: -10s; }
+        
+        .dark .blob-1 { background: #312e81; opacity: 0.3; } 
+        .dark .blob-2 { background: #881337; opacity: 0.3; }
+        .dark .blob-3 { background: #0c4a6e; opacity: 0.3; }
+        
+        /* Premium Glass Panels */
+        .glass-panel { 
+            background: rgba(255, 255, 255, 0.5); 
+            backdrop-filter: blur(24px); 
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.7); 
+            box-shadow: 0 10px 40px -10px rgba(31, 38, 135, 0.1); 
+        }
+        .dark .glass-panel { 
+            background: rgba(15, 23, 42, 0.5); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5); 
+            color: #f1f5f9; 
+        }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.75); 
+            backdrop-filter: blur(16px); 
+            border: 1px solid rgba(255, 255, 255, 0.5); 
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+        }
+        .dark .glass-nav {
+            background: rgba(30, 41, 59, 0.75); 
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Modern Inputs */
+        .glass-input { 
+            background: rgba(255, 255, 255, 0.7); 
+            border: 1px solid rgba(255, 255, 255, 0.9); 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .dark .glass-input { 
+            background: rgba(30, 41, 59, 0.6); 
+            border: 1px solid rgba(51, 65, 85, 0.5); 
+            color: white; 
+        }
+        .glass-input:focus { 
+            background: #ffffff; 
+            border-color: #6366f1; 
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15); 
+            outline: none; 
+            transform: translateY(-1px);
+        }
+        .dark .glass-input:focus { 
+            background: #0f172a; 
+            border-color: #818cf8; 
+            box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.2); 
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.5); border-radius: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
     </style>
 </head>
 <body>
+    <div class="mesh-bg"><div class="mesh-blob blob-1"></div><div class="mesh-blob blob-2"></div><div class="mesh-blob blob-3"></div></div>
     <div id="root"></div>
+
     <script type="text/babel">
-        const { useState, useEffect, useMemo, useRef, createContext, useContext } = React;
-        const { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } = window.Recharts || {};
+        const { useState, useEffect, useRef } = React;
+        const SHEET_ID = '1XJKJCp_XY_DUtU_z0PK3B-n3mB5BOkSHtS-7XPtCnHA';
 
-        const AppContext = createContext();
-        const API_URL = "https://script.google.com/macros/s/AKfycbwviBRd_BbtvGyEpZSq5ab5A0iEpXkG9iMwAUQyGyZb-nDI2R5-x8GE5ZEI3gpmzA3zug/exec";
-        const SHEET_ID = "1MoZpnDniVF5pKr0tEgmYwlPO3wZdA7DaO_MvZjbC-ec";
-        
-        const REG_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Registration`;
-        const REG69_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Registration69`;
-        const ACT_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Activities`;
-        const LOGS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Logs`;
-        const SURVEY_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Surveys`;
-        
-        const MAJORS = ["เทคโนโลยีดิจิทัลเพื่อธุรกิจ","เทคโนโลยีดิจิทัลเพื่อธุรกิจ(เทียบโอน)","เทคโนโลยีปัญญาประดิษฐ์","เทคโนโลยีสารสนเทศ","เทคโนโลยีสารสนเทศ(เทียบโอน)","วิทยาการคอมพิวเตอร์","กราฟิกดีไซน์เทคโนโลยีสื่อดิจิทัล","กราฟิกดีไซน์สื่อศิลปะและการออกแบบ","กราฟิกดีไซน์สื่อศิลปะและการออกแบบ(เทียบโอน)","วิศวกรรมคอมพิวเตอร์"];
-        const cleanMajor = (s) => s ? s.replace(/\s*\([^)]*\)/g, '').trim() : '';
-
-        const submitAPI = async (action, payload) => {
-            try { const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action, payload }) }); return await res.json(); } 
-            catch (err) { throw new Error("การเชื่อมต่อระบบล้มเหลว"); }
+        // --- Utility: Fast CSV Fetcher ---
+        const fetchSheetData = (sheetName) => {
+            return new Promise((resolve, reject) => {
+                Papa.parse(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`, {
+                    download: true, header: true, skipEmptyLines: true,
+                    complete: (res) => resolve(res.data),
+                    error: (err) => resolve([]) 
+                });
+            });
         };
 
-        function Icon({ name, size=22, className='' }) {
-            const r = useRef(null);
-            useEffect(() => { if (r.current) { r.current.innerHTML = `<i data-lucide="${name}" class="${className}" style="width:${size}px; height:${size}px; stroke-width: 2.5;"></i>`; if (window.lucide) lucide.createIcons({ root: r.current }); } }, [name, size, className]);
-            return <span ref={r} className={`inline-flex items-center justify-center shrink-0 ${className}`} />;
-        }
+        // --- Custom SweetAlert Theme Setup ---
+        const showSwal = (options, theme) => {
+            const isDark = theme === 'dark';
+            return Swal.fire({
+                ...options,
+                customClass: { popup: 'rounded-3xl glass-panel border-none', confirmButton: 'rounded-xl btn-primary px-6 py-2' },
+                background: isDark ? '#0f172a' : '#ffffff',
+                color: isDark ? '#ffffff' : '#000000'
+            });
+        };
 
-        function StatCard({ label, value, icon, color, onClick, subtext }) {
-            const c = {
-                brand: { bg: 'bg-orange-50/80 dark:bg-orange-500/10 border-orange-200/50 dark:border-orange-500/20', text: 'text-brand', shadow: 'hover:shadow-[0_20px_40px_-10px_rgba(255,102,0,0.2)]' },
-                emerald: { bg: 'bg-emerald-50/80 dark:bg-emerald-500/10 border-emerald-200/50 dark:border-emerald-500/20', text: 'text-emerald-600 dark:text-emerald-400', shadow: 'hover:shadow-[0_20px_40px_-10px_rgba(16,185,129,0.2)]' },
-                red: { bg: 'bg-red-50/80 dark:bg-red-500/10 border-red-200/50 dark:border-red-500/20', text: 'text-red-600 dark:text-red-400', shadow: 'hover:shadow-[0_20px_40px_-10px_rgba(239,68,68,0.2)]' }
-            }[color] || { bg: 'bg-slate-50/80 dark:bg-white/5 border-slate-200/50 dark:border-white/10', text: 'text-slate-600 dark:text-slate-400', shadow: 'hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)]' };
+        // --- Main App Component ---
+        function App() {
+            const [view, setView] = useState('home'); 
+            const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+            const [isAdmin, setIsAdmin] = useState(false);
+            const [regEnabled, setRegEnabled] = useState(localStorage.getItem('regEnabled') !== 'false');
+
+            useEffect(() => {
+                if (theme === 'dark') document.documentElement.classList.add('dark');
+                else document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', theme);
+            }, [theme]);
+
+            const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light');
+
             return (
-                <div onClick={onClick} className={`p-8 rounded-[2rem] border ${c.bg} relative overflow-hidden transition-all duration-500 flex flex-col justify-between hover-card ${onClick ? `cursor-pointer btn-interactive ${c.shadow}` : ''}`}>
-                    <div className={`absolute -right-4 -top-4 p-8 opacity-[0.04] transition-transform duration-700 group-hover:scale-125 ${c.text}`}><Icon name={icon} size={140} /></div>
-                    <div className="flex justify-between items-start mb-6 relative z-10"><div className={`p-4 rounded-2xl bg-white/80 dark:bg-black/30 backdrop-blur-md shadow-sm ${c.text}`}><Icon name={icon} size={28} /></div></div>
-                    <div className="relative z-10"><p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">{label}</p><div className="flex items-baseline gap-2"><h3 className="text-5xl font-black text-slate-800 dark:text-white drop-shadow-sm">{value}</h3>{subtext && <span className="text-sm font-bold text-slate-500">{subtext}</span>}</div></div>
+                <div className="flex flex-col min-h-screen text-slate-800 dark:text-slate-200 selection:bg-primary selection:text-white">
+                    <TopNav view={view} setView={setView} theme={theme} toggleTheme={toggleTheme} isAdmin={isAdmin} setIsAdmin={setIsAdmin} />
+                    
+                    <main className="flex-1 px-4 pt-28 pb-12 w-full max-w-7xl mx-auto flex flex-col justify-center">
+                        {view === 'home' && <HomeMenu setView={setView} regEnabled={regEnabled} theme={theme} />}
+                        {view === 'reg' && <RegistrationFlow setView={setView} theme={theme} />}
+                        {view === 'checkin' && <CheckInFlow setView={setView} theme={theme} />}
+                        {view === 'history' && <HistoryCheck setView={setView} theme={theme} />}
+                        {view === 'login' && <AdminLogin setView={setView} setIsAdmin={setIsAdmin} theme={theme} />}
+                        {view === 'admin' && isAdmin && <AdminDashboard setView={setView} regEnabled={regEnabled} setRegEnabled={setRegEnabled} theme={theme} />}
+                    </main>
                 </div>
             );
         }
 
-        function SecHeader({ icon, title, cClass }) {
-            return <div className="flex items-center gap-4 mb-8 pb-4 border-b border-slate-200/60 dark:border-white/10"><div className={`p-3.5 rounded-2xl shadow-sm ${cClass}`}><Icon name={icon} size={24}/></div><h3 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">{title}</h3></div>;
-        }
-
-        function Input({ label, type="text", val, onChange, ph, max, req, num, rows, dis }) {
+        // --- UI Components ---
+        function TopNav({ view, setView, theme, toggleTheme, isAdmin, setIsAdmin }) {
             return (
-                <div className="flex flex-col gap-2 w-full group">
-                    <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-brand">{label} {req && <span className="text-red-500">*</span>}</label>
-                    {rows ? <textarea disabled={dis} value={val} onChange={e=>onChange(e.target.value)} placeholder={ph} maxLength={max} required={req} rows={rows} className="w-full input-modern px-5 py-4 text-sm font-medium resize-none disabled:opacity-50" /> : <input disabled={dis} type={type} value={val} onChange={e=>{let v=e.target.value;if(num)v=v.replace(/\D/g,'');onChange(v);}} placeholder={ph} maxLength={max} required={req} className={`w-full input-modern px-5 py-4 text-base font-medium ${num?'font-mono tracking-wider':''} disabled:opacity-50`} />}
+                <div className="fixed top-4 left-0 right-0 z-50 px-4 flex justify-center pointer-events-none transition-all duration-300">
+                    <header className="glass-nav pointer-events-auto px-4 py-3 rounded-full flex items-center justify-between w-full max-w-5xl">
+                        <div className="flex items-center gap-3 cursor-pointer group px-2" onClick={() => setView(isAdmin ? 'admin' : 'home')}>
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-indigo-400 text-white flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform">
+                                <i className="fas fa-bolt text-lg"></i>
+                            </div>
+                            <h1 className="text-xl font-extrabold tracking-tight hidden sm:block text-slate-900 dark:text-white">DIGIT.69</h1>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button onClick={toggleTheme} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition text-slate-600 dark:text-slate-300">
+                                <i className={`fas ${theme === 'light' ? 'fa-moon' : 'fa-sun text-yellow-400'}`}></i>
+                            </button>
+                            {isAdmin ? (
+                                <button onClick={() => { setIsAdmin(false); setView('home'); }} className="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400 flex items-center justify-center hover:bg-rose-500 hover:text-white dark:hover:bg-rose-600 dark:hover:text-white transition" title="ออกจากระบบ">
+                                    <i className="fas fa-sign-out-alt"></i>
+                                </button>
+                            ) : (
+                                <button onClick={() => setView('login')} className="px-5 py-2.5 rounded-full bg-slate-100 dark:bg-slate-800 font-bold text-sm text-slate-700 dark:text-slate-300 hover:bg-primary hover:text-white dark:hover:bg-primary transition flex items-center gap-2 shadow-sm">
+                                    <i className="fas fa-user-shield"></i> <span className="hidden sm:inline">Staff Access</span>
+                                </button>
+                            )}
+                        </div>
+                    </header>
                 </div>
             );
         }
 
-        // --- VIEWS ---
-        function HomeView({ onNew, onAct, onChk, onAdmin, users, isRegOpen }) {
-            const login = () => {
-                Swal.fire({
-                    title: '<h3 class="text-3xl font-black text-slate-800 dark:text-white mb-2">เข้าสู่ระบบหลังบ้าน</h3>',
-                    html: `<div class="flex flex-col gap-5 text-left px-4 mt-4"><div><label class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 block">Username</label><input id="sw-user" class="w-full input-modern px-5 py-4 text-base font-semibold shadow-sm" placeholder="ชื่อผู้ใช้งาน" autocapitalize="off"></div><div><label class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 block">Password</label><input id="sw-pass" type="password" class="w-full input-modern px-5 py-4 text-base font-semibold shadow-sm font-mono tracking-widest" placeholder="••••••••"></div></div>`,
-                    showCancelButton: true, confirmButtonText: 'เข้าสู่ระบบ', cancelButtonText: 'ยกเลิก', confirmButtonColor: '#ff6600',
-                    customClass: { popup: 'rounded-[2.5rem] bg-white dark:bg-zinc-900 border border-slate-200/50 dark:border-white/5 shadow-2xl pb-8', confirmButton: 'rounded-2xl font-black px-10 py-4 shadow-md w-full sm:w-auto', cancelButton: 'rounded-2xl font-bold px-10 py-4 w-full sm:w-auto bg-slate-100 text-slate-600 dark:bg-white/5 dark:text-white', actions: 'flex gap-4 w-full justify-center px-8 mt-8' },
-                    preConfirm: () => { const u=document.getElementById('sw-user').value.trim(); const p=document.getElementById('sw-pass').value.trim(); if(!u||!p)Swal.showValidationMessage('กรุณากรอกข้อมูลให้ครบถ้วน'); return {u,p}; }
-                }).then((r) => {
-                    if(r.isConfirmed) {
-                        const fu = users.find(x => x.username===r.value.u && x.password===r.value.p && x.status==='Active');
-                        if(fu) onAdmin(fu); else Swal.fire({icon:'error',title:'ล้มเหลว',text:'ข้อมูลผู้ใช้งานไม่ถูกต้อง',confirmButtonColor:'#ff6600',customClass:{popup:'rounded-[2.5rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'}});
-                    }
-                });
-            };
+        // --- 1. User Home ---
+        function HomeMenu({ setView, regEnabled, theme }) {
             return (
-                <div className="flex flex-col items-center justify-center min-h-[85vh] animate-fade-in relative px-4">
-                    <button onClick={login} className="absolute top-2 right-2 md:top-6 md:right-6 p-4 text-slate-400 hover:text-brand bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 backdrop-blur-xl rounded-2xl shadow-sm border border-slate-200/50 dark:border-white/5 btn-interactive flex items-center gap-3"><span className="text-xs font-bold uppercase tracking-widest hidden sm:inline-block">Staff Login</span><Icon name="log-in" size={18} /></button>
-                    <div className="text-center mb-12 mt-16 md:mt-10"><div className="inline-flex items-center justify-center p-6 bg-brand/10 text-brand rounded-[2.5rem] shadow-glow-brand mb-8 transform hover:scale-110 transition-transform duration-500 animate-pulse-slow"><Icon name="box" size={64} /></div><h1 className="text-6xl md:text-7xl font-black text-slate-800 dark:text-white tracking-tighter mb-4 drop-shadow-sm">DIGIT<span className="text-brand">.69</span></h1><p className="text-slate-500 font-bold text-sm md:text-base uppercase tracking-[0.3em]">Student Service Portal</p></div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 w-full max-w-6xl">
-                        <div onClick={()=>{isRegOpen?onNew():Swal.fire({icon:'warning',title:'ปิดให้บริการ',text:'ขณะนี้ปิดรับขึ้นทะเบียนนักศึกษาใหม่ชั่วคราว',customClass:{popup:'rounded-[2.5rem] bg-white dark:bg-zinc-900 dark:text-white'}})}} className={`glass-panel p-10 rounded-[3rem] border-t-[8px] ${isRegOpen?'border-t-brand hover-card cursor-pointer group':'border-t-slate-400 opacity-80 cursor-not-allowed'} flex flex-col items-center text-center relative overflow-hidden`}>
-                            <div className={`w-24 h-24 ${isRegOpen?'bg-brand/10 text-brand group-hover:scale-110 group-hover:bg-brand group-hover:text-white':'bg-slate-100 dark:bg-slate-800 text-slate-400'} rounded-[2rem] flex items-center justify-center mb-8 transition-all duration-500 shadow-inner`}><Icon name={isRegOpen?"user-plus":"lock"} size={44} /></div>
-                            <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-3">1. ขึ้นทะเบียน นศ.ใหม่</h3>
-                            <p className="text-slate-500 font-medium text-sm leading-relaxed mb-6">{isRegOpen?'บันทึกประวัติ ข้อมูลสุขภาพ และโภชนาการ':'(ระบบปิดให้บริการชั่วคราว)'}</p>
-                            <div className={`mt-auto w-full py-4 ${isRegOpen?'bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-slate-300 group-hover:bg-brand/10 group-hover:text-brand':'bg-slate-100 dark:bg-slate-800 text-slate-400'} rounded-2xl font-bold transition-colors flex items-center justify-center gap-2`}>{isRegOpen?<>เริ่มต้น <Icon name="arrow-right" size={18}/></>:<>ระงับการใช้งาน</>}</div>
-                        </div>
-                        <div onClick={onAct} className="glass-panel p-10 rounded-[3rem] border-t-[8px] border-t-purple-500 hover-card cursor-pointer group flex flex-col items-center text-center relative overflow-hidden">
-                            <div className="w-24 h-24 bg-purple-50 dark:bg-purple-500/10 text-purple-600 rounded-[2rem] flex items-center justify-center mb-8 group-hover:scale-110 group-hover:bg-purple-500 group-hover:text-white transition-all duration-500 shadow-inner"><Icon name="calendar-check" size={44} /></div>
-                            <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-3">2. ลงทะเบียนกิจกรรม</h3>
-                            <p className="text-slate-500 font-medium text-sm leading-relaxed mb-6">ระบบเช็คชื่อเข้าร่วมกิจกรรมต่างๆ ของคณะ</p>
-                            <div className="mt-auto w-full py-4 bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-slate-300 group-hover:bg-purple-500/10 group-hover:text-purple-600 rounded-2xl font-bold transition-colors flex items-center justify-center gap-2">เริ่มต้น <Icon name="arrow-right" size={18}/></div>
-                        </div>
-                        <div onClick={onChk} className="glass-panel p-10 rounded-[3rem] border-t-[8px] border-t-blue-500 hover-card cursor-pointer group flex flex-col items-center text-center relative overflow-hidden">
-                            <div className="w-24 h-24 bg-blue-50 dark:bg-blue-500/10 text-blue-600 rounded-[2rem] flex items-center justify-center mb-8 group-hover:scale-110 group-hover:bg-blue-500 group-hover:text-white transition-all duration-500 shadow-inner"><Icon name="history" size={44} /></div>
-                            <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-3">3. ตรวจสอบประวัติ</h3>
-                            <p className="text-slate-500 font-medium text-sm leading-relaxed mb-6">ตรวจสอบประวัติการเข้าร่วมกิจกรรมของคุณ</p>
-                            <div className="mt-auto w-full py-4 bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-slate-300 group-hover:bg-blue-500/10 group-hover:text-blue-600 rounded-2xl font-bold transition-colors flex items-center justify-center gap-2">ตรวจสอบ <Icon name="arrow-right" size={18}/></div>
-                        </div>
+                <div className="flex flex-col items-center justify-center min-h-[70vh] animate-slide-up w-full">
+                    
+                    <div className="mb-6 px-5 py-2 rounded-full border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 backdrop-blur-md text-sm font-semibold text-primary dark:text-indigo-400 shadow-sm flex items-center gap-3">
+                        <span className="relative flex h-2.5 w-2.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary"></span>
+                        </span>
+                        ระบบบริการกิจกรรมนักศึกษา 2026
+                    </div>
+
+                    <h2 className="text-5xl md:text-7xl font-extrabold mb-6 text-center tracking-tight text-slate-900 dark:text-white">
+                        DIGITAL <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-rose-500">CRRU</span>
+                    </h2>
+                    <p className="text-lg md:text-xl text-slate-500 dark:text-slate-400 mb-12 max-w-2xl text-center leading-relaxed">
+                        จัดการประวัติการเข้าร่วมกิจกรรม คณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย ได้อย่างรวดเร็วและปลอดภัย
+                    </p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
+                        <button onClick={() => regEnabled ? setView('reg') : showSwal({icon: 'warning', title: 'ปิดระบบ', text: 'หมดเขตการขึ้นทะเบียนแล้ว'}, theme)} 
+                                className={`glass-panel p-8 md:p-10 rounded-[2.5rem] text-left transition-all duration-300 flex flex-col justify-between min-h-[280px] ${regEnabled ? 'hover:shadow-2xl hover:border-primary/40 hover:-translate-y-2 group' : 'opacity-60 cursor-not-allowed grayscale'}`}>
+                            <div className="relative z-10">
+                                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-400 text-white rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform"><i className="fas fa-user-plus"></i></div>
+                                <h3 className="text-2xl font-bold mb-3 text-slate-900 dark:text-white">1. ขึ้นทะเบียนใหม่</h3>
+                                <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">สร้างฐานข้อมูลประวัตินักศึกษา ข้อมูลติดต่อ และข้อมูลด้านสุขภาพ</p>
+                            </div>
+                            <div className="mt-8 flex items-center gap-2 font-bold text-blue-500 dark:text-blue-400 group-hover:gap-4 transition-all">
+                                ดำเนินการ <i className="fas fa-arrow-right"></i>
+                            </div>
+                        </button>
+                        
+                        <button onClick={() => setView('checkin')} className="glass-panel p-8 md:p-10 rounded-[2.5rem] text-left hover:shadow-2xl hover:border-emerald-500/40 hover:-translate-y-2 transition-all duration-300 group flex flex-col justify-between min-h-[280px]">
+                            <div className="relative z-10">
+                                <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-400 text-white rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform"><i className="fas fa-qrcode"></i></div>
+                                <h3 className="text-2xl font-bold mb-3 text-slate-900 dark:text-white">2. เช็คชื่อกิจกรรม</h3>
+                                <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">ลงทะเบียนเข้าร่วมกิจกรรมรายวัน พร้อมทำแบบประเมินความพึงพอใจ</p>
+                            </div>
+                            <div className="mt-8 flex items-center gap-2 font-bold text-emerald-500 dark:text-emerald-400 group-hover:gap-4 transition-all">
+                                เข้าสู่ระบบเช็คชื่อ <i className="fas fa-arrow-right"></i>
+                            </div>
+                        </button>
+
+                        <button onClick={() => setView('history')} className="glass-panel p-8 md:p-10 rounded-[2.5rem] text-left hover:shadow-2xl hover:border-purple-500/40 hover:-translate-y-2 transition-all duration-300 group flex flex-col justify-between min-h-[280px]">
+                            <div className="relative z-10">
+                                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-400 text-white rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-lg shadow-purple-500/30 group-hover:scale-110 transition-transform"><i className="fas fa-history"></i></div>
+                                <h3 className="text-2xl font-bold mb-3 text-slate-900 dark:text-white">3. ตรวจสอบประวัติ</h3>
+                                <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">ดูรายการกิจกรรมที่เคยเข้าร่วมทั้งหมด ยืนยันชั่วโมงกิจกรรม</p>
+                            </div>
+                            <div className="mt-8 flex items-center gap-2 font-bold text-purple-500 dark:text-purple-400 group-hover:gap-4 transition-all">
+                                ตรวจสอบ <i className="fas fa-arrow-right"></i>
+                            </div>
+                        </button>
                     </div>
                 </div>
             );
         }
 
-        function CheckActivityView({ onBack }) {
-            const [step, setStep] = useState(1); const [searchID, setSearchID] = useState(''); const [isSearching, setIsSearching] = useState(false); const [stdData, setStdData] = useState(null); const [acts, setActs] = useState([]);
-            const handleSearch = (e) => {
-                e.preventDefault(); if (!searchID.trim()) return Swal.fire({ icon: 'warning', title: 'กรุณากรอกรหัส', customClass:{popup:'rounded-[2.5rem]'} }); 
-                setIsSearching(true);
-                Papa.parse(`${REG69_URL}&_cb=${Date.now()}`, { download: true, header: true, complete: (res) => {
-                        const f = res.data.find(r => r.IDCard?.trim()===searchID.trim() || r.StudentID?.trim()===searchID.trim());
-                        if (!f) { Swal.fire({ icon:'error', title:'ไม่พบข้อมูล', customClass:{popup:'rounded-[2.5rem]'} }); setIsSearching(false); return; }
-                        Papa.parse(`${LOGS_URL}&_cb=${Date.now()}`, { download: true, header: true, complete: (logRes) => {
-                                setStdData({ FullName: f.FullName, StudentID: f.StudentID, Major: cleanMajor(f.Major), IDCard: f.IDCard });
-                                setActs(logRes.data.filter(l => l.StudentID === f.StudentID)); setStep(2); setIsSearching(false);
-                            }});
-                    }
-                });
-            };
-            return (
-                <div className="max-w-3xl mx-auto animate-fade-in pb-12 pt-6"><button onClick={step===1?onBack:()=>setStep(1)} className="flex items-center gap-2 text-slate-500 font-bold mb-8 btn-interactive hover:text-blue-600 bg-white/50 dark:bg-white/5 px-5 py-2.5 rounded-full"><Icon name="arrow-left" size={18}/> {step===1?'ย้อนกลับ':'ค้นหาใหม่'}</button>
-                    {step===1 && <form onSubmit={handleSearch} className="glass-panel p-12 rounded-[3rem] border-t-[8px] border-blue-500 text-center"><div className="w-24 h-24 bg-blue-50 dark:bg-blue-500/10 text-blue-600 rounded-[2rem] flex justify-center items-center mx-auto mb-8 shadow-inner"><Icon name="search" size={48}/></div><h2 className="text-3xl font-black dark:text-white mb-3">ตรวจสอบประวัติ</h2><p className="text-slate-500">กรอกรหัสนักศึกษา หรือ เลขบัตรประชาชน</p><div className="max-w-sm mx-auto mt-10"><input type="text" value={searchID} onChange={e=>setSearchID(e.target.value)} placeholder="รหัสนักศึกษา / เลขบัตร ปชช." className="w-full input-modern px-6 py-5 text-center font-mono font-bold text-lg mb-6 shadow-sm focus:border-blue-500 focus:shadow-[0_0_0_4px_rgba(59,130,246,0.15)]" required /><button type="submit" disabled={isSearching} className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-lg btn-interactive shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2">{isSearching?<><Icon name="loader-2" className="animate-spin"/> กำลังค้นหา</>:<><Icon name="search"/> ค้นหาข้อมูล</>}</button></div></form>}
-                    {step===2 && stdData && <div className="glass-panel p-8 md:p-12 rounded-[3rem] border-t-[8px] border-blue-500"><div className="bg-slate-50/80 dark:bg-black/20 p-8 rounded-[2rem] flex flex-col sm:flex-row items-center sm:items-start gap-6 shadow-inner border border-slate-200/50 dark:border-white/5"><div className="w-24 h-24 bg-blue-100 text-blue-600 rounded-full flex justify-center items-center shrink-0 shadow-md"><Icon name="user" size={48}/></div><div className="text-center sm:text-left w-full"><h3 className="text-2xl md:text-3xl font-black dark:text-white mb-4">{stdData.FullName}</h3><div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4"><div className="bg-white dark:bg-zinc-800 p-3.5 rounded-xl border border-slate-100 dark:border-white/5"><p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">รหัสนักศึกษา</p><p className="font-mono font-bold text-blue-600 text-lg">{stdData.StudentID||'-'}</p></div><div className="bg-white dark:bg-zinc-800 p-3.5 rounded-xl border border-slate-100 dark:border-white/5"><p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">บัตร ปชช.</p><p className="font-mono font-bold text-slate-700 dark:text-slate-300 text-lg">{stdData.IDCard||'-'}</p></div></div><span className="inline-block bg-slate-200/50 dark:bg-white/10 px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300">{stdData.Major}</span></div></div><div className="mt-10"><div className="flex items-center justify-between mb-6"><h4 className="text-xl font-black dark:text-white flex items-center gap-3"><div className="p-2 bg-blue-100 text-blue-600 rounded-lg"><Icon name="list-checks" size={18}/></div> ประวัติเข้าร่วม</h4><span className="px-4 py-2 bg-blue-50 text-blue-700 rounded-xl text-sm font-black border border-blue-100">{acts.length} ครั้ง</span></div>{acts.length>0?<div className="space-y-4">{acts.slice().reverse().map((a,i)=><div key={i} className="bg-white dark:bg-zinc-800/80 p-5 rounded-2xl flex gap-4 items-center shadow-sm border border-slate-100 dark:border-white/5 transition-all hover:shadow-md hover:-translate-y-1 group"><div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0 group-hover:bg-emerald-500 group-hover:text-white transition-colors"><Icon name="check" size={20}/></div><div><h5 className="font-bold text-base dark:text-white mb-1">{a.ActivityName}</h5><p className="text-xs font-medium text-slate-500 flex items-center gap-1.5"><Icon name="clock" size={12}/> {new Date(a.Timestamp).toLocaleString('th-TH')}</p></div></div>)}</div>:<div className="text-center p-10 bg-slate-50/50 dark:bg-white/5 rounded-3xl border border-dashed border-slate-200 dark:border-white/10 flex flex-col items-center"><Icon name="inbox" size={40} className="text-slate-300 mb-3"/><p className="text-slate-500 font-bold">ไม่เคยลงทะเบียนเข้าร่วมกิจกรรม</p></div>}</div></div>}
-                </div>
-            );
-        }
+        // --- 2. Registration Flow (Progressive UX) ---
+        function RegistrationFlow({ setView, theme }) {
+            const [step, setStep] = useState(0); 
+            const [formData, setFormData] = useState({ studentId:'', idCard:'', fullName:'', major:'', religion:'', blood:'', phone:'', parentPhone:'', diet:'ทั่วไป', foodAllergy:'', disease:'', drugAllergy:'' });
 
-        function PdpaModal({ onAccept, onBack }) {
-            const [chk, setChk] = useState(false);
-            return (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/80 backdrop-blur-md animate-fade-in"><div className="bg-white dark:bg-zinc-900 w-full max-w-2xl flex flex-col rounded-[3rem] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] overflow-hidden animate-slide-up"><div className="p-8 md:p-10 pb-6 border-b border-slate-100 dark:border-white/5"><div className="w-16 h-16 bg-brand/10 text-brand rounded-[1.5rem] flex items-center justify-center mb-6"><Icon name="shield-check" size={32}/></div><h2 className="text-2xl md:text-3xl font-black dark:text-white tracking-tight">นโยบายความยินยอม (PDPA)</h2><p className="text-brand text-sm mt-2 font-bold uppercase tracking-widest">เพื่อความปลอดภัยและการดูแล</p></div><div className="p-8 md:p-10 overflow-y-auto flex-1 bg-slate-50/50 dark:bg-black/20 text-sm text-slate-600 dark:text-slate-300 custom-scrollbar"><p className="mb-6 font-medium leading-relaxed">คณะเทคโนโลยีดิจิทัล มีความจำเป็นต้องจัดเก็บข้อมูลของท่านเพื่อใช้ในกิจกรรม ดังนี้:</p><ul className="space-y-4 font-medium"><li className="flex gap-3"><div className="mt-0.5 text-blue-500"><Icon name="user" size={18}/></div><div><strong className="text-slate-800 dark:text-white block mb-1">ข้อมูลส่วนตัว</strong>ชื่อ, รหัส นศ., สาขา, เบอร์โทร เพื่อตรวจสอบสิทธิ์</div></li><li className="flex gap-3"><div className="mt-0.5 text-orange-500"><Icon name="pizza" size={18}/></div><div><strong className="text-slate-800 dark:text-white block mb-1">โภชนาการ</strong>ประวัติแพ้อาหาร, อาหารเฉพาะทาง เพื่อจัดเตรียมอาหาร</div></li><li className="flex gap-3"><div className="mt-0.5 text-pink-500"><Icon name="heart-pulse" size={18}/></div><div><strong className="text-slate-800 dark:text-white block mb-1">สุขภาพ</strong>โรคประจำตัว, ประวัติแพ้ยา เพื่อวางแผนฉุกเฉิน</div></li></ul></div><div className="p-8 md:p-10 border-t border-slate-100 dark:border-white/5"><label className="flex items-center gap-4 cursor-pointer mb-8 p-5 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 transition-colors hover:bg-slate-100 dark:hover:bg-white/10"><input type="checkbox" checked={chk} onChange={e=>setChk(e.target.checked)} className="w-6 h-6 accent-brand rounded" /><span className="text-sm font-bold dark:text-white">ฉันได้อ่านและยินยอมให้เก็บข้อมูล</span></label><div className="flex justify-end gap-3"><button onClick={onBack} className="px-8 py-4 rounded-2xl bg-slate-100 dark:bg-white/5 font-bold text-slate-600 dark:text-slate-300 btn-interactive">ยกเลิก</button><button onClick={()=>chk?onAccept():null} disabled={!chk} className={`px-10 py-4 rounded-2xl font-black text-white btn-interactive ${chk?'brand-gradient shadow-glow-brand hover:-translate-y-1':'bg-slate-300 dark:bg-slate-700 cursor-not-allowed'}`}>ถัดไป</button></div></div></div></div>
-            );
-        }
-
-        function RegistrationForm({ onBack, onSuccess }) {
-            const [f, setF] = useState({ FullName:'', StudentID:'', IDCard:'', Major:'', Religion:'', BloodGroup:'', StudentPhone:'', ParentPhone:'', FoodAllergy:'', SpecificDiet:'ไม่มี', Disease:'', DrugAllergy:'' });
-            const [hF, setHF] = useState(false); const [hD, setHD] = useState(false); const [hDr, setHDr] = useState(false); const [sub, setSub] = useState(false);
-            const handleSubmit = async (e) => {
-                e.preventDefault();
-                if(!f.FullName||!f.StudentID||!f.Major||!f.Religion||!f.BloodGroup||!f.StudentPhone||!f.ParentPhone) return Swal.fire({icon:'warning',title:'กรอกข้อมูลให้ครบถ้วน', customClass:{popup:'rounded-[2.5rem]'}});
-                if(f.StudentID.length!==9) return Swal.fire({icon:'warning',title:'รหัสนักศึกษาต้องมี 9 หลัก', customClass:{popup:'rounded-[2.5rem]'}});
-                setSub(true); Swal.fire({title:'กำลังบันทึก...',didOpen:()=>Swal.showLoading(), customClass:{popup:'rounded-[2.5rem] bg-white dark:bg-zinc-900'}});
-                try { const res=await submitAPI('register', {...f, FoodAllergy:hF?f.FoodAllergy:'ไม่แพ้', Disease:hD?f.Disease:'ไม่มี', DrugAllergy:hDr?f.DrugAllergy:'ไม่แพ้'}); if(res.success){Swal.close();onSuccess();}else throw new Error(res.message); } catch(err){Swal.fire({icon:'error',text:err.message, customClass:{popup:'rounded-[2.5rem]'}});} finally{setSub(false);}
-            };
-            return (
-                <div className="max-w-4xl mx-auto animate-fade-in pb-12 pt-6"><button onClick={onBack} className="flex items-center gap-2 text-slate-500 font-bold mb-8 btn-interactive hover:text-brand bg-white/50 dark:bg-white/5 px-5 py-2.5 rounded-full"><Icon name="arrow-left" size={18}/> ย้อนกลับ</button><form onSubmit={handleSubmit} className="space-y-8">
-                    <div className="glass-panel p-8 md:p-12 rounded-[3rem] border-t-[8px] border-blue-500"><SecHeader icon="user" title="ข้อมูลส่วนตัว" cClass="bg-blue-100 text-blue-600"/><div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50/50 dark:bg-black/10 p-6 rounded-[2rem] border border-slate-100 dark:border-white/5"><Input label="ชื่อ-นามสกุล" val={f.FullName} onChange={v=>setF({...f,FullName:v})} req/><div className="flex flex-col gap-2 group"><label className="text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 group-focus-within:text-brand transition-colors">สาขาวิชา <span className="text-red-500">*</span></label><select value={f.Major} onChange={e=>setF({...f,Major:e.target.value})} required className="input-modern px-5 py-4 text-sm font-medium"><option value="">--เลือก--</option>{MAJORS.map(m=><option key={m} value={m}>{m}</option>)}</select></div><Input label="รหัสนักศึกษา (9 หลัก)" val={f.StudentID} onChange={v=>setF({...f,StudentID:v})} num req max="9"/><Input label="บัตร ปชช." val={f.IDCard} onChange={v=>setF({...f,IDCard:v})} max="20"/><div className="flex flex-col gap-2 group"><label className="text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 group-focus-within:text-brand">ศาสนา <span className="text-red-500">*</span></label><select value={f.Religion} onChange={e=>setF({...f,Religion:e.target.value})} required className="input-modern px-5 py-4 text-sm font-medium"><option value="">--เลือก--</option>{['พุทธ','อิสลาม','คริสต์','อื่นๆ'].map(r=><option key={r} value={r}>{r}</option>)}</select></div><div className="flex flex-col gap-2 group"><label className="text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 group-focus-within:text-brand">กรุ๊ปเลือด <span className="text-red-500">*</span></label><select value={f.BloodGroup} onChange={e=>setF({...f,BloodGroup:e.target.value})} required className="input-modern px-5 py-4 text-sm font-medium"><option value="">--เลือก--</option><option value="A">A</option><option value="B">B</option><option value="O">O</option><option value="AB">AB</option></select></div></div></div>
-                    <div className="glass-panel p-8 md:p-12 rounded-[3rem] border-t-[8px] border-emerald-500"><SecHeader icon="phone" title="การติดต่อ" cClass="bg-emerald-100 text-emerald-600"/><div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50/50 dark:bg-black/10 p-6 rounded-[2rem] border border-slate-100 dark:border-white/5"><Input label="เบอร์ นศ." val={f.StudentPhone} onChange={v=>setF({...f,StudentPhone:v})} num req max="10"/><Input label="เบอร์ ผปค." val={f.ParentPhone} onChange={v=>setF({...f,ParentPhone:v})} num req max="10"/></div></div>
-                    <div className="glass-panel p-8 md:p-12 rounded-[3rem] border-t-[8px] border-orange-500"><SecHeader icon="pizza" title="โภชนาการ" cClass="bg-orange-100 text-orange-600"/><div className="space-y-8"><div className="bg-slate-50/50 dark:bg-black/10 p-6 rounded-[2rem] border border-slate-100 dark:border-white/5"><label className="text-sm font-black mb-4 block dark:text-white">1. อาหารเฉพาะทาง <span className="text-red-500">*</span></label><TogglePill options={[{label:'ไม่มี',value:'ไม่มี'},{label:'ฮาลาล',value:'ฮาลาล'},{label:'มังสวิรัติ',value:'มังสวิรัติ'},{label:'เจ',value:'เจ'}]} value={f.SpecificDiet} onChange={v=>setF({...f,SpecificDiet:v})} isWarningType/></div><div className="p-6 md:p-8 bg-orange-50/80 dark:bg-orange-500/10 rounded-[2rem] border border-orange-200 dark:border-orange-500/20"><label className="text-sm font-black mb-4 block dark:text-white">2. ประวัติแพ้อาหาร <span className="text-red-500">*</span></label><div className="flex flex-col sm:flex-row gap-4 mb-6"><label className="flex items-center gap-3 p-4 bg-white dark:bg-zinc-800 rounded-xl cursor-pointer shadow-sm border border-transparent hover:border-orange-300 transition-colors"><input type="radio" checked={!hF} onChange={()=>setHF(false)} className="w-5 h-5 accent-brand"/> <span className="font-bold">ไม่แพ้</span></label><label className="flex items-center gap-3 p-4 bg-white dark:bg-zinc-800 rounded-xl cursor-pointer shadow-sm border border-transparent hover:border-orange-300 transition-colors"><input type="radio" checked={hF} onChange={()=>setHF(true)} className="w-5 h-5 accent-brand"/> <span className="font-bold text-orange-600">มีประวัติแพ้อาหาร</span></label></div>{hF && <div className="animate-fade-in"><Input label="ระบุอาหารที่แพ้" val={f.FoodAllergy} onChange={v=>setF({...f,FoodAllergy:v})} req={hF}/></div>}</div></div></div>
-                    <div className="glass-panel p-8 md:p-12 rounded-[3rem] border-t-[8px] border-pink-500"><SecHeader icon="heart-pulse" title="สุขภาพทางการแพทย์" cClass="bg-pink-100 text-pink-600"/><div className="space-y-8"><div className="p-6 md:p-8 bg-red-50/80 dark:bg-red-500/10 rounded-[2rem] border border-red-200 dark:border-red-500/20"><label className="text-sm font-black mb-4 block dark:text-white">1. โรคประจำตัว <span className="text-red-500">*</span></label><div className="flex flex-col sm:flex-row gap-4 mb-6"><label className="flex items-center gap-3 p-4 bg-white dark:bg-zinc-800 rounded-xl cursor-pointer shadow-sm border border-transparent hover:border-red-300 transition-colors"><input type="radio" checked={!hD} onChange={()=>setHD(false)} className="w-5 h-5 accent-red-500"/> <span className="font-bold">ไม่มี</span></label><label className="flex items-center gap-3 p-4 bg-white dark:bg-zinc-800 rounded-xl cursor-pointer shadow-sm border border-transparent hover:border-red-300 transition-colors"><input type="radio" checked={hD} onChange={()=>setHD(true)} className="w-5 h-5 accent-red-500"/> <span className="font-bold text-red-600">มีโรคประจำตัว</span></label></div>{hD && <div className="animate-fade-in"><Input label="ระบุโรคประจำตัว" val={f.Disease} onChange={v=>setF({...f,Disease:v})} req={hD}/></div>}</div><div className="p-6 md:p-8 bg-purple-50/80 dark:bg-purple-500/10 rounded-[2rem] border border-purple-200 dark:border-purple-500/20"><label className="text-sm font-black mb-4 block dark:text-white">2. ประวัติแพ้ยา <span className="text-red-500">*</span></label><div className="flex flex-col sm:flex-row gap-4 mb-6"><label className="flex items-center gap-3 p-4 bg-white dark:bg-zinc-800 rounded-xl cursor-pointer shadow-sm border border-transparent hover:border-purple-300 transition-colors"><input type="radio" checked={!hDr} onChange={()=>setHDr(false)} className="w-5 h-5 accent-purple-500"/> <span className="font-bold">ไม่เคย</span></label><label className="flex items-center gap-3 p-4 bg-white dark:bg-zinc-800 rounded-xl cursor-pointer shadow-sm border border-transparent hover:border-purple-300 transition-colors"><input type="radio" checked={hDr} onChange={()=>setHDr(true)} className="w-5 h-5 accent-purple-500"/> <span className="font-bold text-purple-600">มีประวัติแพ้ยา</span></label></div>{hDr && <div className="animate-fade-in"><Input label="ระบุยาที่แพ้" val={f.DrugAllergy} onChange={v=>setF({...f,DrugAllergy:v})} req={hDr}/></div>}</div></div></div>
-                    <div className="flex justify-center pt-4"><button type="submit" disabled={sub} className="w-full sm:w-auto px-16 py-5 brand-gradient text-white rounded-[2rem] font-black text-xl shadow-glow-brand btn-interactive flex items-center justify-center gap-3"><Icon name="save" size={24}/> บันทึกข้อมูลขึ้นทะเบียน</button></div>
-                </form></div>
-            );
-        }
-
-        function ActivityForm({ onBack, onSuccess }) {
-            const [step, setStep] = useState(1); const [sid, setSid] = useState(''); const [f, setF] = useState({}); const [sub, setSub] = useState(false); const [acts, setActs] = useState([]);
-            useEffect(() => { Papa.parse(`${ACT_URL}&_cb=${Date.now()}`, { download:true, header:true, complete:res=>setActs(res.data.filter(r=>r.ActivityName&&r.Status!=='CLOSED').map(r=>r.ActivityName))}); }, []);
-            const handleSearch = e => {
-                e.preventDefault(); if(!sid.trim())return; setSub(true);
-                Papa.parse(`${REG69_URL}&_cb=${Date.now()}`, {
-                    download:true, header:true, complete: res => {
-                        const row = res.data.filter(r=>r.FullName!=='SYSTEM_ACTIVITY_DEF').find(r=>(r.IDCard===sid.trim()||r.StudentID===sid.trim()));
-                        if(row){setF({ActivityName:'',StudentID:row.StudentID||'',FullName:row.FullName||'',Major:cleanMajor(row.Major)||'',StudentPhone:row.StudentPhone||'',IDCard:row.IDCard||''});setStep(2);}
-                        else Swal.fire({title:'ไม่พบข้อมูล', text:'กรุณาตรวจสอบรหัสอีกครั้ง หรือขึ้นทะเบียนก่อน', icon:'error', customClass:{popup:'rounded-[2.5rem]'}});
-                        setSub(false);
-                    }
-                });
-            };
-            const handleSubmit = async e => {
-                e.preventDefault(); if(!f.ActivityName) return Swal.fire({title:'แจ้งเตือน',text:'กรุณาเลือกกิจกรรม',icon:'warning',customClass:{popup:'rounded-[2.5rem]'}});
-                setSub(true); Swal.fire({title:'กำลังบันทึก...',didOpen:()=>Swal.showLoading(), customClass:{popup:'rounded-[2.5rem] bg-white dark:bg-zinc-900'}});
-                try { const r=await submitAPI('log_activity',f); if(r.success){Swal.close();onSuccess(f.ActivityName,f.StudentID);}else throw new Error(r.message); } catch(err){Swal.fire('Error',err.message,'error');} finally{setSub(false);}
-            };
-            return (
-                <div className="max-w-3xl mx-auto animate-fade-in pb-12 pt-6"><button onClick={step===1?onBack:()=>setStep(1)} className="flex items-center gap-2 text-slate-500 font-bold mb-8 btn-interactive hover:text-purple-600 bg-white/50 dark:bg-white/5 px-5 py-2.5 rounded-full"><Icon name="arrow-left" size={18}/>{step===1?'ย้อนกลับ':'ค้นหาใหม่'}</button>
-                {step===1 && <form onSubmit={handleSearch} className="glass-panel p-12 rounded-[3rem] border-t-[8px] border-purple-500 text-center"><div className="w-24 h-24 bg-purple-50 dark:bg-purple-500/10 text-purple-600 rounded-[2rem] flex justify-center items-center mx-auto mb-8 shadow-inner"><Icon name="search" size={48}/></div><h2 className="text-3xl font-black dark:text-white mb-3">ค้นหาข้อมูลเพื่อลงทะเบียน</h2><p className="text-slate-500">พิมพ์รหัสนักศึกษา หรือบัตร ปชช. เพื่อดึงข้อมูลประวัติ</p><div className="max-w-sm mx-auto mt-10"><input type="text" value={sid} onChange={e=>setSid(e.target.value)} placeholder="รหัสนักศึกษา / เลขบัตร ปชช." className="w-full input-modern px-6 py-5 text-center font-mono font-bold text-lg mb-6 shadow-sm focus:border-purple-500 focus:shadow-[0_0_0_4px_rgba(168,85,247,0.15)]" required/><button type="submit" disabled={sub} className="w-full py-5 bg-purple-600 text-white rounded-2xl font-black text-lg btn-interactive shadow-lg shadow-purple-500/30 flex items-center justify-center gap-2">{sub?<><Icon name="loader-2" className="animate-spin"/> กำลังค้นหา</>:<><Icon name="search"/> ค้นหาข้อมูล</>}</button></div></form>}
-                {step===2 && <form onSubmit={handleSubmit} className="glass-panel p-8 md:p-12 rounded-[3rem] border-t-[8px] border-purple-500"><div className="bg-slate-50/80 dark:bg-black/20 p-8 rounded-[2rem] mb-10 flex flex-col sm:flex-row items-center sm:items-start gap-6 shadow-inner border border-slate-200/50 dark:border-white/5"><div className="w-24 h-24 bg-purple-100 text-purple-600 rounded-full flex justify-center items-center shrink-0 shadow-md"><Icon name="user" size={48}/></div><div className="text-center sm:text-left"><h3 className="text-2xl md:text-3xl font-black dark:text-white mb-2">{f.FullName}</h3><p className="text-slate-500 font-mono font-bold bg-white dark:bg-zinc-800 px-4 py-2 rounded-xl border border-slate-100 dark:border-white/5 inline-block">{f.StudentID}</p></div></div><div className="space-y-4 pt-6 border-t border-slate-200 dark:border-white/10"><label className="text-sm font-bold dark:text-white flex items-center gap-2"><Icon name="check-circle" className="text-purple-500" size={18}/> เลือกกิจกรรมที่ต้องการลงทะเบียน *</label>{acts.length>0?<select value={f.ActivityName} onChange={e=>setF({...f,ActivityName:e.target.value})} required className="w-full input-modern px-5 py-4 text-base font-semibold focus:border-purple-500 focus:shadow-[0_0_0_4px_rgba(168,85,247,0.15)]"><option value="">-- เลือกกิจกรรม --</option>{acts.map((a,i)=><option key={i} value={a}>{a}</option>)}</select>:<div className="p-6 bg-red-50/80 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-2xl font-bold text-center border border-red-200 dark:border-red-500/20">ขณะนี้ไม่มีกิจกรรมที่เปิดรับลงทะเบียน</div>}</div><div className="pt-10 text-center"><button type="submit" disabled={sub||!acts.length} className="w-full sm:w-auto px-16 py-5 bg-purple-600 text-white rounded-[2rem] font-black text-xl btn-interactive shadow-lg shadow-purple-500/30 flex items-center justify-center mx-auto gap-3"><Icon name="check-circle" size={24}/> ยืนยันการลงทะเบียน</button></div></form>}</div>
-            );
-        }
-
-        function SurveyForm({ onBack, onSuccess, activityName, studentID }) {
-            const [r, setR] = useState({ q1_1:0, q1_2:0, q1_3:0, q1_4:0, q2_1:0, q2_2:0, q2_3:0, q2_4:0, q3_1:0, q3_2:0, q3_3:0, q3_4:0, q3_5:0 });
-            const [cmt, setCmt] = useState(''); const [sub, setSub] = useState(false);
-            const qs = [{t:"1. กระบวนการ",c:"text-orange-500",b:"bg-orange-50/80 dark:bg-orange-950/20",q:[{id:'q1_1',t:'1.1 การประชาสัมพันธ์โครงการ ฯ'},{id:'q1_2',t:'1.2 ความเหมาะสมของสถานที่'},{id:'q1_3',t:'1.3 ความเหมาะสมของระยะเวลา'},{id:'q1_4',t:'1.4 การจัดลำดับขั้นตอน'}]},{t:"2. สิ่งอำนวยความสะดวก",c:"text-emerald-500",b:"bg-emerald-50/80 dark:bg-emerald-950/20",q:[{id:'q2_1',t:'2.1 เอกสาร'},{id:'q2_2',t:'2.2 โสตทัศนูปกรณ์'},{id:'q2_3',t:'2.3 เจ้าหน้าที่สนับสนุน'},{id:'q2_4',t:'2.4 อาหารและสถานที่'}]},{t:"3. คุณภาพการให้บริการ",c:"text-blue-500",b:"bg-blue-50/80 dark:bg-blue-950/20",q:[{id:'q3_1',t:'3.1 ได้รับความรู้ แนวคิด ทักษะใหม่'},{id:'q3_2',t:'3.2 นำสิ่งที่ได้รับไปปฏิบัติงานได้'},{id:'q3_3',t:'3.3 ตรงตามความคาดหวัง'},{id:'q3_4',t:'3.4 เอื้อต่อการเรียนรู้และพัฒนา'},{id:'q3_5',t:'3.5 ประโยชน์ที่ได้รับจากกิจกรรม'}]}];
-            const submit = async e => { e.preventDefault(); if(!Object.values(r).every(v=>v>0))return Swal.fire({title:'แจ้งเตือน',text:'ประเมินให้ครบ 13 ข้อ',icon:'warning',customClass:{popup:'rounded-[2.5rem]'}}); setSub(true); Swal.fire({title:'บันทึก...',didOpen:()=>Swal.showLoading(),customClass:{popup:'rounded-[2.5rem] bg-white dark:bg-zinc-900'}}); try{const res=await submitAPI('save_survey',{ActivityName:activityName,StudentID:studentID,...r,Comment:cmt}); if(res.success){Swal.close();onSuccess();}else throw new Error(res.message);}catch(err){Swal.fire({icon:'error',text:err.message,customClass:{popup:'rounded-[2.5rem]'}});}finally{setSub(false);} };
-            return (
-                <div className="max-w-4xl mx-auto animate-fade-in pb-12 pt-6"><div className="text-center mb-10"><div className="w-24 h-24 mx-auto bg-purple-100 text-purple-600 rounded-[2rem] flex items-center justify-center mb-6 shadow-inner relative"><Icon name="clipboard-check" size={48}/><span className="absolute -top-2 -right-2 flex h-6 w-6"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span><span className="relative inline-flex rounded-full h-6 w-6 bg-purple-500 border-2 border-white"></span></span></div><h2 className="text-3xl md:text-4xl font-black dark:text-white mb-3">แบบประเมินความพึงพอใจ</h2><span className="inline-block px-5 py-2 bg-slate-100 dark:bg-white/5 rounded-full font-bold text-slate-700 dark:text-slate-300 text-sm">{activityName}</span></div><form onSubmit={submit} className="space-y-8">
-                {qs.map((sec, i)=><div key={i} className="glass-panel p-6 md:p-10 rounded-[3rem] shadow-soft"><h3 className={`text-xl md:text-2xl font-black mb-8 pb-4 border-b border-slate-200/50 dark:border-white/10 ${sec.c}`}>{sec.t}</h3><div className="space-y-6">{sec.q.map(q=><div key={q.id} className={`p-6 rounded-[2rem] border border-slate-100 dark:border-white/5 ${sec.b}`}><p className="font-bold dark:text-white mb-5 text-base md:text-lg">{q.t}</p><div className="flex gap-2 sm:gap-4">{[1,2,3,4,5].map(s=><button key={s} type="button" onClick={()=>setR({...r,[q.id]:s})} className={`flex-1 py-3 sm:py-4 rounded-2xl font-black transition-all btn-interactive flex flex-col items-center justify-center gap-1 ${r[q.id]===s?'bg-purple-600 text-white shadow-lg transform scale-105':'bg-white dark:bg-zinc-800 text-slate-400 border border-slate-200 dark:border-white/10 hover:border-purple-300'}`}><span className="text-2xl leading-none">{s}</span><span className="text-[10px] sm:text-xs font-bold opacity-80">{s===5?'มากสุด':s===4?'มาก':s===3?'ปานกลาง':s===2?'น้อย':'น้อยสุด'}</span></button>)}</div></div>)}</div></div>)}
-                <div className="glass-panel p-6 md:p-10 rounded-[3rem] shadow-soft"><h3 className="text-xl md:text-2xl font-black mb-6 pb-4 border-b border-slate-200/50 dark:border-white/10 dark:text-white">ส่วนที่ 4: ข้อเสนอแนะ</h3><Input label="ข้อเสนอแนะเพิ่มเติม (ถ้ามี)" val={cmt} onChange={v=>setCmt(v)} rows={4} ph="พิมพ์ข้อเสนอแนะ..." /></div><div className="sticky bottom-6 z-40 flex justify-center"><button type="submit" disabled={sub} className="px-12 py-5 bg-purple-600 text-white rounded-[2rem] font-black text-xl shadow-[0_10px_40px_-10px_rgba(147,51,234,0.5)] hover:-translate-y-1 transition-all flex items-center gap-3"><Icon name="send" size={24}/> ส่งแบบประเมิน</button></div></form></div>
-            );
-        }
-
-        function SuccessView({ onHome }) {
-            return <div className="flex items-center justify-center min-h-[75vh] animate-fade-in"><div className="glass-panel p-12 md:p-16 text-center rounded-[3rem] shadow-2xl max-w-lg w-full border-t-[12px] border-t-emerald-500"><div className="w-32 h-32 bg-emerald-100 text-emerald-500 rounded-full flex justify-center items-center mx-auto mb-8 shadow-inner"><Icon name="check-circle" size={64}/></div><h2 className="text-4xl font-black dark:text-white mb-4">สำเร็จ!</h2><p className="text-slate-500 font-medium text-lg mb-10 leading-relaxed">ระบบบันทึกข้อมูลของท่านเรียบร้อยแล้ว<br/>ขอบคุณที่ให้ความร่วมมือครับ</p><button onClick={onHome} className="w-full py-4 bg-slate-100 dark:bg-white/10 rounded-2xl font-bold dark:text-white hover:bg-slate-200 dark:hover:bg-white/20 transition-colors btn-interactive text-lg">กลับสู่หน้าหลัก</button></div></div>;
-        }
-
-        // ==========================================
-        // 📊 Admin Dashboard
-        // ==========================================
-        function AdminDashboard({ goBack, curUser, isRegOpen, setRegOpen }) {
-            const { isDarkMode = false } = useContext(AppContext) || {};
-            const [data, setData] = useState([]); const [loading, setLoading] = useState(true); const [actTab, setActTab] = useState('overview'); const [dd, setDd] = useState({t:'', l:[], ty:''}); const [search, setSearch] = useState(''); const [actDefs, setActDefs] = useState([]); const [actLogs, setActLogs] = useState([]); const [surveys, setSurveys] = useState([]); const [actForm, setActForm] = useState({n:'',d:'',l:''}); const [showChart, setShowChart] = useState(false);
-            const [adminList, setAdminList] = useState([{id:1,user:'admin',role:'Super Admin',status:'Active'},{id:2,user:'staff1',role:'Manager',status:'Active'},{id:3,user:'guest',role:'Viewer',status:'Inactive'}]);
-            const [uForm, setUForm] = useState({id:null,user:'',pass:'',role:'Manager',status:'Active'}); const [showU, setShowU] = useState(false); const [selSurvey, setSelSurvey] = useState('ทั้งหมด');
-
-            useEffect(() => {
-                const l = (s=false) => { if(!s)setLoading(true); Papa.parse(`${REG_URL}&_cb=${Date.now()}`,{download:true,header:true,complete:r=>{setData(r.data.filter(x=>x.StudentID).map(y=>({...y,Major:cleanMajor(y.Major)})));if(!s)setLoading(false);}}); Papa.parse(`${ACT_URL}&_cb=${Date.now()}`,{download:true,header:true,complete:r=>setActDefs(r.data.filter(x=>x.ActivityName))}); Papa.parse(`${LOGS_URL}&_cb=${Date.now()}`,{download:true,header:true,complete:r=>setActLogs(r.data.filter(x=>x.ActivityName))}); Papa.parse(`${SURVEY_URL}&_cb=${Date.now()}`,{download:true,header:true,complete:r=>setSurveys(r.data.filter(x=>x.ActivityName))}); };
-                l(); const i = setInterval(()=>l(true), 5000); return ()=>clearInterval(i);
-            }, []);
-
-            const toggleActStatus = async (actName, curStatus) => {
-                const nStatus = curStatus === 'CLOSED' ? 'OPEN' : 'CLOSED';
-                setActDefs(prev => prev.map(a => a.ActivityName === actName ? { ...a, Status: nStatus } : a));
-                try {
-                    const res = await submitAPI('toggle_activity', { ActivityName: actName, Status: nStatus });
-                    if (!res.success) throw new Error(res.message);
-                } catch (err) {
-                    Swal.fire({icon:'error', text:err.message, customClass:{popup:'rounded-[2.5rem]'}});
+            const handleNext = () => setStep(s => s + 1);
+            const handleBack = () => setStep(s => s - 1);
+            
+            const submitForm = () => {
+                showSwal({ title: 'กำลังบันทึกข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() }, theme);
+                if(typeof google !== 'undefined' && google.script) {
+                    google.script.run.withSuccessHandler(res => {
+                        if(res.status === 'success') { Swal.close(); setStep(4); }
+                        else { showSwal({icon: 'error', title: 'เกิดข้อผิดพลาด', text: res.message}, theme); }
+                    }).saveNewStudent(formData);
+                } else {
+                    setTimeout(() => { Swal.close(); setStep(4); }, 1500); 
                 }
             };
 
-            const TABS = [{id:'overview',l:'ภาพรวม',i:'users',r:['Super Admin','Manager','Viewer']},{id:'majors',l:'สาขาวิชา',i:'pie-chart',r:['Super Admin','Manager','Viewer']},{id:'health',l:'สุขภาพ/โภชนาการ',i:'activity',r:['Super Admin','Manager']},{id:'surv',l:'กลุ่มเฝ้าระวัง',i:'shield-alert',r:['Super Admin','Manager']},{id:'create_act',l:'จัดการกิจกรรม',i:'calendar-plus',r:['Super Admin','Manager']},{id:'act_sum',l:'Real-Time Logs',i:'radio',r:['Super Admin','Manager','Viewer']},{id:'survey',l:'SPSS Report',i:'star',r:['Super Admin','Manager','Viewer']},{id:'users',l:'จัดการแอดมิน',i:'users-cog',r:['Super Admin']},{id:'settings',l:'ตั้งค่าระบบ',i:'settings',r:['Super Admin','Manager']}].filter(t=>t.r.includes(curUser?.role));
-            useEffect(()=>{if(!TABS.find(t=>t.id===actTab))setActTab(TABS[0].id);},[actTab, TABS]);
-
-            const fData = useMemo(()=>data.filter(r=>search?((r.FullName||'').includes(search)||(r.StudentID||'').includes(search)):true), [data, search]);
-            const stats = useMemo(()=>{
-                const sd = fData.filter(r=>r.FullName!=='SYSTEM_ACTIVITY_DEF'); const um = new Map(); sd.forEach(s=>um.set(s.StudentID||s.IDCard||Math.random(), s)); const us = Array.from(um.values());
-                let mc={}, ds={'ฮาลาล':0,'มังสวิรัติ':0,'เจ':0,'ไม่มี':0}, fa=[], md=[], ma=[]; const sl=[]; let sp={'ด้านการแพทย์':0,'ด้านโภชนาการ':0,'เสี่ยงซ้อน':0};
-                us.forEach(s=>{ if(s.Major) mc[s.Major]=(mc[s.Major]||0)+1; let hF=s.FoodAllergy!=='ไม่แพ้'||s.SpecificDiet!=='ไม่มี'; let hH=s.Disease!=='ไม่มี'||s.DrugAllergy!=='ไม่แพ้'; if(s.FoodAllergy!=='ไม่แพ้')fa.push(s); if(s.SpecificDiet)ds[s.SpecificDiet]=(ds[s.SpecificDiet]||0)+1; if(s.Disease!=='ไม่มี')md.push(s); if(s.DrugAllergy!=='ไม่แพ้')ma.push(s); if(hF||hH){sl.push({...s,i:[]}); if(hF&&hH)sp['เสี่ยงซ้อน']++;else if(hF)sp['ด้านโภชนาการ']++;else sp['ด้านการแพทย์']++;} });
-                return { t:us.length, pd:Object.keys(mc).map(k=>({name:k,value:mc[k]})), c:['#ff6600','#3b82f6','#10b981','#8b5cf6','#ec4899','#facc15','#06b6d4'], fA:fa.length, hA:md.length+ma.length, sl, sp:Object.keys(sp).map(k=>({name:k,value:sp[k]})).filter(d=>d.value>0), us, fa, md, ma, ds };
-            },[fData]);
-
-            const sStats = useMemo(()=>{
-                const fs = selSurvey==='ทั้งหมด'?surveys:surveys.filter(s=>s.ActivityName===selSurvey); let t=fs.length; let cmts=[];
-                const qm = {q1_1:'1.1 ประชาสัมพันธ์',q1_2:'1.2 สถานที่',q1_3:'1.3 ระยะเวลา',q1_4:'1.4 ขั้นตอน',q2_1:'2.1 เอกสาร',q2_2:'2.2 โสตทัศนูปกรณ์',q2_3:'2.3 เจ้าหน้าที่',q2_4:'2.4 อาหาร',q3_1:'3.1 ได้ความรู้',q3_2:'3.2 นำไปใช้ได้',q3_3:'3.3 ตรงคาดหวัง',q3_4:'3.4 เอื้อต่อเรียนรู้',q3_5:'3.5 ประโยชน์'};
-                let cd=[], flat=[]; let oSum=0, aVals=[];
-                Object.keys(qm).forEach(k=>{
-                    let sum=0, vals=[], cnt={5:0,4:0,3:0,2:0,1:0};
-                    fs.forEach(s=>{ let v=Number(s[k]||s[k.toUpperCase()]||0); if(v>0){sum+=v;vals.push(v);cnt[v]++;} if(k==='q1_1'&&s.Comment) cmts.push({text:s.Comment,date:s.Timestamp,std:s.StudentID}); });
-                    const mean=vals.length?sum/vals.length:0; oSum+=sum; aVals.push(...vals);
-                    cd.push({name:k.replace('_','.').replace('q',''), q:qm[k], 5:cnt[5], 4:cnt[4], 3:cnt[3], 2:cnt[2], 1:cnt[1]});
-                    flat.push({id:k, q:qm[k], mean:mean.toFixed(2), interp:mean>=4.5?'มากที่สุด':mean>=3.5?'มาก':mean>=2.5?'ปานกลาง':mean>=1.5?'น้อย':mean>0?'น้อยที่สุด':'ไม่มีข้อมูล'});
-                });
-                return { t, oMean: aVals.length?(oSum/aVals.length).toFixed(2):0, cd, flat, cmts:cmts.filter((v,i,a)=>a.findIndex(t=>(t.text===v.text))===i) };
-            }, [surveys, selSurvey]);
-
-            const dl = (t, ty, k) => {
-                let fl=[]; if(ty==='all')fl=stats.us; else if(ty==='hlth')fl=stats.us.filter(s=>s.Disease==='ไม่มี'&&s.DrugAllergy==='ไม่แพ้'); else if(ty==='fA')fl=stats.us.filter(s=>(s.FoodAllergy!=='ไม่แพ้'||s.SpecificDiet!=='ไม่มี')); else if(ty==='hA')fl=stats.us.filter(s=>(s.Disease!=='ไม่มี'||s.DrugAllergy!=='ไม่แพ้')); else if(ty==='sl')fl=stats.sl; else if(ty==='act')fl=actLogs.filter(r=>r.ActivityName===k); else if(ty==='mj')fl=stats.us.filter(s=>s.Major===k); else if(ty==='act_major')fl=actLogs.filter(r=>r.ActivityName===k.act&&r.Major===k.maj);
-                setDd({t, l:fl, ty});
-            };
-
-            const toggleReg = () => { try{const nv = !isRegOpen; setRegOpen(nv); localStorage.setItem('digit69_isRegOpen', nv); Swal.fire({icon:'success',title:nv?'เปิดระบบ':'ปิดระบบ',timer:1000,showConfirmButton:false,customClass:{popup:'rounded-[2.5rem]'}});}catch(e){} };
-            const exXls = () => {
-                let d=[]; let sn="Export";
-                if(actTab==='overview'){ d=stats.us; sn="Students"; } else if(actTab==='act_sum'){ d=actLogs.map(l=>({'รหัสนักศึกษา':l.StudentID,'ชื่อ':l.FullName,'สาขา':l.Major,'รหัสประจำตัว ปชช.':l.IDCard||'-','กิจกรรม':l.ActivityName,'เวลา':new Date(l.Timestamp).toLocaleString('th-TH')})); sn="Activities"; }
-                if(d.length){const ws=window.XLSX.utils.json_to_sheet(d);const wb=window.XLSX.utils.book_new();window.XLSX.utils.book_append_sheet(wb,ws,sn);window.XLSX.writeFile(wb,`Export_${actTab}.xlsx`);}else Swal.fire({title:'ไม่มีข้อมูล',icon:'info',customClass:{popup:'rounded-[2.5rem]'}});
-            };
-
-            if(loading&&!stats.t)return <div className="flex flex-col items-center justify-center min-h-[70vh]"><Icon name="loader-2" size={48} className="animate-spin text-brand mb-4"/><p className="text-slate-500 font-bold tracking-widest uppercase">กำลังดึงข้อมูล...</p></div>;
+            const StepIndicator = ({ current }) => (
+                <div className="flex items-center justify-center gap-2 mb-8">
+                    {[1, 2, 3].map(i => (
+                        <div key={i} className="flex items-center">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 ${current >= i ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-slate-200 text-slate-400 dark:bg-slate-700 dark:text-slate-500'}`}>
+                                {current > i ? <i className="fas fa-check"></i> : i}
+                            </div>
+                            {i < 3 && <div className={`w-12 h-1 transition-colors duration-300 ${current > i ? 'bg-primary' : 'bg-slate-200 dark:bg-slate-700'}`}></div>}
+                        </div>
+                    ))}
+                </div>
+            );
 
             return (
-                <div className="flex flex-col md:flex-row gap-8 items-start pb-12 pt-6">
-                    <div className="w-full md:w-72 glass-panel p-6 rounded-[2.5rem] sticky top-24 print:hidden z-20 shadow-soft border-t-8 border-slate-800 dark:border-white/20">
-                        <div className="flex items-center gap-4 mb-8 bg-slate-50 dark:bg-white/5 p-4 rounded-2xl border border-slate-100 dark:border-white/5"><div className="w-12 h-12 bg-slate-900 dark:bg-white text-white dark:text-black rounded-xl flex justify-center items-center shadow-md"><Icon name="command"/></div><div><p className="text-[10px] text-brand font-black tracking-widest uppercase">{curUser?.username}</p><h3 className="font-black text-slate-800 dark:text-white leading-none">{curUser?.role}</h3></div></div>
-                        <div className="flex flex-col gap-2">{TABS.map(t=><button key={t.id} onClick={()=>setActTab(t.id)} className={`flex items-center gap-3 px-5 py-4 rounded-2xl font-bold transition-all text-sm btn-interactive ${actTab===t.id?'bg-slate-800 text-white shadow-lg dark:bg-white dark:text-black':'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10'}`}><Icon name={t.i} size={18}/> {t.l}</button>)}</div>
+                <div className="max-w-2xl mx-auto glass-panel p-8 md:p-12 rounded-[2.5rem] animate-slide-up relative overflow-hidden">
+                    <button onClick={() => setView('home')} className="absolute top-8 left-8 text-slate-400 hover:text-primary transition-colors flex items-center gap-2 text-sm font-bold">
+                        <i className="fas fa-arrow-left"></i> กลับ
+                    </button>
+                    
+                    <div className="pt-8">
+                        {step > 0 && step < 4 && <StepIndicator current={step} />}
+
+                        {step === 0 && (
+                            <div className="text-center animate-fade-in pt-4">
+                                <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-500/10 text-primary rounded-full flex items-center justify-center text-4xl mx-auto mb-6"><i className="fas fa-shield-alt"></i></div>
+                                <h2 className="text-3xl font-extrabold mb-4 text-slate-900 dark:text-white">นโยบายคุ้มครองข้อมูลส่วนบุคคล</h2>
+                                <p className="text-slate-500 dark:text-slate-400 mb-6 text-sm">การจัดเก็บข้อมูลสุขภาพเพื่อสวัสดิการของท่าน</p>
+                                <div className="h-48 overflow-y-auto p-6 bg-white/60 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm text-slate-600 dark:text-slate-400 mb-8 text-left leading-relaxed shadow-inner">
+                                    ข้อมูลที่ท่านกรอกต่อไปนี้ เช่น ข้อมูลสุขภาพ อาหารที่แพ้ โรคประจำตัว จะถูกนำไปใช้เพื่อการจัดสวัสดิการอาหาร และเฝ้าระวังความปลอดภัยระหว่างเข้าร่วมกิจกรรมของคณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย เท่านั้น <br/><br/>ข้อมูลทั้งหมดจะถูกเก็บรักษาเป็นความลับอย่างสูงสุด ตาม พรบ.คุ้มครองข้อมูลส่วนบุคคล (PDPA)
+                                </div>
+                                <button onClick={handleNext} className="w-full py-4 btn-primary rounded-2xl font-bold text-lg">ข้าพเจ้ายินยอม และดำเนินการต่อ</button>
+                            </div>
+                        )}
+
+                        {step === 1 && (
+                            <form onSubmit={(e) => { e.preventDefault(); handleNext(); }} className="space-y-5 animate-fade-in">
+                                <h2 className="text-2xl font-extrabold mb-6 text-slate-900 dark:text-white text-center">ข้อมูลส่วนตัวเบื้องต้น</h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div><label className="text-xs font-bold text-slate-500 uppercase ml-2 mb-1 block">รหัสนักศึกษา (9 หลัก) *</label><input required maxLength="9" className="glass-input w-full p-4 rounded-2xl font-semibold" value={formData.studentId} onChange={e=>setFormData({...formData, studentId:e.target.value})} placeholder="Ex. 661234567" /></div>
+                                    <div><label className="text-xs font-bold text-slate-500 uppercase ml-2 mb-1 block">เลขบัตร ปชช. (13 หลัก) *</label><input required maxLength="13" className="glass-input w-full p-4 rounded-2xl font-semibold" value={formData.idCard} onChange={e=>setFormData({...formData, idCard:e.target.value})} placeholder="Ex. 1579900000000" /></div>
+                                </div>
+                                <div><label className="text-xs font-bold text-slate-500 uppercase ml-2 mb-1 block">ชื่อ-นามสกุล *</label><input required className="glass-input w-full p-4 rounded-2xl font-semibold" value={formData.fullName} onChange={e=>setFormData({...formData, fullName:e.target.value})} placeholder="นายเรียนดี กิจกรรมเด่น" /></div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                    <div className="col-span-1 md:col-span-1"><label className="text-xs font-bold text-slate-500 uppercase ml-2 mb-1 block">สาขาวิชา *</label><select required className="glass-input w-full p-4 rounded-2xl font-semibold appearance-none" value={formData.major} onChange={e=>setFormData({...formData, major:e.target.value})}><option value="" disabled>เลือกสาขา</option><option>วิทยาการคอมพิวเตอร์</option><option>เทคโนโลยีสารสนเทศ</option><option>กราฟิกดีไซน์</option></select></div>
+                                    <div><label className="text-xs font-bold text-slate-500 uppercase ml-2 mb-1 block">ศาสนา</label><input className="glass-input w-full p-4 rounded-2xl font-semibold" value={formData.religion} onChange={e=>setFormData({...formData, religion:e.target.value})} placeholder="พุทธ" /></div>
+                                    <div><label className="text-xs font-bold text-slate-500 uppercase ml-2 mb-1 block">กรุ๊ปเลือด</label><select className="glass-input w-full p-4 rounded-2xl font-semibold appearance-none" value={formData.blood} onChange={e=>setFormData({...formData, blood:e.target.value})}><option value="">ไม่ระบุ</option><option>A</option><option>B</option><option>O</option><option>AB</option></select></div>
+                                </div>
+                                <div className="pt-4 flex justify-end"><button type="submit" className="px-10 py-4 btn-primary rounded-2xl font-bold flex items-center gap-2">ถัดไป <i className="fas fa-arrow-right"></i></button></div>
+                            </form>
+                        )}
+
+                        {step === 2 && (
+                            <form onSubmit={(e) => { e.preventDefault(); handleNext(); }} className="space-y-5 animate-fade-in">
+                                <h2 className="text-2xl font-extrabold mb-6 text-slate-900 dark:text-white text-center">ข้อมูลการติดต่อ</h2>
+                                <div><label className="text-xs font-bold text-slate-500 uppercase ml-2 mb-1 block">เบอร์โทรศัพท์นักศึกษา *</label>
+                                    <div className="relative"><i className="fas fa-mobile-alt absolute left-4 top-4.5 text-slate-400"></i><input required type="tel" className="glass-input w-full pl-12 pr-4 py-4 rounded-2xl font-semibold" value={formData.phone} onChange={e=>setFormData({...formData, phone:e.target.value})} placeholder="08X-XXX-XXXX" /></div>
+                                </div>
+                                <div><label className="text-xs font-bold text-slate-500 uppercase ml-2 mb-1 block">เบอร์โทรศัพท์ผู้ปกครอง (ฉุกเฉิน) *</label>
+                                    <div className="relative"><i className="fas fa-phone-alt absolute left-4 top-4.5 text-slate-400"></i><input required type="tel" className="glass-input w-full pl-12 pr-4 py-4 rounded-2xl font-semibold" value={formData.parentPhone} onChange={e=>setFormData({...formData, parentPhone:e.target.value})} placeholder="08X-XXX-XXXX" /></div>
+                                </div>
+                                <div className="flex gap-4 pt-6">
+                                    <button type="button" onClick={handleBack} className="w-1/3 py-4 glass-input rounded-2xl font-bold text-slate-600 dark:text-slate-300">ย้อนกลับ</button>
+                                    <button type="submit" className="w-2/3 py-4 btn-primary rounded-2xl font-bold flex justify-center items-center gap-2">ถัดไป <i className="fas fa-arrow-right"></i></button>
+                                </div>
+                            </form>
+                        )}
+
+                        {step === 3 && (
+                            <form onSubmit={(e) => { e.preventDefault(); submitForm(); }} className="space-y-5 animate-fade-in">
+                                <h2 className="text-2xl font-extrabold mb-6 text-rose-500 text-center"><i className="fas fa-heartbeat"></i> ข้อมูลสุขภาพเพื่อการเฝ้าระวัง</h2>
+                                <div><label className="text-xs font-bold text-slate-500 uppercase ml-2 mb-1 block">ประเภทอาหารที่ทานได้ *</label><select required className="glass-input w-full p-4 rounded-2xl font-semibold appearance-none bg-white/50 dark:bg-slate-800/50" value={formData.diet} onChange={e=>setFormData({...formData, diet:e.target.value})}><option>ทั่วไป (ทานได้ทุกอย่าง)</option><option>ฮาลาล (Halal)</option><option>มังสวิรัติ</option><option>เจ</option></select></div>
+                                <div><label className="text-xs font-bold text-slate-500 uppercase ml-2 mb-1 block">ประวัติแพ้อาหาร (หากไม่มีให้เว้นว่าง)</label><input placeholder="เช่น กุ้ง, ถั่วลิสง, นมวัว" className="glass-input w-full p-4 rounded-2xl font-semibold text-rose-500" value={formData.foodAllergy} onChange={e=>setFormData({...formData, foodAllergy:e.target.value})} /></div>
+                                <div><label className="text-xs font-bold text-slate-500 uppercase ml-2 mb-1 block">โรคประจำตัว (หากไม่มีให้เว้นว่าง)</label><input placeholder="เช่น หอบหืด, เบาหวาน, ภูมิแพ้" className="glass-input w-full p-4 rounded-2xl font-semibold text-rose-500" value={formData.disease} onChange={e=>setFormData({...formData, disease:e.target.value})} /></div>
+                                <div><label className="text-xs font-bold text-slate-500 uppercase ml-2 mb-1 block">ประวัติแพ้ยา (หากไม่มีให้เว้นว่าง)</label><input placeholder="เช่น พาราเซตามอล, เพนิซิลลิน" className="glass-input w-full p-4 rounded-2xl font-semibold text-rose-500" value={formData.drugAllergy} onChange={e=>setFormData({...formData, drugAllergy:e.target.value})} /></div>
+                                <div className="flex gap-4 pt-6">
+                                    <button type="button" onClick={handleBack} className="w-1/3 py-4 glass-input rounded-2xl font-bold text-slate-600 dark:text-slate-300">ย้อนกลับ</button>
+                                    <button type="submit" className="w-2/3 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold flex justify-center items-center gap-2 shadow-lg shadow-emerald-500/30 transition-all">บันทึกข้อมูลเข้าระบบ <i className="fas fa-check-circle"></i></button>
+                                </div>
+                            </form>
+                        )}
+
+                        {step === 4 && (
+                            <div className="text-center py-12 animate-slide-up">
+                                <div className="w-28 h-28 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center text-5xl mx-auto mb-8 shadow-inner"><i className="fas fa-check"></i></div>
+                                <h2 className="text-4xl font-extrabold mb-4 text-slate-900 dark:text-white">ขึ้นทะเบียนสำเร็จ!</h2>
+                                <p className="text-slate-500 dark:text-slate-400 mb-10 text-lg">ระบบได้จัดเก็บข้อมูลของคุณอย่างปลอดภัย ขอบคุณที่ให้ความร่วมมือครับ</p>
+                                <button onClick={() => setView('home')} className="px-10 py-4 btn-primary rounded-2xl font-bold text-lg">กลับหน้าหลัก</button>
+                            </div>
+                        )}
                     </div>
-                    <div className="flex-1 w-full space-y-8 min-w-0">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center glass-panel p-6 sm:px-8 rounded-[2.5rem] print:hidden gap-4 shadow-soft">
-                            <h2 className="text-2xl font-black dark:text-white flex items-center gap-3"><div className="p-2.5 bg-slate-100 dark:bg-white/10 rounded-xl"><Icon name={TABS.find(t=>t.id===actTab)?.icon}/></div> {TABS.find(t=>t.id===actTab)?.l}</h2>
-                            <div className="flex flex-wrap gap-3">{actTab!=='settings'&&actTab!=='users'&&<button onClick={exXls} className="px-6 py-3 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl font-bold text-sm flex items-center gap-2 btn-interactive"><Icon name="download" size={16}/> Export</button>}<button onClick={goBack} className="px-6 py-3 bg-red-50 dark:bg-red-500/10 text-red-500 rounded-xl font-bold text-sm flex items-center gap-2 btn-interactive"><Icon name="log-out" size={16}/> ออกจากระบบ</button></div>
-                        </div>
-
-                        {actTab==='overview'&&<div className="space-y-8"><div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"><StatCard label="ขึ้นทะเบียนรวม" value={stats.t} icon="users" color="brand" onClick={()=>dl('ขึ้นทะเบียนรวม','all','')}/><StatCard label="สุขภาพแข็งแรง" value={stats.t-stats.hA} icon="check-circle" color="emerald" onClick={()=>dl('สุขภาพแข็งแรง','hlth','')}/><StatCard label="เฝ้าระวังแพทย์" value={stats.hA} icon="activity" color="red" onClick={()=>dl('เฝ้าระวังแพทย์','hA','')}/><StatCard label="อาหารพิเศษ" value={stats.fA} icon="pizza" color="brand" onClick={()=>dl('อาหารพิเศษ','fA','')}/></div><div className="glass-panel p-8 rounded-[3rem] shadow-soft"><h3 className="text-xl font-black mb-6 dark:text-white flex items-center gap-2"><Icon name="list" className="text-slate-400"/> อัปเดตล่าสุด</h3><div className="overflow-x-auto custom-scrollbar pb-2"><table className="w-full text-sm text-left"><thead className="text-xs text-slate-400 uppercase bg-slate-50 dark:bg-white/5"><tr><th className="py-3 px-5 rounded-l-xl">ชื่อ-นามสกุล</th><th className="py-3 px-5">สาขาวิชา</th><th className="py-3 px-5 rounded-r-xl">สถานะ</th></tr></thead><tbody className="divide-y divide-slate-100 dark:divide-white/5">{stats.us.slice().reverse().slice(0,10).map((r,i)=><tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors"><td className="py-4 px-5 font-bold dark:text-white">{r.FullName}</td><td className="py-4 px-5 text-xs font-semibold text-slate-500">{r.Major}</td><td className="py-4 px-5">{r.Disease!=='ไม่มี'||r.FoodAllergy!=='ไม่แพ้'?<span className="text-red-600 text-[10px] font-bold bg-red-50 dark:bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-100 dark:border-red-500/20">เฝ้าระวัง</span>:<span className="text-emerald-600 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-100 dark:border-emerald-500/20">ปกติ</span>}</td></tr>)}</tbody></table></div></div></div>}
-                        
-                        {actTab==='majors'&&<div className="glass-panel p-8 rounded-[3rem] shadow-soft"><div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4"><h3 className="text-2xl font-black dark:text-white">สัดส่วนสาขาวิชา</h3><span className="bg-slate-100 dark:bg-white/10 px-4 py-2 rounded-xl text-xs font-bold text-slate-500">คลิกที่กราฟเพื่อดูรายชื่อ</span></div><div className="h-[450px] w-full"><ResponsiveContainer><PieChart><Pie data={stats.pd} innerRadius="55%" outerRadius="85%" dataKey="value" stroke="none">{stats.pd.map((e,i)=><Cell key={i} fill={stats.c[i%stats.c.length]} onClick={()=>dl(e.name,'mj',e.name)} className="cursor-pointer hover:opacity-80 transition-opacity outline-none"/>)}</Pie><Tooltip contentStyle={{borderRadius:'1rem',border:'none',boxShadow:'0 10px 25px rgba(0,0,0,0.1)'}} itemStyle={{fontWeight:'bold'}} cursor={false}/><Legend verticalAlign="bottom" height={36}/></PieChart></ResponsiveContainer></div></div>}
-
-                        {actTab==='health'&&<div className="space-y-8"><div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"><div className="glass-panel p-6 rounded-3xl border-t-[6px] border-orange-500 text-center shadow-soft"><p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">แพ้อาหาร</p><h3 className="text-4xl font-black text-orange-600">{stats.fa.length}</h3></div><div className="glass-panel p-6 rounded-3xl border-t-[6px] border-blue-500 text-center shadow-soft"><p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">ฮาลาล/เจ/มัง</p><h3 className="text-4xl font-black text-blue-600">{stats.t - stats.ds['ไม่มี']}</h3></div><div className="glass-panel p-6 rounded-3xl border-t-[6px] border-pink-500 text-center shadow-soft"><p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">โรคประจำตัว</p><h3 className="text-4xl font-black text-pink-600">{stats.md.length}</h3></div><div className="glass-panel p-6 rounded-3xl border-t-[6px] border-purple-500 text-center shadow-soft"><p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">ประวัติแพ้ยา</p><h3 className="text-4xl font-black text-purple-600">{stats.ma.length}</h3></div></div><div className="glass-panel p-8 rounded-[3rem] shadow-soft"><h3 className="text-xl font-black mb-6 dark:text-white flex items-center gap-2"><div className="p-2 bg-orange-100 text-orange-500 rounded-lg"><Icon name="pizza" size={18}/></div> รายชื่อผู้ต้องดูแลพิเศษด้านโภชนาการ</h3><div className="overflow-x-auto custom-scrollbar pb-2"><table className="w-full text-sm text-left"><thead className="text-xs text-slate-400 uppercase bg-slate-50 dark:bg-white/5"><tr><th className="py-3 px-5 rounded-l-xl">ชื่อ-นามสกุล</th><th className="py-3 px-5">อาหารเฉพาะ</th><th className="py-3 px-5 rounded-r-xl">แพ้อาหาร</th></tr></thead><tbody className="divide-y divide-slate-100 dark:divide-white/5">{stats.us.filter(r=>r.SpecificDiet!=='ไม่มี'||r.FoodAllergy!=='ไม่แพ้').map((r,i)=><tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors"><td className="py-4 px-5 font-bold dark:text-white">{r.FullName}</td><td className="py-4 px-5">{r.SpecificDiet!=='ไม่มี'?<span className="text-blue-600 font-bold bg-blue-50 px-3 py-1 rounded-lg text-xs">{r.SpecificDiet}</span>:'-'}</td><td className="py-4 px-5">{r.FoodAllergy!=='ไม่แพ้'?<span className="text-orange-600 font-bold bg-orange-50 px-3 py-1 rounded-lg text-xs border border-orange-200">{r.FoodAllergy}</span>:'-'}</td></tr>)}</tbody></table></div></div></div>}
-
-                        {actTab==='surv'&&<div className="glass-panel p-8 md:p-10 rounded-[3rem] border-t-[8px] border-red-500 shadow-soft"><div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4"><h3 className="text-2xl font-black text-red-600 flex items-center gap-3"><div className="p-3 bg-red-100 rounded-2xl"><Icon name="shield-alert" size={24}/></div> กลุ่มเฝ้าระวัง (Surveillance)</h3><div className="text-5xl font-black text-red-500">{stats.sl.length} <span className="text-base text-slate-500">คน</span></div></div><div className="overflow-x-auto custom-scrollbar pb-2"><table className="w-full text-sm text-left"><thead className="text-xs text-slate-400 uppercase bg-red-50/50 dark:bg-red-900/10"><tr><th className="py-4 px-5 rounded-l-xl">ชื่อ-นามสกุล</th><th className="py-4 px-5">สาขาวิชา</th><th className="py-4 px-5 text-center rounded-r-xl">ประเด็นเสี่ยง (ข้อ)</th></tr></thead><tbody className="divide-y divide-slate-100 dark:divide-white/5">{stats.sl.map((r,i)=><tr key={i} className="hover:bg-red-50/30 dark:hover:bg-red-900/10 transition-colors"><td className="py-4 px-5 font-bold text-red-600 dark:text-red-400">{r.FullName}</td><td className="py-4 px-5 text-xs font-semibold text-slate-500">{r.Major}</td><td className="py-4 px-5 text-center"><span className="bg-red-100 dark:bg-red-500/20 text-red-600 border border-red-200 px-3 py-1 rounded-lg font-black shadow-sm text-xs">{r.i?.length||1}</span></td></tr>)}</tbody></table></div></div>}
-
-                        {actTab==='create_act'&&<div className="space-y-8"><form onSubmit={async e=>{e.preventDefault(); if(!actForm.name)return; Swal.fire({title:'บันทึก...',didOpen:()=>Swal.showLoading(),customClass:{popup:'rounded-[2.5rem]'}}); try{await submitAPI('create_activity',{ActivityName:actForm.name,ActivityDate:actForm.d,Location:actForm.l});Swal.fire({icon:'success',title:'สำเร็จ',timer:1500,showConfirmButton:false});setActForm({name:'',d:'',l:''});}catch(err){Swal.fire('Error',err.message,'error');}}} className="glass-panel p-8 md:p-10 rounded-[3rem] border-t-[8px] border-purple-500 space-y-6 shadow-soft"><h3 className="text-2xl font-black dark:text-white flex items-center gap-3"><div className="p-3 bg-purple-100 text-purple-600 rounded-2xl"><Icon name="calendar-plus"/></div> สร้างกิจกรรมใหม่</h3><Input label="ชื่อกิจกรรม" val={actForm.name} onChange={v=>setActForm({...actForm,name:v})} req/><div className="grid grid-cols-1 md:grid-cols-2 gap-6"><Input type="datetime-local" label="เวลา" val={actForm.d} onChange={v=>setActForm({...actForm,d:v})} req/><Input label="สถานที่" val={actForm.l} onChange={v=>setActForm({...actForm,l:v})} req/></div><div className="pt-2 flex justify-end"><button type="submit" className="px-10 py-4 bg-purple-600 text-white rounded-2xl font-black shadow-lg shadow-purple-500/30 btn-interactive flex items-center gap-2"><Icon name="save"/> บันทึกข้อมูล</button></div></form><div className="glass-panel p-8 rounded-[3rem] shadow-soft"><h3 className="text-xl font-black mb-6 dark:text-white">รายการกิจกรรม</h3><div className="overflow-x-auto custom-scrollbar pb-2"><table className="w-full text-sm text-left"><thead className="text-xs text-slate-400 uppercase bg-slate-50 dark:bg-white/5"><tr><th className="py-3 px-5 rounded-l-xl">ชื่อกิจกรรม</th><th className="py-3 px-5 text-center">สถานะ</th><th className="py-3 px-5 text-center rounded-r-xl">ผู้เข้าร่วม</th></tr></thead><tbody className="divide-y divide-slate-100 dark:divide-white/5">{actDefs.map((a,i)=><tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors"><td className="py-4 px-5 font-bold dark:text-white">{a.ActivityName}</td><td className="py-4 px-5 text-center"><button onClick={()=>toggleActStatus(a.ActivityName, a.Status)} className={`relative inline-flex h-8 w-14 shrink-0 rounded-full transition-colors border-2 border-transparent ${a.Status!=='CLOSED'?'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)]':'bg-slate-300 dark:bg-slate-700'}`}><span className={`inline-block h-7 w-7 transform rounded-full bg-white transition-transform ${a.Status!=='CLOSED'?'translate-x-6':'translate-x-0'}`}/></button></td><td className="py-4 px-5 text-center"><span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-lg font-black text-xs shadow-sm">{actLogs.filter(x=>x.ActivityName===a.ActivityName).length}</span></td></tr>)}</tbody></table></div></div></div>}
-
-                        {actTab==='act_sum'&&<div className="space-y-8"><div className="glass-panel p-8 rounded-[3rem] bg-pink-50/80 dark:bg-pink-900/10 border border-pink-100 dark:border-pink-900/30 shadow-sm"><h3 className="text-2xl font-black text-pink-600 flex items-center gap-3"><span className="relative flex h-4 w-4"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span className="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span></span> Real-Time Recording</h3><p className="text-sm font-medium text-pink-500/80 mt-2">ยอดการเช็คชื่อเข้ากิจกรรมแบบเรียลไทม์</p></div>{actDefs.map((a,i)=>{const lg=actLogs.filter(x=>x.ActivityName===a.ActivityName); const mc=lg.reduce((acc,c)=>{const m=c.Major||'อื่นๆ'; acc[m]=(acc[m]||0)+1; return acc;},{}); return <div key={i} className="glass-panel p-8 rounded-[3rem] shadow-soft border-l-[8px] border-pink-500"><div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 border-b border-slate-100 dark:border-white/5 pb-6"><h4 className="text-xl font-black dark:text-white">{a.ActivityName}</h4><button onClick={()=>dl(`ลงทะเบียน: ${a.ActivityName}`,'act',a.ActivityName)} className="bg-pink-50 text-pink-600 border border-pink-200 px-6 py-3 rounded-2xl font-black shadow-sm btn-interactive group"><span className="text-[10px] uppercase tracking-widest block opacity-70 group-hover:opacity-100">ยอดรวม</span>{lg.length} คน</button></div><div className="grid grid-cols-2 md:grid-cols-4 gap-4">{Object.entries(mc).map(([m,c],j)=><div key={j} onClick={()=>dl(`สาขา: ${m}`,'act_major',{act:a.ActivityName, maj:m})} className="p-4 bg-slate-50/80 dark:bg-white/5 rounded-2xl cursor-pointer border border-transparent hover:border-pink-300 hover:shadow-md transition-all group"><p className="text-xs font-semibold text-slate-500 truncate mb-1" title={m}>{m}</p><p className="font-black text-2xl dark:text-white group-hover:text-pink-600 transition-colors">{c}</p></div>)}</div></div>})}</div>}
-
-                        {actTab==='survey'&&<div className="space-y-8"><div className="glass-panel p-8 md:p-10 rounded-[3rem] border-t-[8px] border-yellow-500 shadow-soft"><div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4"><h3 className="text-2xl font-black dark:text-white flex items-center gap-3"><div className="p-3 bg-yellow-100 text-yellow-600 rounded-2xl"><Icon name="bar-chart-2"/></div> รายงาน SPSS</h3><select value={selSurvey} onChange={e=>setSelSurvey(e.target.value)} className="input-modern rounded-2xl px-5 py-3 text-sm font-bold shadow-sm w-full sm:w-auto"><option value="ทั้งหมด">รวมทุกกิจกรรม</option>{actDefs.map((a,i)=><option key={i} value={a.ActivityName}>{a.ActivityName}</option>)}</select></div><div className="grid grid-cols-2 gap-4 md:gap-6 mb-8"><div className="p-8 bg-slate-50 dark:bg-white/5 rounded-[2rem] text-center border border-slate-100 dark:border-white/5"><p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">ผู้ประเมิน (N)</p><h3 className="text-5xl font-black dark:text-white">{sStats.t}</h3></div><div className="p-8 bg-yellow-50/80 dark:bg-yellow-900/10 rounded-[2rem] text-center border border-yellow-100 dark:border-yellow-500/20"><p className="text-xs font-bold text-yellow-600 uppercase tracking-widest mb-1">ค่าเฉลี่ยรวม (x̄)</p><h3 className="text-5xl font-black text-yellow-600">{sStats.oMean}</h3></div></div><div className="overflow-x-auto custom-scrollbar pb-2"><table className="w-full text-sm text-left"><thead className="text-xs text-slate-400 border-b border-slate-200 dark:border-white/10 uppercase bg-slate-50 dark:bg-white/5"><tr><th className="py-4 px-5 rounded-l-xl">หัวข้อ</th><th className="py-4 px-5 text-center w-24">Mean</th><th className="py-4 px-5 text-center w-32 rounded-r-xl">แปลผล</th></tr></thead><tbody className="divide-y divide-slate-100 dark:divide-white/5">{sStats.flat.map((f,i)=><tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors"><td className="py-4 px-5 font-semibold dark:text-white">{f.q}</td><td className="py-4 px-5 text-center font-black text-lg text-brand">{f.mean}</td><td className="py-4 px-5 text-center"><span className="text-[10px] font-black px-3 py-1.5 rounded-lg border shadow-sm text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600">{f.interp}</span></td></tr>)}</tbody></table></div></div></div>}
-
-                        {actTab==='users'&&<div className="glass-panel p-8 md:p-10 rounded-[3rem] shadow-soft"><div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4"><h3 className="text-2xl font-black dark:text-white flex items-center gap-3"><div className="p-3 bg-slate-100 dark:bg-white/10 rounded-2xl"><Icon name="users-cog"/></div> จัดการ Admin</h3><button onClick={()=>{setUForm({id:null,user:'',pass:'',role:'Manager',status:'Active'});setShowU(true);}} className="bg-slate-800 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-2xl text-sm font-black shadow-md btn-interactive">+ เพิ่มผู้ใช้</button></div><div className="overflow-x-auto custom-scrollbar pb-2"><table className="w-full text-sm text-left"><thead className="text-xs text-slate-400 uppercase bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5"><tr><th className="py-4 px-5 rounded-l-xl">Username</th><th className="py-4 px-5">Role</th><th className="py-4 px-5 text-right rounded-r-xl">จัดการ</th></tr></thead><tbody className="divide-y divide-slate-100 dark:divide-white/5">{adminList.map(u=><tr key={u.id} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors"><td className="py-4 px-5 font-bold dark:text-white flex items-center gap-2"><Icon name="user" size={16} className="text-slate-400"/> {u.user}</td><td className="py-4 px-5"><span className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-600 dark:text-blue-400 px-3 py-1.5 rounded-lg text-[10px] font-black tracking-widest uppercase">{u.role}</span></td><td className="py-4 px-5 text-right"><button onClick={()=>{setUForm({...u,pass:''});setShowU(true);}} className="text-slate-400 hover:text-blue-500 mr-4 transition-colors"><Icon name="edit" size={18}/></button></td></tr>)}</tbody></table></div></div>}
-
-                        {actTab==='settings'&&<div className="glass-panel p-8 md:p-10 rounded-[3rem] border-t-[8px] border-slate-500 shadow-soft"><h3 className="text-2xl font-black mb-8 dark:text-white flex items-center gap-3"><div className="p-3 bg-slate-100 dark:bg-white/10 rounded-2xl"><Icon name="settings"/></div> ตั้งค่าระบบ</h3><div className="flex flex-col sm:flex-row sm:items-center justify-between p-6 sm:p-8 bg-slate-50 dark:bg-white/5 rounded-[2rem] border border-slate-200 dark:border-white/10 gap-6"><div><h4 className="font-black text-lg dark:text-white flex items-center gap-2"><Icon name={isRegOpen?"user-check":"user-minus"} className={isRegOpen?"text-emerald-500":"text-slate-400"}/> สถานะขึ้นทะเบียนนักศึกษาใหม่</h4><p className="text-sm text-slate-500 mt-2 font-medium">เปิดหรือปิดระบบเพื่อไม่ให้นักศึกษาเข้ามาลงทะเบียนชั่วคราว</p></div><button onClick={toggleReg} className={`relative inline-flex h-10 w-16 shrink-0 rounded-full transition-colors border-2 border-transparent ${isRegOpen?'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)]':'bg-slate-300 dark:bg-slate-700'}`}><span className={`inline-block h-9 w-9 transform rounded-full bg-white transition-transform ${isRegOpen?'translate-x-6':'translate-x-0'}`}/></button></div></div>}
-                    </div>
-
-                    {/* Modals */}
-                    {dd.l.length > 0 && <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 sm:p-6 bg-slate-900/80 backdrop-blur-md print:hidden animate-fade-in"><div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 p-8 md:p-10 rounded-[3rem] w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl animate-slide-up"><div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4"><h3 className="text-2xl font-black dark:text-white leading-tight">{dd.t} <span className="block sm:inline text-brand text-sm bg-brand/10 px-3 py-1.5 rounded-lg sm:ml-2 mt-2 sm:mt-0 font-bold">{dd.l.length} รายการ</span></h3><button onClick={()=>setDd({t:'',l:[],ty:''})} className="p-3 bg-slate-100 dark:bg-white/10 rounded-2xl hover:bg-slate-200 transition-colors btn-interactive"><Icon name="x"/></button></div><div className="overflow-y-auto flex-1 custom-scrollbar -mx-2 px-2"><table className="w-full text-sm text-left"><thead className="text-[11px] text-slate-500 uppercase tracking-widest sticky top-0 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md z-10"><tr><th className="py-4 px-4 font-black rounded-l-xl">ชื่อ-นามสกุล</th><th className="py-4 px-4 font-black">รหัส/ปชช.</th><th className="py-4 px-4 font-black">สาขาวิชา</th><th className="py-4 px-4 font-black rounded-r-xl">ข้อมูลติดต่อ</th></tr></thead><tbody className="divide-y divide-slate-100 dark:divide-white/5">{dd.l.map((r,i)=><tr key={i} className="hover:bg-slate-50/80 dark:hover:bg-white/5 transition-colors"><td className="py-4 px-4 font-bold dark:text-white">{r.FullName}</td><td className="py-4 px-4 font-mono text-xs font-bold text-brand">{r.StudentID||r.IDCard}</td><td className="py-4 px-4 text-xs font-semibold text-slate-500">{r.Major}</td><td className="py-4 px-4 text-xs"><div className="font-semibold text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1.5"><Icon name="phone" size={12}/> {r.StudentPhone}</div>{r.ParentPhone && r.ParentPhone!=='-' && <div className="font-bold text-red-500 flex items-center gap-1.5"><Icon name="phone-call" size={12}/> {r.ParentPhone}</div>}</td></tr>)}</tbody></table></div></div></div>}
-                    {showU && <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 sm:p-6 bg-slate-900/80 backdrop-blur-md print:hidden animate-fade-in"><div className="bg-white dark:bg-zinc-900 p-8 md:p-10 rounded-[3rem] w-full max-w-md shadow-2xl animate-slide-up"><div className="flex justify-between items-center mb-8"><h3 className="text-2xl font-black dark:text-white flex items-center gap-2"><Icon name={uForm.id?'edit':'user-plus'} className="text-brand"/> {uForm.id?'แก้ไขแอดมิน':'เพิ่มแอดมิน'}</h3><button onClick={()=>setShowU(false)} className="p-3 bg-slate-100 dark:bg-white/10 rounded-2xl hover:bg-slate-200 transition-colors btn-interactive"><Icon name="x"/></button></div><form onSubmit={e=>{e.preventDefault(); if(uForm.id) setAdminList(adminList.map(u=>u.id===uForm.id?uForm:u)); else setAdminList([...adminList, {...uForm, id:Date.now()}]); setShowU(false); Swal.fire({icon:'success',title:'สำเร็จ',timer:1500,showConfirmButton:false,customClass:{popup:'rounded-[2.5rem]'}} );}} className="space-y-5"><Input label="Username" val={uForm.user} onChange={v=>setUForm({...uForm,user:v})} req dis={uForm.user==='admin'}/><Input type="password" label={uForm.id?"รหัสผ่านใหม่":"รหัสผ่าน"} val={uForm.pass} onChange={v=>setUForm({...uForm,pass:v})} req={!uForm.id}/><div className="flex flex-col gap-2"><label className="text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400">สิทธิ์</label><select value={uForm.role} onChange={e=>setUForm({...uForm,role:e.target.value})} className="input-modern px-5 py-4 text-sm font-semibold disabled:opacity-50" disabled={uForm.user==='admin'}><option value="Manager">Manager</option><option value="Viewer">Viewer</option>{curUser?.role==='Super Admin'&&<option value="Super Admin">Super Admin</option>}</select></div><button type="submit" className="w-full py-4 brand-gradient text-white rounded-2xl font-black text-lg mt-6 shadow-glow-brand hover:-translate-y-1 transition-all btn-interactive">บันทึกข้อมูล</button></form></div></div>}
                 </div>
             );
         }
 
-        function App() {
-            const [isDarkMode, setIsDarkMode] = useState(false); const [currentView, setCurrentView] = useState('home'); const [surveyData, setSurveyData] = useState({ act: '', sid: '' }); const [currentUser, setCurrentUser] = useState(null);
-            const [isRegOpen, setRegOpen] = useState(()=>{ try { const s = localStorage.getItem('digit69_isRegOpen'); return s!==null?s==='true':true; } catch(e) { return true; } });
-            const [mockUsers] = useState([{ id: 1, username: 'admin', password: '0000', role: 'Super Admin', status: 'Active' }, { id: 2, username: 'staff', password: '0000', role: 'Manager', status: 'Active' }]);
-            
-            useEffect(() => { const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; setIsDarkMode(isDark); }, []);
-            useEffect(() => { if (isDarkMode) document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark'); }, [isDarkMode]);
+        // --- 3. Check-In & Survey Flow ---
+        function CheckInFlow({ setView, theme }) {
+            const [step, setStep] = useState(1); 
+            const [searchId, setSearchId] = useState('');
+            const [studentData, setStudentData] = useState(null);
+            const [activities, setActivities] = useState([]);
+            const [selectedAct, setSelectedAct] = useState('');
+            const [survey, setSurvey] = useState({ q1:'5', q2:'5', q3:'5', q4:'5', q5:'5', comment:'' });
+
+            useEffect(() => {
+                if(step === 2) {
+                    fetchSheetData('Activities').then(data => {
+                        setActivities(data.filter(r => r.Status === 'เปิด'));
+                    });
+                }
+            }, [step]);
+
+            const handleSearch = async (e) => {
+                e.preventDefault();
+                showSwal({ title: 'กำลังค้นหาข้อมูล...', didOpen: ()=>Swal.showLoading() }, theme);
+                const data = await fetchSheetData('Students');
+                const found = data.find(r => r.StudentID === searchId || r.IDCard === searchId);
+                Swal.close();
+                if(found) { setStudentData(found); setStep(2); }
+                else { showSwal({icon: 'warning', title: 'ไม่พบข้อมูล', text: 'กรุณาไปขึ้นทะเบียนนักศึกษาใหม่ก่อนเข้าใช้งาน'}, theme); }
+            };
+
+            const submitCheckIn = () => {
+                showSwal({ title: 'กำลังประมวลผล...', didOpen: ()=>Swal.showLoading() }, theme);
+                const payload = { ...studentData, activityName: selectedAct, survey: survey };
+                if(typeof google !== 'undefined' && google.script) {
+                    google.script.run.withSuccessHandler(res => {
+                        if(res.status === 'success') { 
+                            showSwal({icon: 'success', title: 'สำเร็จ', text: 'เช็คชื่อและบันทึกผลประเมินเรียบร้อย'}, theme).then(()=>setView('home')); 
+                        }
+                        else { showSwal({icon: 'error', title: 'ข้อผิดพลาด', text: res.message}, theme); }
+                    }).saveCheckInAndSurvey(payload);
+                } else {
+                    setTimeout(()=> { 
+                        showSwal({icon: 'success', title: 'สำเร็จ', text: '(Mock) เช็คชื่อเรียบร้อย'}, theme).then(()=>setView('home')); 
+                    }, 1500);
+                }
+            };
 
             return (
-                <AppContext.Provider value={{ isDarkMode }}>
-                    <div className="min-h-screen p-4 md:p-6 transition-colors duration-300 relative max-w-7xl mx-auto">
-                        <div className="flex justify-between items-center mb-8 bg-white/50 dark:bg-black/20 p-4 rounded-[2rem] shadow-sm border border-slate-200/50 dark:border-white/5 backdrop-blur-md sticky top-4 z-50 print:hidden"><div className="flex items-center gap-4 cursor-pointer group" onClick={() => setCurrentView('home')}><div className="w-14 h-14 bg-brand text-white rounded-2xl flex items-center justify-center font-black text-2xl shadow-glow-brand group-hover:scale-110 transition-transform">D</div><div><h2 className="font-black text-slate-800 dark:text-white leading-none text-xl md:text-2xl group-hover:text-brand transition-colors tracking-tight">DIGIT<span className="text-brand">.69</span></h2><p className="text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-0.5">Service Portal</p></div></div>{currentUser && currentView !== 'home' && currentView !== 'admin' && <button onClick={() => setCurrentView('admin')} className="px-5 py-3 bg-slate-800 dark:bg-white text-white dark:text-black rounded-xl text-sm font-bold shadow-md btn-interactive flex items-center gap-2"><Icon name="layout-dashboard" size={16}/> ไปหน้าหลังบ้าน</button>}</div>
-                        {currentView === 'home' && <HomeView onNew={() => setCurrentView('pdpa')} onAct={() => setCurrentView('activity_form')} onChk={() => setCurrentView('check_activity')} onAdmin={(u) => { setCurrentUser(u); setCurrentView('admin'); }} users={mockUsers} isRegOpen={isRegOpen} />}
-                        {currentView === 'pdpa' && <PdpaModal onAccept={() => setCurrentView('register')} onBack={() => setCurrentView('home')} />}
-                        {currentView === 'register' && <RegistrationForm onBack={() => setCurrentView('home')} onSuccess={() => setCurrentView('success')} />}
-                        {currentView === 'activity_form' && <ActivityForm onBack={() => setCurrentView('home')} onSuccess={(act, sid) => { setSurveyData({act, sid}); setCurrentView('survey_form'); }} />}
-                        {currentView === 'check_activity' && <CheckActivityView onBack={() => setCurrentView('home')} />}
-                        {currentView === 'survey_form' && <SurveyForm onBack={() => setCurrentView('home')} onSuccess={() => setCurrentView('success')} activityName={surveyData.act} studentID={surveyData.sid} />}
-                        {currentView === 'success' && <SuccessView onHome={() => setCurrentView('home')} />}
-                        {currentView === 'admin' && <AdminDashboard goBack={() => { setCurrentUser(null); setCurrentView('home'); }} curUser={currentUser} isRegOpen={isRegOpen} setRegOpen={setRegOpen} />}
-                        <button onClick={() => setIsDarkMode(!isDarkMode)} className="fixed bottom-6 right-6 w-14 h-14 bg-white dark:bg-zinc-800 text-slate-800 dark:text-white rounded-full shadow-2xl hover:scale-110 transition-transform flex items-center justify-center z-50 print:hidden border border-slate-100 dark:border-zinc-700"><Icon name={isDarkMode ? "sun" : "moon"} size={24} /></button>
+                <div className="max-w-2xl mx-auto glass-panel p-8 md:p-12 rounded-[2.5rem] animate-slide-up relative">
+                    <button onClick={() => setView('home')} className="absolute top-8 left-8 text-slate-400 hover:text-primary transition-colors flex items-center gap-2 text-sm font-bold"><i className="fas fa-arrow-left"></i> กลับ</button>
+                    
+                    <div className="pt-8">
+                        {step === 1 && (
+                            <form onSubmit={handleSearch} className="animate-fade-in text-center">
+                                <div className="w-20 h-20 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-6"><i className="fas fa-qrcode"></i></div>
+                                <h2 className="text-3xl font-extrabold mb-2 text-slate-900 dark:text-white">เช็คชื่อเข้ากิจกรรม</h2>
+                                <p className="text-slate-500 mb-8 text-sm">ค้นหาประวัติเพื่อลงทะเบียนรวดเร็ว</p>
+                                <div className="relative mb-6">
+                                    <i className="fas fa-search absolute left-5 top-5 text-slate-400 text-lg"></i>
+                                    <input required placeholder="กรอกรหัสนักศึกษา หรือ เลขบัตร ปชช." className="glass-input w-full pl-14 pr-6 py-5 rounded-2xl text-lg font-bold shadow-sm" value={searchId} onChange={e=>setSearchId(e.target.value)} />
+                                </div>
+                                <button type="submit" className="w-full py-4 btn-primary rounded-2xl font-bold text-lg shadow-lg">ค้นหาข้อมูล</button>
+                            </form>
+                        )}
+
+                        {step === 2 && studentData && (
+                            <div className="animate-fade-in">
+                                <h2 className="text-2xl font-extrabold mb-6 text-slate-900 dark:text-white">ยืนยันการเข้าร่วม</h2>
+                                <div className="bg-white/60 dark:bg-slate-800/60 p-6 rounded-2xl mb-8 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
+                                    <div className="w-14 h-14 bg-indigo-100 text-primary rounded-full flex items-center justify-center text-2xl"><i className="fas fa-user"></i></div>
+                                    <div>
+                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">ผู้เข้าร่วม</p>
+                                        <h3 className="text-xl font-bold text-slate-900 dark:text-white">{studentData.FullName}</h3>
+                                        <p className="font-semibold text-primary">{studentData.Major}</p>
+                                    </div>
+                                </div>
+                                <label className="text-xs font-bold text-slate-500 uppercase ml-2 mb-2 block">เลือกกิจกรรมที่เข้าร่วม *</label>
+                                <div className="relative mb-8">
+                                    <select required className="glass-input w-full p-4 pl-4 pr-10 rounded-2xl font-bold text-lg appearance-none bg-white/50" value={selectedAct} onChange={e=>setSelectedAct(e.target.value)}>
+                                        <option value="" disabled>-- เลือกกิจกรรม --</option>
+                                        {activities.map((a,i) => <option key={i} value={a.ActivityName}>{a.ActivityName}</option>)}
+                                    </select>
+                                    <i className="fas fa-chevron-down absolute right-5 top-5 text-slate-400 pointer-events-none"></i>
+                                </div>
+                                <button onClick={()=>setStep(3)} disabled={!selectedAct} className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white rounded-2xl font-bold text-lg shadow-lg transition-colors">ถัดไป: ทำแบบประเมิน <i className="fas fa-arrow-right ml-2"></i></button>
+                            </div>
+                        )}
+
+                        {step === 3 && (
+                            <form onSubmit={(e)=>{ e.preventDefault(); submitCheckIn(); }} className="animate-fade-in">
+                                <h2 className="text-2xl font-extrabold mb-2 text-slate-900 dark:text-white">แบบประเมินความพึงพอใจ</h2>
+                                <div className="inline-block bg-indigo-100 text-primary dark:bg-indigo-900/50 dark:text-indigo-300 px-3 py-1 rounded-full text-xs font-bold mb-8">กิจกรรม: {selectedAct}</div>
+                                
+                                <div className="space-y-6">
+                                    {[1,2,3,4,5].map((q, idx) => (
+                                        <div key={q} className="bg-white/40 dark:bg-slate-800/40 p-5 rounded-2xl border border-white/50 dark:border-slate-700/50">
+                                            <label className="block text-sm font-bold mb-3 text-slate-700 dark:text-slate-300">ข้อ {q}. ความพึงพอใจด้านการจัดกิจกรรมส่วนที่ {q}</label>
+                                            <div className="flex justify-between gap-2">
+                                                {[1,2,3,4,5].map(score => (
+                                                    <label key={score} className={`flex flex-col items-center justify-center cursor-pointer p-3 rounded-xl transition-all border w-1/5 ${survey[`q${q}`] == score ? 'bg-primary border-primary text-white shadow-md transform -translate-y-1' : 'bg-white/50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
+                                                        <input type="radio" name={`q${q}`} value={score} checked={survey[`q${q}`] == score} onChange={e=>setSurvey({...survey, [`q${q}`]:e.target.value})} className="hidden" />
+                                                        <span className="text-lg font-bold">{score}</span>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <div className="pt-2">
+                                        <label className="block text-sm font-bold mb-2 text-slate-700 dark:text-slate-300 ml-2">ข้อเสนอแนะเพิ่มเติม (ถ้ามี)</label>
+                                        <textarea placeholder="พิมพ์ข้อเสนอแนะของคุณ..." className="glass-input w-full p-4 rounded-2xl h-28 resize-none" value={survey.comment} onChange={e=>setSurvey({...survey, comment:e.target.value})}></textarea>
+                                    </div>
+                                </div>
+                                <div className="flex gap-4 pt-8">
+                                    <button type="button" onClick={()=>setStep(2)} className="w-1/3 py-4 glass-input rounded-2xl font-bold text-slate-600 dark:text-slate-300">ย้อนกลับ</button>
+                                    <button type="submit" className="w-2/3 py-4 btn-primary rounded-2xl font-bold text-lg shadow-lg">ส่งประเมิน & เสร็จสิ้น</button>
+                                </div>
+                            </form>
+                        )}
                     </div>
-                </AppContext.Provider>
+                </div>
             );
         }
-        const root = ReactDOM.createRoot(document.getElementById('root')); root.render(<App />);
+
+        // --- 4. History Flow ---
+        function HistoryCheck({ setView, theme }) {
+            const [searchId, setSearchId] = useState('');
+            const [history, setHistory] = useState(null);
+            const [student, setStudent] = useState(null);
+
+            const handleSearch = async (e) => {
+                e.preventDefault();
+                showSwal({ title: 'กำลังดึงข้อมูลประวัติ...', didOpen: ()=>Swal.showLoading() }, theme);
+                const logs = await fetchSheetData('Logs');
+                const students = await fetchSheetData('Students');
+                const stu = students.find(r => r.StudentID === searchId || r.IDCard === searchId);
+                const myLogs = logs.filter(r => r.StudentID === searchId || r.IDCard === searchId);
+                Swal.close();
+                
+                if(stu || myLogs.length > 0) { setStudent(stu); setHistory(myLogs); }
+                else { showSwal({icon: 'info', title: 'ไม่พบประวัติ', text: 'รหัสนี้ยังไม่เคยเข้าร่วมกิจกรรมใดๆ'}, theme); }
+            };
+
+            return (
+                <div className="max-w-3xl mx-auto glass-panel p-8 md:p-12 rounded-[2.5rem] animate-slide-up relative">
+                    <button onClick={() => setView('home')} className="absolute top-8 left-8 text-slate-400 hover:text-primary transition-colors flex items-center gap-2 text-sm font-bold"><i className="fas fa-arrow-left"></i> กลับ</button>
+                    
+                    <div className="pt-8">
+                        <div className="text-center mb-8">
+                            <div className="w-16 h-16 bg-purple-50 dark:bg-purple-500/10 text-purple-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4"><i className="fas fa-history"></i></div>
+                            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white">ตรวจสอบประวัติกิจกรรม</h2>
+                        </div>
+                        
+                        <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3 mb-10">
+                            <div className="relative flex-1">
+                                <i className="fas fa-search absolute left-5 top-5 text-slate-400"></i>
+                                <input required placeholder="กรอกรหัสนักศึกษา หรือ บัตร ปชช." className="glass-input w-full pl-14 pr-4 py-4 rounded-2xl font-bold" value={searchId} onChange={e=>setSearchId(e.target.value)} />
+                            </div>
+                            <button type="submit" className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-2xl font-bold shadow-lg transition-colors whitespace-nowrap">ค้นหาประวัติ</button>
+                        </form>
+
+                        {history && (
+                            <div className="animate-fade-in">
+                                {student && (
+                                    <div className="p-6 bg-white/60 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl mb-8 flex items-center gap-4 shadow-sm">
+                                        <div className="w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center text-slate-500"><i className="fas fa-user-graduate text-xl"></i></div>
+                                        <div>
+                                            <h3 className="font-extrabold text-xl text-slate-900 dark:text-white">{student.FullName}</h3>
+                                            <p className="text-sm font-semibold text-primary">{student.Major}</p>
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                <div className="flex justify-between items-end mb-4 px-2">
+                                    <h3 className="font-extrabold text-lg text-slate-800 dark:text-slate-200">กิจกรรมที่เข้าร่วมแล้ว</h3>
+                                    <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-bold">รวม {history.length} กิจกรรม</span>
+                                </div>
+
+                                {history.length === 0 ? (
+                                    <div className="text-center py-10 bg-white/40 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700">
+                                        <p className="text-slate-500 font-medium">ยังไม่มีประวัติการเข้าร่วมกิจกรรม</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {history.map((h, i) => (
+                                            <div key={i} className="glass-input p-5 rounded-2xl flex justify-between items-center hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors group">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 bg-purple-50 dark:bg-purple-500/10 text-purple-500 rounded-xl flex items-center justify-center"><i className="fas fa-ticket-alt"></i></div>
+                                                    <div>
+                                                        <p className="font-bold text-slate-800 dark:text-slate-200 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">{h.ActivityName}</p>
+                                                        <p className="text-xs text-slate-500 font-medium mt-0.5"><i className="far fa-clock mr-1"></i> {h.Timestamp}</p>
+                                                    </div>
+                                                </div>
+                                                <span className="bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1"><i className="fas fa-check-circle"></i> <span className="hidden sm:inline">{h.Status}</span></span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // --- 5. Admin Login ---
+        function AdminLogin({ setView, setIsAdmin, theme }) {
+            const [u, setU] = useState(''); const [p, setP] = useState('');
+            const login = (e) => {
+                e.preventDefault();
+                if(u==='admin' && p==='0000') { 
+                    setIsAdmin(true); 
+                    setView('admin'); 
+                    showSwal({icon: 'success', title: 'Welcome', text: 'เข้าสู่ระบบผู้ดูแลระบบสำเร็จ', timer: 1000, showConfirmButton: false}, theme);
+                }
+                else { showSwal({icon:'error', title:'Access Denied', text:'Username หรือ Password ไม่ถูกต้อง'}, theme); }
+            };
+            return (
+                <div className="max-w-sm mx-auto glass-panel p-10 rounded-[2.5rem] mt-16 animate-slide-up border-t-4 border-t-slate-900 dark:border-t-white shadow-2xl">
+                    <div className="text-center mb-8">
+                        <div className="w-16 h-16 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg rotate-3"><i className="fas fa-user-shield text-3xl"></i></div>
+                        <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white">Staff Login</h2>
+                        <p className="text-slate-500 text-sm mt-1">เฉพาะเจ้าหน้าที่ผู้ดูแลระบบ</p>
+                    </div>
+                    <form onSubmit={login} className="space-y-5">
+                        <div className="relative group">
+                            <i className="fas fa-user absolute left-4 top-4 text-slate-400 group-focus-within:text-primary transition-colors"></i>
+                            <input placeholder="Username" required className="glass-input w-full pl-11 pr-4 py-4 rounded-2xl font-bold" value={u} onChange={e=>setU(e.target.value)} />
+                        </div>
+                        <div className="relative group">
+                            <i className="fas fa-lock absolute left-4 top-4 text-slate-400 group-focus-within:text-primary transition-colors"></i>
+                            <input type="password" placeholder="Password" required className="glass-input w-full pl-11 pr-4 py-4 rounded-2xl font-bold" value={p} onChange={e=>setP(e.target.value)} />
+                        </div>
+                        <button className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-2xl mt-6 shadow-lg hover:shadow-xl transition-shadow text-lg">Sign In</button>
+                        <button type="button" onClick={() => setView('home')} className="w-full py-2 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white text-sm font-semibold transition-colors mt-2">ยกเลิก</button>
+                    </form>
+                </div>
+            );
+        }
+
+        // --- 6. Admin Dashboard (Complex View) ---
+        function AdminDashboard({ setView, regEnabled, setRegEnabled, theme }) {
+            const [tab, setTab] = useState('overview'); 
+            const [data, setData] = useState({ stu:[], act:[], logs:[], sur:[] });
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                Promise.all([fetchSheetData('Students'), fetchSheetData('Activities'), fetchSheetData('Logs'), fetchSheetData('Surveys')])
+                    .then(([stu, act, logs, sur]) => { setData({ stu, act, logs, sur }); setLoading(false); });
+            }, []);
+
+            if(loading) return <div className="text-center py-32"><div className="loader border-primary border-r-transparent mx-auto"></div><p className="mt-4 font-bold text-slate-500">Loading Workspace...</p></div>;
+
+            return (
+                <div className="flex flex-col lg:flex-row gap-6 animate-slide-up mt-4">
+                    {/* Admin Sidebar */}
+                    <div className="w-full lg:w-72 glass-panel p-5 rounded-[2.5rem] flex flex-col gap-2 h-fit lg:sticky top-24 shadow-sm">
+                        <div className="flex items-center gap-3 px-3 py-2 mb-2">
+                            <div className="w-10 h-10 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl flex items-center justify-center shadow-md"><i className="fas fa-layer-group"></i></div>
+                            <div>
+                                <h3 className="font-extrabold leading-tight text-slate-900 dark:text-white">Workspace</h3>
+                                <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Admin Panel</p>
+                            </div>
+                        </div>
+                        
+                        <p className="text-[10px] font-extrabold text-slate-400 uppercase ml-4 mt-2 mb-1 tracking-widest">Dashboard</p>
+                        <SidebarBtn active={tab==='overview'} onClick={()=>setTab('overview')} icon="fa-chart-pie" text="1. ภาพรวม KPI" />
+                        <SidebarBtn active={tab==='majors'} onClick={()=>setTab('majors')} icon="fa-chart-pie" text="2. สัดส่วนสาขา" />
+                        <SidebarBtn active={tab==='health'} onClick={()=>setTab('health')} icon="fa-utensils" text="3. โภชนาการ/สุขภาพ" />
+                        <SidebarBtn active={tab==='risk'} onClick={()=>setTab('risk')} icon="fa-exclamation-triangle" text="4. เฝ้าระวังพิเศษ" />
+                        <SidebarBtn active={tab==='exec'} onClick={()=>setTab('exec')} icon="fa-chart-line" text="5. รายงานผู้บริหาร" />
+                        
+                        <div className="my-2 border-t border-slate-200 dark:border-slate-700/50 mx-2"></div>
+                        <p className="text-[10px] font-extrabold text-slate-400 uppercase ml-4 mt-1 mb-1 tracking-widest">Management</p>
+                        <SidebarBtn active={tab==='act'} onClick={()=>setTab('act')} icon="fa-tasks" text="6. จัดการกิจกรรม" />
+                        <SidebarBtn active={tab==='realtime'} onClick={()=>setTab('realtime')} icon="fa-broadcast-tower" text="7. ยอดเช็คชื่อ Real-time" />
+                        <SidebarBtn active={tab==='spss'} onClick={()=>setTab('spss')} icon="fa-file-alt" text="8. รายงาน SPSS" />
+                        <SidebarBtn active={tab==='users'} onClick={()=>setTab('users')} icon="fa-users-cog" text="9. สิทธิ์เจ้าหน้าที่" />
+                        <SidebarBtn active={tab==='setting'} onClick={()=>setTab('setting')} icon="fa-sliders-h" text="10. ตั้งค่าระบบ" />
+                    </div>
+
+                    {/* Admin Content Area */}
+                    <div className="flex-1 glass-panel p-6 lg:p-10 rounded-[2.5rem] shadow-sm min-h-[70vh]">
+                        {tab === 'overview' && <AdminOverview data={data.stu} />}
+                        {tab === 'majors' && <AdminMajors data={data.stu} />}
+                        {tab === 'health' && <AdminHealth data={data.stu} />}
+                        {tab === 'risk' && <AdminRisk data={data.stu} />}
+                        {tab === 'exec' && <AdminExec />}
+                        {tab === 'act' && <AdminActivities acts={data.act} theme={theme} />}
+                        {tab === 'realtime' && <AdminRealtime logs={data.logs} acts={data.act} theme={theme} />}
+                        {tab === 'spss' && <AdminSPSS sur={data.sur} theme={theme} />}
+                        {tab === 'users' && <AdminUsers />}
+                        {tab === 'setting' && <AdminSettings regEnabled={regEnabled} setRegEnabled={setRegEnabled} theme={theme} />}
+                    </div>
+                </div>
+            );
+        }
+
+        const SidebarBtn = ({active, onClick, icon, text}) => (
+            <button onClick={onClick} className={`text-left px-4 py-3.5 rounded-2xl font-bold transition-all flex items-center gap-3 border border-transparent ${active ? 'bg-white dark:bg-slate-800 text-primary dark:text-white shadow-sm border-slate-200 dark:border-slate-700 translate-x-1' : 'text-slate-500 hover:bg-white/50 dark:hover:bg-slate-800/50 hover:text-slate-800 dark:hover:text-slate-300'}`}>
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm ${active ? 'bg-indigo-50 dark:bg-indigo-500/20 text-primary' : ''}`}>
+                    <i className={`fas ${icon}`}></i>
+                </div> 
+                <span className="text-sm">{text}</span>
+            </button>
+        );
+
+        // --- Admin Sub-Views ---
+        function AdminOverview({ data }) {
+            const riskCount = data.filter(d => d.FoodAllergy || d.Disease || d.DrugAllergy).length;
+            return (
+                <div className="animate-fade-in">
+                    <h2 className="text-3xl font-extrabold mb-8 text-slate-900 dark:text-white">ภาพรวม (Overview)</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+                        <div className="glass-input p-6 rounded-[2rem] relative overflow-hidden group">
+                            <div className="absolute -right-4 -top-4 w-20 h-20 bg-blue-500/10 rounded-full blur-xl group-hover:scale-150 transition-transform"></div>
+                            <div className="flex items-center gap-4 mb-2"><div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center"><i className="fas fa-users"></i></div><p className="text-sm font-bold text-slate-500">ขึ้นทะเบียนรวม</p></div>
+                            <h3 className="text-4xl font-extrabold mt-2 text-slate-900 dark:text-white">{data.length}</h3>
+                        </div>
+                        <div className="glass-input p-6 rounded-[2rem] relative overflow-hidden group">
+                            <div className="absolute -right-4 -top-4 w-20 h-20 bg-emerald-500/10 rounded-full blur-xl group-hover:scale-150 transition-transform"></div>
+                            <div className="flex items-center gap-4 mb-2"><div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center"><i className="fas fa-heartbeat"></i></div><p className="text-sm font-bold text-slate-500">สุขภาพปกติ</p></div>
+                            <h3 className="text-4xl font-extrabold mt-2 text-slate-900 dark:text-white">{data.length - riskCount}</h3>
+                        </div>
+                        <div className="glass-input p-6 rounded-[2rem] relative overflow-hidden group border-rose-200 dark:border-rose-900/50">
+                            <div className="absolute -right-4 -top-4 w-20 h-20 bg-rose-500/10 rounded-full blur-xl group-hover:scale-150 transition-transform"></div>
+                            <div className="flex items-center gap-4 mb-2"><div className="w-10 h-10 bg-rose-100 text-rose-600 rounded-xl flex items-center justify-center"><i className="fas fa-exclamation-triangle"></i></div><p className="text-sm font-bold text-rose-500">ต้องเฝ้าระวังพิเศษ</p></div>
+                            <h3 className="text-4xl font-extrabold mt-2 text-rose-500">{riskCount}</h3>
+                        </div>
+                    </div>
+                    <h3 className="font-extrabold text-lg mb-4 text-slate-800 dark:text-slate-200">รายชื่อขึ้นทะเบียน 5 ล่าสุด</h3>
+                    <div className="overflow-x-auto bg-white/40 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-700">
+                        <table className="w-full text-sm text-left whitespace-nowrap">
+                            <thead className="bg-slate-100/50 dark:bg-slate-800/80 text-slate-500"><tr><th className="p-4 font-bold">รหัส</th><th className="p-4 font-bold">ชื่อ-นามสกุล</th><th className="p-4 font-bold">สาขาวิชา</th><th className="p-4 font-bold">สถานะสุขภาพ</th></tr></thead>
+                            <tbody>{data.slice(-5).reverse().map((d,i) => (
+                                <tr key={i} className="border-b border-slate-100 dark:border-slate-700/50 hover:bg-white/50 dark:hover:bg-slate-800 transition"><td className="p-4 font-semibold">{d.StudentID}</td><td className="p-4 font-bold text-slate-800 dark:text-slate-200">{d.FullName}</td><td className="p-4 text-slate-500">{d.Major}</td>
+                                <td className="p-4">{d.Disease || d.FoodAllergy || d.DrugAllergy ? <span className="bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 px-3 py-1 rounded-full text-xs font-bold"><i className="fas fa-exclamation-circle mr-1"></i> เฝ้าระวัง</span> : <span className="bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-3 py-1 rounded-full text-xs font-bold"><i className="fas fa-check-circle mr-1"></i> ปกติ</span>}</td></tr>
+                            ))}</tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+        }
+
+        function AdminMajors({ data }) {
+            const chartRef = useRef(null);
+            useEffect(() => {
+                if(data.length === 0) return;
+                const majors = {}; data.forEach(d => { majors[d.Major] = (majors[d.Major]||0)+1; });
+                const ctx = document.getElementById('majorChart');
+                if(chartRef.current) chartRef.current.destroy();
+                Chart.defaults.font.family = "'Sarabun', sans-serif";
+                Chart.defaults.color = document.documentElement.classList.contains('dark') ? '#94a3b8' : '#64748b';
+                chartRef.current = new Chart(ctx, { 
+                    type: 'doughnut', 
+                    data: { labels: Object.keys(majors), datasets: [{ data: Object.values(majors), backgroundColor: ['#4f46e5','#0ea5e9','#f43f5e'], borderWidth: 0, hoverOffset: 4 }] },
+                    options: { cutout: '65%', plugins: { legend: { position: 'bottom', labels: { padding: 20, font: { weight: 'bold' } } } } }
+                });
+            }, [data]);
+            return (<div className="animate-fade-in"><h2 className="text-3xl font-extrabold mb-8 text-slate-900 dark:text-white">สัดส่วนสาขาวิชา</h2><div className="w-full max-w-sm mx-auto bg-white/40 dark:bg-slate-800/40 p-8 rounded-[2.5rem] border border-slate-200 dark:border-slate-700 shadow-sm"><canvas id="majorChart"></canvas></div></div>);
+        }
+
+        function AdminHealth({ data }) {
+            const specDiet = data.filter(d => d.Diet !== 'ทั่วไป');
+            return (
+                <div className="animate-fade-in">
+                    <h2 className="text-3xl font-extrabold mb-6 text-slate-900 dark:text-white">โภชนาการ & สุขภาพ</h2>
+                    <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800/50 p-4 rounded-2xl mb-6 flex items-start gap-3">
+                        <i className="fas fa-info-circle text-orange-500 mt-1"></i>
+                        <p className="text-sm text-orange-700 dark:text-orange-300">ตารางนี้สำหรับส่งให้ฝ่ายสวัสดิการ เพื่อจัดเตรียมอาหารพิเศษให้กับนักศึกษา</p>
+                    </div>
+                    <div className="overflow-x-auto bg-white/40 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-700">
+                        <table className="w-full text-sm text-left whitespace-nowrap"><thead className="bg-slate-100/50 dark:bg-slate-800/80 text-slate-500"><tr><th className="p-4 font-bold">ชื่อ-นามสกุล</th><th className="p-4 font-bold">สาขาวิชา</th><th className="p-4 font-bold">ประเภทอาหาร</th><th className="p-4 font-bold">ประวัติแพ้อาหาร</th></tr></thead>
+                        <tbody>{specDiet.map((d,i)=><tr key={i} className="border-b border-slate-100 dark:border-slate-700/50 hover:bg-white/50 dark:hover:bg-slate-800 transition"><td className="p-4 font-bold text-slate-800 dark:text-slate-200">{d.FullName}</td><td className="p-4 text-slate-500">{d.Major}</td><td className="p-4"><span className="bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 px-3 py-1 rounded-full text-xs font-bold">{d.Diet}</span></td><td className="p-4 text-rose-500 font-semibold">{d.FoodAllergy||'-'}</td></tr>)}</tbody></table>
+                    </div>
+                </div>
+            );
+        }
+
+        function AdminRisk({ data }) {
+            const risks = data.filter(d => d.Disease || d.FoodAllergy || d.DrugAllergy).map(d => {
+                let level = 0; if(d.Disease) level++; if(d.FoodAllergy) level++; if(d.DrugAllergy) level++;
+                return {...d, level};
+            }).sort((a,b)=>b.level - a.level);
+            return (
+                <div className="animate-fade-in">
+                    <h2 className="text-3xl font-extrabold mb-8 text-rose-500"><i className="fas fa-exclamation-triangle mr-2"></i> กลุ่มเฝ้าระวังพิเศษ (High Risk)</h2>
+                    <div className="overflow-x-auto bg-white/40 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-700">
+                        <table className="w-full text-sm text-left whitespace-nowrap"><thead className="bg-slate-100/50 dark:bg-slate-800/80 text-slate-500"><tr><th className="p-4 font-bold">ข้อมูลนักศึกษา</th><th className="p-4 font-bold">โรคประจำตัว</th><th className="p-4 font-bold">แพ้ยา</th><th className="p-4 font-bold text-center">ระดับความเสี่ยง</th></tr></thead>
+                        <tbody>{risks.map((d,i)=><tr key={i} className="border-b border-slate-100 dark:border-slate-700/50 hover:bg-white/50 dark:hover:bg-slate-800 transition"><td className="p-4"><p className="font-bold text-slate-800 dark:text-slate-200">{d.FullName}</p><p className="text-xs text-slate-500 mt-0.5"><i className="fas fa-phone-alt"></i> {d.Phone}</p></td><td className="p-4 text-rose-500 font-semibold">{d.Disease||'-'}</td><td className="p-4 text-rose-500 font-semibold">{d.DrugAllergy||'-'}</td><td className="p-4 text-center"><span className="bg-rose-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-sm shadow-rose-500/30">Level {d.level}</span></td></tr>)}</tbody></table>
+                    </div>
+                </div>
+            );
+        }
+
+        function AdminExec() {
+            return (
+                <div className="text-center py-16 animate-fade-in">
+                    <div className="w-24 h-24 bg-blue-100 dark:bg-blue-500/20 text-blue-600 rounded-[2rem] flex items-center justify-center text-5xl mx-auto mb-6 shadow-inner"><i className="fas fa-chart-line"></i></div>
+                    <h2 className="text-3xl font-extrabold mb-3 text-slate-900 dark:text-white">Executive Report Dashboard</h2>
+                    <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-md mx-auto text-lg">ดูภาพรวมเชิงลึกแบบ Interactive สวยงามด้วย Looker Studio หรือ Power BI</p>
+                    <button className="btn-primary px-8 py-4 rounded-2xl font-bold text-lg shadow-lg">เปิด Dashboard สรุปผล <i className="fas fa-external-link-alt ml-2"></i></button>
+                </div>
+            );
+        }
+
+        function AdminActivities({ acts, theme }) {
+            const createAct = (e) => {
+                e.preventDefault(); showSwal({icon: 'success', title: 'สำเร็จ', text: '(Mock) สร้างกิจกรรมใหม่แล้ว'}, theme); e.target.reset();
+            };
+            return (
+                <div className="animate-fade-in">
+                    <h2 className="text-3xl font-extrabold mb-8 text-slate-900 dark:text-white">จัดการกิจกรรม</h2>
+                    <form onSubmit={createAct} className="glass-input p-6 md:p-8 rounded-[2rem] flex gap-5 items-end mb-10 flex-col md:flex-row border-t-4 border-t-primary">
+                        <div className="w-full flex-1"><label className="text-xs font-bold text-slate-500 uppercase ml-1 mb-1 block">ชื่อกิจกรรม</label><input required className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 font-semibold focus:outline-none focus:border-primary" /></div>
+                        <div className="w-full md:w-auto"><label className="text-xs font-bold text-slate-500 uppercase ml-1 mb-1 block">วันและเวลา</label><input type="datetime-local" required className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 font-semibold focus:outline-none focus:border-primary" /></div>
+                        <div className="w-full md:w-auto"><label className="text-xs font-bold text-slate-500 uppercase ml-1 mb-1 block">สถานที่จัด</label><input required className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 font-semibold focus:outline-none focus:border-primary" /></div>
+                        <button className="w-full md:w-auto btn-primary px-8 py-3.5 rounded-xl font-bold whitespace-nowrap"><i className="fas fa-plus mr-2"></i> สร้างกิจกรรม</button>
+                    </form>
+                    <div className="overflow-x-auto bg-white/40 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-700">
+                        <table className="w-full text-sm text-left whitespace-nowrap"><thead className="bg-slate-100/50 dark:bg-slate-800/80 text-slate-500"><tr><th className="p-4 font-bold">ชื่อกิจกรรม</th><th className="p-4 font-bold">วันเวลา</th><th className="p-4 font-bold text-center">สถานะ</th><th className="p-4 font-bold text-center">จัดการ</th></tr></thead>
+                        <tbody>{acts.map((a,i)=><tr key={i} className={`border-b border-slate-100 dark:border-slate-700/50 hover:bg-white/50 dark:hover:bg-slate-800 transition ${a.Status !== 'เปิด' ? 'opacity-50' : ''}`}><td className="p-4 font-bold text-slate-800 dark:text-slate-200">{a.ActivityName}</td><td className="p-4 text-slate-500">{a.DateTime}</td><td className="p-4 text-center"><button className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${a.Status==='เปิด'?'bg-emerald-100 text-emerald-700 hover:bg-emerald-200':'bg-slate-200 text-slate-600 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-300'}`}>{a.Status}</button></td><td className="p-4 text-center"><button className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 hover:text-primary transition" title="แก้ไข"><i className="fas fa-pen"></i></button></td></tr>)}</tbody></table>
+                    </div>
+                </div>
+            );
+        }
+
+        function AdminRealtime({ logs, acts, theme }) {
+            const [filterAct, setFilterAct] = useState('');
+            const filteredLogs = filterAct ? logs.filter(l => l.ActivityName === filterAct) : logs;
+            const exportExcel = () => { showSwal({icon: 'success', title: 'Exporting', text: 'ดาวน์โหลดไฟล์ Excel รายชื่อผู้เข้าร่วม'}, theme); }
+            return (
+                <div className="animate-fade-in">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                        <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white">ยอดเช็คชื่อ Real-time</h2>
+                        <button onClick={exportExcel} className="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition flex items-center gap-2"><i className="fas fa-file-excel"></i> Export Excel</button>
+                    </div>
+                    <div className="relative mb-8 max-w-md">
+                        <label className="text-xs font-bold text-slate-500 uppercase ml-2 mb-1 block">ตัวกรองกิจกรรม</label>
+                        <select className="glass-input w-full p-4 pl-4 pr-10 rounded-2xl font-bold appearance-none bg-white/50 dark:bg-slate-800/50" value={filterAct} onChange={e=>setFilterAct(e.target.value)}>
+                            <option value="">-- ดูกิจกรรมทั้งหมด --</option>{acts.map((a,i)=><option key={i} value={a.ActivityName}>{a.ActivityName}</option>)}
+                        </select>
+                        <i className="fas fa-chevron-down absolute right-4 top-10 text-slate-400 pointer-events-none"></i>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+                        <div className="glass-input p-6 rounded-[2rem] text-center"><p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">วิทยาการคอมพิวเตอร์</p><p className="text-4xl font-extrabold text-primary">{filteredLogs.filter(l=>l.Major?.includes('คอม')).length}</p></div>
+                        <div className="glass-input p-6 rounded-[2rem] text-center"><p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">เทคโนโลยีสารสนเทศ</p><p className="text-4xl font-extrabold text-rose-500">{filteredLogs.filter(l=>l.Major?.includes('สารสนเทศ')).length}</p></div>
+                        <div className="glass-input p-6 rounded-[2rem] text-center"><p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">กราฟิกดีไซน์</p><p className="text-4xl font-extrabold text-sky-500">{filteredLogs.filter(l=>l.Major?.includes('กราฟิก')).length}</p></div>
+                    </div>
+                    <h3 className="font-extrabold text-lg mb-4 text-slate-800 dark:text-slate-200">รายชื่อเช็คชื่อ 10 ล่าสุด</h3>
+                    <div className="overflow-x-auto bg-white/40 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-700">
+                        <table className="w-full text-sm text-left whitespace-nowrap"><thead className="bg-slate-100/50 dark:bg-slate-800/80 text-slate-500"><tr><th className="p-4 font-bold">รหัส/ปชช</th><th className="p-4 font-bold">ชื่อ-นามสกุล</th><th className="p-4 font-bold">สาขาวิชา</th><th className="p-4 font-bold">เวลาเช็คชื่อ</th></tr></thead>
+                        <tbody>{filteredLogs.slice(0, 10).map((l,i)=><tr key={i} className="border-b border-slate-100 dark:border-slate-700/50 hover:bg-white/50 dark:hover:bg-slate-800 transition"><td className="p-4 font-semibold">{l.StudentID}</td><td className="p-4 font-bold text-slate-800 dark:text-slate-200">{l.FullName}</td><td className="p-4 text-slate-500">{l.Major}</td><td className="p-4 text-xs font-medium text-slate-400"><i className="far fa-clock mr-1"></i> {l.Timestamp}</td></tr>)}</tbody></table>
+                    </div>
+                </div>
+            );
+        }
+
+        function AdminSPSS({ sur, theme }) {
+            const n = sur.length;
+            const exportWord = () => showSwal({icon: 'success', title: 'Exporting', text: 'ดาวน์โหลดรายงาน .doc สำเร็จ'}, theme);
+            return (
+                <div className="animate-fade-in">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                        <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white">รายงาน SPSS</h2>
+                        <button onClick={exportWord} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition flex items-center gap-2"><i className="fas fa-file-word"></i> Export Word</button>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
+                        <div className="glass-input p-6 rounded-[2rem] text-center border-t-4 border-t-slate-400"><p className="text-sm font-bold text-slate-500 mb-1">ผู้ตอบแบบสอบถาม (N)</p><p className="text-4xl font-extrabold text-slate-900 dark:text-white">{n}</p></div>
+                        <div className="glass-input p-6 rounded-[2rem] text-center border-t-4 border-t-primary"><p className="text-sm font-bold text-slate-500 mb-1">ค่าเฉลี่ยรวม (x̄)</p><p className="text-4xl font-extrabold text-primary">4.85</p></div>
+                        <div className="glass-input p-6 rounded-[2rem] text-center border-t-4 border-t-slate-400"><p className="text-sm font-bold text-slate-500 mb-1">ส่วนเบี่ยงเบนมาตรฐาน (S.D.)</p><p className="text-4xl font-extrabold text-slate-500">0.24</p></div>
+                    </div>
+                    <div className="overflow-x-auto bg-white/40 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-700">
+                        <table className="w-full text-sm text-left whitespace-nowrap"><thead className="bg-slate-100/50 dark:bg-slate-800/80 text-slate-500"><tr><th className="p-4 font-bold">หัวข้อประเมิน (ตัวอย่าง)</th><th className="p-4 font-bold text-center">x̄</th><th className="p-4 font-bold text-center">S.D.</th><th className="p-4 font-bold text-center">แปลผล</th></tr></thead>
+                        <tbody><tr className="border-b border-slate-100 dark:border-slate-700/50 hover:bg-white/50 dark:hover:bg-slate-800 transition"><td className="p-4 font-bold text-slate-800 dark:text-slate-200">1. สถานที่และสิ่งอำนวยความสะดวก</td><td className="p-4 text-center font-bold">4.90</td><td className="p-4 text-center text-slate-500">0.12</td><td className="p-4 text-center"><span className="text-emerald-500 font-bold">ดีมาก</span></td></tr></tbody></table>
+                    </div>
+                </div>
+            );
+        }
+
+        function AdminUsers() {
+            return (
+                <div className="text-center py-16 animate-fade-in">
+                    <div className="w-24 h-24 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 rounded-[2rem] flex items-center justify-center text-5xl mx-auto mb-6 shadow-inner"><i className="fas fa-users-cog"></i></div>
+                    <h2 className="text-3xl font-extrabold mb-3 text-slate-900 dark:text-white">จัดการสิทธิ์เจ้าหน้าที่</h2>
+                    <p className="text-slate-500 dark:text-slate-400 text-lg">เฉพาะระดับ <span className="font-bold text-primary">Super Admin</span> เท่านั้น</p>
+                </div>
+            );
+        }
+
+        function AdminSettings({ regEnabled, setRegEnabled, theme }) {
+            const toggle = () => {
+                setRegEnabled(!regEnabled);
+                localStorage.setItem('regEnabled', !regEnabled);
+                showSwal({icon: 'success', title: 'อัปเดตระบบ', text: `ระบบขึ้นทะเบียนถูก ${!regEnabled ? 'เปิด' : 'ปิด'} แล้ว`}, theme);
+            };
+            return (
+                <div className="animate-fade-in">
+                    <h2 className="text-3xl font-extrabold mb-8 text-slate-900 dark:text-white">ตั้งค่าระบบ (Settings)</h2>
+                    <div className="glass-input p-6 md:p-8 rounded-[2.5rem] flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                        <div>
+                            <h3 className="font-extrabold text-xl text-slate-900 dark:text-white mb-2">1. เมนูขึ้นทะเบียนนักศึกษาใหม่ (หน้า Home)</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm">เปิดเมื่ออยู่ในช่วงรับสมัคร และปิดเมื่อหมดเขตเพื่อไม่ให้นักศึกษากรอกข้อมูลเพิ่ม</p>
+                        </div>
+                        <button onClick={toggle} className={`px-8 py-3.5 rounded-2xl font-bold text-white transition-all shadow-md flex items-center gap-3 whitespace-nowrap ${regEnabled ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/30' : 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/30'}`}>
+                            <div className={`w-3 h-3 rounded-full ${regEnabled ? 'bg-white' : 'bg-white'}`}></div>
+                            {regEnabled ? 'กำลังเปิดใช้งาน' : 'ระบบปิดอยู่'}
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        // --- Render React ---
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
