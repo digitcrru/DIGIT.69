@@ -102,7 +102,7 @@
         const API_URL = "https://script.google.com/macros/s/AKfycbwviBRd_BbtvGyEpZSq5ab5A0iEpXkG9iMwAUQyGyZb-nDI2R5-x8GE5ZEI3gpmzA3zug/exec";
         const SHEET_ID = "1MoZpnDniVF5pKr0tEgmYwlPO3wZdA7DaO_MvZjbC-ec";
         
-        // แยก URL เป็น 2 ชีตตามการใช้งาน
+        // แยก URL เป็นชีตตามการใช้งาน
         const REGISTRATION69_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Registration69`;
         const REGISTRATION_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Registration`;
         const ACTIVITY_SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Activities`;
@@ -182,14 +182,14 @@
             );
         }
 
-        function InputField({ label, type="text", value, onChange, placeholder, maxLength, required, numeric, rows }) {
+        function InputField({ label, type="text", value, onChange, placeholder, maxLength, required, numeric, rows, disabled }) {
             return (
                 <div className="flex flex-col gap-1.5 w-full">
                     <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">{label} {required && <span className="text-red-500">*</span>}</label>
                     {rows ? (
-                        <textarea value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} maxLength={maxLength} required={required} rows={rows} className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm resize-none custom-scrollbar" />
+                        <textarea disabled={disabled} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} maxLength={maxLength} required={required} rows={rows} className="w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm resize-none custom-scrollbar disabled:opacity-60" />
                     ) : (
-                        <input type={type} value={value} onChange={e => { let val = e.target.value; if (numeric) val = val.replace(/\D/g, ''); onChange(val); }} placeholder={placeholder} maxLength={maxLength} required={required} className={`w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm ${numeric ? 'font-mono' : ''}`} />
+                        <input disabled={disabled} type={type} value={value} onChange={e => { let val = e.target.value; if (numeric) val = val.replace(/\D/g, ''); onChange(val); }} placeholder={placeholder} maxLength={maxLength} required={required} className={`w-full input-modern rounded-xl px-4 py-3.5 text-sm font-semibold shadow-sm ${numeric ? 'font-mono' : ''} disabled:opacity-60 disabled:cursor-not-allowed`} />
                     )}
                 </div>
             );
@@ -215,7 +215,7 @@
         // ==========================================
         // 🏠 Home View
         // ==========================================
-        function HomeView({ onSelectNewStudent, onSelectActivity, onCheckActivity, onAdminClick, mockUsers }) {
+        function HomeView({ onSelectNewStudent, onSelectActivity, onCheckActivity, onAdminClick, mockUsers, isRegistrationOpen }) {
             const promptAdmin = () => {
                 Swal.fire({
                     title: '<h3 class="text-2xl font-black text-slate-800 dark:text-white mb-2">Admin Login</h3>',
@@ -278,12 +278,17 @@
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl px-2">
-                        <div onClick={onSelectNewStudent} className="glass-panel p-8 rounded-[2.5rem] border-t-[8px] border-t-brand shadow-soft hover:shadow-[0_20px_40px_-10px_rgba(255,102,0,0.2)] hover:-translate-y-2 transition-all duration-300 cursor-pointer group flex flex-col items-center text-center relative overflow-hidden">
-                            <div className="absolute -right-10 -top-10 opacity-5 text-brand group-hover:scale-125 transition-transform duration-500 pointer-events-none"><Icon name="user-plus" size={150}/></div>
-                            <div className="w-20 h-20 bg-brand/10 text-brand rounded-[1.5rem] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-inner relative z-10"><Icon name="user-plus" size={40} /></div>
-                            <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white mb-4 relative z-10">1. ขึ้นทะเบียน นศ.ใหม่</h3>
+                        <div onClick={() => {
+                            if (isRegistrationOpen) onSelectNewStudent();
+                            else Swal.fire({ icon: 'warning', title: 'ระบบปิดให้บริการ', text: 'ขณะนี้ระบบปิดรับขึ้นทะเบียนนักศึกษาใหม่ชั่วคราว กรุณาติดต่อเจ้าหน้าที่', customClass: { popup: 'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white' }});
+                        }} className={`glass-panel p-8 rounded-[2.5rem] border-t-[8px] ${isRegistrationOpen ? 'border-t-brand shadow-soft hover:shadow-[0_20px_40px_-10px_rgba(255,102,0,0.2)] hover:-translate-y-2 cursor-pointer group' : 'border-t-slate-400 opacity-80 cursor-not-allowed'} transition-all duration-300 flex flex-col items-center text-center relative overflow-hidden`}>
+                            <div className={`absolute -right-10 -top-10 opacity-5 ${isRegistrationOpen ? 'text-brand group-hover:scale-125' : 'text-slate-500'} transition-transform duration-500 pointer-events-none`}><Icon name="user-plus" size={150}/></div>
+                            <div className={`w-20 h-20 ${isRegistrationOpen ? 'bg-brand/10 text-brand group-hover:scale-110' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'} rounded-[1.5rem] flex items-center justify-center mb-6 transition-transform shadow-inner relative z-10`}><Icon name={isRegistrationOpen ? "user-plus" : "lock"} size={40} /></div>
+                            <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white mb-4 relative z-10">1. ขึ้นทะเบียน นศ.ใหม่ {!isRegistrationOpen && <span className="block text-sm text-red-500 mt-1">(ปิดระบบ)</span>}</h3>
                             <p className="text-slate-500 dark:text-slate-400 font-medium relative z-10 text-sm">บันทึกประวัติส่วนตัว ข้อมูลสุขภาพ และโภชนาการสำหรับนักศึกษา</p>
-                            <div className="mt-8 w-full py-3 bg-slate-100 dark:bg-white/5 rounded-xl font-bold text-slate-600 dark:text-slate-300 group-hover:bg-brand group-hover:text-white transition-colors flex items-center justify-center gap-2 relative z-10">เริ่มต้น <Icon name="arrow-right" size={16}/></div>
+                            <div className={`mt-8 w-full py-3 ${isRegistrationOpen ? 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 group-hover:bg-brand group-hover:text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'} rounded-xl font-bold transition-colors flex items-center justify-center gap-2 relative z-10`}>
+                                {isRegistrationOpen ? <>เริ่มต้น <Icon name="arrow-right" size={16}/></> : <>ปิดให้บริการ</>}
+                            </div>
                         </div>
 
                         <div onClick={onSelectActivity} className="glass-panel p-8 rounded-[2.5rem] border-t-[8px] border-t-purple-500 shadow-soft hover:shadow-[0_20px_40px_-10px_rgba(168,85,247,0.2)] hover:-translate-y-2 transition-all duration-300 cursor-pointer group flex flex-col items-center text-center relative overflow-hidden">
@@ -908,7 +913,7 @@
         // ==========================================
         // 📊 Admin Dashboard
         // ==========================================
-        function AdminDashboard({ goBack, currentUser }) {
+        function AdminDashboard({ goBack, currentUser, isRegistrationOpen, setIsRegistrationOpen }) {
             const { isDarkMode = false } = useContext(AppContext) || {};
             const [data, setData] = useState([]);
             const [loading, setLoading] = useState(true);
@@ -925,7 +930,7 @@
             const [surveys, setSurveys] = useState([]);
             const [activityForm, setActivityForm] = useState({ name: '', date: '', location: '' });
 
-            // User Management State (Mocked logic for UI demonstration)
+            // User Management State
             const [adminList, setAdminList] = useState([
                 { id: 1, username: 'admin', role: 'Super Admin', status: 'Active' },
                 { id: 2, username: 'staff1', role: 'Manager', status: 'Active' },
@@ -936,8 +941,6 @@
 
             const loadData = (isSilent = false) => {
                 if (!isSilent) setLoading(true);
-                
-                // ฝั่ง Admin (ภาพรวม, โภชนาการ, การแพทย์ ฯลฯ) ดึงจาก Registration
                 Papa.parse(REGISTRATION_CSV_URL + `&_cb=${new Date().getTime()}`, {
                     download: true, header: true,
                     complete: (res) => { setData(res.data.filter(row => row.StudentID).map(r => ({ ...r, Major: cleanMajor(r.Major) }))); if (!isSilent) setLoading(false); },
@@ -1295,7 +1298,7 @@
                     Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูลให้ครบ', customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} }); return;
                 }
                 
-                // จำลองการบันทึกข้อมูลลง Local State (ในระบบจริงต้องยิง API)
+                // จำลองการบันทึกข้อมูลลง Local State
                 if (userForm.id) {
                     setAdminList(prev => prev.map(u => u.id === userForm.id ? { ...u, username: userForm.username, role: userForm.role, status: userForm.status, password: userForm.password ? userForm.password : u.password } : u));
                     Swal.fire({ icon: 'success', title: 'อัปเดตข้อมูลสำเร็จ', timer: 1500, showConfirmButton: false, customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
@@ -1572,7 +1575,8 @@
                 { id: 'create_activity', icon: 'calendar-plus', label: 'สร้างกิจกรรม', roles: ['Super Admin', 'Manager'] },
                 { id: 'activity_summary', icon: 'radio', label: 'Real-Time Recording', roles: ['Super Admin', 'Manager', 'Viewer'] },
                 { id: 'survey_summary', icon: 'star', label: 'สรุปแบบสอบถาม (SPSS)', roles: ['Super Admin', 'Manager', 'Viewer'] },
-                { id: 'admin_users', icon: 'users-cog', label: 'จัดการผู้ดูแลระบบ', roles: ['Super Admin'] }
+                { id: 'admin_users', icon: 'users-cog', label: 'จัดการผู้ดูแลระบบ', roles: ['Super Admin'] },
+                { id: 'settings', icon: 'settings', label: 'ตั้งค่าระบบ', roles: ['Super Admin', 'Manager'] }
             ];
 
             const TABS = useMemo(() => ALL_TABS.filter(tab => tab.roles.includes(currentUser?.role || 'Viewer')), [currentUser]);
@@ -1611,7 +1615,7 @@
                             {TABS.map(tab => (
                                 <button key={tab.id} onClick={() => { setActiveTab(tab.id); setCurrentPage(1); }} 
                                     className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all font-bold whitespace-nowrap btn-interactive text-sm
-                                    ${activeTab === tab.id ? (tab.id === 'activity_summary' ? 'bg-red-500 text-white shadow-glow-red hover:-translate-y-0.5' : tab.id === 'survey_summary' ? 'bg-yellow-500 text-white shadow-glow-brand hover:-translate-y-0.5' : tab.id === 'admin_users' ? 'bg-slate-800 text-white shadow-lg hover:-translate-y-0.5' : 'bg-brand text-white shadow-glow-brand hover:-translate-y-0.5') : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white'}`}>
+                                    ${activeTab === tab.id ? (tab.id === 'activity_summary' ? 'bg-red-500 text-white shadow-glow-red hover:-translate-y-0.5' : tab.id === 'survey_summary' ? 'bg-yellow-500 text-white shadow-glow-brand hover:-translate-y-0.5' : tab.id === 'admin_users' ? 'bg-slate-800 text-white shadow-lg hover:-translate-y-0.5' : tab.id === 'settings' ? 'bg-slate-600 text-white shadow-lg hover:-translate-y-0.5' : 'bg-brand text-white shadow-glow-brand hover:-translate-y-0.5') : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white'}`}>
                                     <Icon name={tab.icon} size={18} className={activeTab === tab.id ? 'text-white' : 'text-slate-400'}/> {tab.label}
                                 </button>
                             ))}
@@ -1623,7 +1627,7 @@
                         {/* Header Action Bar */}
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center glass-panel p-5 md:px-8 md:py-6 rounded-[2.5rem] gap-4 no-print shadow-soft border border-slate-200/50 dark:border-white/5">
                             <h2 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3 whitespace-nowrap">
-                                <div className={`p-2.5 rounded-xl shadow-sm ${activeTab === 'activity_summary' ? 'bg-red-500/10 text-red-500' : activeTab === 'survey_summary' ? 'bg-yellow-500/10 text-yellow-600' : activeTab === 'admin_users' ? 'bg-slate-800/10 text-slate-800 dark:text-white' : 'bg-brand/10 text-brand'}`}><Icon name={(TABS.find(t=>t.id===activeTab) || {}).icon} size={20}/></div> {(TABS.find(t=>t.id===activeTab) || {}).label}
+                                <div className={`p-2.5 rounded-xl shadow-sm ${activeTab === 'activity_summary' ? 'bg-red-500/10 text-red-500' : activeTab === 'survey_summary' ? 'bg-yellow-500/10 text-yellow-600' : activeTab === 'admin_users' ? 'bg-slate-800/10 text-slate-800 dark:text-white' : activeTab === 'settings' ? 'bg-slate-600/10 text-slate-600 dark:text-slate-400' : 'bg-brand/10 text-brand'}`}><Icon name={(TABS.find(t=>t.id===activeTab) || {}).icon} size={20}/></div> {(TABS.find(t=>t.id===activeTab) || {}).label}
                             </h2>
                             <div className="flex flex-col xl:flex-row flex-wrap w-full sm:w-auto gap-3 items-start xl:items-center">
                                 <div className="relative w-full sm:w-64">
@@ -1631,7 +1635,7 @@
                                     <input type="text" placeholder="ค้นหาชื่อ, รหัสนศ..." value={searchTerm} onChange={(e) => {setSearchTerm(e.target.value); setCurrentPage(1);}} className="w-full pl-10 pr-8 py-2.5 rounded-xl input-modern text-sm font-semibold"/>
                                 </div>
                                 <div className="flex flex-wrap w-full sm:w-auto gap-2 justify-start sm:justify-end">
-                                    {activeTab !== 'admin_users' && <button onClick={exportExcel} className="px-5 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-xl font-bold text-sm flex items-center gap-2 transition-all btn-interactive shadow-sm whitespace-nowrap"><Icon name="download" size={16} /> Export</button>}
+                                    {activeTab !== 'admin_users' && activeTab !== 'settings' && <button onClick={exportExcel} className="px-5 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-xl font-bold text-sm flex items-center gap-2 transition-all btn-interactive shadow-sm whitespace-nowrap"><Icon name="download" size={16} /> Export</button>}
                                     <button onClick={goBack} className="px-5 py-2.5 bg-red-50 dark:bg-red-500/10 text-red-500 rounded-xl hover:bg-red-50 hover:text-white font-bold text-sm btn-interactive shadow-sm flex items-center gap-2 whitespace-nowrap"><Icon name="log-out" size={16}/> ออกจากระบบ</button>
                                 </div>
                             </div>
@@ -2328,7 +2332,7 @@
                                 )}
                             </div>
                         )}
-                        
+
                         {/* TAB 9: USER MANAGEMENT (สำหรับ Super Admin เท่านั้น) */}
                         {activeTab === 'admin_users' && (
                             <div className="space-y-6 animate-fade-in print:hidden">
@@ -2395,6 +2399,40 @@
                                                 ))}
                                             </tbody>
                                         </table>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* TAB 10: SETTINGS */}
+                        {activeTab === 'settings' && (
+                            <div className="space-y-6 animate-fade-in print:hidden">
+                                <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border-t-[8px] border-t-slate-500 shadow-soft relative overflow-hidden bg-gradient-to-b from-white to-slate-50/50 dark:from-zinc-900 dark:to-zinc-900/50">
+                                    <div className="absolute top-0 right-0 p-8 opacity-5 text-slate-500 pointer-events-none transform translate-x-4 -translate-y-4"><Icon name="settings" size={120} /></div>
+                                    <div className="flex flex-col gap-4 relative z-10">
+                                        <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
+                                            <div className="p-3 bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-white rounded-2xl shadow-inner"><Icon name="settings" size={24}/></div>
+                                            ตั้งค่าระบบ
+                                        </h3>
+                                        <p className="text-slate-500 font-medium text-sm">จัดการเปิด/ปิดฟังก์ชันต่างๆ ภายในระบบ</p>
+                                    </div>
+                                </div>
+
+                                <div className="glass-panel rounded-[2rem] overflow-hidden border border-slate-200/50 dark:border-white/5 shadow-soft p-6 md:p-8">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                                        <div>
+                                            <h4 className="font-bold text-lg text-slate-800 dark:text-white flex items-center gap-2">
+                                                <Icon name={isRegistrationOpen ? "user-check" : "user-minus"} size={20} className={isRegistrationOpen ? "text-emerald-500" : "text-slate-400"} /> 
+                                                สถานะการขึ้นทะเบียนนักศึกษาใหม่
+                                            </h4>
+                                            <p className="text-sm text-slate-500 mt-1">เปิดหรือปิดระบบเพื่อไม่ให้นักศึกษาเข้ามาลงทะเบียนชั่วคราว (เช่น เมื่อหมดเขตรับสมัครแล้ว)</p>
+                                        </div>
+                                        <button onClick={() => {
+                                            setIsRegistrationOpen(!isRegistrationOpen);
+                                            Swal.fire({ icon: 'success', title: !isRegistrationOpen ? 'เปิดระบบสำเร็จ' : 'ปิดระบบสำเร็จ', timer: 1500, showConfirmButton: false, customClass:{popup:'rounded-[2rem] bg-white dark:bg-zinc-900 text-slate-800 dark:text-white'} });
+                                        }} className={`relative inline-flex h-8 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none shadow-sm ${isRegistrationOpen ? 'bg-emerald-500 hover:bg-emerald-400' : 'bg-slate-300 dark:bg-slate-600 hover:bg-slate-400'}`}>
+                                            <span className={`pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isRegistrationOpen ? 'translate-x-6' : 'translate-x-0'}`} />
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -2537,10 +2575,11 @@
             const [currentView, setCurrentView] = useState('home'); 
             const [surveyData, setSurveyData] = useState({ act: '', sid: '' });
             const [currentUser, setCurrentUser] = useState(null);
+            const [isRegistrationOpen, setIsRegistrationOpen] = useState(true);
 
             // Mock Data สำหรับระบบจำลองสิทธิ์
             const [mockUsers] = useState([
-                { id: 1, username: 'admin', password: '123', role: 'Super Admin', status: 'Active' },
+                { id: 1, username: 'admin', password: '0000', role: 'Super Admin', status: 'Active' },
                 { id: 2, username: 'staff1', password: '123', role: 'Manager', status: 'Active' },
                 { id: 3, username: 'guest', password: '123', role: 'Viewer', status: 'Active' }
             ]);
@@ -2558,14 +2597,14 @@
             return (
                 <AppContext.Provider value={{ isDarkMode }}>
                     <div className="min-h-screen p-4 md:p-6 transition-colors duration-300 relative">
-                        {currentView === 'home' && <HomeView onSelectNewStudent={() => setCurrentView('pdpa')} onSelectActivity={() => setCurrentView('activity_form')} onCheckActivity={() => setCurrentView('check_activity')} onAdminClick={(user) => { setCurrentUser(user); setCurrentView('admin'); }} mockUsers={mockUsers} />}
+                        {currentView === 'home' && <HomeView onSelectNewStudent={() => setCurrentView('pdpa')} onSelectActivity={() => setCurrentView('activity_form')} onCheckActivity={() => setCurrentView('check_activity')} onAdminClick={(user) => { setCurrentUser(user); setCurrentView('admin'); }} mockUsers={mockUsers} isRegistrationOpen={isRegistrationOpen} />}
                         {currentView === 'pdpa' && <PdpaModal onAccept={() => setCurrentView('register')} onBack={() => setCurrentView('home')} />}
                         {currentView === 'register' && <RegistrationForm onBack={() => setCurrentView('home')} onSuccess={() => setCurrentView('success')} />}
                         {currentView === 'activity_form' && <ActivityForm onBack={() => setCurrentView('home')} onSuccess={(act, sid) => { setSurveyData({act, sid}); setCurrentView('survey_form'); }} />}
                         {currentView === 'check_activity' && <CheckActivityView onBack={() => setCurrentView('home')} />}
                         {currentView === 'survey_form' && <SurveyForm onBack={() => setCurrentView('home')} onSuccess={() => setCurrentView('success')} activityName={surveyData.act} studentID={surveyData.sid} />}
                         {currentView === 'success' && <SuccessView onHome={() => setCurrentView('home')} />}
-                        {currentView === 'admin' && <AdminDashboard goBack={() => { setCurrentUser(null); setCurrentView('home'); }} currentUser={currentUser} />}
+                        {currentView === 'admin' && <AdminDashboard goBack={() => { setCurrentUser(null); setCurrentView('home'); }} currentUser={currentUser} isRegistrationOpen={isRegistrationOpen} setIsRegistrationOpen={setIsRegistrationOpen} />}
 
                         <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-50 print:hidden">
                             <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-12 h-12 bg-white dark:bg-zinc-800 text-slate-800 dark:text-white rounded-full shadow-lg border border-slate-200 dark:border-zinc-700 hover:scale-110 transition-transform flex items-center justify-center" title="สลับโหมดกลางคืน">
