@@ -88,9 +88,12 @@
 
         const API_CONFIG = {
             USE_FAST_CSV: true,
+            // 🚨 1. เปลี่ยนตรงนี้เป็น รหัส ID ของ Google Sheets ของคุณ 🚨
             SHEET_ID: "1KLJNWUUIj1r6eqCZnaF-F6nA2FQg7pvOHMk0PyDCyAc", 
-            // 🚨 ใส่ลิงก์ Web App (Google Apps Script) อันใหม่ล่าสุดของท่านที่นี่ 🚨
+            
+            // 🚨 2. ลิงก์ Web App ล่าสุดที่คุณให้มา (ถูกต้องแล้ว) 🚨
             WEB_APP_URL: "https://script.google.com/macros/s/AKfycbz5FqE6oss72axccD1aeaHronMv2aMKOFnIsPpr-AY6iq0leCrN50ZDddu91ZIdCsWn3g/exec", 
+            
             getCSVUrl: function(sheetName) {
                 return `https://docs.google.com/spreadsheets/d/${this.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}&_=${new Date().getTime()}`;
             }
@@ -365,15 +368,15 @@
                 try {
                     let hasJoined = false;
                     if (API_CONFIG.USE_FAST_CSV && API_CONFIG.SHEET_ID && API_CONFIG.SHEET_ID !== "YOUR_SHEET_ID_HERE") {
-                        const allChks = await fetchFastCSV('Checkins').catch(() => []);
+                        const allChks = await fetchFastCSV('CheckIns').catch(() => []);
                         // ตรวจสอบข้อมูลซ้ำจาก StudentID หรือ IDCard ในกิจกรรมเดียวกัน
                         hasJoined = allChks.some(c => 
                             (String(c.StudentID) === String(student.StudentID) || (student.IDCard && String(c.IDCard) === String(student.IDCard))) && 
-                            String(c.ActivityID) === String(act.ActivityID)
+                            String(c.ActivityID).trim() === String(act.ActivityID).trim()
                         );
                     } else {
                         const history = await runGAS('getStudentHistory', student.StudentID);
-                        hasJoined = history.some(h => String(h.ActivityID) === String(act.ActivityID));
+                        hasJoined = history.some(h => String(h.ActivityID).trim() === String(act.ActivityID).trim());
                     }
 
                     Swal.close();
@@ -1062,10 +1065,10 @@
 
             const renderSpssContent = () => {
                 if(!selectedActivityForSpss) return <div id="spss-ex" className="text-center py-10 text-gray-400 font-light border border-gray-100 rounded-xl">Please select an activity</div>;
-                const evals = data.evaluations.filter(e => String(e.ActivityID) === String(selectedActivityForSpss));
+                const evals = data.evaluations.filter(e => String(e.ActivityName).trim() === String(data.activities.find(a=>String(a.ActivityID)===String(selectedActivityForSpss))?.Name).trim());
                 if(evals.length === 0) return <div id="spss-ex" className="text-center py-10 text-gray-400 font-light border border-gray-100 rounded-xl">No evaluations found</div>;
 
-                const actCheckins = data.checkins.filter(c => String(c.ActivityID) === String(selectedActivityForSpss));
+                const actCheckins = data.checkins.filter(c => String(c.ActivityID).trim() === String(selectedActivityForSpss).trim());
                 let mCount = 0; let fCount = 0;
                 actCheckins.forEach(c => {
                     if (c.Name && c.Name.trim().startsWith('นาย')) mCount++;
@@ -1119,6 +1122,8 @@
                 const top2 = sortedQStats[1] || {text: '-', mean: 0};
                 const top3 = sortedQStats[2] || {text: '-', mean: 0};
 
+                const validComments = evals.map(e => e.Comment || e.Suggestion).filter(c => c && c.trim() !== '');
+
                 return (
                     <div id="spss-ex" className="overflow-x-auto border border-gray-100 rounded-xl p-6 transition-colors">
                         <div style={{ display: 'none' }} className="word-export-title">
@@ -1140,7 +1145,7 @@
                             </table>
                             <p className="text-gray-700 text-sm leading-relaxed indent-8"><span className="font-semibold">สรุปผล:</span> จากตารางที่ 1 พบว่า ผู้ตอบแบบสอบถามส่วนใหญ่เป็นเพศ{majorityGender} จำนวน {majorityCount} คน คิดเป็นร้อยละ {majorityPct} และเพศ{minorityGender} จำนวน {minorityCount} คน คิดเป็นร้อยละ {minorityPct}</p>
                         </div>
-                        <div className="mb-4 min-w-[800px]">
+                        <div className="mb-8 min-w-[800px]">
                             <h4 className="font-semibold text-charcoal-900 mb-3 text-sm">ตารางที่ 2 ค่าสถิติเชิงพรรณนา (Descriptive Statistics)</h4>
                             <table className="w-full text-sm text-left border-collapse mb-4 border border-gray-300">
                                 <thead className="bg-gray-50 border-b border-gray-300 text-charcoal-900">
@@ -1161,11 +1166,25 @@
                             </table>
                             <p className="text-gray-700 text-sm leading-relaxed indent-8"><span className="font-semibold">สรุปผล:</span> ผลการสำรวจความพึงพอใจในการจัดกิจกรรม พบว่า ผู้ตอบแบบสอบถามส่วนใหญ่มีความพึงพอใจในระดับ{getMeaning(grandMean)} โดยมีค่าเฉลี่ยเท่ากับ {grandMean.toFixed(2)} ซึ่งเมื่อพิจารณาเป็นรายข้อ พบว่า {top1.text} (ค่าเฉลี่ย {top1.mean.toFixed(2)}) รองลงมาคือ {top2.text} (ค่าเฉลี่ย {top2.mean.toFixed(2)}) อันดับที่ 3 คือ {top3.text} (ค่าเฉลี่ย {top3.mean.toFixed(2)})</p>
                         </div>
+                        <div className="min-w-[600px]">
+                            <h4 className="font-semibold text-charcoal-900 mb-3 text-sm border-l-2 border-orange-500 pl-2">ข้อเสนอแนะเพิ่มเติม</h4>
+                            <div className="bg-gray-50/50 p-4 border border-gray-200 rounded-lg text-sm text-gray-700">
+                                {validComments.length > 0 ? (
+                                    <ul className="list-disc pl-5 space-y-2">
+                                        {validComments.map((comment, index) => (
+                                            <li key={index} className="leading-relaxed">{comment}</li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p className="text-gray-400 font-light italic">ไม่มีข้อเสนอแนะเพิ่มเติมจากผู้เข้าร่วมกิจกรรม</p>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 );
             };
 
-            const filteredCheckins = selectedActivityForSummary ? data.checkins.filter(c => c.ActivityID === selectedActivityForSummary) : data.checkins;
+            const filteredCheckins = selectedActivityForSummary ? data.checkins.filter(c => String(c.ActivityID).trim() === String(selectedActivityForSummary).trim()) : data.checkins;
             const sortedCheckins = [...filteredCheckins].reverse();
             const indexOfLastItem = currentPage * itemsPerPage;
             const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -1238,7 +1257,7 @@
                                 <h3 className="text-sm font-medium text-charcoal-900 mb-6 uppercase tracking-widest pl-1 border-l-2 border-orange-500">Activity Breakdown</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                                     {data.activities.map(act => {
-                                        const checkinCount = data.checkins.filter(c => c.ActivityID === act.ActivityID).length;
+                                        const checkinCount = data.checkins.filter(c => String(c.ActivityID).trim() === String(act.ActivityID).trim()).length;
                                         return (
                                             <div key={act.ActivityID} 
                                                  onClick={() => { setSelectedActivityForSummary(act.ActivityID); setActiveTab('summary'); }}
@@ -1267,19 +1286,62 @@
 
                         {activeTab === 'activities' && (
                             <div className="grid lg:grid-cols-3 gap-8">
-                                <div className="lg:col-span-1 bg-white/90 backdrop-blur p-8 border border-orange-100/50 rounded-2xl h-fit transition-colors shadow-sm">
-                                    <h3 className="text-sm font-medium text-charcoal-900 mb-6 uppercase tracking-widest border-l-2 border-orange-500 pl-2">Create Activity</h3>
-                                    <form onSubmit={handleCreateActivity} className="space-y-5">
-                                        <input name="name" placeholder="Title" required className="w-full luxury-input text-sm" />
-                                        <input type="date" name="date" required className="w-full luxury-input text-sm text-gray-500" />
-                                        <input name="location" placeholder="Location" required className="w-full luxury-input text-sm" />
-                                        <button className="w-full btn-gradient py-3 rounded-xl text-sm font-semibold tracking-wider shadow-lg shadow-orange-500/20">SAVE</button>
+                                <div className="lg:col-span-1 bg-white/90 backdrop-blur p-8 border border-orange-100/50 rounded-2xl h-fit transition-colors shadow-sm relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-orange-50/50 rounded-bl-full -z-10"></div>
+                                    <h3 className="text-sm font-bold text-charcoal-900 mb-6 uppercase tracking-widest border-l-2 border-orange-500 pl-3 flex items-center">
+                                        Create Activity
+                                    </h3>
+                                    <form onSubmit={handleCreateActivity} className="space-y-5 relative z-10">
+                                        <div className="relative">
+                                            <i className="fa-solid fa-heading absolute left-4 top-1/2 -translate-y-1/2 text-orange-300"></i>
+                                            <input name="name" placeholder="Title" required className="w-full bg-gray-50/50 border border-gray-200 rounded-xl pl-11 pr-4 py-3.5 text-sm focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 outline-none transition-all text-charcoal-900 placeholder-gray-400 font-medium" />
+                                        </div>
+                                        <div className="relative">
+                                            <i className="fa-regular fa-calendar absolute left-4 top-1/2 -translate-y-1/2 text-orange-300"></i>
+                                            <input type="date" name="date" required className="w-full bg-gray-50/50 border border-gray-200 rounded-xl pl-11 pr-4 py-3.5 text-sm focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 outline-none transition-all text-gray-500 font-medium" />
+                                        </div>
+                                        <div className="relative">
+                                            <i className="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-orange-300"></i>
+                                            <input name="location" placeholder="Location" required className="w-full bg-gray-50/50 border border-gray-200 rounded-xl pl-11 pr-4 py-3.5 text-sm focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 outline-none transition-all text-charcoal-900 placeholder-gray-400 font-medium" />
+                                        </div>
+                                        <button className="w-full btn-gradient py-4 rounded-xl text-sm font-bold tracking-widest shadow-[0_8px_20px_-6px_rgba(249,115,22,0.4)] hover:shadow-[0_12px_25px_-6px_rgba(249,115,22,0.5)] transform hover:-translate-y-0.5 transition-all uppercase">Save Activity</button>
                                     </form>
                                 </div>
                                 <div className="lg:col-span-2 bg-white/90 backdrop-blur border border-orange-100/50 rounded-2xl overflow-hidden transition-colors shadow-sm">
-                                    <table className="w-full text-left text-sm whitespace-nowrap"><thead className="bg-orange-50/50 border-b border-orange-100/80 text-[10px] text-gray-500 uppercase tracking-widest transition-colors"><tr><th className="px-6 py-4 font-medium">Detail</th><th className="px-6 py-4 text-center font-medium">Status</th><th className="px-6 py-4 text-right font-medium">Action</th></tr></thead><tbody className="divide-y divide-orange-50">
-                                        {data.activities.map(a=><tr key={a.ActivityID} className="transition-colors hover:bg-orange-50/30"><td className="px-6 py-4"><p className="font-medium text-charcoal-900">{a.Name}</p><p className="text-xs text-orange-400 font-light mt-0.5">{a.Date} • {a.Location}</p></td><td className="px-6 py-4 text-center text-xs"><span className={`${a.Status==='open'?'text-green-500 bg-green-50 px-2 py-1 rounded':'text-gray-400 bg-gray-50 px-2 py-1 rounded'}`}>{a.Status==='open'?'Open':'Closed'}</span></td><td className="px-6 py-4 text-right"><button onClick={()=>toggleActivityStatus(a.ActivityID,a.Status)} className={`text-4xl transition-transform hover:scale-110 drop-shadow-sm focus:outline-none ${a.Status==='open'?'text-green-500':'text-gray-300'}`}><i className={`fa-solid ${a.Status==='open'?'fa-toggle-on':'fa-toggle-off'}`}></i></button></td></tr>)}
-                                    </tbody></table>
+                                    <div className="overflow-x-auto custom-scrollbar">
+                                        <table className="w-full text-left text-sm whitespace-nowrap">
+                                            <thead className="bg-gray-50/80 border-b border-gray-100 text-[10px] text-gray-400 uppercase tracking-widest transition-colors">
+                                                <tr>
+                                                    <th className="px-6 py-4 font-semibold w-full">Detail</th>
+                                                    <th className="px-6 py-4 text-center font-semibold">Status</th>
+                                                    <th className="px-6 py-4 text-right font-semibold">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-50">
+                                                {data.activities.map(a=>(
+                                                    <tr key={a.ActivityID} className="transition-colors hover:bg-orange-50/30 group">
+                                                        <td className="px-6 py-5">
+                                                            <p className="font-bold text-charcoal-900 text-base mb-1 group-hover:text-orange-600 transition-colors">{a.Name}</p>
+                                                            <div className="flex items-center gap-4 text-xs text-gray-500 font-medium">
+                                                                <span className="flex items-center gap-1.5"><i className="fa-regular fa-calendar text-gray-400"></i> {a.Date}</span>
+                                                                <span className="flex items-center gap-1.5"><i className="fa-solid fa-location-dot text-gray-400"></i> {a.Location}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-5 text-center">
+                                                            <span className={`inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide border ${a.Status==='open' ? 'text-green-600 bg-green-50 border-green-200' : 'text-gray-400 bg-gray-50 border-gray-200'}`}>
+                                                                {a.Status==='open' ? 'Open' : 'Closed'}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-5 text-right">
+                                                            <button onClick={()=>toggleActivityStatus(a.ActivityID,a.Status)} className={`text-[40px] leading-none transition-all transform hover:scale-110 drop-shadow-sm focus:outline-none ${a.Status==='open' ? 'text-green-500 hover:text-green-600' : 'text-gray-300 hover:text-gray-400'}`}>
+                                                                <i className={`fa-solid ${a.Status==='open' ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         )}
