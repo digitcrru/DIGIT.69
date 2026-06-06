@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ระบบลงทะเบียนเข้าร่วมกิจกรรม - DIGIT.CRRU</title>
+    <title>DIGIT.CRRU - ระบบกิจกรรมและจองเสื้อ</title>
     
-    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -26,7 +24,6 @@
         }
     </script>
     
-    <!-- Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -92,8 +89,10 @@
         const API_CONFIG = {
             USE_FAST_CSV: true,
             SHEET_ID: "1KLJNWUUIj1r6eqCZnaF-F6nA2FQg7pvOHMk0PyDCyAc", 
-            // 🚨 กรุณานำ URL จากการกด Deploy หลังสุดมาใส่ที่นี่
+            
+            // 🚨 ลิงก์ Web App ล่าสุดที่อัปเดตแล้ว 🚨
             WEB_APP_URL: "https://script.google.com/macros/s/AKfycbz07BB-ibm51q9SC2ZnVVP-FyxwF0jTqPlCg9QZ-TN4d1zqvReQjEU-3Qv1Q27cjgq5zw/exec", 
+            
             getCSVUrl: function(sheetName) {
                 return `https://docs.google.com/spreadsheets/d/${this.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}&_=${new Date().getTime()}`;
             }
@@ -163,113 +162,8 @@
             }
         ];
 
-        const getGenderProps = (nameStr) => {
-            if (!nameStr) return { icon: 'fa-user', bg: 'bg-orange-50', text: 'text-orange-600' };
-            if (nameStr.startsWith('นาย')) return { icon: 'fa-person', bg: 'bg-slate-100', text: 'text-slate-600' };
-            if (nameStr.startsWith('นาง') || nameStr.startsWith('น.ส.')) return { icon: 'fa-person-dress', bg: 'bg-rose-50', text: 'text-rose-600' };
-            return { icon: 'fa-user', bg: 'bg-orange-50', text: 'text-orange-600' };
-        };
-
-        const Navbar = ({ goHome, isDarkMode, setIsDarkMode, view, setView }) => (
-            <div className="w-full bg-transparent sticky top-0 z-50 transition-colors duration-300 pt-2">
-                <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-                    <div className="flex items-center gap-3 cursor-pointer" onClick={goHome}>
-                        <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center shadow-md shadow-orange-500/30 transition-all hover:scale-105">
-                            <i className="fa-solid fa-gem text-white text-lg"></i>
-                        </div>
-                        <h1 className="font-semibold text-lg tracking-wide text-charcoal-900 hidden sm:block transition-colors">DIGIT.CRRU <span className="font-light text-orange-500"></span></h1>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-10 h-10 rounded-full flex items-center justify-center border border-orange-200 bg-white/60 backdrop-blur-md text-orange-500 hover:bg-white hover:text-orange-600 transition-colors shadow-sm focus:outline-none">
-                            <i className={`fa-solid ${isDarkMode ? 'fa-sun text-orange-500' : 'fa-moon'}`}></i>
-                        </button>
-                        {view.startsWith('admin') ? (
-                            <button onClick={() => { localStorage.removeItem('admin_logged_in'); goHome(); }} className="text-sm text-gray-500 hover:text-charcoal-900 transition-colors font-medium"><i className="fa-solid fa-right-from-bracket mr-2"></i>ออกจากระบบ</button>
-                        ) : (
-                            <button onClick={() => setView('admin_login')} className="hidden md:flex text-sm text-gray-400 hover:text-orange-600 transition-colors items-center font-medium">สำหรับเจ้าหน้าที่ <i className="fa-solid fa-arrow-right-to-bracket ml-2"></i></button>
-                        )}
-                    </div>
-                </div>
-            </div>
-        );
-
-        const MobileTabBar = ({ view, goHome, systemOpen, shirtSystemOpen, setView, setSearchPurpose }) => {
-            if(view.startsWith('admin')) return null;
-            return (
-                <div className="md:hidden fixed bottom-0 left-0 w-full z-50 bg-white/90 backdrop-blur-md border-t border-orange-100 pb-safe shadow-[0_-10px_20px_rgba(249,115,22,0.05)] transition-colors">
-                    <div className="flex justify-around items-center h-16 px-2">
-                        <button onClick={goHome} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${view === 'home' ? 'text-orange-600' : 'text-gray-400'}`}>
-                            {view === 'home' && <div className="absolute top-0 w-8 h-1 bg-orange-500 rounded-b-full"></div>}
-                            <i className={`fa-solid fa-house text-xl ${view === 'home' ? 'mb-0.5 scale-110' : ''}`}></i><span className="text-[10px] font-medium">หน้าแรก</span>
-                        </button>
-                        <button onClick={() => { if(!systemOpen) return Swal.fire({title:'วันนี้ผมรักผมทักผมรอ วันไหนผมท้อผมพอผมลา', icon:'info', confirmButtonColor: '#1a1a1a'}); setSearchPurpose('activity'); setView('search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'select' || view === 'survey' || (view === 'search' && searchPurpose === 'activity')) ? 'text-orange-600' : 'text-gray-400'}`}>
-                            {(view === 'select' || view === 'survey' || (view === 'search' && searchPurpose === 'activity')) && <div className="absolute top-0 w-8 h-1 bg-orange-500 rounded-b-full"></div>}
-                            <i className={`fa-solid fa-qrcode text-xl ${(view === 'select' || view === 'survey' || (view === 'search' && searchPurpose === 'activity')) ? 'mb-0.5 scale-110' : ''}`}></i><span className="text-[10px] font-medium">เช็คชื่อ</span>
-                        </button>
-                        <button onClick={() => setView('history_search')} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'history_search' || view === 'history_result') ? 'text-orange-600' : 'text-gray-400'}`}>
-                            {(view === 'history_search' || view === 'history_result') && <div className="absolute top-0 w-8 h-1 bg-orange-500 rounded-b-full"></div>}
-                            <i className={`fa-solid fa-clock-rotate-left text-xl ${(view === 'history_search' || view === 'history_result') ? 'mb-0.5 scale-110' : ''}`}></i><span className="text-[10px] font-medium">ประวัติ</span>
-                        </button>
-                        {shirtSystemOpen && systemOpen && (
-                            <button onClick={() => { setSearchPurpose('shirt'); setView('search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'shirt_form' || view === 'receipt' || (view === 'search' && searchPurpose === 'shirt')) ? 'text-orange-600' : 'text-gray-400'}`}>
-                                {(view === 'shirt_form' || view === 'receipt' || (view === 'search' && searchPurpose === 'shirt')) && <div className="absolute top-0 w-8 h-1 bg-orange-500 rounded-b-full"></div>}
-                                <i className={`fa-solid fa-shirt text-xl ${(view === 'shirt_form' || view === 'receipt' || (view === 'search' && searchPurpose === 'shirt')) ? 'mb-0.5 scale-110' : ''}`}></i><span className="text-[10px] font-medium">จองเสื้อ</span>
-                            </button>
-                        )}
-                    </div>
-                </div>
-            );
-        };
-
-        const Footer = () => (
-            <footer className="w-full py-8 mt-auto flex flex-col items-center justify-center text-center z-10 relative">
-                <div className="w-12 h-px bg-orange-300 mb-4 opacity-50"></div>
-                <p className="text-xs font-medium text-charcoal-900 tracking-wider mb-1">Copyright &copy; 2026 DIGIT Good Deed System PRO.</p>
-                <p className="text-[10px] text-gray-500 font-light">ฝ่ายกิจการนักศึกษา คณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย</p>
-            </footer>
-        );
-
-        const ReceiptSlip = ({ title, data, config, shirtPrice }) => (
-            <div className="bg-white p-10 relative flex flex-col w-[48%]" style={{ minHeight: '100%' }}>
-                <div className="border-b border-gray-800 pb-5 mb-6 flex justify-between items-start">
-                    <div className="max-w-[75%]"><h2 className="text-sm font-semibold text-charcoal-900 leading-relaxed whitespace-pre-wrap">{config.header}</h2></div>
-                    <div className="text-right"><div className="inline-block bg-charcoal-900 text-white px-3 py-1 rounded text-[10px] font-bold tracking-widest uppercase mb-3">{title}</div><p className="text-[10px] text-gray-400 uppercase tracking-widest mb-1">เลขที่ / No.</p><p className="text-base font-bold text-charcoal-900">{data.orderId}</p></div>
-                </div>
-                <div className="grid grid-cols-2 gap-6 mb-8 text-sm border-b border-gray-200 pb-6 p-4 bg-gray-50 rounded-lg">
-                    <div><p className="text-[10px] text-gray-500 font-semibold tracking-widest mb-1">ได้รับเงินจาก / Received From</p><p className="font-bold text-charcoal-900 text-base mb-1 break-words">{data.student.Name}</p><p className="text-gray-600 font-medium leading-normal break-words">{data.student.Major}</p><p className="text-gray-500 font-light mt-1 break-words">รหัสนักศึกษา: {data.student.StudentID}</p></div>
-                    <div><p className="text-[10px] text-gray-500 font-semibold tracking-widest mb-1">วันที่ทำรายการ / Date</p><p className="font-bold text-charcoal-900 text-base">{data.date.split(' ')[0]}</p><p className="text-gray-500 font-light mt-1">{data.date.split(' ')[1]}</p></div>
-                </div>
-                <div className="flex-grow mb-6">
-                    <table className="w-full text-sm text-left border-collapse">
-                        <thead className="text-[10px] text-gray-500 font-semibold tracking-widest border-b-2 border-gray-800">
-                            <tr><th className="pb-3 pt-2 px-2">รายการ<br/><span className="text-[8px] font-light">Description</span></th><th className="pb-3 pt-2 px-2 text-center w-20">จำนวน<br/><span className="text-[8px] font-light">Qty</span></th><th className="pb-3 pt-2 px-2 text-right w-28">ราคา<br/><span className="text-[8px] font-light">Amount</span></th></tr>
-                        </thead>
-                        <tbody>
-                            <tr className="border-b border-gray-100">
-                                <td className="py-4 px-2"><p className="font-bold text-charcoal-900">เสื้อคอปกโปโล (Polo Shirt)</p><p className="text-xs text-gray-500 font-medium mt-1">ทรง: {data.poloGender} | ไซส์: <span className="font-bold text-charcoal-900">{data.poloSize}</span></p></td>
-                                <td className="py-4 px-2 text-center font-bold text-charcoal-900">{data.poloQty}</td>
-                                <td className="py-4 px-2 text-right font-medium text-charcoal-900">฿{(['XL', '2XL', '3XL'].includes(data.poloSize) ? shirtPrice.oversize : shirtPrice.normal) * data.poloQty}</td>
-                            </tr>
-                            <tr className="border-b border-gray-100">
-                                <td className="py-4 px-2"><p className="font-bold text-charcoal-900">เสื้อยืดกิจกรรม (T-Shirt)</p><p className="text-xs text-gray-500 font-medium mt-1">ทรง: {data.tshirtGender} | ไซส์: <span className="font-bold text-charcoal-900">{data.tshirtSize}</span></p></td>
-                                <td className="py-4 px-2 text-center font-bold text-charcoal-900">{data.tshirtQty}</td>
-                                <td className="py-4 px-2 text-right font-medium text-charcoal-900">฿{(['XL', '2XL', '3XL'].includes(data.tshirtSize) ? shirtPrice.oversize : shirtPrice.normal) * data.tshirtQty}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div className="flex justify-between items-end border-t-2 border-gray-800 pt-4 mb-10 px-2">
-                    <div><span className="text-sm font-bold text-charcoal-900">รวมเงินทั้งสิ้น</span><br/><span className="text-[10px] text-gray-500 font-medium uppercase tracking-widest">Grand Total</span></div>
-                    <span className="text-2xl font-bold text-charcoal-900">฿ {data.grandTotal.toLocaleString()}</span>
-                </div>
-                <div className="mt-auto flex justify-between items-end gap-4">
-                    <div className="text-[10px] text-gray-500 font-medium w-[60%] bg-gray-50 p-3 rounded border border-gray-200"><span className="font-bold text-charcoal-900">หมายเหตุ (Note):</span><br/><span className="whitespace-pre-wrap leading-relaxed">{config.note}</span></div>
-                    <div className="text-center w-[40%] pb-2"><div className="border-b border-charcoal-900 mb-2 h-8"></div><p className="text-xs font-bold text-charcoal-900 mb-0.5">เจ้าหน้าที่ผู้รับเงิน</p><p className="text-[9px] text-gray-500 font-medium uppercase tracking-widest">Authorized Receiver</p></div>
-                </div>
-            </div>
-        );
-
         function App() {
+            // ระบบจดจำหน้าเมื่อรีเฟรช (Session Persistence)
             const [view, setView] = useState(() => {
                 const savedView = sessionStorage.getItem('app_view');
                 if (savedView === 'admin_dashboard' && localStorage.getItem('admin_logged_in') === 'true') return 'admin_dashboard';
@@ -304,6 +198,7 @@
 
             const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
 
+            // บันทึกหน้าจอลง Session
             useEffect(() => { sessionStorage.setItem('app_view', view); }, [view]);
             useEffect(() => { sessionStorage.setItem('search_purpose', searchPurpose); }, [searchPurpose]);
 
@@ -313,7 +208,7 @@
             }, [isDarkMode]);
 
             const loadAdminData = async () => {
-                Swal.fire({ title: 'กำลังเข้าสู่ระบบจัดการ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                Swal.fire({ title: 'กำลังโหลดข้อมูลแอดมิน...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                 try {
                     let data;
                     if (API_CONFIG.USE_FAST_CSV && API_CONFIG.SHEET_ID && API_CONFIG.SHEET_ID !== "YOUR_SHEET_ID_HERE") {
@@ -326,21 +221,37 @@
                         ]);
                         
                         let priceInfo = { normal: 250, oversize: 380, status: 'open', receiptHeader: 'สโมสรนักศึกษาคณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย\nที่อยู่: 80 ซอย 9 ตำบล บ้านดู่ อำเภอเมืองเชียงราย เชียงราย 57100', receiptNote: 'กรุณานำใบเสร็จนี้มาแสดงในวันรับเสื้อ', systemStatus: 'open' };
+                        
                         if (settings && settings.length > 0) {
                             const priceRow = settings.find(r => r.Key === 'ShirtPrice') || {Value1: 250, Value2: 380};
                             const statusRow = settings.find(r => r.Key === 'ShirtStatus') || {Value1: 'open', Value2: ''};
                             const receiptRow = settings.find(r => r.Key === 'ReceiptConfig') || {Value1: priceInfo.receiptHeader, Value2: priceInfo.receiptNote};
                             const systemRow = settings.find(r => r.Key === 'SystemStatus') || {Value1: 'open', Value2: ''};
-                            priceInfo = { normal: Number(priceRow.Value1), oversize: Number(priceRow.Value2), status: statusRow.Value1, receiptHeader: receiptRow.Value1, receiptNote: receiptRow.Value2, systemStatus: systemRow.Value1 };
-                        } else { try { priceInfo = await runGAS('getShirtPrice'); } catch(err) { console.warn("Fallback to settings API"); } }
+                            
+                            priceInfo = { 
+                                normal: Number(priceRow.Value1), oversize: Number(priceRow.Value2), 
+                                status: statusRow.Value1, receiptHeader: receiptRow.Value1, receiptNote: receiptRow.Value2,
+                                systemStatus: systemRow.Value1
+                            };
+                        } else {
+                            try { priceInfo = await runGAS('getShirtPrice'); } catch(err) { console.warn("Fallback to default settings"); }
+                        }
                         
                         data = { activities: acts, checkins: chks, evaluations: evals, shirtOrders: shirts, shirtPrice: priceInfo };
-                    } else { data = await runGAS('getAdminDashboardData'); }
+                    } else { 
+                        data = await runGAS('getAdminDashboardData'); 
+                    }
                     
                     setAdminData(data); 
-                    if (data && data.shirtPrice) { setShirtPrice(data.shirtPrice); setShirtSystemOpen(data.shirtPrice.status !== 'closed'); setSystemOpen(data.shirtPrice.systemStatus !== 'maintenance'); }
+                    if (data && data.shirtPrice) { 
+                        setShirtPrice(data.shirtPrice); 
+                        setShirtSystemOpen(data.shirtPrice.status !== 'closed'); 
+                        setSystemOpen(data.shirtPrice.systemStatus !== 'maintenance');
+                    }
                     Swal.close(); setView('admin_dashboard');
-                } catch(e) { Swal.fire('ข้อผิดพลาดการเชื่อมต่อ', e.message, 'error'); }
+                } catch(e) { 
+                    Swal.fire('ข้อผิดพลาดการเชื่อมต่อ', e.message, 'error'); 
+                }
             };
 
             useEffect(() => {
@@ -348,7 +259,8 @@
                     try {
                         let acts = [];
                         if (API_CONFIG.USE_FAST_CSV && API_CONFIG.SHEET_ID && API_CONFIG.SHEET_ID !== "YOUR_SHEET_ID_HERE") {
-                            const allActs = await fetchFastCSV('Activities'); acts = allActs.filter(a => a.Status === 'open');
+                            const allActs = await fetchFastCSV('Activities');
+                            acts = allActs.filter(a => a.Status === 'open');
                         } else { acts = await runGAS('getActiveActivities'); }
                         setActivities(acts || []);
                         
@@ -360,19 +272,40 @@
                                 const statusRow = settings.find(r => r.Key === 'ShirtStatus') || {Value1: 'open', Value2: ''};
                                 const receiptRow = settings.find(r => r.Key === 'ReceiptConfig') || {Value1: 'สโมสรนักศึกษาคณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย\nที่อยู่: 80 ซอย 9 ตำบล บ้านดู่ อำเภอเมืองเชียงราย เชียงราย 57100', Value2: 'กรุณานำใบเสร็จนี้มาแสดงในวันรับเสื้อ'};
                                 const systemRow = settings.find(r => r.Key === 'SystemStatus') || {Value1: 'open', Value2: ''};
-                                priceInfo = { normal: Number(priceRow.Value1), oversize: Number(priceRow.Value2), status: statusRow.Value1, receiptHeader: receiptRow.Value1, receiptNote: receiptRow.Value2, systemStatus: systemRow.Value1 };
+                                
+                                priceInfo = { 
+                                    normal: Number(priceRow.Value1), oversize: Number(priceRow.Value2), 
+                                    status: statusRow.Value1, receiptHeader: receiptRow.Value1, receiptNote: receiptRow.Value2,
+                                    systemStatus: systemRow.Value1
+                                };
                             } catch(e) { priceInfo = await runGAS('getShirtPrice'); }
                         } else { priceInfo = await runGAS('getShirtPrice'); }
 
-                        if (priceInfo) { setShirtPrice(priceInfo); setShirtSystemOpen(priceInfo.status !== 'closed'); setSystemOpen(priceInfo.systemStatus !== 'maintenance'); setReceiptSettings({ header: priceInfo.receiptHeader, note: priceInfo.receiptNote }); }
-                    } catch (e) { console.error("Initial load failed", e); }
+                        if (priceInfo) {
+                            setShirtPrice(priceInfo);
+                            setShirtSystemOpen(priceInfo.status !== 'closed');
+                            setSystemOpen(priceInfo.systemStatus !== 'maintenance');
+                            setReceiptSettings({ header: priceInfo.receiptHeader, note: priceInfo.receiptNote });
+                        }
+                    } catch (e) { 
+                        console.error("Initial load failed", e); 
+                        if (e.message && e.message.includes('Failed to fetch')) {
+                            Swal.fire({
+                                title: 'การเชื่อมต่อผิดพลาด',
+                                text: 'ไม่สามารถดึงข้อมูลเริ่มต้นได้ กรุณาตรวจสอบการแชร์ไฟล์ Google Sheets',
+                                icon: 'error'
+                            });
+                        }
+                    }
                 };
 
                 if (view === 'admin_dashboard' && localStorage.getItem('admin_logged_in') === 'true') {
                     if (!adminData) loadAdminData();
-                } else { loadInitialData(); }
+                } else {
+                    loadInitialData();
+                }
                 // eslint-disable-next-line react-hooks/exhaustive-deps
-            }, []);
+            }, []); 
 
             const goHome = () => {
                 setStudent(null); setSearchPurpose('activity');
@@ -390,19 +323,25 @@
                         try {
                             const allStudents = await fetchFastCSV('Students');
                             const studentData = allStudents.find(s => String(s.StudentID) === String(studentId) || String(s.IDCard) === String(studentId));
-                            if (studentData) res = { success: true, data: studentData }; else res = { success: false };
+                            if (studentData) res = { success: true, data: studentData };
+                            else res = { success: false };
                         } catch(csvErr) { res = await runGAS('verifyStudent', studentId).catch(e => { throw e }); }
                     } else { res = await runGAS('verifyStudent', studentId); }
 
                     if(res.success) {
-                        setStudent(res.data); localStorage.setItem('last_student_id', studentId);
+                        setStudent(res.data);
+                        localStorage.setItem('last_student_id', studentId);
+
                         if (searchPurpose === 'shirt') {
                             let orderCheck = { hasOrdered: false };
                             if (API_CONFIG.USE_FAST_CSV && API_CONFIG.SHEET_ID && API_CONFIG.SHEET_ID !== "YOUR_SHEET_ID_HERE") {
                                 try {
                                     const allOrders = await fetchFastCSV('ShirtOrders');
                                     for (let i = allOrders.length - 1; i >= 0; i--) {
-                                        if (String(allOrders[i].StudentID) === String(studentId)) { orderCheck = { hasOrdered: true, data: allOrders[i] }; break; }
+                                        if (String(allOrders[i].StudentID) === String(studentId)) {
+                                            orderCheck = { hasOrdered: true, data: allOrders[i] };
+                                            break;
+                                        }
                                     }
                                 } catch(csvErr) { orderCheck = await runGAS('checkShirtOrder', studentId); }
                             } else { orderCheck = await runGAS('checkShirtOrder', studentId); }
@@ -410,8 +349,16 @@
                             Swal.close();
                             if (orderCheck.hasOrdered && orderCheck.data) {
                                 const pastOrder = orderCheck.data;
-                                setReceiptData({ student: res.data, poloGender: pastOrder.PoloGender || 'ชาย', poloSize: pastOrder.PoloSize, poloQty: Number(pastOrder.PoloQty), tshirtGender: pastOrder.TshirtGender || 'ชาย', tshirtSize: pastOrder.TshirtSize, tshirtQty: Number(pastOrder.TshirtQty), grandTotal: Number(pastOrder.TotalPrice), orderId: 'ORD-' + new Date(pastOrder.Timestamp).getTime().toString().slice(-6), date: new Date(pastOrder.Timestamp).toLocaleString('th-TH') });
-                                setPoloGender(pastOrder.PoloGender || 'ชาย'); setPoloSize(pastOrder.PoloSize); setPoloQty(Number(pastOrder.PoloQty)); setTshirtGender(pastOrder.TshirtGender || 'ชาย'); setTshirtSize(pastOrder.TshirtSize); setTshirtQty(Number(pastOrder.TshirtQty));
+                                setReceiptData({
+                                    student: res.data,
+                                    poloGender: pastOrder.PoloGender || 'ชาย', poloSize: pastOrder.PoloSize, poloQty: Number(pastOrder.PoloQty),
+                                    tshirtGender: pastOrder.TshirtGender || 'ชาย', tshirtSize: pastOrder.TshirtSize, tshirtQty: Number(pastOrder.TshirtQty),
+                                    grandTotal: Number(pastOrder.TotalPrice),
+                                    orderId: 'ORD-' + new Date(pastOrder.Timestamp).getTime().toString().slice(-6),
+                                    date: new Date(pastOrder.Timestamp).toLocaleString('th-TH')
+                                });
+                                setPoloGender(pastOrder.PoloGender || 'ชาย'); setPoloSize(pastOrder.PoloSize); setPoloQty(Number(pastOrder.PoloQty));
+                                setTshirtGender(pastOrder.TshirtGender || 'ชาย'); setTshirtSize(pastOrder.TshirtSize); setTshirtQty(Number(pastOrder.TshirtQty));
                                 setView('receipt');
                             } else { setView('shirt_form'); }
                         } else { Swal.close(); setView('select'); }
@@ -425,16 +372,32 @@
                     let hasJoined = false;
                     if (API_CONFIG.USE_FAST_CSV && API_CONFIG.SHEET_ID && API_CONFIG.SHEET_ID !== "YOUR_SHEET_ID_HERE") {
                         const allChks = await fetchFastCSV('CheckIns').catch(() => []);
-                        hasJoined = allChks.some(c => (String(c.StudentID) === String(student.StudentID) || (student.IDCard && String(c.IDCard) === String(student.IDCard))) && String(c.ActivityID).trim() === String(act.ActivityID).trim());
+                        hasJoined = allChks.some(c => 
+                            (String(c.StudentID) === String(student.StudentID) || (student.IDCard && String(c.IDCard) === String(student.IDCard))) && 
+                            String(c.ActivityID).trim() === String(act.ActivityID).trim()
+                        );
                     } else {
                         const history = await runGAS('getStudentHistory', student.StudentID);
                         hasJoined = history.some(h => String(h.ActivityID).trim() === String(act.ActivityID).trim());
                     }
 
                     Swal.close();
-                    if (hasJoined) { Swal.fire({ title: 'ลงทะเบียนซ้ำ!', text: 'คุณได้ลงทะเบียนเข้าร่วมกิจกรรมนี้ไปแล้ว', icon: 'warning', confirmButtonColor: '#ea580c' }); } 
-                    else { setSelectedActivity(act); setView('survey'); }
-                } catch(e) { Swal.close(); setSelectedActivity(act); setView('survey'); }
+                    if (hasJoined) {
+                        Swal.fire({
+                            title: 'ลงทะเบียนซ้ำ!',
+                            text: 'คุณได้ลงทะเบียนเข้าร่วมกิจกรรมนี้ไปแล้ว ไม่สามารถลงซ้ำได้ครับ',
+                            icon: 'warning',
+                            confirmButtonColor: '#ea580c'
+                        });
+                    } else {
+                        setSelectedActivity(act);
+                        setView('survey');
+                    }
+                } catch(e) {
+                    Swal.close();
+                    setSelectedActivity(act);
+                    setView('survey');
+                }
             };
 
             const handleSubmitShirtOrder = async (e) => {
@@ -462,14 +425,14 @@
                     const payload = { student, activity: selectedActivity, answers: surveyAnswers, suggestion };
                     const res = await runGAS('saveCheckInAndSurvey', payload);
                     Swal.close();
-                    if(res.success) Swal.fire({title: 'สำเร็จ', text: 'ขอบคุณที่เข้าร่วมกิจกรรม', icon: 'success', confirmButtonColor: '#1a1a1a'}).then(goHome);
+                    if(res.success) Swal.fire({title: 'เรียบร้อย', text: 'ขอบคุณที่เข้าร่วมกิจกรรม', icon: 'success', confirmButtonColor: '#1a1a1a'}).then(goHome);
                     else Swal.fire('ข้อผิดพลาด', res.error, 'error');
                 } catch(e) { Swal.fire('ข้อผิดพลาด', e.message, 'error'); }
             };
 
             const handleSearchHistory = async (studentId) => {
                 if(!studentId) return Swal.fire('แจ้งเตือน', 'กรอกรหัสนักศึกษา', 'warning');
-                Swal.fire({ title: 'กำลังประมวลผล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                Swal.fire({ title: 'ค้นหาประวัติ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                 try {
                     let data = [];
                     if (API_CONFIG.USE_FAST_CSV && API_CONFIG.SHEET_ID && API_CONFIG.SHEET_ID !== "YOUR_SHEET_ID_HERE") {
@@ -480,13 +443,78 @@
                 } catch(e) { Swal.fire('ข้อผิดพลาด', e.message, 'error'); }
             };
 
+            const getGenderProps = (nameStr) => {
+                if (!nameStr) return { icon: 'fa-user', bg: 'bg-orange-50', text: 'text-orange-600' };
+                if (nameStr.startsWith('นาย')) return { icon: 'fa-person', bg: 'bg-slate-100', text: 'text-slate-600' };
+                if (nameStr.startsWith('นาง') || nameStr.startsWith('น.ส.')) return { icon: 'fa-person-dress', bg: 'bg-rose-50', text: 'text-rose-600' };
+                return { icon: 'fa-user', bg: 'bg-orange-50', text: 'text-orange-600' };
+            };
+
+            const Navbar = () => (
+                <div className="w-full bg-transparent sticky top-0 z-50 transition-colors duration-300 pt-2">
+                    <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+                        <div className="flex items-center gap-3 cursor-pointer" onClick={goHome}>
+                            <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center shadow-md shadow-orange-500/30 transition-all hover:scale-105">
+                                <i className="fa-solid fa-gem text-white text-lg"></i>
+                            </div>
+                            <h1 className="font-semibold text-lg tracking-wide text-charcoal-900 hidden sm:block transition-colors">DIGIT.CRRU <span className="font-light text-orange-500"></span></h1>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-10 h-10 rounded-full flex items-center justify-center border border-orange-200 bg-white/60 backdrop-blur-md text-orange-500 hover:bg-white hover:text-orange-600 transition-colors shadow-sm focus:outline-none">
+                                <i className={`fa-solid ${isDarkMode ? 'fa-sun text-orange-500' : 'fa-moon'}`}></i>
+                            </button>
+                            {view.startsWith('admin') ? (
+                                <button onClick={() => { localStorage.removeItem('admin_logged_in'); goHome(); }} className="text-sm text-gray-500 hover:text-charcoal-900 transition-colors font-medium"><i className="fa-solid fa-right-from-bracket mr-2"></i>LOGOUT</button>
+                            ) : (
+                                <button onClick={() => setView('admin_login')} className="hidden md:flex text-sm text-gray-400 hover:text-orange-600 transition-colors items-center font-medium">STAFF LOGIN <i className="fa-solid fa-arrow-right-to-bracket ml-2"></i></button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const MobileTabBar = () => {
+                if(view.startsWith('admin')) return null;
+                return (
+                    <div className="md:hidden fixed bottom-0 left-0 w-full z-50 bg-white/90 backdrop-blur-md border-t border-orange-100 pb-safe shadow-[0_-10px_20px_rgba(249,115,22,0.05)] transition-colors">
+                        <div className="flex justify-around items-center h-16 px-2">
+                            <button onClick={goHome} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${view === 'home' ? 'text-orange-600' : 'text-gray-400'}`}>
+                                {view === 'home' && <div className="absolute top-0 w-8 h-1 bg-orange-500 rounded-b-full"></div>}
+                                <i className={`fa-solid fa-house text-xl ${view === 'home' ? 'mb-0.5 scale-110' : ''}`}></i><span className="text-[10px] font-medium">หน้าแรก</span>
+                            </button>
+                            <button onClick={() => { if(!systemOpen) return Swal.fire({title:'วันนี้ผมรักผมทักผมรอ วันไหนผมท้อผมพอผมลา', icon:'info', confirmButtonColor: '#1a1a1a'}); setSearchPurpose('activity'); setView('search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'select' || view === 'survey' || (view === 'search' && searchPurpose === 'activity')) ? 'text-orange-600' : 'text-gray-400'}`}>
+                                {(view === 'select' || view === 'survey' || (view === 'search' && searchPurpose === 'activity')) && <div className="absolute top-0 w-8 h-1 bg-orange-500 rounded-b-full"></div>}
+                                <i className={`fa-solid fa-qrcode text-xl ${(view === 'select' || view === 'survey' || (view === 'search' && searchPurpose === 'activity')) ? 'mb-0.5 scale-110' : ''}`}></i><span className="text-[10px] font-medium">เช็คชื่อ</span>
+                            </button>
+                            <button onClick={() => setView('history_search')} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'history_search' || view === 'history_result') ? 'text-orange-600' : 'text-gray-400'}`}>
+                                {(view === 'history_search' || view === 'history_result') && <div className="absolute top-0 w-8 h-1 bg-orange-500 rounded-b-full"></div>}
+                                <i className={`fa-solid fa-clock-rotate-left text-xl ${(view === 'history_search' || view === 'history_result') ? 'mb-0.5 scale-110' : ''}`}></i><span className="text-[10px] font-medium">ประวัติ</span>
+                            </button>
+                            {shirtSystemOpen && systemOpen && (
+                                <button onClick={() => { setSearchPurpose('shirt'); setView('search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'shirt_form' || view === 'receipt' || (view === 'search' && searchPurpose === 'shirt')) ? 'text-orange-600' : 'text-gray-400'}`}>
+                                    {(view === 'shirt_form' || view === 'receipt' || (view === 'search' && searchPurpose === 'shirt')) && <div className="absolute top-0 w-8 h-1 bg-orange-500 rounded-b-full"></div>}
+                                    <i className={`fa-solid fa-shirt text-xl ${(view === 'shirt_form' || view === 'receipt' || (view === 'search' && searchPurpose === 'shirt')) ? 'mb-0.5 scale-110' : ''}`}></i><span className="text-[10px] font-medium">จองเสื้อ</span>
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                );
+            };
+
+            const Footer = () => (
+                <footer className="w-full py-8 mt-auto flex flex-col items-center justify-center text-center z-10 relative">
+                    <div className="w-12 h-px bg-orange-300 mb-4 opacity-50"></div>
+                    <p className="text-[10px] text-gray-500 font-light">ฝ่ายกิจการนักศึกษา คณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย</p>
+                </footer>
+            );
+
             if (view === 'home') {
                 return (
                     <div className="min-h-screen flex flex-col relative z-10">
-                        <Navbar goHome={goHome} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} view={view} setView={setView} />
+                        <Navbar />
                         <div className="flex-grow flex flex-col items-center justify-center p-6 md:p-10">
                             <div className="text-center mb-12">
-                                <h2 className="text-sm font-bold text-orange-500 tracking-widest uppercase mb-3">ยินดีต้อนรับสู่ระบบ</h2>
+                                <h2 className="text-sm font-bold text-orange-500 tracking-widest uppercase mb-3">Welcome to Platform</h2>
                                 <h1 className="text-4xl md:text-5xl font-light text-charcoal-900 tracking-tight">Activities <span className="font-semibold text-orange-600">DIGIT.CRRU</span></h1>
                             </div>
                             <div className={`w-full grid gap-6 mx-auto ${(shirtSystemOpen && systemOpen) ? 'max-w-5xl md:grid-cols-3' : 'max-w-3xl md:grid-cols-2'}`}>
@@ -508,33 +536,40 @@
                             </div>
                         </div>
                         <Footer />
-                        <MobileTabBar view={view} goHome={goHome} systemOpen={systemOpen} shirtSystemOpen={shirtSystemOpen} setView={setView} setSearchPurpose={setSearchPurpose} />
+                        <MobileTabBar />
                     </div>
                 );
             }
 
             if (view === 'search') {
+                const isShirtSearch = searchPurpose === 'shirt';
                 return (
                     <div className="min-h-screen flex flex-col relative z-10">
-                        <Navbar goHome={goHome} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} view={view} setView={setView} />
+                        <Navbar />
                         <div className="flex-grow flex flex-col items-center justify-center p-6">
                             <div className="luxury-card w-full max-w-md p-10 relative">
-                                <button onClick={goHome} className="absolute top-6 left-6 text-gray-400 hover:text-orange-500 transition-colors text-sm"><i className="fa-solid fa-arrow-left mr-1"></i> ย้อนกลับ</button>
+                                <button onClick={goHome} className="absolute top-6 left-6 text-gray-400 hover:text-orange-500 transition-colors text-sm"><i className="fa-solid fa-arrow-left mr-1"></i> BACK</button>
                                 <div className="text-center mt-10 mb-8">
                                     <div className="w-20 h-20 bg-gradient-to-br from-orange-100 to-rose-100 mx-auto rounded-full flex items-center justify-center mb-4 shadow-inner">
-                                        <i className={`fa-solid ${searchPurpose === 'shirt' ? 'fa-shirt' : 'fa-id-card'} text-3xl text-orange-600`}></i>
+                                        <i className={`fa-solid ${isShirtSearch ? 'fa-shirt' : 'fa-id-card'} text-3xl text-orange-600`}></i>
                                     </div>
-                                    <h2 className="text-2xl font-semibold text-charcoal-900 tracking-tight">{searchPurpose === 'shirt' ? 'ค้นหาการสั่งจองเสื้อ' : 'ยืนยันตัวตน'}</h2>
-                                    <p className="text-gray-500 mt-2 text-sm font-light">{searchPurpose === 'shirt' ? 'เพื่อสั่งจองหรือดูใบเสร็จรับเงิน' : 'ระบุรหัสนักศึกษา หรือ เลขบัตรประจำตัวประชาชน'}</p>
+                                    <h2 className="text-2xl font-semibold text-charcoal-900 tracking-tight">
+                                        {isShirtSearch ? 'ค้นหาการสั่งจองเสื้อ' : 'Identification'}
+                                    </h2>
+                                    <p className="text-gray-500 mt-2 text-sm font-light">
+                                        {isShirtSearch ? 'ระบุรหัสนักศึกษา เพื่อสั่งจองหรือดูใบเสร็จ' : 'ระบุรหัสนักศึกษา หรือ เลขบัตรประจำตัวประชาชน'}
+                                    </p>
                                 </div>
                                 <form onSubmit={(e) => { e.preventDefault(); handleSearchStudent(e.target.studentId.value); }}>
-                                    <div className="mb-8"><input type="text" name="studentId" required placeholder="กรอกรหัสนักศึกษา..." defaultValue={localStorage.getItem('last_student_id')||''} className="w-full luxury-input text-center tracking-widest text-lg font-medium" /></div>
-                                    <button type="submit" className="w-full btn-gradient py-4 rounded-xl font-semibold tracking-wider text-sm shadow-lg shadow-orange-500/20">ดำเนินการต่อ <i className="fa-solid fa-arrow-right ml-2"></i></button>
+                                    <div className="mb-8"><input type="text" name="studentId" required placeholder="Enter ID..." defaultValue={localStorage.getItem('last_student_id')||''} className="w-full luxury-input text-center tracking-widest text-lg font-medium" /></div>
+                                    <button type="submit" className="w-full btn-gradient py-4 rounded-xl font-semibold tracking-wider text-sm shadow-lg shadow-orange-500/20">
+                                        {isShirtSearch ? 'ตรวจสอบข้อมูล' : 'PROCEED'} <i className="fa-solid fa-arrow-right ml-2"></i>
+                                    </button>
                                 </form>
                             </div>
                         </div>
                         <Footer />
-                        <MobileTabBar view={view} goHome={goHome} systemOpen={systemOpen} shirtSystemOpen={shirtSystemOpen} setView={setView} setSearchPurpose={setSearchPurpose} />
+                        <MobileTabBar />
                     </div>
                 );
             }
@@ -543,23 +578,23 @@
                 const gProps = getGenderProps(student.Name);
                 return (
                     <div className="min-h-screen flex flex-col relative z-10">
-                        <Navbar goHome={goHome} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} view={view} setView={setView} />
+                        <Navbar />
                         <div className="flex-grow flex flex-col items-center pt-10 p-6">
                             <div className="w-full max-w-2xl mb-8 flex justify-between items-end bg-white/50 p-6 rounded-2xl border border-orange-100/50 backdrop-blur-sm">
                                 <div className="flex items-center gap-5">
                                     <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl shadow-sm ${gProps.bg} ${gProps.text}`}><i className={`fa-solid ${gProps.icon}`}></i></div>
-                                    <div><h2 className="text-2xl font-semibold text-charcoal-900">{student.Name}</h2><p className="text-gray-500 text-sm font-light mt-1">{student.StudentID} <span className="mx-2 text-orange-300">•</span> {student.Major}</p></div>
+                                    <div><h2 className="text-xl font-semibold text-charcoal-900">{student.Name}</h2><p className="text-gray-500 text-sm font-light mt-0.5">{student.StudentID} <span className="mx-2">•</span> {student.Major}</p></div>
                                 </div>
-                                <button onClick={() => setView('search')} className="text-xs text-orange-600 hover:text-orange-700 bg-orange-50 px-3 py-1.5 rounded-lg font-medium transition-colors">เปลี่ยนผู้ใช้</button>
+                                <button onClick={() => setView('search')} className="text-xs text-orange-600 hover:text-orange-700 bg-orange-50 px-3 py-1.5 rounded-lg font-medium transition-colors">CHANGE</button>
                             </div>
                             <div className="w-full max-w-2xl">
-                                <h3 className="font-medium text-gray-400 text-sm mb-4 uppercase tracking-widest pl-2">กิจกรรมที่เปิดรับลงทะเบียน</h3>
+                                <h3 className="font-medium text-gray-400 text-sm mb-4 uppercase tracking-widest pl-2">Available Activities</h3>
                                 <div className="space-y-4">
                                     {activities.length === 0 ? (<div className="text-center py-12 luxury-card"><p className="text-gray-400 font-light">ไม่มีกิจกรรมที่เปิดให้ลงทะเบียนในขณะนี้</p></div>) : (
                                         activities.map(act => (
                                             <div key={act.ActivityID} onClick={() => handleSelectActivity(act)} className="luxury-card p-6 cursor-pointer group hover:border-orange-300 hover:shadow-orange-500/10">
                                                 <div className="flex justify-between items-center">
-                                                    <div><h4 className="font-semibold text-lg text-charcoal-900 group-hover:text-orange-600 transition-colors">{act.Name}</h4><div className="flex items-center gap-4 mt-2 text-sm text-gray-500 font-light"><span><i className="fa-regular fa-calendar mr-1 opacity-80 text-orange-400"></i> {act.Date}</span><span><i className="fa-solid fa-location-dot mr-1 opacity-80 text-orange-400"></i> {act.Location}</span></div></div>
+                                                    <div><h4 className="font-semibold text-lg text-charcoal-900 group-hover:text-orange-600 transition-colors">{act.Name}</h4><div className="flex items-center gap-4 mt-2 text-sm text-gray-500 font-light"><span><i className="fa-regular fa-calendar mr-1 opacity-70 text-orange-400"></i> {act.Date}</span><span><i className="fa-solid fa-location-dot mr-1 opacity-70 text-orange-400"></i> {act.Location}</span></div></div>
                                                     <i className="fa-solid fa-arrow-right text-gray-300 group-hover:text-orange-500 transition-transform transform group-hover:translate-x-1 text-xl"></i>
                                                 </div>
                                             </div>
@@ -569,7 +604,7 @@
                             </div>
                         </div>
                         <Footer />
-                        <MobileTabBar view={view} goHome={goHome} systemOpen={systemOpen} shirtSystemOpen={shirtSystemOpen} setView={setView} setSearchPurpose={setSearchPurpose} />
+                        <MobileTabBar />
                     </div>
                 );
             }
@@ -577,30 +612,36 @@
             if (view === 'survey') {
                 return (
                     <div className="min-h-screen flex flex-col relative z-10">
-                        <Navbar goHome={goHome} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} view={view} setView={setView} />
+                        <Navbar />
                         <div className="flex-grow flex flex-col items-center pt-6 p-4 pb-20">
                             <div className="luxury-card w-full max-w-4xl p-6 sm:p-12 border-t-4 border-t-orange-500">
                                 <div className="mb-10 relative">
-                                    <button onClick={() => setView('select')} className="text-gray-400 hover:text-orange-600 transition-colors text-sm mb-6 flex items-center"><i className="fa-solid fa-arrow-left mr-2"></i> ย้อนกลับ</button>
+                                    <button onClick={() => setView('select')} className="text-gray-400 hover:text-orange-600 transition-colors text-sm mb-6 flex items-center"><i className="fa-solid fa-arrow-left mr-2"></i> BACK</button>
                                     <h2 className="text-2xl sm:text-3xl font-semibold text-charcoal-900 leading-tight">{selectedActivity.Name}</h2>
-                                    <p className="text-gray-500 mt-2 font-light">แบบประเมินความพึงพอใจ</p>
+                                    <p className="text-gray-500 mt-2 font-light">Satisfaction Survey / แบบประเมินความพึงพอใจ</p>
                                 </div>
                                 <form onSubmit={handleSubmitSurvey}>
-                                    <div className="flex flex-wrap items-center gap-4 text-xs font-light text-gray-500 mb-10 pb-6 border-b border-orange-100">
-                                        <span className="font-medium text-charcoal-900">เกณฑ์การให้คะแนน:</span>
-                                        <div className="flex items-center gap-1.5"><div className="w-5 h-5 rounded bg-gradient-to-br from-orange-400 to-orange-600 text-white flex justify-center items-center font-bold">5</div> ยอดเยี่ยม</div>
+                                    <div className="hidden md:flex flex-row items-center justify-between px-4 mb-3 border-b border-gray-100 pb-2">
+                                        <div className="md:w-3/5 font-semibold text-gray-400 text-[10px] tracking-widest uppercase">หัวข้อการประเมิน</div>
+                                        <div className="flex justify-end gap-2 w-auto pr-1">
+                                            <div className="w-10 text-center text-[10px] font-medium text-gray-400 uppercase tracking-widest leading-tight">5<br/>ยอดเยี่ยม</div>
+                                            <div className="w-10 text-center text-[10px] font-medium text-gray-400 uppercase tracking-widest leading-tight">4<br/>ดีมาก</div>
+                                            <div className="w-10 text-center text-[10px] font-medium text-gray-400 uppercase tracking-widest leading-tight">3<br/>ดี</div>
+                                            <div className="w-10 text-center text-[10px] font-medium text-gray-400 uppercase tracking-widest leading-tight">2<br/>พอใช้</div>
+                                            <div className="w-10 text-center text-[10px] font-medium text-gray-400 uppercase tracking-widest leading-tight">1<br/>ปรับปรุง</div>
+                                        </div>
+                                    </div>
+                                    <div className="md:hidden flex flex-wrap items-center gap-4 text-xs font-light text-gray-500 mb-10 pb-6 border-b border-orange-100">
+                                        <span className="font-medium text-charcoal-900">SCORING:</span>
+                                        <div className="flex items-center gap-1.5"><div className="w-5 h-5 rounded bg-gradient-to-br from-orange-400 to-orange-600 text-white flex justify-center items-center">5</div> ยอดเยี่ยม</div>
                                         <div className="flex items-center gap-1.5"><div className="w-5 h-5 rounded border border-gray-200 text-gray-500 flex justify-center items-center">4</div> ดีมาก</div>
                                         <div className="flex items-center gap-1.5"><div className="w-5 h-5 rounded border border-gray-200 text-gray-500 flex justify-center items-center">3</div> ดี</div>
                                         <div className="flex items-center gap-1.5"><div className="w-5 h-5 rounded border border-gray-200 text-gray-500 flex justify-center items-center">2</div> พอใช้</div>
                                         <div className="flex items-center gap-1.5"><div className="w-5 h-5 rounded border border-gray-200 text-gray-500 flex justify-center items-center">1</div> ปรับปรุง</div>
                                     </div>
-
                                     {surveyData.map((category, catIdx) => (
                                         <div key={catIdx} className="mb-12">
-                                            <h3 className="text-lg font-semibold text-charcoal-900 mb-6 border-l-4 border-orange-500 pl-3">
-                                                {category.title.split(' ').slice(1).join(' ')}
-                                            </h3>
-                                            
+                                            <h3 className="text-lg font-semibold text-charcoal-900 mb-6 border-l-4 border-orange-500 pl-3">{category.title.split(' ').slice(1).join(' ')}</h3>
                                             <div className="space-y-4">
                                                 {category.questions.map((q) => (
                                                     <div key={q.id} className="p-4 sm:p-5 border border-orange-50/80 rounded-xl hover:border-orange-200 hover:bg-orange-50/30 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -608,8 +649,7 @@
                                                         <div className="flex justify-between gap-2 w-full md:w-auto">
                                                             {[5, 4, 3, 2, 1].map(score => (
                                                                 <label key={score} className={`relative w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-lg cursor-pointer text-sm font-medium transition-all ${surveyAnswers[q.id] === score ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-md' : 'bg-white text-gray-400 border border-gray-200 hover:border-orange-300'}`}>
-                                                                    <input type="radio" className="hidden" name={q.id} value={score} required onChange={() => setSurveyAnswers({...surveyAnswers, [q.id]: score})} />
-                                                                    {score}
+                                                                    <input type="radio" className="hidden" name={q.id} value={score} required onChange={() => setSurveyAnswers({...surveyAnswers, [q.id]: score})} />{score}
                                                                 </label>
                                                             ))}
                                                         </div>
@@ -618,24 +658,17 @@
                                             </div>
                                         </div>
                                     ))}
-
                                     <div className="mb-12">
                                         <h3 className="text-lg font-semibold text-charcoal-900 mb-4 border-l-4 border-orange-500 pl-3">ข้อเสนอแนะเพิ่มเติม</h3>
-                                        <textarea rows="3" value={suggestion} onChange={(e) => setSuggestion(e.target.value)}
-                                            className="w-full luxury-input resize-none text-sm font-light"
-                                            placeholder="ความคิดเห็นเพื่อการพัฒนา (ไม่บังคับ)"></textarea>
+                                        <textarea rows="3" value={suggestion} onChange={(e) => setSuggestion(e.target.value)} className="w-full luxury-input resize-none text-sm font-light" placeholder="ความคิดเห็นเพื่อการพัฒนา (ไม่บังคับ)"></textarea>
                                     </div>
-
                                     <div className="flex gap-4 pt-6 border-t border-orange-100">
-                                        <button type="submit" className="w-full btn-gradient py-4 rounded-xl font-semibold tracking-wider text-sm shadow-lg shadow-orange-500/20">
-                                            ยืนยันการประเมิน
-                                        </button>
+                                        <button type="submit" className="w-full btn-gradient py-4 rounded-xl font-semibold tracking-wider text-sm shadow-lg shadow-orange-500/20">SUBMIT SURVEY</button>
                                     </div>
                                 </form>
                             </div>
                         </div>
                         <Footer />
-                        <MobileTabBar view={view} goHome={goHome} systemOpen={systemOpen} shirtSystemOpen={shirtSystemOpen} setView={setView} setSearchPurpose={setSearchPurpose} />
                     </div>
                 );
             }
@@ -647,29 +680,29 @@
 
                 return (
                     <div className="min-h-screen flex flex-col relative z-10">
-                        <Navbar goHome={goHome} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} view={view} setView={setView} />
+                        <Navbar />
                         <div className="flex-grow flex flex-col items-center pt-8 p-4 pb-20">
                             <div className="luxury-card w-full max-w-2xl p-6 sm:p-12 border-t-4 border-t-orange-500">
                                 <div className="flex justify-between items-center mb-10 pb-6 border-b border-orange-100">
                                     <div className="flex items-center gap-4">
                                         <div className={`w-14 h-14 rounded-full flex items-center justify-center text-xl ${gProps.bg} ${gProps.text}`}><i className={`fa-solid ${gProps.icon}`}></i></div>
                                         <div>
-                                            <p className="text-xs text-orange-400 font-medium uppercase tracking-widest">ข้อมูลผู้สั่งจอง:</p>
+                                            <p className="text-xs text-orange-400 font-medium uppercase tracking-widest">Order For</p>
                                             <h2 className="text-xl font-semibold text-charcoal-900">{student.Name}</h2>
                                         </div>
                                     </div>
-                                    <button onClick={() => setView('search')} className="text-xs text-orange-500 hover:text-orange-700 bg-orange-50 px-3 py-1.5 rounded-lg font-medium transition-colors">เปลี่ยนผู้ใช้</button>
+                                    <button onClick={() => setView('search')} className="text-xs text-orange-500 hover:text-orange-700 bg-orange-50 px-3 py-1.5 rounded-lg font-medium transition-colors">Change</button>
                                 </div>
 
                                 <form onSubmit={handleSubmitShirtOrder}>
-                                    <h2 className="text-2xl font-semibold text-charcoal-900 text-center mb-8">{isEditingOrder ? 'แก้ไขข้อมูลสั่งจอง' : 'แบบฟอร์มสั่งจองเสื้อ'}</h2>
+                                    <h2 className="text-2xl font-semibold text-charcoal-900 text-center mb-8">{isEditingOrder ? 'Edit Booking' : 'แบบฟอร์มสั่งจองเสื้อ'}</h2>
                                     
                                     {/* Polo Section */}
                                     <div className="mb-8">
                                         <h3 className="font-semibold text-charcoal-900 mb-4 flex items-center"><span className="text-orange-500 mr-2">01.</span> เสื้อคอปกโปโล</h3>
                                         <div className="border border-orange-50/80 rounded-2xl p-5 sm:p-6 bg-white shadow-sm">
                                             <div className="mb-5">
-                                                <label className="block text-xs font-medium text-gray-400 uppercase tracking-widest mb-3">ทรงเสื้อ</label>
+                                                <label className="block text-xs font-medium text-gray-400 uppercase tracking-widest mb-3">Gender / ทรงเสื้อ</label>
                                                 <div className="flex gap-4">
                                                     {['ชาย', 'หญิง'].map(g => (
                                                         <label key={`polo-${g}`} className={`flex-1 py-3 rounded-xl border text-center cursor-pointer text-sm font-medium transition-all ${poloGender === g ? 'border-orange-500 bg-orange-500 text-white shadow-md' : 'border-gray-200 text-gray-500 hover:border-orange-300'}`}>
@@ -679,7 +712,7 @@
                                                 </div>
                                             </div>
                                             <div className="mb-5">
-                                                <label className="block text-xs font-medium text-gray-400 uppercase tracking-widest mb-3">ขนาด (Size)</label>
+                                                <label className="block text-xs font-medium text-gray-400 uppercase tracking-widest mb-3">Size / ขนาด</label>
                                                 <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
                                                     {['S', 'M', 'L', 'XL', '2XL', '3XL'].map(size => (
                                                         <label key={`p-${size}`} className={`relative flex flex-col items-center py-3 rounded-xl border cursor-pointer transition-all ${poloSize === size ? 'border-orange-500 bg-orange-50 text-orange-600 shadow-sm' : 'border-gray-200 text-gray-500 hover:border-orange-300'}`}>
@@ -691,7 +724,7 @@
                                                 </div>
                                             </div>
                                             <div className="flex justify-between items-center bg-orange-50/50 p-4 rounded-xl border border-orange-100">
-                                                <label className="text-xs font-medium text-gray-500 uppercase tracking-widest">จำนวน</label>
+                                                <label className="text-xs font-medium text-gray-500 uppercase tracking-widest">Quantity</label>
                                                 <div className="flex items-center gap-3">
                                                     <button type="button" onClick={() => setPoloQty(Math.max(1, poloQty - 1))} className="w-8 h-8 rounded border border-orange-200 bg-white text-orange-500 hover:bg-orange-100"><i className="fa-solid fa-minus text-xs"></i></button>
                                                     <span className="font-semibold text-charcoal-900 w-6 text-center text-sm">{poloQty}</span>
@@ -706,7 +739,7 @@
                                         <h3 className="font-semibold text-charcoal-900 mb-4 flex items-center"><span className="text-orange-500 mr-2">02.</span> เสื้อยืดกิจกรรม</h3>
                                         <div className="border border-orange-50/80 rounded-2xl p-5 sm:p-6 bg-white shadow-sm">
                                             <div className="mb-5">
-                                                <label className="block text-xs font-medium text-gray-400 uppercase tracking-widest mb-3">ทรงเสื้อ</label>
+                                                <label className="block text-xs font-medium text-gray-400 uppercase tracking-widest mb-3">Gender / ทรงเสื้อ</label>
                                                 <div className="flex gap-4">
                                                     {['ชาย', 'หญิง'].map(g => (
                                                         <label key={`ts-${g}`} className={`flex-1 py-3 rounded-xl border text-center cursor-pointer text-sm font-medium transition-all ${tshirtGender === g ? 'border-orange-500 bg-orange-500 text-white shadow-md' : 'border-gray-200 text-gray-500 hover:border-orange-300'}`}>
@@ -716,7 +749,7 @@
                                                 </div>
                                             </div>
                                             <div className="mb-5">
-                                                <label className="block text-xs font-medium text-gray-400 uppercase tracking-widest mb-3">ขนาด (Size)</label>
+                                                <label className="block text-xs font-medium text-gray-400 uppercase tracking-widest mb-3">Size / ขนาด</label>
                                                 <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
                                                     {['S', 'M', 'L', 'XL', '2XL', '3XL'].map(size => (
                                                         <label key={`t-${size}`} className={`relative flex flex-col items-center py-3 rounded-xl border cursor-pointer transition-all ${tshirtSize === size ? 'border-orange-500 bg-orange-50 text-orange-600 shadow-sm' : 'border-gray-200 text-gray-500 hover:border-orange-300'}`}>
@@ -728,7 +761,7 @@
                                                 </div>
                                             </div>
                                             <div className="flex justify-between items-center bg-orange-50/50 p-4 rounded-xl border border-orange-100">
-                                                <label className="text-xs font-medium text-gray-500 uppercase tracking-widest">จำนวน</label>
+                                                <label className="text-xs font-medium text-gray-500 uppercase tracking-widest">Quantity</label>
                                                 <div className="flex items-center gap-3">
                                                     <button type="button" onClick={() => setTshirtQty(Math.max(1, tshirtQty - 1))} className="w-8 h-8 rounded border border-orange-200 bg-white text-orange-500 hover:bg-orange-100"><i className="fa-solid fa-minus text-xs"></i></button>
                                                     <span className="font-semibold text-charcoal-900 w-6 text-center text-sm">{tshirtQty}</span>
@@ -738,21 +771,20 @@
                                         </div>
                                     </div>
 
-                                    {/* Summary */}
                                     <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-6 rounded-2xl mb-8 flex justify-between items-center border border-orange-200/50">
-                                        <div><p className="text-xs font-medium text-orange-600/70 uppercase tracking-widest mb-1">ยอดชำระสุทธิ</p><p className="text-sm font-semibold text-charcoal-900">รวมทั้งหมด</p></div>
+                                        <div><p className="text-xs font-medium text-orange-600/70 uppercase tracking-widest mb-1">Grand Total</p><p className="text-sm font-semibold text-charcoal-900">ยอดชำระสุทธิ</p></div>
                                         <div className="text-3xl font-bold text-orange-600">฿{grandTotal.toLocaleString()}</div>
                                     </div>
 
                                     <div className="flex gap-4">
-                                        {isEditingOrder && <button type="button" onClick={() => setView('receipt')} className="w-1/3 py-4 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-colors">ยกเลิก</button>}
-                                        <button type="submit" className={`${isEditingOrder ? 'w-2/3' : 'w-full'} btn-gradient py-4 rounded-xl font-semibold tracking-wider text-sm shadow-lg shadow-orange-500/20`}>ยืนยันการสั่งจอง</button>
+                                        {isEditingOrder && <button type="button" onClick={() => setView('receipt')} className="w-1/3 py-4 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-colors">CANCEL</button>}
+                                        <button type="submit" className={`${isEditingOrder ? 'w-2/3' : 'w-full'} btn-gradient py-4 rounded-xl font-semibold tracking-wider text-sm shadow-lg shadow-orange-500/20`}>CONFIRM ORDER</button>
                                     </div>
                                 </form>
                             </div>
                         </div>
                         <Footer />
-                        <MobileTabBar view={view} goHome={goHome} systemOpen={systemOpen} shirtSystemOpen={shirtSystemOpen} setView={setView} setSearchPurpose={setSearchPurpose} />
+                        <MobileTabBar />
                     </div>
                 );
             }
@@ -760,14 +792,14 @@
             if (view === 'receipt') {
                 const handleDownloadReceipt = () => {
                     const receiptElement = document.getElementById('receipt-card');
-                    Swal.fire({ title: 'กำลังประมวลผล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                    Swal.fire({ title: 'Processing...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                     html2canvas(receiptElement, { scale: 2, backgroundColor: isDarkMode ? '#1e1e1e' : '#fffcf9' }).then(canvas => {
                         const link = document.createElement('a');
                         link.download = `Receipt_${receiptData.student.StudentID}.png`;
                         link.href = canvas.toDataURL('image/png');
                         link.click();
                         Swal.close();
-                    }).catch(() => Swal.fire('ข้อผิดพลาด', 'ไม่สามารถสร้างรูปภาพได้', 'error'));
+                    }).catch(() => Swal.fire('Error', 'ไม่สามารถสร้างรูปภาพได้', 'error'));
                 };
 
                 const ReceiptSlip = ({ title, data, config }) => (
@@ -793,7 +825,7 @@
                                 <p className="text-gray-500 font-light mt-1 break-words">รหัสนักศึกษา: {data.student.StudentID}</p>
                             </div>
                             <div>
-                                <p className="text-[10px] text-gray-500 font-semibold tracking-widest mb-1">วันที่ทำรายการ / Date</p>
+                                <p className="text-[10px] text-gray-500 font-semibold tracking-widest mb-1">วันที่ / Date</p>
                                 <p className="font-bold text-charcoal-900 text-base">{data.date.split(' ')[0]}</p>
                                 <p className="text-gray-500 font-light mt-1">{data.date.split(' ')[1]}</p>
                             </div>
@@ -805,7 +837,7 @@
                                     <tr>
                                         <th className="pb-3 pt-2 px-2">รายการ<br/><span className="text-[8px] font-light">Description</span></th>
                                         <th className="pb-3 pt-2 px-2 text-center w-20">จำนวน<br/><span className="text-[8px] font-light">Qty</span></th>
-                                        <th className="pb-3 pt-2 px-2 text-right w-28">ราคา<br/><span className="text-[8px] font-light">Amount</span></th>
+                                        <th className="pb-3 pt-2 px-2 text-right w-28">จำนวนเงิน<br/><span className="text-[8px] font-light">Amount</span></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -853,33 +885,35 @@
 
                 return (
                     <div className="min-h-screen flex flex-col relative z-10">
-                        <Navbar goHome={goHome} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} view={view} setView={setView} />
+                        <Navbar />
                         <div className="flex-grow flex flex-col items-center pt-8 p-4 pb-20">
                             <div className="w-full max-w-[1200px]">
                                 <div className="flex justify-between items-end mb-6 px-2">
-                                    <div><h2 className="text-2xl font-semibold text-charcoal-900">ยืนยันการสั่งจอง</h2><p className="text-gray-500 text-sm font-light mt-1">กรุณาดาวน์โหลดใบเสร็จนี้เพื่อเป็นหลักฐาน</p></div>
-                                    <p className="text-xs text-orange-500 font-medium xl:hidden"><i className="fa-solid fa-arrows-left-right"></i> เลื่อนเพื่อดูแบบเต็ม</p>
+                                    <div><h2 className="text-2xl font-semibold text-charcoal-900">Order Confirmation</h2><p className="text-gray-500 text-sm font-light mt-1">Please download this receipt for your reference.</p></div>
+                                    <p className="text-xs text-orange-500 font-medium xl:hidden"><i className="fa-solid fa-arrows-left-right"></i> Scroll for full view</p>
                                 </div>
+
                                 <div className="w-full overflow-x-auto pb-6 custom-scrollbar">
                                     <div id="receipt-card" className="bg-white flex flex-row justify-between items-stretch shadow-sm border border-orange-100/50" style={{ width: '1123px', minHeight: '794px', margin: '0 auto' }}>
-                                        <ReceiptSlip title="ต้นฉบับ" data={receiptData} config={receiptSettings} shirtPrice={shirtPrice} />
+                                        <ReceiptSlip title="ORIGINAL" data={receiptData} config={receiptSettings} />
                                         <div className="flex flex-col items-center justify-center gap-4 text-gray-300 bg-orange-50/30 px-1 border-x border-dashed border-orange-200/50">
                                             <i className="fa-solid fa-scissors text-orange-300 text-xs transform -rotate-90"></i>
                                             <span className="text-[9px] font-medium uppercase tracking-[0.2em] whitespace-nowrap opacity-50 text-orange-400" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>Cut Here</span>
                                             <i className="fa-solid fa-scissors text-orange-300 text-xs transform rotate-90"></i>
                                         </div>
-                                        <ReceiptSlip title="สำเนา" data={receiptData} config={receiptSettings} shirtPrice={shirtPrice} />
+                                        <ReceiptSlip title="COPY" data={receiptData} config={receiptSettings} />
                                     </div>
                                 </div>
+                                
                                 <div className="flex flex-col sm:flex-row justify-center gap-4 mt-4 max-w-[800px] w-full mx-auto">
-                                    <button onClick={goHome} className="w-full sm:w-1/4 bg-white text-charcoal-900 font-semibold py-4 rounded-xl border border-gray-200 hover:bg-orange-50 transition-colors text-sm tracking-wider">หน้าหลัก</button>
-                                    {shirtSystemOpen && <button onClick={() => { setIsEditingOrder(true); setView('shirt_form'); }} className="w-full sm:w-1/4 btn-primary py-4 rounded-xl font-semibold text-sm tracking-wider hover:bg-gray-800">แก้ไขข้อมูล</button>}
-                                    <button onClick={handleDownloadReceipt} className="w-full sm:w-2/4 btn-gradient py-4 rounded-xl font-semibold flex justify-center items-center gap-2 text-sm tracking-wider shadow-lg shadow-orange-500/20"><i className="fa-solid fa-download"></i> ดาวน์โหลดใบเสร็จ</button>
+                                    <button onClick={goHome} className="w-full sm:w-1/4 bg-white text-charcoal-900 font-semibold py-4 rounded-xl border border-gray-200 hover:bg-orange-50 transition-colors text-sm tracking-wider">HOME</button>
+                                    {shirtSystemOpen && <button onClick={() => { setIsEditingOrder(true); setView('shirt_form'); }} className="w-full sm:w-1/4 btn-primary py-4 rounded-xl font-semibold text-sm tracking-wider hover:bg-gray-800">EDIT ORDER</button>}
+                                    <button onClick={handleDownloadReceipt} className="w-full sm:w-2/4 btn-gradient py-4 rounded-xl font-semibold flex justify-center items-center gap-2 text-sm tracking-wider shadow-lg shadow-orange-500/20"><i className="fa-solid fa-download"></i> DOWNLOAD RECEIPT</button>
                                 </div>
                             </div>
                         </div>
                         <Footer />
-                        <MobileTabBar view={view} goHome={goHome} systemOpen={systemOpen} shirtSystemOpen={shirtSystemOpen} setView={setView} setSearchPurpose={setSearchPurpose} />
+                        <MobileTabBar />
                     </div>
                 );
             }
@@ -887,22 +921,29 @@
             if (view === 'history_search') {
                 return (
                     <div className="min-h-screen flex flex-col relative z-10">
-                        <Navbar goHome={goHome} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} view={view} setView={setView} />
+                        <Navbar />
                         <div className="flex-grow flex flex-col items-center justify-center p-6">
                             <div className="luxury-card w-full max-w-md p-10 relative">
-                                <button onClick={goHome} className="absolute top-6 left-6 text-gray-400 hover:text-charcoal-900 transition-colors text-sm"><i className="fa-solid fa-arrow-left mr-1"></i> ย้อนกลับ</button>
+                                <button onClick={goHome} className="absolute top-6 left-6 text-gray-400 hover:text-orange-500 transition-colors text-sm">
+                                    <i className="fa-solid fa-arrow-left mr-1"></i> BACK
+                                </button>
                                 <div className="text-center mt-10 mb-8">
-                                    <h2 className="text-2xl font-semibold text-charcoal-900 tracking-tight">ประวัติการเข้าร่วม</h2>
-                                    <p className="text-gray-500 mt-2 text-sm font-light">ตรวจสอบรายการกิจกรรมย้อนหลัง</p>
+                                    <h2 className="text-2xl font-semibold text-charcoal-900 tracking-tight">History</h2>
+                                    <p className="text-gray-500 mt-2 text-sm font-light">ตรวจสอบประวัติการเข้าร่วม</p>
                                 </div>
                                 <form onSubmit={(e) => { e.preventDefault(); handleSearchHistory(e.target.studentId.value); }}>
-                                    <div className="mb-8"><input type="text" name="studentId" required placeholder="รหัสนักศึกษา / เลขบัตรประชาชน" defaultValue={localStorage.getItem('last_student_id')||''} className="w-full luxury-input text-center tracking-widest text-lg font-medium" /></div>
-                                    <button type="submit" className="w-full btn-gradient py-4 rounded-xl font-semibold tracking-wider text-sm shadow-lg shadow-orange-500/20">ค้นหาประวัติ <i className="fa-solid fa-search ml-2"></i></button>
+                                    <div className="mb-8">
+                                        <input type="text" name="studentId" required placeholder="Student ID / ID Card" defaultValue={localStorage.getItem('last_student_id')||''}
+                                               className="w-full luxury-input text-center tracking-widest text-lg font-medium" />
+                                    </div>
+                                    <button type="submit" className="w-full btn-gradient py-4 rounded-xl font-semibold tracking-wider text-sm shadow-lg shadow-orange-500/20">
+                                        SEARCH <i className="fa-solid fa-search ml-2"></i>
+                                    </button>
                                 </form>
                             </div>
                         </div>
                         <Footer />
-                        <MobileTabBar view={view} goHome={goHome} systemOpen={systemOpen} shirtSystemOpen={shirtSystemOpen} setView={setView} setSearchPurpose={setSearchPurpose} />
+                        <MobileTabBar />
                     </div>
                 );
             }
@@ -910,12 +951,12 @@
             if (view === 'history_result') {
                 return (
                     <div className="min-h-screen flex flex-col relative z-10">
-                        <Navbar goHome={goHome} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} view={view} setView={setView} />
+                        <Navbar />
                         <div className="flex-grow flex flex-col items-center pt-8 p-6 pb-20">
                             <div className="luxury-card w-full max-w-2xl p-6 sm:p-10 border-t-4 border-t-orange-500">
                                 <div className="flex items-center justify-between mb-8 pb-4 border-b border-orange-100">
-                                    <div><h2 className="text-xl font-semibold text-charcoal-900">ประวัติการเข้าร่วมกิจกรรม</h2><p className="text-gray-500 text-sm font-light mt-1">พบข้อมูล {historyData.length} รายการ</p></div>
-                                    <button onClick={() => setView('history_search')} className="text-xs text-orange-500 hover:text-orange-700 bg-orange-50 px-3 py-1.5 rounded-lg transition-colors font-medium">ค้นหาใหม่</button>
+                                    <div><h2 className="text-xl font-semibold text-charcoal-900">Activity History</h2><p className="text-gray-500 text-sm font-light mt-1">Found {historyData.length} records</p></div>
+                                    <button onClick={() => setView('history_search')} className="text-xs text-orange-500 hover:text-orange-700 bg-orange-50 px-3 py-1.5 rounded-lg transition-colors font-medium">NEW SEARCH</button>
                                 </div>
                                 
                                 <div className="space-y-4">
@@ -929,7 +970,7 @@
                                                     <div className="bg-white p-5 rounded-xl border border-orange-50/80 shadow-[0_2px_10px_rgba(249,115,22,0.03)] transition-all hover:shadow-[0_4px_15px_rgba(249,115,22,0.08)] hover:border-orange-200">
                                                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                                                             <div>
-                                                                <p className="text-[10px] text-orange-400 font-medium uppercase tracking-widest mb-1">เข้าร่วมเมื่อ</p>
+                                                                <p className="text-[10px] text-orange-400 font-medium uppercase tracking-widest mb-1">Attended</p>
                                                                 <h4 className="font-semibold text-charcoal-900 text-lg mb-1">{h.ActivityName}</h4>
                                                                 <p className="text-sm text-gray-500 font-light">{h.Name} ({h.StudentID})</p>
                                                             </div>
@@ -946,7 +987,7 @@
                             </div>
                         </div>
                         <Footer />
-                        <MobileTabBar view={view} goHome={goHome} systemOpen={systemOpen} shirtSystemOpen={shirtSystemOpen} setView={setView} setSearchPurpose={setSearchPurpose} />
+                        <MobileTabBar />
                     </div>
                 );
             }
@@ -956,28 +997,35 @@
                 if(e.target.username.value === 'admin' && e.target.password.value === '9999') {
                     localStorage.setItem('admin_logged_in', 'true'); loadAdminData();
                 } else { 
-                    Swal.fire({ title: 'ข้อมูลไม่ถูกต้อง', text: 'รหัสผ่านหรือชื่อผู้ใช้ผิด กรุณาลองใหม่', icon: 'error', confirmButtonColor: '#ea580c' }).then(() => { goHome(); }); 
+                    Swal.fire({
+                        title: 'ข้อมูลไม่ถูกต้อง', 
+                        text: 'รหัสผ่านหรือชื่อผู้ใช้ผิด กรุณาลองใหม่', 
+                        icon: 'error',
+                        confirmButtonColor: '#ea580c'
+                    }).then(() => {
+                        goHome();
+                    }); 
                 }
             };
 
             if (view === 'admin_login') {
                 return (
                     <div className="min-h-screen flex flex-col bg-charcoal-900 relative">
-                        <Navbar goHome={goHome} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} view={view} setView={setView} />
+                        <Navbar />
                         <div className="flex-grow flex items-center justify-center p-6 relative z-10">
                             <div className="bg-[#1f1f1f] w-full max-w-md p-10 rounded-2xl border border-[#333] shadow-2xl shadow-orange-500/5">
                                 <div className="text-center mb-10">
-                                    <h2 className="text-2xl font-light text-white tracking-widest uppercase">พื้นที่จัดการ</h2>
-                                    <p className="text-gray-500 mt-2 text-sm font-light">สำหรับเจ้าหน้าที่เท่านั้น</p>
+                                    <h2 className="text-2xl font-light text-white tracking-widest uppercase">Workspace</h2>
+                                    <p className="text-gray-500 mt-2 text-sm font-light">Authorized Personnel Only</p>
                                 </div>
                                 <form onSubmit={handleAdminLogin} className="space-y-6">
-                                    <input type="text" name="username" placeholder="ชื่อผู้ใช้งาน" required
+                                    <input type="text" name="username" placeholder="Username" required
                                            className="w-full border-b border-gray-700 bg-transparent text-white px-0 py-3 focus:border-orange-500 outline-none transition-colors font-light text-sm" />
-                                    <input type="password" name="password" placeholder="รหัสผ่าน" required
+                                    <input type="password" name="password" placeholder="Password" required
                                            className="w-full border-b border-gray-700 bg-transparent text-white px-0 py-3 focus:border-orange-500 outline-none transition-colors font-light text-sm" />
-                                    <button type="submit" className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold py-4 rounded-lg hover:from-orange-400 hover:to-orange-500 transition-colors mt-8 text-sm tracking-wider shadow-lg">เข้าสู่ระบบ</button>
+                                    <button type="submit" className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold py-4 rounded-lg hover:from-orange-400 hover:to-orange-500 transition-colors mt-8 text-sm tracking-wider shadow-lg">LOGIN</button>
                                 </form>
-                                <button onClick={goHome} className="w-full text-gray-500 hover:text-white mt-6 text-xs transition-colors font-light uppercase tracking-widest">กลับหน้าหลัก</button>
+                                <button onClick={goHome} className="w-full text-gray-500 hover:text-white mt-6 text-xs transition-colors font-light uppercase tracking-widest">Return Home</button>
                             </div>
                         </div>
                         <div className="absolute bottom-6 w-full text-center z-10">
@@ -988,9 +1036,7 @@
                 );
             }
 
-            if (view === 'admin_dashboard') {
-                return <AdminDashboard data={adminData} reloadData={loadAdminData} goHome={goHome} setAdminData={setAdminData} />;
-            }
+            if (view === 'admin_dashboard') return <AdminDashboard data={adminData} reloadData={loadAdminData} goHome={goHome} setAdminData={setAdminData} />;
 
             return null;
         }
@@ -1008,39 +1054,49 @@
 
             const toggleSystem = async () => {
                 const currentStatus = systemOpen ? 'open' : 'maintenance';
-                Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                Swal.fire({ title: 'Updating...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                 try { 
                     await runGAS('toggleMasterSystemStatus', currentStatus); 
                     Swal.close(); 
                     reloadData(); 
-                } catch(err) { Swal.fire('ข้อผิดพลาด', err.message, 'error'); }
+                } catch(err) { Swal.fire('Error', err.message, 'error'); }
             };
 
             const handleCreateActivity = async (e) => {
                 e.preventDefault();
-                Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                Swal.fire({ title: 'Saving...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                 try {
                     await runGAS('createActivity', { name: e.target.name.value, date: e.target.date.value, location: e.target.location.value });
-                    Swal.fire('สำเร็จ', 'สร้างกิจกรรมเรียบร้อยแล้ว', 'success'); e.target.reset(); reloadData();
-                } catch(err) { Swal.fire('ข้อผิดพลาด', err.message, 'error'); }
+                    Swal.fire('Success', 'Activity Created', 'success'); e.target.reset(); reloadData();
+                } catch(err) { Swal.fire('Error', err.message, 'error'); }
             };
 
             const toggleActivityStatus = async (id, currentStatus) => {
-                Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                Swal.fire({ title: 'Updating...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                 try { 
+                    const newStatus = currentStatus === 'open' ? 'closed' : 'open';
                     await runGAS('toggleActivityStatus', id, currentStatus); 
+                    setAdminData(prev => ({
+                        ...prev,
+                        activities: prev.activities.map(a => a.ActivityID === id ? { ...a, Status: newStatus } : a)
+                    }));
                     Swal.close(); 
-                    reloadData(); 
-                } catch(err) { Swal.fire('ข้อผิดพลาด', err.message, 'error'); }
+                    Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตกิจกรรมเป็น ${newStatus}` });
+                } catch(err) { Swal.fire('Error', err.message, 'error'); }
             };
 
             const handleToggleShirtSystem = async (currentStatus) => {
-                Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                Swal.fire({ title: 'Updating...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                 try { 
+                    const newStatus = currentStatus === 'open' ? 'closed' : 'open';
                     await runGAS('toggleShirtStatus', currentStatus); 
+                    setAdminData(prev => ({
+                        ...prev,
+                        shirtPrice: { ...prev.shirtPrice, status: newStatus }
+                    }));
                     Swal.close(); 
-                    reloadData(); 
-                } catch(err) { Swal.fire('ข้อผิดพลาด', err.message, 'error'); }
+                    Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตจองเสื้อเป็น ${newStatus}` });
+                } catch(err) { Swal.fire('Error', err.message, 'error'); }
             };
 
             const handleUpdateShirtPrice = async () => {
@@ -1050,12 +1106,16 @@
                     showCancelButton: true, confirmButtonColor: '#ea580c', preConfirm: () => ({ normal: document.getElementById('swal-n').value, oversize: document.getElementById('swal-o').value })
                 });
                 if (formValues) { 
-                    Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } }); 
+                    Swal.fire({ title: 'Saving...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } }); 
                     try { 
                         await runGAS('updateShirtPrice', formValues); 
+                        setAdminData(prev => ({
+                            ...prev,
+                            shirtPrice: { ...prev.shirtPrice, normal: formValues.normal, oversize: formValues.oversize }
+                        }));
                         Swal.close(); 
-                        reloadData(); 
-                    } catch (err) { Swal.fire('ข้อผิดพลาด', err.message, 'error'); } 
+                        Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตราคาสำเร็จ` });
+                    } catch (err) { Swal.fire('Error', err.message, 'error'); } 
                 }
             };
 
@@ -1066,30 +1126,32 @@
                     showCancelButton: true, confirmButtonColor: '#ea580c', preConfirm: () => ({ header: document.getElementById('swal-h').value, note: document.getElementById('swal-n').value })
                 });
                 if (formValues) { 
-                    Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } }); 
+                    Swal.fire({ title: 'Saving...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } }); 
                     try { 
                         await runGAS('updateReceiptConfig', formValues); 
+                        setAdminData(prev => ({
+                            ...prev,
+                            shirtPrice: { ...prev.shirtPrice, receiptHeader: formValues.header, receiptNote: formValues.note }
+                        }));
                         Swal.close(); 
-                        reloadData(); 
-                    } catch (err) { Swal.fire('ข้อผิดพลาด', err.message, 'error'); } 
+                        Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตใบเสร็จสำเร็จ` });
+                    } catch (err) { Swal.fire('Error', err.message, 'error'); } 
                 }
             };
 
             const handleImportCSV = (e) => {
                 const file = e.target.files[0]; if(!file) return;
                 Papa.parse(file, { header: true, skipEmptyLines: true, complete: async function(results) {
-                    if(results.data.length === 0) return Swal.fire('ข้อผิดพลาด', 'ไฟล์ CSV ว่างเปล่า', 'error');
-                    Swal.fire({ title: `กำลังนำเข้า ${results.data.length} รายการ...`, didOpen: () => { Swal.showLoading() } });
-                    try { const res = await runGAS('importCheckins', results.data); if(res.success) { Swal.fire('สำเร็จ', `นำเข้าข้อมูล ${res.count} รายการเรียบร้อยแล้ว`, 'success'); reloadData(); } else Swal.fire('ข้อผิดพลาด', res.error, 'error'); } catch(err) { Swal.fire('ข้อผิดพลาด', err.message, 'error'); } e.target.value = '';
+                    if(results.data.length === 0) return Swal.fire('Error', 'Empty CSV', 'error');
+                    Swal.fire({ title: `Importing ${results.data.length} records...`, didOpen: () => { Swal.showLoading() } });
+                    try { const res = await runGAS('importCheckins', results.data); if(res.success) { Swal.fire('Success', `Imported ${res.count} records`, 'success'); reloadData(); } else Swal.fire('Error', res.error, 'error'); } catch(err) { Swal.fire('Error', err.message, 'error'); } e.target.value = '';
                 }});
             };
 
             const renderSpssContent = () => {
-                if(!selectedActivityForSpss) return <div id="spss-ex" className="text-center py-10 text-gray-400 font-light border border-gray-100 rounded-xl">กรุณาเลือกกิจกรรม</div>;
-                
-                const selectedActivityName = data.activities.find(a => String(a.ActivityID) === String(selectedActivityForSpss))?.Name;
-                const evals = data.evaluations.filter(e => String(e.ActivityName).trim() === String(selectedActivityName).trim());
-                if(evals.length === 0) return <div id="spss-ex" className="text-center py-10 text-gray-400 font-light border border-gray-100 rounded-xl">ไม่มีแบบประเมินสำหรับกิจกรรมนี้</div>;
+                if(!selectedActivityForSpss) return <div id="spss-ex" className="text-center py-10 text-gray-400 font-light border border-gray-100 rounded-xl">Please select an activity</div>;
+                const evals = data.evaluations.filter(e => String(e.ActivityName).trim() === String(data.activities.find(a=>String(a.ActivityID)===String(selectedActivityForSpss))?.Name).trim());
+                if(evals.length === 0) return <div id="spss-ex" className="text-center py-10 text-gray-400 font-light border border-gray-100 rounded-xl">No evaluations found</div>;
 
                 const actCheckins = data.checkins.filter(c => String(c.ActivityID).trim() === String(selectedActivityForSpss).trim());
                 let mCount = 0; let fCount = 0;
@@ -1122,6 +1184,7 @@
                         }).filter(s => s > 0);
                         
                         allScoresForGrand.push(...scores);
+
                         const n = scores.length; let mean = 0, sd = 0;
                         if(n > 0) { 
                             mean = scores.reduce((a,b)=>a+b, 0) / n; 
@@ -1145,19 +1208,13 @@
                 const top2 = sortedQStats[1] || {text: '-', mean: 0};
                 const top3 = sortedQStats[2] || {text: '-', mean: 0};
 
-                const validComments = evals
-                    .map(e => e.Comment || e.Suggestion)
-                    .filter(c => {
-                        if (!c) return false;
-                        const text = String(c).trim();
-                        return text !== '' && text !== '-' && text !== '.' && text !== 'ไม่มี' && text !== 'ไม่มีครับ' && text !== 'ไม่มีค่ะ' && text !== 'ไม่มีข้อเสนอแนะ';
-                    });
+                const validComments = evals.map(e => e.Comment || e.Suggestion).filter(c => c && c.trim() !== '');
 
                 return (
                     <div id="spss-ex" className="overflow-x-auto border border-gray-100 rounded-xl p-6 transition-colors">
                         <div style={{ display: 'none' }} className="word-export-title">
                             <h3 style={{ textAlign: 'center', fontSize: '18pt', fontWeight: 'bold' }}>รายงานผลการประเมินความพึงพอใจ</h3>
-                            <p style={{ textAlign: 'center', marginBottom: '20pt' }}>กิจกรรม: {selectedActivityName}</p>
+                            <p style={{ textAlign: 'center', marginBottom: '20pt' }}>กิจกรรม: {data.activities.find(a=>String(a.ActivityID)===String(selectedActivityForSpss))?.Name}</p>
                         </div>
 
                         <div className="mb-10 min-w-[600px]">
@@ -1196,7 +1253,7 @@
                             </p>
                         </div>
 
-                        <div className="mb-4 min-w-[800px]">
+                        <div className="mb-8 min-w-[800px]">
                             <h4 className="font-semibold text-charcoal-900 mb-3 text-sm border-l-4 border-orange-500 pl-2">ตารางที่ 2 ค่าสถิติเชิงพรรณนา (Descriptive Statistics)</h4>
                             <table className="w-full text-sm text-left border-collapse mb-4 border border-gray-300">
                                 <thead className="bg-orange-50 border-b border-gray-300 text-charcoal-900">
@@ -1230,37 +1287,21 @@
                                 <span className="font-semibold text-orange-600">สรุปผล:</span> ผลการสำรวจความพึงพอใจในการจัดกิจกรรม พบว่า ผู้ตอบแบบสอบถามส่วนใหญ่มีความพึงพอใจในระดับ{getMeaning(grandMean)} โดยมีค่าเฉลี่ยเท่ากับ <span className="font-semibold text-charcoal-900">{grandMean.toFixed(2)}</span> ซึ่งเมื่อพิจารณาเป็นรายข้อ พบว่า {top1.text} (ค่าเฉลี่ย {top1.mean.toFixed(2)}) รองลงมาคือ {top2.text} (ค่าเฉลี่ย {top2.mean.toFixed(2)}) อันดับที่ 3 คือ {top3.text} (ค่าเฉลี่ย {top3.mean.toFixed(2)})
                             </p>
                         </div>
-                        
-                        <div className="mt-8 pt-6 border-t border-gray-100">
-                            <h4 className="font-semibold text-charcoal-900 mb-4 text-sm border-l-4 border-orange-500 pl-2">สรุปข้อเสนอแนะเพิ่มเติมและแนวทางในการพัฒนา (Qualitative Feedback)</h4>
-                            <div className="bg-orange-50/30 p-6 rounded-xl border border-orange-100 text-sm text-gray-800 leading-relaxed shadow-sm">
+
+                        <div className="min-w-[600px]">
+                            <h4 className="font-semibold text-charcoal-900 mb-3 text-sm border-l-4 border-orange-500 pl-2">ข้อเสนอแนะเพิ่มเติม</h4>
+                            <div className="bg-gray-50/50 p-4 border border-gray-200 rounded-lg text-sm text-gray-700">
                                 {validComments.length > 0 ? (
-                                    <>
-                                        <p className="indent-8 mb-4">
-                                            จากการเก็บรวบรวมข้อมูลเชิงคุณภาพ (Qualitative Data) ในส่วนของข้อเสนอแนะเพิ่มเติมจากผู้เข้าร่วมกิจกรรม 
-                                            พบว่ามีผู้แสดงความคิดเห็นและให้ข้อเสนอแนะเพื่อการพัฒนาปรับปรุงจำนวนทั้งสิ้น <span className="font-semibold text-orange-600">{validComments.length}</span> รายการ 
-                                            โดยสามารถรวบรวมและสรุปประเด็นข้อคิดเห็นได้ดังนี้:
-                                        </p>
-                                        <ul className="list-decimal pl-10 space-y-3 mb-6 font-medium text-charcoal-900">
-                                            {validComments.map((comment, idx) => (
-                                                <li key={idx} className="leading-relaxed pl-2 bg-white px-4 py-2 rounded-lg border border-gray-100 shadow-sm">{comment}</li>
-                                            ))}
-                                        </ul>
-                                        <p className="indent-8">
-                                            <span className="font-semibold text-orange-600">แนวทางการนำไปใช้ประโยชน์:</span> ข้อเสนอแนะดังกล่าวสะท้อนให้เห็นถึงความต้องการและมุมมองของผู้เข้าร่วมกิจกรรม 
-                                            ซึ่งเป็นข้อมูลที่เป็นประโยชน์อย่างยิ่งต่อคณะผู้จัดทำโครงการ ในการนำไปใช้วิเคราะห์และเป็นแนวทางสำหรับการวางแผน ปรับปรุง 
-                                            และพัฒนารูปแบบการจัดกิจกรรมในครั้งต่อไปให้มีประสิทธิภาพ และตอบสนองต่อความมุ่งหวังของผู้เข้าร่วมโครงการได้อย่างดียิ่งขึ้น
-                                        </p>
-                                    </>
+                                    <ul className="list-disc pl-5 space-y-2">
+                                        {validComments.map((comment, index) => (
+                                            <li key={index} className="leading-relaxed">{comment}</li>
+                                        ))}
+                                    </ul>
                                 ) : (
-                                    <p className="indent-8 text-gray-500">
-                                        จากการเก็บรวบรวมข้อมูลเชิงคุณภาพในส่วนของข้อเสนอแนะเพิ่มเติม พบว่า <span className="font-semibold">ไม่มีผู้เข้าร่วมกิจกรรมท่านใดให้ข้อเสนอแนะเพิ่มเติม</span> 
-                                        แต่อย่างไรก็ตาม คณะผู้จัดทำโครงการจะนำผลการประเมินเชิงปริมาณจากตารางข้างต้น ไปวิเคราะห์และใช้เป็นแนวทางในการวางแผนและพัฒนาการจัดกิจกรรมในลำดับต่อไป
-                                    </p>
+                                    <p className="text-gray-400 font-light italic">ไม่มีข้อเสนอแนะเพิ่มเติมจากผู้เข้าร่วมกิจกรรม</p>
                                 )}
                             </div>
                         </div>
-
                     </div>
                 );
             };
@@ -1274,44 +1315,40 @@
 
             return (
                 <div className="min-h-screen bg-[#fffcf9] dark:bg-[#121212] flex flex-col md:flex-row transition-colors">
+                    {/* Dark Elegant Sidebar */}
                     <aside className="w-full md:w-64 bg-charcoal-900 text-white flex-shrink-0 flex flex-col z-20 shadow-xl border-r border-charcoal-800">
                         <div className="p-8 border-b border-gray-800">
-                            <h2 className="text-xl font-semibold tracking-widest uppercase text-orange-500">ระบบจัดการ</h2>
+                            <h2 className="text-xl font-semibold tracking-widest uppercase text-orange-500">Workspace</h2>
                         </div>
                         <nav className="flex-1 px-4 py-6 space-y-1">
                             {['overview', 'activities', 'summary', 'spss', 'shirt_summary'].map(tab => {
-                                const labels = { overview: 'ภาพรวมระบบ', activities: 'จัดการกิจกรรม', summary: 'ยอดเช็คชื่อ', spss: 'รายงานประเมิน (SPSS)', shirt_summary: 'สรุปการจองเสื้อ' };
+                                const labels = { overview: 'Overview', activities: 'Activities', summary: 'Check-ins', spss: 'SPSS Report', shirt_summary: 'Shirt Orders' };
                                 const icons = { overview: 'fa-chart-pie', activities: 'fa-list', summary: 'fa-users', spss: 'fa-file-lines', shirt_summary: 'fa-shirt' };
                                 return (
                                     <button key={tab} onClick={() => setActiveTab(tab)} className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg transition-all text-sm font-light tracking-wide ${activeTab === tab ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}><i className={`fa-solid ${icons[tab]} w-4 opacity-80`}></i> {labels[tab]}</button>
                                 );
                             })}
                             <div className="mt-8 pt-6 border-t border-gray-800">
-                                <p className="text-[9px] text-gray-500 font-medium mb-3 px-4 uppercase tracking-widest">ควบคุมระบบ</p>
+                                <p className="text-[9px] text-gray-500 font-medium mb-3 px-4 uppercase tracking-widest">System Control</p>
                                 <button onClick={toggleSystem} className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm transition-all ${systemOpen ? 'text-white bg-green-900/30 hover:bg-green-900/50 border border-green-800' : 'text-gray-400 bg-black/30 border border-gray-800'}`}>
-                                    <span className="font-light flex items-center"><i className={`fa-solid ${systemOpen ? 'fa-toggle-on text-green-500' : 'fa-toggle-off text-gray-500'} text-2xl mr-3`}></i> แพลตฟอร์ม</span>
-                                    <span className="text-[10px] uppercase tracking-widest">{systemOpen ? 'เปิดใช้งาน' : 'ปิดระบบ'}</span>
+                                    <span className="font-light flex items-center"><i className={`fa-solid ${systemOpen ? 'fa-toggle-on text-green-500' : 'fa-toggle-off text-gray-500'} text-2xl mr-3`}></i> Platform</span>
+                                    <span className="text-[10px] uppercase tracking-widest">{systemOpen ? 'Online' : 'Offline'}</span>
                                 </button>
                             </div>
                         </nav>
                         <div className="p-4 border-t border-gray-800">
-                            <button onClick={goHome} className="w-full py-3 text-xs text-gray-400 hover:text-white font-light tracking-widest uppercase transition-colors"><i className="fa-solid fa-arrow-left mr-2"></i> กลับหน้าเว็บ</button>
+                            <button onClick={goHome} className="w-full py-3 text-xs text-gray-400 hover:text-white font-light tracking-widest uppercase transition-colors"><i className="fa-solid fa-arrow-left mr-2"></i> Exit</button>
                         </div>
                     </aside>
 
                     <main className="flex-1 p-6 md:p-12 overflow-y-auto bg-gradient-to-br from-[#fffcf9] to-[#ffedd5] dark:from-[#1c1512] dark:to-[#120c0a]">
                         <div className="flex justify-between items-end mb-12 border-b border-orange-200/50 dark:border-gray-800 pb-4">
                             <h2 className="text-3xl font-light text-charcoal-900 tracking-tight capitalize">
-                                {activeTab === 'overview' && 'ภาพรวมระบบ'}
-                                {activeTab === 'activities' && 'การจัดการกิจกรรม'}
-                                {activeTab === 'summary' && 'ยอดเช็คชื่อ (Check-ins)'}
-                                {activeTab === 'spss' && 'รายงานผลการประเมิน (SPSS)'}
-                                {activeTab === 'shirt_summary' && 'สรุปการสั่งจองเสื้อ (Orders)'}
+                                {activeTab.replace('_', ' ')}
                             </h2>
-                            <button onClick={reloadData} className="text-xs font-medium text-orange-500 hover:text-orange-700 tracking-widest uppercase transition-colors bg-white/50 px-3 py-1.5 rounded-lg border border-orange-100"><i className="fa-solid fa-rotate-right mr-1"></i> ซิงค์ข้อมูล</button>
+                            <button onClick={reloadData} className="text-xs font-medium text-orange-500 hover:text-orange-700 tracking-widest uppercase transition-colors bg-white/50 px-3 py-1.5 rounded-lg border border-orange-100"><i className="fa-solid fa-rotate-right mr-1"></i> Sync</button>
                         </div>
 
-                        {}
                         {activeTab === 'overview' && (
                             <div>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -1319,7 +1356,7 @@
                                         <div className="absolute -right-4 -top-4 w-20 h-20 bg-orange-50 rounded-full group-hover:scale-150 transition-transform duration-500 z-0"></div>
                                         <div className="relative z-10 flex justify-between items-start">
                                             <div>
-                                                <p className="text-xs text-orange-500 font-semibold uppercase tracking-widest mb-1">กิจกรรมทั้งหมด</p>
+                                                <p className="text-xs text-orange-500 font-semibold uppercase tracking-widest mb-1">Total Activities</p>
                                                 <p className="text-4xl font-light text-charcoal-900">{data.activities.length}</p>
                                             </div>
                                             <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center text-xl shadow-sm group-hover:bg-gradient-to-br group-hover:from-orange-400 group-hover:to-orange-600 group-hover:text-white transition-colors"><i className="fa-solid fa-list-check"></i></div>
@@ -1329,7 +1366,7 @@
                                         <div className="absolute -right-4 -top-4 w-20 h-20 bg-orange-50 rounded-full group-hover:scale-150 transition-transform duration-500 z-0"></div>
                                         <div className="relative z-10 flex justify-between items-start">
                                             <div>
-                                                <p className="text-xs text-orange-500 font-semibold uppercase tracking-widest mb-1">ยอดเช็คชื่อรวม</p>
+                                                <p className="text-xs text-orange-500 font-semibold uppercase tracking-widest mb-1">Total Check-ins</p>
                                                 <p className="text-4xl font-light text-charcoal-900">{data.checkins.length}</p>
                                             </div>
                                             <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center text-xl shadow-sm group-hover:bg-gradient-to-br group-hover:from-orange-400 group-hover:to-orange-600 group-hover:text-white transition-colors"><i className="fa-solid fa-users"></i></div>
@@ -1339,14 +1376,14 @@
                                         <div className="absolute -right-4 -top-4 w-20 h-20 bg-orange-50 rounded-full group-hover:scale-150 transition-transform duration-500 z-0"></div>
                                         <div className="relative z-10 flex justify-between items-start">
                                             <div>
-                                                <p className="text-xs text-orange-500 font-semibold uppercase tracking-widest mb-1">แบบประเมินรวม</p>
+                                                <p className="text-xs text-orange-500 font-semibold uppercase tracking-widest mb-1">Evaluations</p>
                                                 <p className="text-4xl font-light text-charcoal-900">{data.evaluations.length}</p>
                                             </div>
                                             <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center text-xl shadow-sm group-hover:bg-gradient-to-br group-hover:from-orange-400 group-hover:to-orange-600 group-hover:text-white transition-colors"><i className="fa-solid fa-star"></i></div>
                                         </div>
                                     </div>
                                 </div>
-                                <h3 className="text-sm font-medium text-charcoal-900 mb-6 uppercase tracking-widest pl-1 border-l-2 border-orange-500">สถิติแยกตามกิจกรรม</h3>
+                                <h3 className="text-sm font-medium text-charcoal-900 mb-6 uppercase tracking-widest pl-1 border-l-2 border-orange-500">Activity Breakdown</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                                     {data.activities.map(act => {
                                         const checkinCount = data.checkins.filter(c => String(c.ActivityID).trim() === String(act.ActivityID).trim()).length;
@@ -1357,7 +1394,7 @@
                                                 <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-gradient-to-br from-orange-50 to-orange-100 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"></div>
                                                 <div className="relative z-10 flex justify-between items-start mb-4">
                                                     <div className="w-10 h-10 bg-orange-50 text-orange-500 rounded-xl flex items-center justify-center shadow-sm group-hover:bg-gradient-to-br group-hover:from-orange-400 group-hover:to-orange-600 group-hover:text-white transition-colors"><i className="fa-solid fa-clipboard-user"></i></div>
-                                                    <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md border ${act.Status==='open'?'text-green-600 border-green-200 bg-green-50':'text-gray-400 border-gray-200 bg-gray-50'}`}>{act.Status==='open'?'เปิดรับ':'ปิดแล้ว'}</span>
+                                                    <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md border ${act.Status==='open'?'text-green-600 border-green-200 bg-green-50':'text-gray-400 border-gray-200 bg-gray-50'}`}>{act.Status==='open'?'Active':'Closed'}</span>
                                                 </div>
                                                 <div className="relative z-10">
                                                     <h4 className="font-bold text-charcoal-900 text-sm mb-3 line-clamp-2 group-hover:text-orange-600 transition-colors" title={act.Name}>{act.Name}</h4>
@@ -1376,18 +1413,17 @@
                             </div>
                         )}
 
-                        {}
                         {activeTab === 'activities' && (
                             <div className="grid lg:grid-cols-3 gap-8">
                                 <div className="lg:col-span-1 bg-white/90 backdrop-blur p-8 border border-orange-100/50 rounded-2xl h-fit transition-colors shadow-sm relative overflow-hidden">
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-orange-50/50 rounded-bl-full -z-10"></div>
                                     <h3 className="text-sm font-bold text-charcoal-900 mb-6 uppercase tracking-widest border-l-2 border-orange-500 pl-3 flex items-center">
-                                        สร้างกิจกรรมใหม่
+                                        Create Activity
                                     </h3>
                                     <form onSubmit={handleCreateActivity} className="space-y-5 relative z-10">
                                         <div className="relative">
                                             <i className="fa-solid fa-heading absolute left-4 top-1/2 -translate-y-1/2 text-orange-300"></i>
-                                            <input name="name" placeholder="ชื่อกิจกรรม" required className="w-full bg-gray-50/50 border border-gray-200 rounded-xl pl-11 pr-4 py-3.5 text-sm focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 outline-none transition-all text-charcoal-900 placeholder-gray-400 font-medium" />
+                                            <input name="name" placeholder="Title" required className="w-full bg-gray-50/50 border border-gray-200 rounded-xl pl-11 pr-4 py-3.5 text-sm focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 outline-none transition-all text-charcoal-900 placeholder-gray-400 font-medium" />
                                         </div>
                                         <div className="relative">
                                             <i className="fa-regular fa-calendar absolute left-4 top-1/2 -translate-y-1/2 text-orange-300"></i>
@@ -1395,22 +1431,22 @@
                                         </div>
                                         <div className="relative">
                                             <i className="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-orange-300"></i>
-                                            <input name="location" placeholder="สถานที่" required className="w-full bg-gray-50/50 border border-gray-200 rounded-xl pl-11 pr-4 py-3.5 text-sm focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 outline-none transition-all text-charcoal-900 placeholder-gray-400 font-medium" />
+                                            <input name="location" placeholder="Location" required className="w-full bg-gray-50/50 border border-gray-200 rounded-xl pl-11 pr-4 py-3.5 text-sm focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 outline-none transition-all text-charcoal-900 placeholder-gray-400 font-medium" />
                                         </div>
-                                        <button className="w-full btn-gradient py-4 rounded-xl text-sm font-bold tracking-widest shadow-[0_8px_20px_-6px_rgba(249,115,22,0.4)] hover:shadow-[0_12px_25px_-6px_rgba(249,115,22,0.5)] transform hover:-translate-y-0.5 transition-all uppercase">บันทึก</button>
+                                        <button className="w-full btn-gradient py-4 rounded-xl text-sm font-bold tracking-widest shadow-[0_8px_20px_-6px_rgba(249,115,22,0.4)] hover:shadow-[0_12px_25px_-6px_rgba(249,115,22,0.5)] transform hover:-translate-y-0.5 transition-all uppercase">Save Activity</button>
                                     </form>
                                 </div>
                                 <div className="lg:col-span-2 bg-white/90 backdrop-blur border border-orange-100/50 rounded-2xl overflow-hidden transition-colors shadow-sm">
                                     <div className="overflow-x-auto custom-scrollbar">
                                         <table className="w-full text-left text-sm whitespace-nowrap">
-                                            <thead className="bg-orange-50/50 border-b border-orange-100/80 text-[10px] text-gray-500 uppercase tracking-widest transition-colors">
+                                            <thead className="bg-gray-50/80 border-b border-gray-100 text-[10px] text-gray-400 uppercase tracking-widest transition-colors">
                                                 <tr>
-                                                    <th className="px-6 py-4 font-semibold w-full">รายละเอียด</th>
-                                                    <th className="px-6 py-4 text-center font-semibold">สถานะ</th>
-                                                    <th className="px-6 py-4 text-right font-semibold">จัดการ</th>
+                                                    <th className="px-6 py-4 font-semibold w-full">Detail</th>
+                                                    <th className="px-6 py-4 text-center font-semibold">Status</th>
+                                                    <th className="px-6 py-4 text-right font-semibold">Action</th>
                                                 </tr>
                                             </thead>
-                                            <tbody className="divide-y divide-orange-50">
+                                            <tbody className="divide-y divide-gray-50">
                                                 {data.activities.map(a=>(
                                                     <tr key={a.ActivityID} className="transition-colors hover:bg-orange-50/30 group">
                                                         <td className="px-6 py-5">
@@ -1422,7 +1458,7 @@
                                                         </td>
                                                         <td className="px-6 py-5 text-center">
                                                             <span className={`inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide border ${a.Status==='open' ? 'text-green-600 bg-green-50 border-green-200' : 'text-gray-400 bg-gray-50 border-gray-200'}`}>
-                                                                {a.Status==='open' ? 'เปิดรับ' : 'ปิดแล้ว'}
+                                                                {a.Status==='open' ? 'Open' : 'Closed'}
                                                             </span>
                                                         </td>
                                                         <td className="px-6 py-5 text-right">
@@ -1439,63 +1475,61 @@
                             </div>
                         )}
 
-                        {}
                         {activeTab === 'summary' && (
                             <div className="bg-white/90 backdrop-blur p-8 border border-orange-100/50 rounded-2xl transition-colors shadow-sm">
                                 <div className="flex flex-col sm:flex-row gap-4 mb-8 justify-between">
                                     <select className="border border-orange-200 p-3 rounded-xl text-sm bg-white outline-none flex-grow max-w-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all" value={selectedActivityForSummary} onChange={(e)=>setSelectedActivityForSummary(e.target.value)}>
-                                        <option value="">กิจกรรมทั้งหมด</option>
+                                        <option value="">All Activities</option>
                                         {data.activities.map(a=><option key={a.ActivityID} value={a.ActivityID}>{a.Name}</option>)}
                                     </select>
                                     <div className="flex gap-2">
-                                        <label className="border border-orange-200 text-charcoal-900 px-4 py-2.5 rounded-xl cursor-pointer text-xs font-medium tracking-widest uppercase hover:bg-orange-50 transition-colors flex items-center bg-white"><i className="fa-solid fa-upload mr-2 text-orange-500"></i> นำเข้า<input type="file" accept=".csv" className="hidden" onChange={handleImportCSV} /></label>
-                                        <button onClick={()=>{ const list = selectedActivityForSummary ? data.checkins.filter(c=>c.ActivityID===selectedActivityForSummary) : data.checkins; const csvData = Papa.unparse(list); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob(['\ufeff' + csvData], { type: 'text/csv;charset=utf-8;' })); link.download = `CheckIns.csv`; link.click(); }} className="btn-gradient px-4 py-2.5 rounded-xl text-xs font-medium tracking-widest uppercase flex items-center shadow-lg shadow-orange-500/20"><i className="fa-solid fa-download mr-2"></i> ส่งออก</button>
+                                        <label className="border border-orange-200 text-charcoal-900 px-4 py-2.5 rounded-xl cursor-pointer text-xs font-medium tracking-widest uppercase hover:bg-orange-50 transition-colors flex items-center bg-white"><i className="fa-solid fa-upload mr-2 text-orange-500"></i> Import<input type="file" accept=".csv" className="hidden" onChange={handleImportCSV} /></label>
+                                        <button onClick={()=>{ const list = selectedActivityForSummary ? data.checkins.filter(c=>c.ActivityID===selectedActivityForSummary) : data.checkins; const csvData = Papa.unparse(list); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob(['\ufeff' + csvData], { type: 'text/csv;charset=utf-8;' })); link.download = `CheckIns.csv`; link.click(); }} className="btn-gradient px-4 py-2.5 rounded-xl text-xs font-medium tracking-widest uppercase flex items-center shadow-lg shadow-orange-500/20"><i className="fa-solid fa-download mr-2"></i> Export</button>
                                     </div>
                                 </div>
                                 <div className="overflow-x-auto border border-orange-100/50 rounded-xl mb-4 transition-colors">
-                                    <table className="w-full text-sm text-left whitespace-nowrap"><thead className="bg-orange-50/50 border-b border-orange-100 text-[10px] text-gray-500 uppercase tracking-widest transition-colors"><tr><th className="px-6 py-4 font-medium">เวลา</th><th className="px-6 py-4 font-medium">นักศึกษา</th><th className="px-6 py-4 font-medium">สาขา</th><th className="px-6 py-4 font-medium">รหัส ปชช.</th><th className="px-6 py-4 font-medium">กิจกรรม</th></tr></thead><tbody className="divide-y divide-orange-50">
+                                    <table className="w-full text-sm text-left whitespace-nowrap"><thead className="bg-orange-50/50 border-b border-orange-100 text-[10px] text-gray-500 uppercase tracking-widest transition-colors"><tr><th className="px-6 py-4 font-medium">Time</th><th className="px-6 py-4 font-medium">Student</th><th className="px-6 py-4 font-medium">Major</th><th className="px-6 py-4 font-medium">ID Card</th><th className="px-6 py-4 font-medium">Activity</th></tr></thead><tbody className="divide-y divide-orange-50">
                                         {currentCheckins.map((c,i)=>(<tr key={i} className="transition-colors hover:bg-orange-50/30"><td className="px-6 py-4 text-xs font-light text-orange-500/80">{new Date(c.Timestamp).toLocaleString('th-TH')}</td><td className="px-6 py-4"><p className="font-medium text-charcoal-900">{c.StudentID}</p><p className="text-xs text-gray-500 font-light mt-0.5">{c.Name}</p></td><td className="px-6 py-4 font-light text-gray-600">{c.Major}</td><td className="px-6 py-4 text-xs font-light text-gray-400">{c.IDCard || '-'}</td><td className="px-6 py-4 text-xs font-light text-gray-500 truncate max-w-[200px]">{c.ActivityName}</td></tr>))}
                                     </tbody></table>
                                 </div>
                                 {totalPages > 1 && (
                                     <div className="flex justify-between items-center text-sm bg-white px-4 py-2 rounded-xl border border-orange-100">
-                                        <button disabled={currentPage===1} onClick={()=>setCurrentPage(prev=>Math.max(1,prev-1))} className={`text-xs uppercase tracking-widest font-medium ${currentPage===1?'text-gray-300':'text-orange-500 hover:text-orange-600'}`}>ก่อนหน้า</button>
-                                        <span className="text-gray-400 font-light text-xs">หน้า {currentPage} จาก {totalPages}</span>
-                                        <button disabled={currentPage===totalPages} onClick={()=>setCurrentPage(prev=>Math.min(totalPages,prev+1))} className={`text-xs uppercase tracking-widest font-medium ${currentPage===totalPages?'text-gray-300':'text-orange-500 hover:text-orange-600'}`}>ถัดไป</button>
+                                        <button disabled={currentPage===1} onClick={()=>setCurrentPage(prev=>Math.max(1,prev-1))} className={`text-xs uppercase tracking-widest font-medium ${currentPage===1?'text-gray-300':'text-orange-500 hover:text-orange-600'}`}>Prev</button>
+                                        <span className="text-gray-400 font-light text-xs">Page {currentPage} of {totalPages}</span>
+                                        <button disabled={currentPage===totalPages} onClick={()=>setCurrentPage(prev=>Math.min(totalPages,prev+1))} className={`text-xs uppercase tracking-widest font-medium ${currentPage===totalPages?'text-gray-300':'text-orange-500 hover:text-orange-600'}`}>Next</button>
                                     </div>
                                 )}
                             </div>
                         )}
 
-                        {}
                         {activeTab === 'spss' && (
                             <div className="bg-white/90 backdrop-blur p-8 border border-orange-100/50 rounded-2xl transition-colors shadow-sm">
                                 <div className="flex gap-4 mb-8 justify-between items-end">
-                                    <select className="border border-orange-200 p-3 rounded-xl text-sm bg-white outline-none w-full max-w-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all" value={selectedActivityForSpss} onChange={(e)=>setSelectedActivityForSpss(e.target.value)}><option value="">เลือกกิจกรรม</option>{data.activities.map(a=><option key={a.ActivityID} value={a.ActivityID}>{a.Name}</option>)}</select>
-                                    <button onClick={()=>{ const h = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>body{font-family:'TH Sarabun PSK',sans-serif;font-size:16pt;}table{width:100%;border-collapse:collapse;margin-bottom:15pt;}th,td{border:1px solid black;padding:5px;}th{background-color:#f2f2f2;}h4{font-weight:bold;margin-bottom:10pt;}p{text-indent:36pt;line-height:1.5;margin-bottom:20pt;}.word-export-title{display:block !important;}</style></head><body>${document.getElementById('spss-ex').innerHTML}</body></html>`; const a = document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff', h],{type:'application/msword'})); a.download=`SPSS.doc`; a.click(); }} className="btn-gradient px-5 py-2.5 rounded-xl text-xs font-medium tracking-widest uppercase flex items-center whitespace-nowrap shadow-lg shadow-orange-500/20"><i className="fa-solid fa-file-word mr-2"></i> ดาวน์โหลด Word</button>
+                                    <select className="border border-orange-200 p-3 rounded-xl text-sm bg-white outline-none w-full max-w-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all" value={selectedActivityForSpss} onChange={(e)=>setSelectedActivityForSpss(e.target.value)}><option value="">Select Activity</option>{data.activities.map(a=><option key={a.ActivityID} value={a.ActivityID}>{a.Name}</option>)}</select>
+                                    <button onClick={()=>{ const h = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>body{font-family:'TH Sarabun PSK',sans-serif;font-size:16pt;}table{width:100%;border-collapse:collapse;margin-bottom:15pt;}th,td{border:1px solid black;padding:5px;}th{background-color:#f2f2f2;}h4{font-weight:bold;margin-bottom:10pt;}p{text-indent:36pt;line-height:1.5;margin-bottom:20pt;}.word-export-title{display:block !important;}</style></head><body>${document.getElementById('spss-ex').innerHTML}</body></html>`; const a = document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff', h],{type:'application/msword'})); a.download=`SPSS.doc`; a.click(); }} className="btn-gradient px-5 py-2.5 rounded-xl text-xs font-medium tracking-widest uppercase flex items-center whitespace-nowrap shadow-lg shadow-orange-500/20"><i className="fa-solid fa-file-word mr-2"></i> Export DOC</button>
                                 </div>
                                 {renderSpssContent()}
                             </div>
                         )}
 
-                        {}
                         {activeTab === 'shirt_summary' && (
                             <div className="bg-white/90 backdrop-blur p-8 border border-orange-100/50 rounded-2xl transition-colors shadow-sm">
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
                                     <div>
-                                        <h3 className="text-sm font-medium text-charcoal-900 uppercase tracking-widest border-l-2 border-orange-500 pl-2">จัดการข้อมูลสั่งจอง</h3>
+                                        <h3 className="text-sm font-medium text-charcoal-900 uppercase tracking-widest border-l-2 border-orange-500 pl-2">Orders Management</h3>
                                         <div className="flex items-center gap-3 mt-3 ml-2">
-                                            <span className="text-[11px] font-semibold uppercase tracking-widest text-gray-500">สถานะเปิดรับจอง</span>
+                                            <span className="text-[11px] font-semibold uppercase tracking-widest text-gray-500">System Status</span>
                                             <button onClick={() => handleToggleShirtSystem(data.shirtPrice?.status || 'open')} className={`text-4xl transition-transform hover:scale-110 drop-shadow-sm focus:outline-none ${data.shirtPrice?.status !== 'closed' ? 'text-green-500' : 'text-gray-300'}`}><i className={`fa-solid ${data.shirtPrice?.status !== 'closed' ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i></button>
                                         </div>
                                     </div>
                                     <div className="flex flex-wrap gap-2">
-                                        <button onClick={handleUpdateReceiptConfig} className="border border-orange-200 text-charcoal-900 px-4 py-2.5 rounded-xl text-xs font-medium tracking-widest uppercase hover:bg-orange-50 transition-colors bg-white">ตั้งค่าใบเสร็จ</button>
-                                        <button onClick={handleUpdateShirtPrice} className="border border-orange-200 text-charcoal-900 px-4 py-2.5 rounded-xl text-xs font-medium tracking-widest uppercase hover:bg-orange-50 transition-colors bg-white">ราคา</button>
-                                        <button onClick={() => { const csv = Papa.unparse(data.shirtOrders); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'})); link.download = `ShirtOrders.csv`; link.click(); }} className="btn-gradient px-4 py-2.5 rounded-xl text-xs font-medium tracking-widest uppercase flex items-center shadow-lg shadow-orange-500/20"><i className="fa-solid fa-file-csv mr-2"></i> ส่งออก</button>
+                                        <button onClick={handleUpdateReceiptConfig} className="border border-orange-200 text-charcoal-900 px-4 py-2.5 rounded-xl text-xs font-medium tracking-widest uppercase hover:bg-orange-50 transition-colors bg-white">Receipt Config</button>
+                                        <button onClick={handleUpdateShirtPrice} className="border border-orange-200 text-charcoal-900 px-4 py-2.5 rounded-xl text-xs font-medium tracking-widest uppercase hover:bg-orange-50 transition-colors bg-white">Prices</button>
+                                        <button onClick={() => { const csv = Papa.unparse(data.shirtOrders); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'})); link.download = `ShirtOrders.csv`; link.click(); }} className="btn-gradient px-4 py-2.5 rounded-xl text-xs font-medium tracking-widest uppercase flex items-center shadow-lg shadow-orange-500/20"><i className="fa-solid fa-file-csv mr-2"></i> Export</button>
                                     </div>
                                 </div>
                                 
+                                {/* กล่องสรุปยอดรวม และ ยอดแยกตามสาขา */}
                                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-10">
                                     <div className="lg:col-span-1 bg-gradient-to-br from-orange-400 to-orange-600 p-8 rounded-[2rem] shadow-lg shadow-orange-500/30 flex flex-col justify-center relative overflow-hidden group">
                                         <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
@@ -1570,34 +1604,35 @@
                                         </div>
                                     </div>
                                 </div>
+                                {/* สิ้นสุดกล่องสรุป */}
 
                                 <div className="overflow-x-auto border border-orange-100/50 rounded-xl transition-colors">
-                                    <table className="w-full text-sm text-left whitespace-nowrap"><thead className="bg-orange-50/50 border-b border-orange-100 text-[10px] text-gray-500 uppercase tracking-widest transition-colors"><tr><th className="px-6 py-4 font-medium">วันเวลา</th><th className="px-6 py-4 font-medium">ชื่อ-สกุล / รหัส</th><th className="px-6 py-4 text-center font-medium">คอปกโปโล</th><th className="px-6 py-4 text-center font-medium">เสื้อยืด</th><th className="px-6 py-4 text-right font-medium">ยอดชำระ</th><th className="px-6 py-4 text-center font-medium">สถานะ</th></tr></thead><tbody className="divide-y divide-orange-50">
+                                    <table className="w-full text-sm text-left whitespace-nowrap"><thead className="bg-orange-50/50 border-b border-orange-100 text-[10px] text-gray-500 uppercase tracking-widest transition-colors"><tr><th className="px-6 py-4 font-medium">Time</th><th className="px-6 py-4 font-medium">Student</th><th className="px-6 py-4 text-center font-medium">Polo</th><th className="px-6 py-4 text-center font-medium">T-Shirt</th><th className="px-6 py-4 text-right font-medium">Total</th><th className="px-6 py-4 text-center font-medium">Status</th></tr></thead><tbody className="divide-y divide-orange-50">
                                         {(data.shirtOrders||[]).slice().reverse().map((o,i)=>(
                                             <tr key={i} className="transition-colors hover:bg-orange-50/30">
                                                 <td className="px-6 py-4 text-xs font-light text-orange-500/80">{new Date(o.Timestamp).toLocaleString('th-TH')}</td>
                                                 <td className="px-6 py-4"><p className="font-medium text-charcoal-900">{o.StudentID}</p><p className="text-xs text-gray-500 font-light mt-0.5">{o.Name}</p></td>
                                                 <td className="px-6 py-4 text-center text-xs font-light text-gray-600">{o.PoloGender} / {o.PoloSize} ({o.PoloQty})</td>
                                                 <td className="px-6 py-4 text-center text-xs font-light text-gray-600">{o.TshirtGender} / {o.TshirtSize} ({o.TshirtQty})</td>
-                                                <td className="px-6 py-4 text-right font-medium text-orange-600">฿{o.TotalPrice}</td>
+                                                <td className="px-6 py-4 text-right font-medium text-charcoal-900">฿{o.TotalPrice}</td>
                                                 <td className="px-6 py-4 text-center">
                                                     <button onClick={async () => {
-                                                        Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                                                        Swal.fire({ title: 'Updating...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                                                         try { await runGAS('updateShirtOrderStatus', o.StudentID, o.Status); Swal.close(); reloadData(); } 
-                                                        catch(err) { Swal.fire('ข้อผิดพลาด', err.message, 'error'); }
+                                                        catch(err) { Swal.fire('Error', err.message, 'error'); }
                                                     }} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm ${o.Status === 'received' ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-orange-100 text-orange-700 hover:bg-orange-200'}`}>
                                                         {o.Status === 'received' ? 'รับเสื้อแล้ว' : 'ชำระเงินแล้ว'}
                                                     </button>
                                                 </td>
                                             </tr>
                                         ))}
-                                        {(data.shirtOrders||[]).length===0 && <tr><td colSpan="6" className="text-center py-10 text-gray-400 font-light">ยังไม่มีข้อมูลการสั่งจอง</td></tr>}
+                                        {(data.shirtOrders||[]).length===0 && <tr><td colSpan="6" className="text-center py-10 text-gray-400 font-light">No orders found</td></tr>}
                                     </tbody></table>
                                 </div>
                             </div>
                         )}
                         
-                        <div className="mt-12 border-t border-orange-200/50 pt-6 text-center">
+                        <div className="mt-12 border-t border-gray-200 pt-6 text-center">
                             <p className="text-xs font-medium text-gray-400 tracking-wider mb-1">Copyright &copy; 2026 DIGIT Good Deed System PRO.</p>
                             <p className="text-[10px] text-gray-400 font-light">ฝ่ายกิจการนักศึกษา คณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย</p>
                         </div>
