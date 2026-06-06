@@ -1208,7 +1208,13 @@
                 const top2 = sortedQStats[1] || {text: '-', mean: 0};
                 const top3 = sortedQStats[2] || {text: '-', mean: 0};
 
-                const validComments = evals.map(e => e.Comment || e.Suggestion).filter(c => c && c.trim() !== '');
+                const validComments = evals
+                    .map(e => e.Comment || e.Suggestion)
+                    .filter(c => {
+                        if (!c) return false;
+                        const text = String(c).trim();
+                        return text !== '' && text !== '-' && text !== '.' && text !== 'ไม่มี' && text !== 'ไม่มีครับ' && text !== 'ไม่มีค่ะ' && text !== 'ไม่มีข้อเสนอแนะ';
+                    });
 
                 return (
                     <div id="spss-ex" className="overflow-x-auto border border-gray-100 rounded-xl p-6 transition-colors">
@@ -1288,20 +1294,36 @@
                             </p>
                         </div>
 
-                        <div className="min-w-[600px]">
-                            <h4 className="font-semibold text-charcoal-900 mb-3 text-sm border-l-4 border-orange-500 pl-2">ข้อเสนอแนะเพิ่มเติม</h4>
-                            <div className="bg-gray-50/50 p-4 border border-gray-200 rounded-lg text-sm text-gray-700">
+                        <div className="mt-8 pt-6 border-t border-gray-100">
+                            <h4 className="font-semibold text-charcoal-900 mb-4 text-sm border-l-4 border-orange-500 pl-2">สรุปข้อเสนอแนะเพิ่มเติมและแนวทางในการพัฒนา (Qualitative Feedback)</h4>
+                            <div className="bg-orange-50/30 p-6 rounded-xl border border-orange-100 text-sm text-gray-800 leading-relaxed shadow-sm">
                                 {validComments.length > 0 ? (
-                                    <ul className="list-disc pl-5 space-y-2">
-                                        {validComments.map((comment, index) => (
-                                            <li key={index} className="leading-relaxed">{comment}</li>
-                                        ))}
-                                    </ul>
+                                    <>
+                                        <p className="indent-8 mb-4">
+                                            จากการเก็บรวบรวมข้อมูลเชิงคุณภาพ (Qualitative Data) ในส่วนของข้อเสนอแนะเพิ่มเติมจากผู้เข้าร่วมกิจกรรม 
+                                            พบว่ามีผู้แสดงความคิดเห็นและให้ข้อเสนอแนะเพื่อการพัฒนาปรับปรุงจำนวนทั้งสิ้น <span className="font-semibold text-orange-600">{validComments.length}</span> รายการ 
+                                            โดยสามารถรวบรวมและสรุปประเด็นข้อคิดเห็นได้ดังนี้:
+                                        </p>
+                                        <ul className="list-decimal pl-10 space-y-3 mb-6 font-medium text-charcoal-900">
+                                            {validComments.map((comment, idx) => (
+                                                <li key={idx} className="leading-relaxed pl-2 bg-white px-4 py-2 rounded-lg border border-gray-100 shadow-sm">{comment}</li>
+                                            ))}
+                                        </ul>
+                                        <p className="indent-8">
+                                            <span className="font-semibold text-orange-600">แนวทางการนำไปใช้ประโยชน์:</span> ข้อเสนอแนะดังกล่าวสะท้อนให้เห็นถึงความต้องการและมุมมองของผู้เข้าร่วมกิจกรรม 
+                                            ซึ่งเป็นข้อมูลที่เป็นประโยชน์อย่างยิ่งต่อคณะผู้จัดทำโครงการ ในการนำไปใช้วิเคราะห์และเป็นแนวทางสำหรับการวางแผน ปรับปรุง 
+                                            และพัฒนารูปแบบการจัดกิจกรรมในครั้งต่อไปให้มีประสิทธิภาพ และตอบสนองต่อความมุ่งหวังของผู้เข้าร่วมโครงการได้อย่างดียิ่งขึ้น
+                                        </p>
+                                    </>
                                 ) : (
-                                    <p className="text-gray-400 font-light italic">ไม่มีข้อเสนอแนะเพิ่มเติมจากผู้เข้าร่วมกิจกรรม</p>
+                                    <p className="indent-8 text-gray-500">
+                                        จากการเก็บรวบรวมข้อมูลเชิงคุณภาพในส่วนของข้อเสนอแนะเพิ่มเติม พบว่า <span className="font-semibold">ไม่มีผู้เข้าร่วมกิจกรรมท่านใดให้ข้อเสนอแนะเพิ่มเติม</span> 
+                                        แต่อย่างไรก็ตาม คณะผู้จัดทำโครงการจะนำผลการประเมินเชิงปริมาณจากตารางข้างต้น ไปวิเคราะห์และใช้เป็นแนวทางในการวางแผนและพัฒนาการจัดกิจกรรมในลำดับต่อไป
+                                    </p>
                                 )}
                             </div>
                         </div>
+
                     </div>
                 );
             };
