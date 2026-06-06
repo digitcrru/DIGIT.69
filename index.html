@@ -87,10 +87,11 @@
         const { useState, useEffect } = React;
 
         const API_CONFIG = {
-            USE_FAST_CSV: true,
-            SHEET_ID: "1KLJNWUUIj1r6eqCZnaF-F6nA2FQg7pvOHMk0PyDCyAc", 
+            // 🚨 ปิด USE_FAST_CSV เป็น false เพื่อบังคับให้ดึงผ่าน Web App 100% แก้ปัญหาดึงชีตผิด
+            USE_FAST_CSV: false,
+            SHEET_ID: "", 
             
-            // 🚨 ลิงก์ Web App ล่าสุดที่อัปเดตแล้ว 🚨
+            // ลิงก์ Web App ล่าสุดของคุณ
             WEB_APP_URL: "https://script.google.com/macros/s/AKfycbz07BB-ibm51q9SC2ZnVVP-FyxwF0jTqPlCg9QZ-TN4d1zqvReQjEU-3Qv1Q27cjgq5zw/exec", 
             
             getCSVUrl: function(sheetName) {
@@ -100,6 +101,7 @@
 
         const fetchFastCSV = (sheetName) => {
             return new Promise((resolve, reject) => {
+                if(!API_CONFIG.USE_FAST_CSV || !API_CONFIG.SHEET_ID) return reject(new Error("CSV Mode Disabled"));
                 Papa.parse(API_CONFIG.getCSVUrl(sheetName), {
                     download: true, header: true, skipEmptyLines: true,
                     complete: (results) => resolve(results.data),
@@ -163,7 +165,6 @@
         ];
 
         function App() {
-            // ระบบจดจำหน้าเมื่อรีเฟรช (Session Persistence)
             const [view, setView] = useState(() => {
                 const savedView = sessionStorage.getItem('app_view');
                 if (savedView === 'admin_dashboard' && localStorage.getItem('admin_logged_in') === 'true') return 'admin_dashboard';
@@ -198,7 +199,6 @@
 
             const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
 
-            // บันทึกหน้าจอลง Session
             useEffect(() => { sessionStorage.setItem('app_view', view); }, [view]);
             useEffect(() => { sessionStorage.setItem('search_purpose', searchPurpose); }, [searchPurpose]);
 
