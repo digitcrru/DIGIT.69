@@ -84,13 +84,17 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        // เพิ่ม useMemo เพื่อใช้จดจำข้อมูลและลดการประมวลผลซ้ำซ้อน
         const { useState, useEffect, useMemo } = React;
 
         const API_CONFIG = {
+            // 🚨 ปิด USE_FAST_CSV เป็น false เพื่อบังคับให้ดึงผ่าน Web App 100% แก้ปัญหาดึงชีตผิด
             USE_FAST_CSV: false,
-            SHEET_ID: "", 
+            // 🚨 ใส่ Sheet ID ของคุณ
+            SHEET_ID: "1KLJNWUUIj1r6eqCZnaF-F6nA2FQg7pvOHMk0PyDCyAc", 
+            
+            // 🚨 ลิงก์ Web App ล่าสุดของคุณ
             WEB_APP_URL: "https://script.google.com/macros/s/AKfycbz07BB-ibm51q9SC2ZnVVP-FyxwF0jTqPlCg9QZ-TN4d1zqvReQjEU-3Qv1Q27cjgq5zw/exec", 
+            
             getCSVUrl: function(sheetName) {
                 return `https://docs.google.com/spreadsheets/d/${this.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}&_=${new Date().getTime()}`;
             }
@@ -161,6 +165,13 @@
             }
         ];
 
+        const getGenderProps = (nameStr) => {
+            if (!nameStr) return { icon: 'fa-user', bg: 'bg-orange-50', text: 'text-orange-600' };
+            if (nameStr.startsWith('นาย')) return { icon: 'fa-person', bg: 'bg-slate-100', text: 'text-slate-600' };
+            if (nameStr.startsWith('นาง') || nameStr.startsWith('น.ส.')) return { icon: 'fa-person-dress', bg: 'bg-rose-50', text: 'text-rose-600' };
+            return { icon: 'fa-user', bg: 'bg-orange-50', text: 'text-orange-600' };
+        };
+
         function App() {
             const [view, setView] = useState(() => {
                 const savedView = sessionStorage.getItem('app_view');
@@ -204,57 +215,51 @@
                 else { document.documentElement.classList.remove('dark'); localStorage.setItem('theme', 'light'); }
             }, [isDarkMode]);
 
-            const loadAdminData = () => {
-                // แสดงสถานะการโหลดและปิดกั้นการคลิก
-                Swal.fire({ title: 'กำลังซิงค์ข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-                
-                // ใช้ setTimeout เพื่อปลดล็อก UI Thread ให้หน้าต่างโหลดแสดงแอนิเมชันได้อย่างลื่นไหล ไม่ค้าง
-                setTimeout(async () => {
-                    try {
-                        let data;
-                        if (API_CONFIG.USE_FAST_CSV && API_CONFIG.SHEET_ID && API_CONFIG.SHEET_ID !== "YOUR_SHEET_ID_HERE") {
-                            const [acts, chks, evals, shirts, settings] = await Promise.all([
-                                fetchFastCSV('Activities').catch(() => []), 
-                                fetchFastCSV('CheckIns').catch(() => []),
-                                fetchFastCSV('Evaluations').catch(() => []), 
-                                fetchFastCSV('ShirtOrders').catch(() => []),
-                                fetchFastCSV('Settings').catch(() => [])
-                            ]);
+            const loadAdminData = async () => {
+                Swal.fire({ title: 'กำลังโหลดข้อมูลแอดมิน...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                try {
+                    let data;
+                    if (API_CONFIG.USE_FAST_CSV && API_CONFIG.SHEET_ID && API_CONFIG.SHEET_ID !== "YOUR_SHEET_ID_HERE") {
+                        const [acts, chks, evals, shirts, settings] = await Promise.all([
+                            fetchFastCSV('Activities').catch(() => []), 
+                            fetchFastCSV('CheckIns').catch(() => []),
+                            fetchFastCSV('Evaluations').catch(() => []), 
+                            fetchFastCSV('ShirtOrders').catch(() => []),
+                            fetchFastCSV('Settings').catch(() => [])
+                        ]);
+                        
+                        let priceInfo = { normal: 250, oversize: 380, status: 'open', receiptHeader: 'สโมสรนักศึกษาคณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย\nที่อยู่: 80 ซอย 9 ตำบล บ้านดู่ อำเภอเมืองเชียงราย เชียงราย 57100', receiptNote: 'กรุณานำใบเสร็จนี้มาแสดงในวันรับเสื้อ', systemStatus: 'open' };
+                        
+                        if (settings && settings.length > 0) {
+                            const priceRow = settings.find(r => r.Key === 'ShirtPrice') || {Value1: 250, Value2: 380};
+                            const statusRow = settings.find(r => r.Key === 'ShirtStatus') || {Value1: 'open', Value2: ''};
+                            const receiptRow = settings.find(r => r.Key === 'ReceiptConfig') || {Value1: priceInfo.receiptHeader, Value2: priceInfo.receiptNote};
+                            const systemRow = settings.find(r => r.Key === 'SystemStatus') || {Value1: 'open', Value2: ''};
                             
-                            let priceInfo = { normal: 250, oversize: 380, status: 'open', receiptHeader: 'สโมสรนักศึกษาคณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย\nที่อยู่: 80 ซอย 9 ตำบล บ้านดู่ อำเภอเมืองเชียงราย เชียงราย 57100', receiptNote: 'กรุณานำใบเสร็จนี้มาแสดงในวันรับเสื้อ', systemStatus: 'open' };
-                            
-                            if (settings && settings.length > 0) {
-                                const priceRow = settings.find(r => r.Key === 'ShirtPrice') || {Value1: 250, Value2: 380};
-                                const statusRow = settings.find(r => r.Key === 'ShirtStatus') || {Value1: 'open', Value2: ''};
-                                const receiptRow = settings.find(r => r.Key === 'ReceiptConfig') || {Value1: priceInfo.receiptHeader, Value2: priceInfo.receiptNote};
-                                const systemRow = settings.find(r => r.Key === 'SystemStatus') || {Value1: 'open', Value2: ''};
-                                
-                                priceInfo = { 
-                                    normal: Number(priceRow.Value1), oversize: Number(priceRow.Value2), 
-                                    status: statusRow.Value1, receiptHeader: receiptRow.Value1, receiptNote: receiptRow.Value2,
-                                    systemStatus: systemRow.Value1
-                                };
-                            } else {
-                                try { priceInfo = await runGAS('getShirtPrice'); } catch(err) { console.warn("Fallback to default settings"); }
-                            }
-                            
-                            data = { activities: acts, checkins: chks, evaluations: evals, shirtOrders: shirts, shirtPrice: priceInfo };
-                        } else { 
-                            data = await runGAS('getAdminDashboardData'); 
+                            priceInfo = { 
+                                normal: Number(priceRow.Value1), oversize: Number(priceRow.Value2), 
+                                status: statusRow.Value1, receiptHeader: receiptRow.Value1, receiptNote: receiptRow.Value2,
+                                systemStatus: systemRow.Value1
+                            };
+                        } else {
+                            try { priceInfo = await runGAS('getShirtPrice'); } catch(err) { console.warn("Fallback to default settings"); }
                         }
                         
-                        setAdminData(data); 
-                        if (data && data.shirtPrice) { 
-                            setShirtPrice(data.shirtPrice); 
-                            setShirtSystemOpen(data.shirtPrice.status !== 'closed'); 
-                            setSystemOpen(data.shirtPrice.systemStatus !== 'maintenance');
-                        }
-                        Swal.close(); 
-                        setView('admin_dashboard');
-                    } catch(e) { 
-                        Swal.fire('ข้อผิดพลาดการเชื่อมต่อ', e.message, 'error'); 
+                        data = { activities: acts, checkins: chks, evaluations: evals, shirtOrders: shirts, shirtPrice: priceInfo };
+                    } else { 
+                        data = await runGAS('getAdminDashboardData'); 
                     }
-                }, 100);
+                    
+                    setAdminData(data); 
+                    if (data && data.shirtPrice) { 
+                        setShirtPrice(data.shirtPrice); 
+                        setShirtSystemOpen(data.shirtPrice.status !== 'closed'); 
+                        setSystemOpen(data.shirtPrice.systemStatus !== 'maintenance');
+                    }
+                    Swal.close(); setView('admin_dashboard');
+                } catch(e) { 
+                    Swal.fire('ข้อผิดพลาดการเชื่อมต่อ', e.message, 'error'); 
+                }
             };
 
             useEffect(() => {
@@ -292,6 +297,13 @@
                         }
                     } catch (e) { 
                         console.error("Initial load failed", e); 
+                        if (e.message && e.message.includes('Failed to fetch')) {
+                            Swal.fire({
+                                title: 'การเชื่อมต่อผิดพลาด',
+                                text: 'ไม่สามารถดึงข้อมูลเริ่มต้นได้ กรุณาตรวจสอบการแชร์ไฟล์ Google Sheets',
+                                icon: 'error'
+                            });
+                        }
                     }
                 };
 
@@ -437,13 +449,6 @@
                     } else { data = await runGAS('getStudentHistory', studentId); }
                     Swal.close(); setHistoryData(data || []); setView('history_result');
                 } catch(e) { Swal.fire('ข้อผิดพลาด', e.message, 'error'); }
-            };
-
-            const getGenderProps = (nameStr) => {
-                if (!nameStr) return { icon: 'fa-user', bg: 'bg-orange-50', text: 'text-orange-600' };
-                if (nameStr.startsWith('นาย')) return { icon: 'fa-person', bg: 'bg-slate-100', text: 'text-slate-600' };
-                if (nameStr.startsWith('นาง') || nameStr.startsWith('น.ส.')) return { icon: 'fa-person-dress', bg: 'bg-rose-50', text: 'text-rose-600' };
-                return { icon: 'fa-user', bg: 'bg-orange-50', text: 'text-orange-600' };
             };
 
             const Navbar = () => (
@@ -1047,18 +1052,21 @@
 
             const systemOpen = data?.shirtPrice?.systemStatus !== 'maintenance';
 
-            // จำลองคนออนไลน์แบบเรียลไทม์ (เพื่อให้ Dashboard ดูมีความเคลื่อนไหว)
-            const [realtimeStats, setRealtimeStats] = useState({
-                activeUsers: Math.floor(20 + Math.random() * 15),
-                avgSessionTime: '05m 30s'
-            });
-
-            useEffect(() => {
-                const interval = setInterval(() => {
-                    setRealtimeStats(prev => ({ ...prev, activeUsers: Math.floor(20 + Math.random() * 15) }));
-                }, 4000);
-                return () => clearInterval(interval);
-            }, []);
+            // 🚀 การคำนวณ Active Users แบบเรียลไทม์จากฐานข้อมูลจริง
+            const activeUsersCount = useMemo(() => {
+                if (!data || !data.checkins) return 1;
+                const now = new Date();
+                const fifteenMinsAgo = new Date(now.getTime() - 15 * 60000);
+                
+                // หาคนเพิ่งเช็คชื่อในช่วง 15 นาทีที่ผ่านมา
+                const recentCheckins = data.checkins.filter(c => new Date(c.Timestamp) >= fifteenMinsAgo);
+                
+                // ตัดรายชื่อคนที่เช็คซ้ำกิจกรรมออกให้เหลือแค่ Unique Users
+                const uniqueRecent = new Set(recentCheckins.map(c => c.StudentID));
+                
+                // บวก 1 เพื่อรวมแอดมินที่กำลังดูอยู่
+                return uniqueRecent.size > 0 ? uniqueRecent.size + 1 : 1; 
+            }, [data]);
 
             // 🚀 แก้ปัญหาค้าง 1: ใช้ useMemo จดจำการประมวลผลสถิติภาพรวม
             const overviewStats = useMemo(() => {
@@ -1468,7 +1476,7 @@
                                     </div>
                                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-orange-100/50 flex items-center space-x-4 transition-transform hover:scale-[1.02]">
                                         <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center"><i className="fa-solid fa-globe text-xl"></i></div>
-                                        <div><p className="text-xs text-gray-500 font-medium">กำลังออนไลน์</p><h3 className="text-2xl font-bold text-gray-800">{realtimeStats.activeUsers}</h3></div>
+                                        <div><p className="text-xs text-gray-500 font-medium">กำลังออนไลน์</p><h3 className="text-2xl font-bold text-gray-800">{activeUsersCount}</h3></div>
                                     </div>
                                 </div>
 
@@ -1512,20 +1520,49 @@
                                         return (
                                             <div key={act.ActivityID} 
                                                  onClick={() => { setSelectedActivityForSummary(act.ActivityID); setActiveTab('summary'); }}
-                                                 className="cursor-pointer group bg-white/90 backdrop-blur p-6 border border-orange-100/50 rounded-2xl flex flex-col justify-between transition-all duration-300 hover:shadow-xl hover:shadow-orange-500/10 hover:border-orange-300 hover:-translate-y-1 relative overflow-hidden">
-                                                <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-gradient-to-br from-orange-50 to-orange-100 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"></div>
-                                                <div className="relative z-10 flex justify-between items-start mb-4">
-                                                    <div className="w-10 h-10 bg-orange-50 text-orange-500 rounded-xl flex items-center justify-center shadow-sm group-hover:bg-gradient-to-br group-hover:from-orange-400 group-hover:to-orange-600 group-hover:text-white transition-colors"><i className="fa-solid fa-clipboard-user"></i></div>
-                                                    <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md border ${act.Status==='open'?'text-green-600 border-green-200 bg-green-50':'text-gray-400 border-gray-200 bg-gray-50'}`}>{act.Status==='open'?'เปิดรับ':'ปิดแล้ว'}</span>
-                                                </div>
-                                                <div className="relative z-10">
-                                                    <h4 className="font-bold text-charcoal-900 text-sm mb-3 line-clamp-2 group-hover:text-orange-600 transition-colors" title={act.Name}>{act.Name}</h4>
-                                                    <div className="flex justify-between items-end pt-3 border-t border-gray-100 group-hover:border-orange-100 transition-colors">
-                                                        <div className="flex items-baseline gap-1.5">
-                                                            <span className="text-2xl font-extrabold text-charcoal-900 group-hover:text-orange-600 transition-colors">{checkinCount}</span>
-                                                            <span className="text-xs text-gray-500 font-medium">คน</span>
+                                                 className="group cursor-pointer relative bg-white p-6 sm:p-8 rounded-[2rem] border border-orange-50 shadow-sm transition-all duration-500 hover:shadow-2xl hover:shadow-orange-500/10 hover:-translate-y-2 hover:border-orange-200 overflow-hidden flex flex-col h-full">
+                                                
+                                                {/* Decorative Background Blob */}
+                                                <div className="absolute -right-12 -top-12 w-40 h-40 bg-gradient-to-br from-orange-100 to-rose-100 rounded-full blur-3xl opacity-0 group-hover:opacity-60 transition-opacity duration-700 pointer-events-none"></div>
+                                                <div className="absolute -left-12 -bottom-12 w-32 h-32 bg-gradient-to-tr from-blue-50 to-indigo-50 rounded-full blur-2xl opacity-0 group-hover:opacity-60 transition-opacity duration-700 pointer-events-none"></div>
+
+                                                <div className="relative z-10 flex flex-col h-full">
+                                                    {/* Header: Status & Date */}
+                                                    <div className="flex justify-between items-center mb-6">
+                                                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wider uppercase border shadow-sm ${act.Status==='open' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                                                            <span className={`w-2 h-2 rounded-full ${act.Status==='open' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse' : 'bg-slate-400'}`}></span>
+                                                            {act.Status==='open' ? 'เปิดรับลงทะเบียน' : 'ปิดรับแล้ว'}
                                                         </div>
-                                                        <i className="fa-solid fa-arrow-right text-gray-300 group-hover:text-orange-500 transition-transform transform group-hover:translate-x-1 text-lg"></i>
+                                                        <div className="flex items-center gap-1.5 text-xs font-medium text-gray-400 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
+                                                            <i className="fa-regular fa-calendar text-orange-400"></i>
+                                                            <span>{act.Date}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Content: Title & Location */}
+                                                    <div className="mb-6 flex-grow">
+                                                        <h4 className="text-xl font-bold text-slate-800 leading-snug mb-3 group-hover:text-orange-600 transition-colors line-clamp-2" title={act.Name}>
+                                                            {act.Name}
+                                                        </h4>
+                                                        <div className="flex items-center gap-2 text-sm text-slate-500 font-light line-clamp-1 bg-slate-50/50 p-2.5 rounded-xl border border-slate-100 group-hover:border-orange-100 group-hover:bg-orange-50/30 transition-colors">
+                                                            <i className="fa-solid fa-location-dot text-orange-400/70"></i>
+                                                            <span className="truncate">{act.Location}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Footer: User Count & Action */}
+                                                    <div className="pt-5 border-t border-slate-100 flex justify-between items-end group-hover:border-orange-100 transition-colors">
+                                                        <div>
+                                                            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1">ยอดผู้เข้าร่วมสะสม</p>
+                                                            <div className="flex items-baseline gap-1.5">
+                                                                <i className="fa-solid fa-users text-orange-400/80 mr-1 text-base"></i>
+                                                                <span className="text-4xl font-black text-slate-800 group-hover:text-orange-600 transition-colors tracking-tight">{checkinCount}</span>
+                                                                <span className="text-sm font-medium text-slate-500 ml-1">คน</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-orange-500 group-hover:border-orange-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-orange-500/30 transition-all duration-300">
+                                                            <i className="fa-solid fa-arrow-right -rotate-45 group-hover:rotate-0 transition-transform duration-300 text-lg"></i>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1558,40 +1595,46 @@
                                         <button className="w-full btn-gradient py-4 rounded-xl text-sm font-bold tracking-widest shadow-[0_8px_20px_-6px_rgba(249,115,22,0.4)] hover:shadow-[0_12px_25px_-6px_rgba(249,115,22,0.5)] transform hover:-translate-y-0.5 transition-all uppercase">บันทึกข้อมูล</button>
                                     </form>
                                 </div>
-                                <div className="lg:col-span-2 bg-white/90 backdrop-blur border border-orange-100/50 rounded-2xl overflow-hidden transition-colors shadow-sm">
-                                    <div className="overflow-x-auto custom-scrollbar">
-                                        <table className="w-full text-left text-sm whitespace-nowrap">
-                                            <thead className="bg-gray-50/80 border-b border-gray-100 text-[10px] text-gray-500 uppercase tracking-widest transition-colors">
-                                                <tr>
-                                                    <th className="px-6 py-4 font-semibold w-full">รายละเอียดกิจกรรม</th>
-                                                    <th className="px-6 py-4 text-center font-semibold">สถานะ</th>
-                                                    <th className="px-6 py-4 text-right font-semibold">เปิด / ปิด</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-gray-50">
-                                                {data.activities.map(a=>(
-                                                    <tr key={a.ActivityID} className="transition-colors hover:bg-orange-50/30 group">
-                                                        <td className="px-6 py-5">
-                                                            <p className="font-bold text-charcoal-900 text-base mb-1 group-hover:text-orange-600 transition-colors">{a.Name}</p>
-                                                            <div className="flex items-center gap-4 text-xs text-gray-500 font-medium">
-                                                                <span className="flex items-center gap-1.5"><i className="fa-regular fa-calendar text-gray-400"></i> {a.Date}</span>
-                                                                <span className="flex items-center gap-1.5"><i className="fa-solid fa-location-dot text-gray-400"></i> {a.Location}</span>
+                                
+                                <div className="lg:col-span-2">
+                                    <div className="bg-white/90 backdrop-blur border border-orange-100/50 rounded-2xl overflow-hidden transition-colors shadow-sm">
+                                        <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                                            <h3 className="font-semibold text-charcoal-900 text-sm flex items-center gap-2"><i className="fa-solid fa-list-ul text-orange-500"></i> รายการกิจกรรมทั้งหมด</h3>
+                                            <span className="text-xs font-medium bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full">{data.activities.length} รายการ</span>
+                                        </div>
+                                        <div className="divide-y divide-gray-50 max-h-[600px] overflow-y-auto custom-scrollbar">
+                                            {data.activities.length === 0 ? (
+                                                <div className="p-10 flex flex-col items-center justify-center text-center">
+                                                    <div className="w-16 h-16 bg-gray-50 text-gray-300 rounded-full flex items-center justify-center text-2xl mb-4"><i className="fa-solid fa-folder-open"></i></div>
+                                                    <p className="text-gray-500 font-medium">ยังไม่มีกิจกรรมในระบบ</p>
+                                                </div>
+                                            ) : (
+                                                data.activities.map(a=>(
+                                                    <div key={a.ActivityID} className="p-5 transition-all hover:bg-orange-50/30 group flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                                        <div className="flex items-start gap-4">
+                                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm transition-all duration-300 ${a.Status === 'open' ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-white group-hover:shadow-orange-500/30 group-hover:shadow-lg' : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200'}`}>
+                                                                <i className="fa-solid fa-calendar-star text-xl"></i>
                                                             </div>
-                                                        </td>
-                                                        <td className="px-6 py-5 text-center">
-                                                            <span className={`inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide border ${a.Status==='open' ? 'text-green-600 bg-green-50 border-green-200' : 'text-gray-400 bg-gray-50 border-gray-200'}`}>
+                                                            <div>
+                                                                <h4 className="font-bold text-charcoal-900 text-base mb-2 group-hover:text-orange-600 transition-colors leading-tight line-clamp-2">{a.Name}</h4>
+                                                                <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 font-medium">
+                                                                    <span className="flex items-center gap-1.5 bg-white border border-gray-100 shadow-sm px-2.5 py-1 rounded-md"><i className="fa-regular fa-calendar text-orange-400"></i> {a.Date}</span>
+                                                                    <span className="flex items-center gap-1.5 bg-white border border-gray-100 shadow-sm px-2.5 py-1 rounded-md"><i className="fa-solid fa-location-dot text-orange-400"></i> {a.Location}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto border-t sm:border-t-0 pt-4 sm:pt-0 border-gray-100 mt-2 sm:mt-0">
+                                                            <span className={`inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide border shadow-sm ${a.Status==='open' ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : 'text-gray-400 bg-gray-50 border-gray-200'}`}>
                                                                 {a.Status==='open' ? 'เปิดรับ' : 'ปิดแล้ว'}
                                                             </span>
-                                                        </td>
-                                                        <td className="px-6 py-5 text-right">
-                                                            <button onClick={()=>toggleActivityStatus(a.ActivityID,a.Status)} className={`text-[40px] leading-none transition-all transform hover:scale-110 drop-shadow-sm focus:outline-none ${a.Status==='open' ? 'text-green-500 hover:text-green-600' : 'text-gray-300 hover:text-gray-400'}`}>
+                                                            <button onClick={()=>toggleActivityStatus(a.ActivityID,a.Status)} className={`text-[40px] leading-none transition-all transform hover:scale-110 drop-shadow-sm focus:outline-none ${a.Status==='open' ? 'text-emerald-500 hover:text-emerald-600' : 'text-gray-300 hover:text-gray-400'}`}>
                                                                 <i className={`fa-solid ${a.Status==='open' ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i>
                                                             </button>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
