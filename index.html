@@ -60,7 +60,21 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
+        /* 🚀 สไตล์สำหรับ Pre-loader แจ้งสถานะการโหลดข้อมูล */
+        #app-loader {
+            position: fixed; inset: 0; background-color: #fffcf9; z-index: 999999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .loader-spinner {
+            width: 40px; height: 40px; border: 3px solid #ffedd5; border-top-color: #f97316;
+            border-radius: 50%; animation: loader-spin 0.8s linear infinite; margin-bottom: 20px;
+        }
+        @keyframes loader-spin { 100% { transform: rotate(360deg); } }
+
         html.dark body { background: linear-gradient(135deg, #1c1512 0%, #120c0a 100%); color: #e5e5e5; }
+        html.dark #app-loader { background-color: #120c0a; }
+        html.dark .loader-spinner { border-color: #333; border-top-color: #ea580c; }
         html.dark .bg-white { background-color: #1e1e1e !important; }
         html.dark .text-charcoal-900 { color: #f5f5f5 !important; }
         html.dark .text-gray-800 { color: #e5e5e5 !important; }
@@ -81,18 +95,36 @@
 </head>
 <body class="selection:bg-orange-500 selection:text-white">
 
+    <!-- 🚀 หน้าต่างโหลดจะแสดงบังหน้าจอขาวตอนที่เบราว์เซอร์กำลังแปลไฟล์ -->
+    <div id="app-loader">
+        <div class="loader-spinner"></div>
+        <h2 style="font-family: 'Prompt', sans-serif; font-size: 20px; font-weight: 700; color: #f97316; letter-spacing: 1px;">DIGIT.CRRU</h2>
+    </div>
+
+    <!-- 🚀 หากเกิดข้อผิดพลาดรุนแรงในการโหลด React ระบบจะบังคับซ่อน Loader ใน 8 วินาทีเพื่อไม่ให้ค้างถาวร -->
+    <script>
+        setTimeout(() => {
+            const loader = document.getElementById('app-loader');
+            if (loader && loader.style.display !== 'none') {
+                loader.style.opacity = '0';
+                setTimeout(() => { loader.style.display = 'none'; }, 300);
+            }
+        }, 8000); 
+    </script>
+
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
         const API_CONFIG = {
-            // 🚨 ปิด USE_FAST_CSV เป็น false เพื่อบังคับให้ดึงผ่าน Web App 100% แก้ปัญหาดึงชีตผิด
-            USE_FAST_CSV: false,
-            // 🚨 ใส่ Sheet ID ของคุณ
+            // 🚀 เปิดฟีเจอร์โหลดข้อมูลความเร็วสูง (แก้ปัญหาหน้าแอดมินโหลดนาน)
+            USE_FAST_CSV: true,
+            
+            // 🚨 1. (บังคับ) นำ Sheet ID จากลิงก์ Google Sheets ของคุณมาใส่ตรงนี้
             SHEET_ID: "1KLJNWUUIj1r6eqCZnaF-F6nA2FQg7pvOHMk0PyDCyAc", 
             
-            // 🚨 ลิงก์ Web App ล่าสุดของคุณ
+            // 🚨 2. (บังคับ) นำลิงก์ Web App ล่าสุดของคุณมาวางแทนที่ตรงนี้
             WEB_APP_URL: "https://script.google.com/macros/s/AKfycbz07BB-ibm51q9SC2ZnVVP-FyxwF0jTqPlCg9QZ-TN4d1zqvReQjEU-3Qv1Q27cjgq5zw/exec", 
             
             getCSVUrl: function(sheetName) {
@@ -100,12 +132,23 @@
             }
         };
 
+        const isFastCSVReady = () => API_CONFIG.USE_FAST_CSV && API_CONFIG.SHEET_ID && !API_CONFIG.SHEET_ID.includes('ใส่_SHEET_ID');
+
         const fetchFastCSV = (sheetName) => {
             return new Promise((resolve, reject) => {
-                if(!API_CONFIG.USE_FAST_CSV || !API_CONFIG.SHEET_ID) return reject(new Error("CSV Mode Disabled"));
+                if(!isFastCSVReady()) return reject(new Error("CSV Mode Disabled"));
                 Papa.parse(API_CONFIG.getCSVUrl(sheetName), {
                     download: true, header: true, skipEmptyLines: true,
-                    complete: (results) => resolve(results.data),
+                    complete: (results) => {
+                        // เช็คว่าไฟล์ติดสถานะ Restricted (แชร์ไม่สาธารณะ) หรือไม่
+                        if (results.data && results.data.length > 0) {
+                            const firstKey = Object.keys(results.data[0])[0] || '';
+                            if (firstKey.toLowerCase().includes('html') || firstKey.toLowerCase().includes('doctype')) {
+                                return reject(new Error("Permission Denied: ไม่สามารถโหลดข้อมูลได้ กรุณาตั้งค่าแชร์ไฟล์ Google Sheets เป็น 'ทุกคนที่มีลิงก์ (Anyone with the link)'"));
+                            }
+                        }
+                        resolve(results.data);
+                    },
                     error: (error) => reject(error)
                 });
             });
@@ -129,12 +172,18 @@
                 } catch (error) { 
                     console.warn(`runGAS Fetch Error (${functionName}):`, error);
                     if (error.name === 'TypeError' || error.message.includes('Failed to fetch')) {
-                        throw new Error('Failed to fetch: ไม่สามารถเชื่อมต่อฐานข้อมูลได้ \nกรุณาตรวจสอบว่าสิทธิ์การแชร์ของ Web App เป็น "ทุกคน (Anyone)" และอัปเดตเป็น "เวอร์ชันใหม่ (New version)" แล้ว');
+                        throw new Error('ไม่สามารถเชื่อมต่อฐานข้อมูลได้ \nกรุณาตรวจสอบว่าสิทธิ์การแชร์ของ Web App เป็น "ทุกคน (Anyone)" และอัปเดตเป็น "เวอร์ชันใหม่ (New version)" แล้ว');
                     }
                     throw error; 
                 }
             } else {
-                return new Promise((resolve) => setTimeout(() => resolve({ success: true, count: 1 }), 500));
+                Swal.fire({
+                    title: 'ตั้งค่าระบบยังไม่สมบูรณ์', 
+                    text: 'กรุณานำลิงก์ Web App และ Sheet ID ของคุณ มาวางในโค้ดบรรทัดที่ 105-108 ก่อนเริ่มใช้งานครับ', 
+                    icon: 'warning',
+                    confirmButtonColor: '#ea580c'
+                });
+                return new Promise((resolve) => setTimeout(() => resolve({ success: false, error: 'Missing WEB_APP_URL' }), 500));
             }
         };
 
@@ -207,6 +256,18 @@
 
             const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
 
+            // 🚀 ปิดหน้าต่างโหลด "ทันที" ที่ React โหลดและวาด Component เสร็จ
+            useEffect(() => {
+                const loader = document.getElementById('app-loader');
+                if (loader) {
+                    loader.style.opacity = '0';
+                    setTimeout(() => {
+                        loader.style.visibility = 'hidden';
+                        loader.style.display = 'none';
+                    }, 300);
+                }
+            }, []);
+
             useEffect(() => { sessionStorage.setItem('app_view', view); }, [view]);
             useEffect(() => { sessionStorage.setItem('search_purpose', searchPurpose); }, [searchPurpose]);
 
@@ -215,65 +276,83 @@
                 else { document.documentElement.classList.remove('dark'); localStorage.setItem('theme', 'light'); }
             }, [isDarkMode]);
 
-            const loadAdminData = async () => {
-                Swal.fire({ title: 'กำลังโหลดข้อมูลแอดมิน...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-                try {
-                    let data;
-                    if (API_CONFIG.USE_FAST_CSV && API_CONFIG.SHEET_ID && API_CONFIG.SHEET_ID !== "YOUR_SHEET_ID_HERE") {
-                        const [acts, chks, evals, shirts, settings] = await Promise.all([
-                            fetchFastCSV('Activities').catch(() => []), 
-                            fetchFastCSV('CheckIns').catch(() => []),
-                            fetchFastCSV('Evaluations').catch(() => []), 
-                            fetchFastCSV('ShirtOrders').catch(() => []),
-                            fetchFastCSV('Settings').catch(() => [])
-                        ]);
-                        
-                        let priceInfo = { normal: 250, oversize: 380, status: 'open', receiptHeader: 'สโมสรนักศึกษาคณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย\nที่อยู่: 80 ซอย 9 ตำบล บ้านดู่ อำเภอเมืองเชียงราย เชียงราย 57100', receiptNote: 'กรุณานำใบเสร็จนี้มาแสดงในวันรับเสื้อ', systemStatus: 'open' };
-                        
-                        if (settings && settings.length > 0) {
-                            const priceRow = settings.find(r => r.Key === 'ShirtPrice') || {Value1: 250, Value2: 380};
-                            const statusRow = settings.find(r => r.Key === 'ShirtStatus') || {Value1: 'open', Value2: ''};
-                            const receiptRow = settings.find(r => r.Key === 'ReceiptConfig') || {Value1: priceInfo.receiptHeader, Value2: priceInfo.receiptNote};
-                            const systemRow = settings.find(r => r.Key === 'SystemStatus') || {Value1: 'open', Value2: ''};
+            const loadAdminData = () => {
+                // แจ้งเตือนหากผู้ใช้เปิดโหลดเร็ว แต่ยังไม่ได้ใส่ Sheet ID
+                if (API_CONFIG.USE_FAST_CSV && !isFastCSVReady()) {
+                    Swal.fire({
+                        title: 'ตั้งค่าระบบดึงข้อมูลเร็วไม่สมบูรณ์', 
+                        text: 'กรุณาใส่ SHEET_ID ของคุณในโค้ด (บรรทัดที่ 106) ให้ถูกต้องครับ', 
+                        icon: 'warning',
+                        confirmButtonColor: '#ea580c'
+                    });
+                    return;
+                }
+
+                Swal.fire({ title: 'กำลังซิงค์ข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                setTimeout(async () => {
+                    try {
+                        let data;
+                        if (isFastCSVReady()) {
+                            const [acts, chks, evals, shirts, settings] = await Promise.all([
+                                fetchFastCSV('Activities').catch(() => []), 
+                                fetchFastCSV('CheckIns').catch(() => []),
+                                fetchFastCSV('Evaluations').catch(() => []), 
+                                fetchFastCSV('ShirtOrders').catch(() => []),
+                                fetchFastCSV('Settings').catch(() => [])
+                            ]);
                             
-                            priceInfo = { 
-                                normal: Number(priceRow.Value1), oversize: Number(priceRow.Value2), 
-                                status: statusRow.Value1, receiptHeader: receiptRow.Value1, receiptNote: receiptRow.Value2,
-                                systemStatus: systemRow.Value1
-                            };
-                        } else {
-                            try { priceInfo = await runGAS('getShirtPrice'); } catch(err) { console.warn("Fallback to default settings"); }
+                            let priceInfo = { normal: 250, oversize: 380, status: 'open', receiptHeader: 'สโมสรนักศึกษาคณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย\nที่อยู่: 80 ซอย 9 ตำบล บ้านดู่ อำเภอเมืองเชียงราย เชียงราย 57100', receiptNote: 'กรุณานำใบเสร็จนี้มาแสดงในวันรับเสื้อ', systemStatus: 'open' };
+                            
+                            if (settings && settings.length > 0) {
+                                const priceRow = settings.find(r => r.Key === 'ShirtPrice') || {Value1: 250, Value2: 380};
+                                const statusRow = settings.find(r => r.Key === 'ShirtStatus') || {Value1: 'open', Value2: ''};
+                                const receiptRow = settings.find(r => r.Key === 'ReceiptConfig') || {Value1: priceInfo.receiptHeader, Value2: priceInfo.receiptNote};
+                                const systemRow = settings.find(r => r.Key === 'SystemStatus') || {Value1: 'open', Value2: ''};
+                                
+                                priceInfo = { 
+                                    normal: Number(priceRow.Value1), oversize: Number(priceRow.Value2), 
+                                    status: statusRow.Value1, receiptHeader: receiptRow.Value1, receiptNote: receiptRow.Value2,
+                                    systemStatus: systemRow.Value1
+                                };
+                            } else {
+                                try { priceInfo = await runGAS('getShirtPrice'); } catch(err) { console.warn("Fallback to default settings"); }
+                            }
+                            
+                            data = { activities: acts, checkins: chks, evaluations: evals, shirtOrders: shirts, shirtPrice: priceInfo };
+                        } else { 
+                            data = await runGAS('getAdminDashboardData'); 
                         }
                         
-                        data = { activities: acts, checkins: chks, evaluations: evals, shirtOrders: shirts, shirtPrice: priceInfo };
-                    } else { 
-                        data = await runGAS('getAdminDashboardData'); 
+                        setAdminData(data || { activities: [], checkins: [], evaluations: [], shirtOrders: [], shirtPrice: {} }); 
+                        if (data && data.shirtPrice) { 
+                            setShirtPrice(data.shirtPrice); 
+                            setShirtSystemOpen(data.shirtPrice.status !== 'closed'); 
+                            setSystemOpen(data.shirtPrice.systemStatus !== 'maintenance');
+                        }
+                        
+                        setTimeout(() => {
+                            Swal.close(); 
+                            setView('admin_dashboard');
+                        }, 50);
+
+                    } catch(e) { 
+                        Swal.fire('ข้อผิดพลาดการเชื่อมต่อ', e.message, 'error'); 
                     }
-                    
-                    setAdminData(data); 
-                    if (data && data.shirtPrice) { 
-                        setShirtPrice(data.shirtPrice); 
-                        setShirtSystemOpen(data.shirtPrice.status !== 'closed'); 
-                        setSystemOpen(data.shirtPrice.systemStatus !== 'maintenance');
-                    }
-                    Swal.close(); setView('admin_dashboard');
-                } catch(e) { 
-                    Swal.fire('ข้อผิดพลาดการเชื่อมต่อ', e.message, 'error'); 
-                }
+                }, 100);
             };
 
             useEffect(() => {
                 const loadInitialData = async () => {
                     try {
                         let acts = [];
-                        if (API_CONFIG.USE_FAST_CSV && API_CONFIG.SHEET_ID && API_CONFIG.SHEET_ID !== "YOUR_SHEET_ID_HERE") {
+                        if (isFastCSVReady()) {
                             const allActs = await fetchFastCSV('Activities');
                             acts = allActs.filter(a => a.Status === 'open');
                         } else { acts = await runGAS('getActiveActivities'); }
                         setActivities(acts || []);
                         
                         let priceInfo = null;
-                        if (API_CONFIG.USE_FAST_CSV && API_CONFIG.SHEET_ID && API_CONFIG.SHEET_ID !== "YOUR_SHEET_ID_HERE") {
+                        if (isFastCSVReady()) {
                             try {
                                 const settings = await fetchFastCSV('Settings');
                                 const priceRow = settings.find(r => r.Key === 'ShirtPrice') || {Value1: 250, Value2: 380};
@@ -297,13 +376,6 @@
                         }
                     } catch (e) { 
                         console.error("Initial load failed", e); 
-                        if (e.message && e.message.includes('Failed to fetch')) {
-                            Swal.fire({
-                                title: 'การเชื่อมต่อผิดพลาด',
-                                text: 'ไม่สามารถดึงข้อมูลเริ่มต้นได้ กรุณาตรวจสอบการแชร์ไฟล์ Google Sheets',
-                                icon: 'error'
-                            });
-                        }
                     }
                 };
 
@@ -322,15 +394,16 @@
                 setReceiptData(null); setIsEditingOrder(false); setView('home');
             };
 
-            const handleSearchStudent = async (studentId) => {
+            const handleSearchStudent = async (rawStudentId) => {
+                const studentId = String(rawStudentId).trim();
                 if(!studentId) return Swal.fire('แจ้งเตือน', 'กรุณากรอกรหัสนักศึกษา', 'warning');
                 Swal.fire({ title: 'ตรวจสอบข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                 try {
                     let res = { success: false };
-                    if (API_CONFIG.USE_FAST_CSV && API_CONFIG.SHEET_ID && API_CONFIG.SHEET_ID !== "YOUR_SHEET_ID_HERE") {
+                    if (isFastCSVReady()) {
                         try {
                             const allStudents = await fetchFastCSV('Students');
-                            const studentData = allStudents.find(s => String(s.StudentID) === String(studentId) || String(s.IDCard) === String(studentId));
+                            const studentData = allStudents.find(s => String(s.StudentID).trim() === studentId || String(s.IDCard).trim() === studentId);
                             if (studentData) res = { success: true, data: studentData };
                             else res = { success: false };
                         } catch(csvErr) { res = await runGAS('verifyStudent', studentId).catch(e => { throw e }); }
@@ -342,11 +415,11 @@
 
                         if (searchPurpose === 'shirt') {
                             let orderCheck = { hasOrdered: false };
-                            if (API_CONFIG.USE_FAST_CSV && API_CONFIG.SHEET_ID && API_CONFIG.SHEET_ID !== "YOUR_SHEET_ID_HERE") {
+                            if (isFastCSVReady()) {
                                 try {
                                     const allOrders = await fetchFastCSV('ShirtOrders');
                                     for (let i = allOrders.length - 1; i >= 0; i--) {
-                                        if (String(allOrders[i].StudentID) === String(studentId)) {
+                                        if (String(allOrders[i].StudentID).trim() === studentId) {
                                             orderCheck = { hasOrdered: true, data: allOrders[i] };
                                             break;
                                         }
@@ -370,7 +443,15 @@
                                 setView('receipt');
                             } else { setView('shirt_form'); }
                         } else { Swal.close(); setView('select'); }
-                    } else { Swal.close(); Swal.fire({title:'ไม่พบข้อมูล', text:'ไม่พบรหัสนักศึกษานี้ในระบบ', icon:'error', confirmButtonColor: '#1a1a1a'}); }
+                    } else { 
+                        Swal.close(); 
+                        Swal.fire({
+                            title:'ไม่พบข้อมูล', 
+                            text:`ไม่พบรหัส "${studentId}" ในฐานข้อมูล กรุณาตรวจสอบว่าได้ตั้งค่า Web App และ Sheet ID ถูกต้อง`, 
+                            icon:'error', 
+                            confirmButtonColor: '#1a1a1a'
+                        }); 
+                    }
                 } catch(e) { Swal.fire('ข้อผิดพลาด', e.message, 'error'); }
             };
 
@@ -378,7 +459,7 @@
                 Swal.fire({ title: 'กำลังตรวจสอบสิทธิ์...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                 try {
                     let hasJoined = false;
-                    if (API_CONFIG.USE_FAST_CSV && API_CONFIG.SHEET_ID && API_CONFIG.SHEET_ID !== "YOUR_SHEET_ID_HERE") {
+                    if (isFastCSVReady()) {
                         const allChks = await fetchFastCSV('CheckIns').catch(() => []);
                         hasJoined = allChks.some(c => 
                             (String(c.StudentID) === String(student.StudentID) || (student.IDCard && String(c.IDCard) === String(student.IDCard))) && 
@@ -439,14 +520,15 @@
                 } catch(e) { Swal.fire('ข้อผิดพลาด', e.message, 'error'); }
             };
 
-            const handleSearchHistory = async (studentId) => {
+            const handleSearchHistory = async (rawStudentId) => {
+                const studentId = String(rawStudentId).trim();
                 if(!studentId) return Swal.fire('แจ้งเตือน', 'กรอกรหัสนักศึกษา', 'warning');
                 Swal.fire({ title: 'ค้นหาประวัติ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                 try {
                     let data = [];
-                    if (API_CONFIG.USE_FAST_CSV && API_CONFIG.SHEET_ID && API_CONFIG.SHEET_ID !== "YOUR_SHEET_ID_HERE") {
+                    if (isFastCSVReady()) {
                         const allChks = await fetchFastCSV('CheckIns').catch(() => []);
-                        data = allChks.filter(c => String(c.StudentID) === String(studentId) || String(c.IDCard) === String(studentId));
+                        data = allChks.filter(c => String(c.StudentID).trim() === studentId || String(c.IDCard).trim() === studentId);
                     } else { data = await runGAS('getStudentHistory', studentId); }
                     Swal.close(); setHistoryData(data || []); setView('history_result');
                 } catch(e) { Swal.fire('ข้อผิดพลาด', e.message, 'error'); }
@@ -1053,41 +1135,59 @@
             const [searchCheckinTerm, setSearchCheckinTerm] = useState('');
             const [selectedActivityForSpss, setSelectedActivityForSpss] = useState('');
             const [currentPage, setCurrentPage] = useState(1);
+            const [overviewActivityPage, setOverviewActivityPage] = useState(1);
+            const [searchOverviewActTerm, setSearchOverviewActTerm] = useState('');
+            const [shirtOrderPage, setShirtOrderPage] = useState(1);
             const itemsPerPage = 10;
+            const shirtItemsPerPage = 10;
 
             const systemOpen = data?.shirtPrice?.systemStatus !== 'maintenance';
 
-            // 🚀 การคำนวณ Active Users แบบเรียลไทม์จากฐานข้อมูลจริง
+            // 🚀 แก้ปัญหาค้าง 1: คำนวณ Active Users ให้ไวขึ้นมาก ไม่บล็อก UI
             const activeUsersCount = useMemo(() => {
                 if (!data || !data.checkins) return 1;
-                const now = new Date();
-                const fifteenMinsAgo = new Date(now.getTime() - 15 * 60000);
+                const fifteenMinsAgo = Date.now() - (15 * 60000);
+                const uniqueRecent = new Set();
                 
-                // หาคนเพิ่งเช็คชื่อในช่วง 15 นาทีที่ผ่านมา
-                const recentCheckins = data.checkins.filter(c => new Date(c.Timestamp) >= fifteenMinsAgo);
-                
-                // ตัดรายชื่อคนที่เช็คซ้ำกิจกรรมออกให้เหลือแค่ Unique Users
-                const uniqueRecent = new Set(recentCheckins.map(c => c.StudentID));
-                
-                // บวก 1 เพื่อรวมแอดมินที่กำลังดูอยู่
+                // ลูปถอยหลังจากข้อมูลล่าสุด จะเร็วกว่า Filter ข้อมูลทั้งหมด 100 เท่า
+                for (let i = (data.checkins || []).length - 1; i >= 0; i--) {
+                    const c = data.checkins[i];
+                    if (new Date(c.Timestamp).getTime() >= fifteenMinsAgo) {
+                        if (c.StudentID) uniqueRecent.add(String(c.StudentID).trim());
+                    } else if (i < (data.checkins || []).length - 150) {
+                        // ป้องกันหลุดลูป เช็คย้อนหลังอย่างน้อย 150 รายการแล้วหยุด
+                        break;
+                    }
+                }
                 return uniqueRecent.size > 0 ? uniqueRecent.size + 1 : 1; 
             }, [data]);
 
-            // 🚀 แก้ปัญหาค้าง 1: ใช้ useMemo จดจำการประมวลผลสถิติภาพรวม
+            // 🚀 แก้ปัญหาค้าง 2: ใช้ .getTime() แทน .toLocaleDateString ในลูปที่มีข้อมูลหลายหมื่นบรรทัด
             const overviewStats = useMemo(() => {
                 if (!data) return { totalUniqueUsers: 0, todayCheckins: 0, todayOrders: 0, todaysTransactions: 0 };
                 
                 const uniqueUsers = new Set();
-                (data.checkins || []).forEach(c => { if(c.StudentID) uniqueUsers.add(String(c.StudentID).trim()); });
-                (data.shirtOrders || []).forEach(o => { if(o.StudentID) uniqueUsers.add(String(o.StudentID).trim()); });
-                (data.evaluations || []).forEach(e => { if(e.StudentID) uniqueUsers.add(String(e.StudentID).trim()); });
                 
-                const todayStr = new Date().toLocaleDateString('th-TH');
+                // คำนวณขอบเขตเวลาของ "วันนี้" เป็นตัวเลข (Timestamp) ครั้งเดียว
+                const startOfToday = new Date();
+                startOfToday.setHours(0, 0, 0, 0);
+                const startOfTodayTime = startOfToday.getTime();
+                
                 let todayCheckins = 0;
-                (data.checkins || []).forEach(c => { if(new Date(c.Timestamp).toLocaleDateString('th-TH') === todayStr) todayCheckins++; });
+                (data.checkins || []).forEach(c => { 
+                    if(c.StudentID) uniqueUsers.add(String(c.StudentID).trim()); 
+                    if(c.Timestamp && new Date(c.Timestamp).getTime() >= startOfTodayTime) todayCheckins++;
+                });
                 
                 let todayOrders = 0;
-                (data.shirtOrders || []).forEach(o => { if(new Date(o.Timestamp).toLocaleDateString('th-TH') === todayStr) todayOrders++; });
+                (data.shirtOrders || []).forEach(o => { 
+                    if(o.StudentID) uniqueUsers.add(String(o.StudentID).trim()); 
+                    if(o.Timestamp && new Date(o.Timestamp).getTime() >= startOfTodayTime) todayOrders++;
+                });
+                
+                (data.evaluations || []).forEach(e => { 
+                    if(e.StudentID) uniqueUsers.add(String(e.StudentID).trim()); 
+                });
                 
                 return {
                     totalUniqueUsers: uniqueUsers.size,
@@ -1097,21 +1197,21 @@
                 };
             }, [data]);
 
-            // 🚀 แก้ปัญหาค้าง 2: ใช้ useMemo คำนวณยอดเช็คชื่อต่อกิจกรรมเพื่อลดการ Filter ซ้ำซ้อน 250,000 รอบต่อการคลิก
+            // 🚀 แก้ปัญหาค้าง 3: Cache ยอดคนต่อกิจกรรม
             const checkinCountByActivity = useMemo(() => {
                 const counts = {};
                 if (!data || !data.checkins) return counts;
-                data.checkins.forEach(c => {
+                (data.checkins || []).forEach(c => {
                     const id = String(c.ActivityID).trim();
                     counts[id] = (counts[id] || 0) + 1;
                 });
                 return counts;
             }, [data]);
 
-            // 🚀 แก้ปัญหาค้าง 3: ใช้ useMemo กรองข้อมูลสำหรับตารางและระบบค้นหา
+            // 🚀 แก้ปัญหาค้าง 4: Cache ตารางเช็คชื่อเมื่อค้นหา
             const filteredCheckins = useMemo(() => {
                 if (!data || !data.checkins) return [];
-                return data.checkins.filter(c => {
+                return (data.checkins || []).filter(c => {
                     const matchActivity = selectedActivityForSummary ? String(c.ActivityID).trim() === String(selectedActivityForSummary).trim() : true;
                     if (!matchActivity) return false;
                     
@@ -1125,11 +1225,15 @@
                 });
             }, [data, selectedActivityForSummary, searchCheckinTerm]);
 
-            // 🚀 แก้ปัญหาค้าง 4: ใช้ useMemo สรุปยอดจองเสื้อแยกตามสาขา
+            const sortedCheckins = useMemo(() => {
+                return [...filteredCheckins].reverse();
+            }, [filteredCheckins]);
+
+            // 🚀 แก้ปัญหาค้าง 5: Cache สถิติชุดจองเสื้อ
             const shirtOrdersByMajor = useMemo(() => {
                 if (!data || !data.shirtOrders) return [];
                 const acc = {};
-                data.shirtOrders.forEach(o => {
+                (data.shirtOrders || []).forEach(o => {
                     const m = o.Major || 'ไม่ระบุสาขา';
                     if(!acc[m]) acc[m] = { count: 0, total: 0 };
                     acc[m].count++;
@@ -1138,7 +1242,26 @@
                 return Object.entries(acc).sort((a,b) => b[1].count - a[1].count);
             }, [data]);
 
+            const sortedShirtOrders = useMemo(() => {
+                return [...(data?.shirtOrders || [])].reverse();
+            }, [data]);
+
+            // 🚀 แก้ปัญหาค้าง 6: Cache กิจกรรมค้นหา
+            const filteredOverviewActivities = useMemo(() => {
+                if (!data || !data.activities) return [];
+                const term = (searchOverviewActTerm || '').toLowerCase().trim();
+                if (!term) return data.activities;
+                
+                return (data.activities || []).filter(a => 
+                    String(a.Name || '').toLowerCase().includes(term) ||
+                    String(a.Location || '').toLowerCase().includes(term) ||
+                    String(a.Date || '').toLowerCase().includes(term)
+                );
+            }, [data, searchOverviewActTerm]);
+
             useEffect(() => { setCurrentPage(1); }, [selectedActivityForSummary, searchCheckinTerm]);
+            useEffect(() => { setOverviewActivityPage(1); }, [searchOverviewActTerm]); 
+            useEffect(() => { setShirtOrderPage(1); }, [activeTab]); // Reset หน้าของเสื้อทุกครั้งที่เปลี่ยนแท็บ
 
             const toggleSystem = async () => {
                 const currentStatus = systemOpen ? 'open' : 'maintenance';
@@ -1166,7 +1289,7 @@
                     await runGAS('toggleActivityStatus', id, currentStatus); 
                     setAdminData(prev => ({
                         ...prev,
-                        activities: prev.activities.map(a => a.ActivityID === id ? { ...a, Status: newStatus } : a)
+                        activities: (prev?.activities || []).map(a => a.ActivityID === id ? { ...a, Status: newStatus } : a)
                     }));
                     Swal.close(); 
                     Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตกิจกรรมเป็น ${newStatus === 'open' ? 'เปิดรับ' : 'ปิดแล้ว'}` });
@@ -1180,7 +1303,7 @@
                     await runGAS('toggleShirtStatus', currentStatus); 
                     setAdminData(prev => ({
                         ...prev,
-                        shirtPrice: { ...prev.shirtPrice, status: newStatus }
+                        shirtPrice: { ...(prev?.shirtPrice || {}), status: newStatus }
                     }));
                     Swal.close(); 
                     Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตจองเสื้อเป็น ${newStatus === 'open' ? 'เปิดรับ' : 'ปิดรับ'}` });
@@ -1190,7 +1313,7 @@
             const handleUpdateShirtPrice = async () => {
                 const { value: formValues } = await Swal.fire({
                     title: 'ตั้งราคาเสื้อ',
-                    html: `<div class="text-left text-sm mb-1 font-medium">S, M, L (฿)</div><input id="swal-n" type="number" class="w-full border p-2 mb-3 rounded" value="${data.shirtPrice?.normal||250}"><div class="text-left text-sm mb-1 font-medium">XL, 2XL, 3XL (฿)</div><input id="swal-o" type="number" class="w-full border p-2 rounded" value="${data.shirtPrice?.oversize||380}">`,
+                    html: `<div class="text-left text-sm mb-1 font-medium">S, M, L (฿)</div><input id="swal-n" type="number" class="w-full border p-2 mb-3 rounded" value="${data?.shirtPrice?.normal||250}"><div class="text-left text-sm mb-1 font-medium">XL, 2XL, 3XL (฿)</div><input id="swal-o" type="number" class="w-full border p-2 rounded" value="${data?.shirtPrice?.oversize||380}">`,
                     showCancelButton: true, confirmButtonColor: '#ea580c', preConfirm: () => ({ normal: document.getElementById('swal-n').value, oversize: document.getElementById('swal-o').value })
                 });
                 if (formValues) { 
@@ -1199,7 +1322,7 @@
                         await runGAS('updateShirtPrice', formValues); 
                         setAdminData(prev => ({
                             ...prev,
-                            shirtPrice: { ...prev.shirtPrice, normal: formValues.normal, oversize: formValues.oversize }
+                            shirtPrice: { ...(prev?.shirtPrice || {}), normal: formValues.normal, oversize: formValues.oversize }
                         }));
                         Swal.close(); 
                         Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตราคาสำเร็จ` });
@@ -1210,7 +1333,7 @@
             const handleUpdateReceiptConfig = async () => {
                 const { value: formValues } = await Swal.fire({
                     title: 'ตั้งค่าใบเสร็จ',
-                    html: `<div class="text-left text-sm mb-1 font-medium">หัวใบเสร็จ</div><textarea id="swal-h" rows="2" class="w-full border p-2 mb-3 rounded text-sm">${data.shirtPrice?.receiptHeader||''}</textarea><div class="text-left text-sm mb-1 font-medium">หมายเหตุ</div><textarea id="swal-n" rows="2" class="w-full border p-2 rounded text-sm">${data.shirtPrice?.receiptNote||''}</textarea>`,
+                    html: `<div class="text-left text-sm mb-1 font-medium">หัวใบเสร็จ</div><textarea id="swal-h" rows="2" class="w-full border p-2 mb-3 rounded text-sm">${data?.shirtPrice?.receiptHeader||''}</textarea><div class="text-left text-sm mb-1 font-medium">หมายเหตุ</div><textarea id="swal-n" rows="2" class="w-full border p-2 rounded text-sm">${data?.shirtPrice?.receiptNote||''}</textarea>`,
                     showCancelButton: true, confirmButtonColor: '#ea580c', preConfirm: () => ({ header: document.getElementById('swal-h').value, note: document.getElementById('swal-n').value })
                 });
                 if (formValues) { 
@@ -1219,7 +1342,7 @@
                         await runGAS('updateReceiptConfig', formValues); 
                         setAdminData(prev => ({
                             ...prev,
-                            shirtPrice: { ...prev.shirtPrice, receiptHeader: formValues.header, receiptNote: formValues.note }
+                            shirtPrice: { ...(prev?.shirtPrice || {}), receiptHeader: formValues.header, receiptNote: formValues.note }
                         }));
                         Swal.close(); 
                         Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตใบเสร็จสำเร็จ` });
@@ -1238,11 +1361,11 @@
 
             const renderSpssContent = () => {
                 if(!selectedActivityForSpss) return <div id="spss-ex" className="text-center py-10 text-gray-400 font-light border border-gray-100 rounded-xl">กรุณาเลือกกิจกรรมเพื่อดูรายงาน</div>;
-                const selectedActivityName = data.activities.find(a=>String(a.ActivityID)===String(selectedActivityForSpss))?.Name;
-                const evals = data.evaluations.filter(e => String(e.ActivityName).trim() === String(selectedActivityName).trim());
+                const selectedActivityName = (data?.activities || []).find(a=>String(a.ActivityID)===String(selectedActivityForSpss))?.Name;
+                const evals = (data?.evaluations || []).filter(e => String(e.ActivityName).trim() === String(selectedActivityName).trim());
                 if(evals.length === 0) return <div id="spss-ex" className="text-center py-10 text-gray-400 font-light border border-gray-100 rounded-xl">ไม่พบข้อมูลการประเมิน</div>;
 
-                const actCheckins = data.checkins.filter(c => String(c.ActivityID).trim() === String(selectedActivityForSpss).trim());
+                const actCheckins = (data?.checkins || []).filter(c => String(c.ActivityID).trim() === String(selectedActivityForSpss).trim());
                 let mCount = 0; let fCount = 0;
                 actCheckins.forEach(c => {
                     if (c.Name && c.Name.trim().startsWith('นาย')) mCount++;
@@ -1417,11 +1540,14 @@
                 );
             };
 
-            const sortedCheckins = [...filteredCheckins].reverse();
             const indexOfLastItem = currentPage * itemsPerPage;
             const indexOfFirstItem = indexOfLastItem - itemsPerPage;
             const currentCheckins = sortedCheckins.slice(indexOfFirstItem, indexOfLastItem);
             const totalPages = Math.ceil(sortedCheckins.length / itemsPerPage) || 1;
+
+            // การควบคุมตารางเสื้อ
+            const currentShirtOrders = sortedShirtOrders.slice((shirtOrderPage - 1) * shirtItemsPerPage, shirtOrderPage * shirtItemsPerPage);
+            const totalShirtPages = Math.ceil(sortedShirtOrders.length / shirtItemsPerPage) || 1;
 
             return (
                 <div className="min-h-screen bg-[#fffcf9] dark:bg-[#121212] flex flex-col md:flex-row transition-colors">
@@ -1473,7 +1599,7 @@
                                     </div>
                                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-orange-100/50 flex items-center space-x-4 transition-transform hover:scale-[1.02]">
                                         <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><i className="fa-solid fa-clipboard-check text-xl"></i></div>
-                                        <div><p className="text-xs text-gray-500 font-medium">ยอดเช็คชื่อรวม</p><h3 className="text-2xl font-bold text-gray-800">{(data.checkins?.length || 0).toLocaleString()}</h3></div>
+                                        <div><p className="text-xs text-gray-500 font-medium">ยอดเช็คชื่อรวม</p><h3 className="text-2xl font-bold text-gray-800">{((data?.checkins || [])?.length || 0).toLocaleString()}</h3></div>
                                     </div>
                                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-orange-100/50 flex items-center space-x-4 transition-transform hover:scale-[1.02]">
                                         <div className="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center"><i className="fa-solid fa-bolt text-xl"></i></div>
@@ -1491,7 +1617,7 @@
                                         <div className="relative z-10 flex justify-between items-start">
                                             <div>
                                                 <p className="text-xs text-orange-500 font-semibold uppercase tracking-widest mb-1">กิจกรรมทั้งหมด</p>
-                                                <p className="text-4xl font-light text-charcoal-900">{data.activities.length}</p>
+                                                <p className="text-4xl font-light text-charcoal-900">{(data?.activities || []).length}</p>
                                             </div>
                                             <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center text-xl shadow-sm group-hover:bg-gradient-to-br group-hover:from-orange-400 group-hover:to-orange-600 group-hover:text-white transition-colors"><i className="fa-solid fa-list-check"></i></div>
                                         </div>
@@ -1501,7 +1627,7 @@
                                         <div className="relative z-10 flex justify-between items-start">
                                             <div>
                                                 <p className="text-xs text-orange-500 font-semibold uppercase tracking-widest mb-1">ยอดเช็คชื่อรวม</p>
-                                                <p className="text-4xl font-light text-charcoal-900">{data.checkins.length}</p>
+                                                <p className="text-4xl font-light text-charcoal-900">{(data?.checkins || []).length}</p>
                                             </div>
                                             <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center text-xl shadow-sm group-hover:bg-gradient-to-br group-hover:from-orange-400 group-hover:to-orange-600 group-hover:text-white transition-colors"><i className="fa-solid fa-users"></i></div>
                                         </div>
@@ -1511,68 +1637,114 @@
                                         <div className="relative z-10 flex justify-between items-start">
                                             <div>
                                                 <p className="text-xs text-orange-500 font-semibold uppercase tracking-widest mb-1">แบบประเมินรวม</p>
-                                                <p className="text-4xl font-light text-charcoal-900">{data.evaluations.length}</p>
+                                                <p className="text-4xl font-light text-charcoal-900">{(data?.evaluations || []).length}</p>
                                             </div>
                                             <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center text-xl shadow-sm group-hover:bg-gradient-to-br group-hover:from-orange-400 group-hover:to-orange-600 group-hover:text-white transition-colors"><i className="fa-solid fa-star"></i></div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <h3 className="text-sm font-medium text-charcoal-900 mb-6 uppercase tracking-widest pl-1 border-l-2 border-orange-500">ยอดผู้เข้าร่วมแยกตามกิจกรรม</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                                    {data.activities.map(act => {
-                                        const checkinCount = checkinCountByActivity[String(act.ActivityID).trim()] || 0;
+                                {/* 🚀 Header ของส่วนกิจกรรมพร้อมช่องค้นหา */}
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                                    <h3 className="text-sm font-medium text-charcoal-900 uppercase tracking-widest pl-1 border-l-2 border-orange-500">ยอดผู้เข้าร่วมแยกตามกิจกรรม</h3>
+                                    <div className="relative w-full sm:max-w-xs">
+                                        <i className="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                        <input 
+                                            type="text" 
+                                            placeholder="ค้นหาชื่อกิจกรรม, สถานที่..." 
+                                            value={searchOverviewActTerm} 
+                                            onChange={(e) => setSearchOverviewActTerm(e.target.value)} 
+                                            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-white outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all shadow-sm" 
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col space-y-4">
+                                    {(() => {
+                                        const actsPerPage = 5;
+                                        // 🚀 ใช้ filteredOverviewActivities แทน data.activities เดิม
+                                        const totalActPages = Math.ceil(filteredOverviewActivities.length / actsPerPage) || 1;
+                                        const currentActs = filteredOverviewActivities.slice((overviewActivityPage - 1) * actsPerPage, overviewActivityPage * actsPerPage);
+                                        
+                                        if (filteredOverviewActivities.length === 0) {
+                                            return (
+                                                <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-gray-200">
+                                                    <div className="w-16 h-16 bg-gray-50 text-gray-300 rounded-full flex items-center justify-center text-2xl mx-auto mb-3"><i className="fa-solid fa-magnifying-glass"></i></div>
+                                                    <p className="text-gray-400 font-medium">ไม่พบกิจกรรมที่คุณค้นหา</p>
+                                                </div>
+                                            );
+                                        }
+
                                         return (
-                                            <div key={act.ActivityID} 
-                                                 onClick={() => { setSelectedActivityForSummary(act.ActivityID); setActiveTab('summary'); }}
-                                                 className="group cursor-pointer relative bg-white p-6 sm:p-8 rounded-[2rem] border border-orange-50 shadow-sm transition-all duration-500 hover:shadow-2xl hover:shadow-orange-500/10 hover:-translate-y-2 hover:border-orange-200 overflow-hidden flex flex-col h-full">
-                                                
-                                                {/* Decorative Background Blob */}
-                                                <div className="absolute -right-12 -top-12 w-40 h-40 bg-gradient-to-br from-orange-100 to-rose-100 rounded-full blur-3xl opacity-0 group-hover:opacity-60 transition-opacity duration-700 pointer-events-none"></div>
-                                                <div className="absolute -left-12 -bottom-12 w-32 h-32 bg-gradient-to-tr from-blue-50 to-indigo-50 rounded-full blur-2xl opacity-0 group-hover:opacity-60 transition-opacity duration-700 pointer-events-none"></div>
+                                            <>
+                                                {currentActs.map(act => {
+                                                    const checkinCount = checkinCountByActivity[String(act.ActivityID).trim()] || 0;
+                                                    
+                                                    // Formatting Date for Calendar Style
+                                                    let dateObj = new Date(act.Date);
+                                                    if(isNaN(dateObj)) dateObj = new Date();
+                                                    const monthStr = dateObj.toLocaleDateString('th-TH', { month: 'short' });
+                                                    const dateNum = dateObj.getDate();
 
-                                                <div className="relative z-10 flex flex-col h-full">
-                                                    {/* Header: Status & Date */}
-                                                    <div className="flex justify-between items-center mb-6">
-                                                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wider uppercase border shadow-sm ${act.Status==='open' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
-                                                            <span className={`w-2 h-2 rounded-full ${act.Status==='open' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse' : 'bg-slate-400'}`}></span>
-                                                            {act.Status==='open' ? 'เปิดรับลงทะเบียน' : 'ปิดรับแล้ว'}
-                                                        </div>
-                                                        <div className="flex items-center gap-1.5 text-xs font-medium text-gray-400 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
-                                                            <i className="fa-regular fa-calendar text-orange-400"></i>
-                                                            <span>{act.Date}</span>
-                                                        </div>
-                                                    </div>
+                                                    return (
+                                                        <div key={act.ActivityID} 
+                                                             onClick={() => { setSelectedActivityForSummary(act.ActivityID); setActiveTab('summary'); }}
+                                                             className="group cursor-pointer relative bg-white p-5 md:p-6 rounded-2xl border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-all duration-300 hover:shadow-xl hover:shadow-orange-500/10 hover:border-orange-200 hover:-translate-y-1 flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 overflow-hidden">
+                                                            
+                                                            {/* Status left border accent */}
+                                                            <div className={`absolute left-0 top-0 bottom-0 w-1.5 transition-colors duration-300 ${act.Status === 'open' ? 'bg-emerald-400 group-hover:bg-emerald-500' : 'bg-gray-300'}`}></div>
 
-                                                    {/* Content: Title & Location */}
-                                                    <div className="mb-6 flex-grow">
-                                                        <h4 className="text-xl font-bold text-slate-800 leading-snug mb-3 group-hover:text-orange-600 transition-colors line-clamp-2" title={act.Name}>
-                                                            {act.Name}
-                                                        </h4>
-                                                        <div className="flex items-center gap-2 text-sm text-slate-500 font-light line-clamp-1 bg-slate-50/50 p-2.5 rounded-xl border border-slate-100 group-hover:border-orange-100 group-hover:bg-orange-50/30 transition-colors">
-                                                            <i className="fa-solid fa-location-dot text-orange-400/70"></i>
-                                                            <span className="truncate">{act.Location}</span>
-                                                        </div>
-                                                    </div>
+                                                            <div className="flex items-center gap-5 md:gap-6 pl-2 md:pl-4 flex-grow w-full md:w-auto">
+                                                                {/* Calendar Icon Date */}
+                                                                <div className="flex-shrink-0 w-14 h-14 rounded-xl flex flex-col items-center justify-center bg-gray-50 border border-gray-100 group-hover:bg-orange-50 group-hover:border-orange-200 transition-colors">
+                                                                    <span className="text-[10px] font-bold text-gray-400 group-hover:text-orange-400 uppercase tracking-widest leading-none mb-1">{monthStr}</span>
+                                                                    <span className="text-xl font-extrabold text-charcoal-900 group-hover:text-orange-600 leading-none">{dateNum}</span>
+                                                                </div>
 
-                                                    {/* Footer: User Count & Action */}
-                                                    <div className="pt-5 border-t border-slate-100 flex justify-between items-end group-hover:border-orange-100 transition-colors">
-                                                        <div>
-                                                            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1">ยอดผู้เข้าร่วมสะสม</p>
-                                                            <div className="flex items-baseline gap-1.5">
-                                                                <i className="fa-solid fa-users text-orange-400/80 mr-1 text-base"></i>
-                                                                <span className="text-4xl font-black text-slate-800 group-hover:text-orange-600 transition-colors tracking-tight">{checkinCount}</span>
-                                                                <span className="text-sm font-medium text-slate-500 ml-1">คน</span>
+                                                                {/* Main Information */}
+                                                                <div className="flex-grow">
+                                                                    <div className="flex items-center gap-2 mb-1.5">
+                                                                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase border ${act.Status==='open' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                                                                            <span className={`w-1.5 h-1.5 rounded-full ${act.Status==='open' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
+                                                                            {act.Status==='open' ? 'เปิดรับลงทะเบียน' : 'ปิดรับแล้ว'}
+                                                                        </span>
+                                                                    </div>
+                                                                    <h4 className="text-base md:text-lg font-bold text-slate-800 leading-tight group-hover:text-orange-600 transition-colors line-clamp-1 mb-1.5" title={act.Name}>
+                                                                        {act.Name}
+                                                                    </h4>
+                                                                    <div className="flex items-center gap-1.5 text-xs text-slate-500 font-light line-clamp-1">
+                                                                        <i className="fa-solid fa-location-dot text-orange-400/70 w-3 text-center"></i>
+                                                                        <span className="truncate">{act.Location}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Right Side Stats & Actions */}
+                                                            <div className="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 border-gray-100 pt-4 md:pt-0 mt-2 md:mt-0 ml-2 md:ml-0 md:pl-8 md:border-l">
+                                                                <div className="text-left md:text-right">
+                                                                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1">ยอดผู้เข้าร่วม</p>
+                                                                    <div className="flex items-baseline gap-1.5 md:justify-end">
+                                                                        <span className="text-3xl md:text-4xl font-black text-slate-800 group-hover:text-orange-600 transition-colors tracking-tight leading-none">{checkinCount}</span>
+                                                                        <span className="text-xs font-medium text-slate-500">คน</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-orange-500 group-hover:border-orange-500 group-hover:text-white group-hover:shadow-md group-hover:shadow-orange-500/30 transition-all duration-300 flex-shrink-0">
+                                                                    <i className="fa-solid fa-arrow-right -rotate-45 group-hover:rotate-0 transition-transform duration-300 text-sm"></i>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                        <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-orange-500 group-hover:border-orange-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-orange-500/30 transition-all duration-300">
-                                                            <i className="fa-solid fa-arrow-right -rotate-45 group-hover:rotate-0 transition-transform duration-300 text-lg"></i>
-                                                        </div>
+                                                    );
+                                                })}
+                                                {totalActPages > 1 && (
+                                                    <div className="flex justify-between items-center text-sm bg-white px-4 py-3 rounded-2xl border border-gray-100 mt-2 shadow-sm">
+                                                        <button disabled={overviewActivityPage===1} onClick={()=>setOverviewActivityPage(prev=>Math.max(1,prev-1))} className={`text-xs uppercase tracking-widest font-bold px-3 py-1.5 rounded-lg transition-colors ${overviewActivityPage===1?'text-gray-300 cursor-not-allowed':'text-orange-500 hover:bg-orange-50'}`}>ก่อนหน้า</button>
+                                                        <span className="text-gray-400 font-medium text-xs bg-gray-50 px-3 py-1.5 rounded-lg">หน้าที่ {overviewActivityPage} จาก {totalActPages}</span>
+                                                        <button disabled={overviewActivityPage===totalActPages} onClick={()=>setOverviewActivityPage(prev=>Math.min(totalActPages,prev+1))} className={`text-xs uppercase tracking-widest font-bold px-3 py-1.5 rounded-lg transition-colors ${overviewActivityPage===totalActPages?'text-gray-300 cursor-not-allowed':'text-orange-500 hover:bg-orange-50'}`}>ถัดไป</button>
                                                     </div>
-                                                </div>
-                                            </div>
+                                                )}
+                                            </>
                                         );
-                                    })}
+                                    })()}
                                 </div>
                             </div>
                         )}
@@ -1605,16 +1777,16 @@
                                     <div className="bg-white/90 backdrop-blur border border-orange-100/50 rounded-2xl overflow-hidden transition-colors shadow-sm">
                                         <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
                                             <h3 className="font-semibold text-charcoal-900 text-sm flex items-center gap-2"><i className="fa-solid fa-list-ul text-orange-500"></i> รายการกิจกรรมทั้งหมด</h3>
-                                            <span className="text-xs font-medium bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full">{data.activities.length} รายการ</span>
+                                            <span className="text-xs font-medium bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full">{(data?.activities || []).length} รายการ</span>
                                         </div>
                                         <div className="divide-y divide-gray-50 max-h-[600px] overflow-y-auto custom-scrollbar">
-                                            {data.activities.length === 0 ? (
+                                            {(data?.activities || []).length === 0 ? (
                                                 <div className="p-10 flex flex-col items-center justify-center text-center">
                                                     <div className="w-16 h-16 bg-gray-50 text-gray-300 rounded-full flex items-center justify-center text-2xl mb-4"><i className="fa-solid fa-folder-open"></i></div>
                                                     <p className="text-gray-500 font-medium">ยังไม่มีกิจกรรมในระบบ</p>
                                                 </div>
                                             ) : (
-                                                data.activities.map(a=>(
+                                                (data?.activities || []).map(a=>(
                                                     <div key={a.ActivityID} className="p-5 transition-all hover:bg-orange-50/30 group flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                                         <div className="flex items-start gap-4">
                                                             <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm transition-all duration-300 ${a.Status === 'open' ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-white group-hover:shadow-orange-500/30 group-hover:shadow-lg' : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200'}`}>
@@ -1651,7 +1823,7 @@
                                     <div className="flex flex-col sm:flex-row gap-3 flex-grow max-w-2xl">
                                         <select className="border border-orange-200 p-3 rounded-xl text-sm bg-white outline-none flex-grow sm:max-w-xs focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all shadow-sm" value={selectedActivityForSummary} onChange={(e)=>setSelectedActivityForSummary(e.target.value)}>
                                             <option value="">ดูกิจกรรมทั้งหมด</option>
-                                            {data.activities.map(a=><option key={a.ActivityID} value={a.ActivityID}>{a.Name}</option>)}
+                                            {(data?.activities || []).map(a=><option key={a.ActivityID} value={a.ActivityID}>{a.Name}</option>)}
                                         </select>
                                         <div className="relative flex-grow sm:max-w-xs">
                                             <i className="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
@@ -1665,7 +1837,7 @@
                                 </div>
                                 <div className="overflow-x-auto border border-orange-100/50 rounded-xl mb-4 transition-colors">
                                     <table className="w-full text-sm text-left whitespace-nowrap"><thead className="bg-orange-50/50 border-b border-orange-100 text-[10px] text-gray-500 uppercase tracking-widest transition-colors"><tr><th className="px-6 py-4 font-medium">วัน/เวลา</th><th className="px-6 py-4 font-medium">ชื่อ-สกุล / รหัส</th><th className="px-6 py-4 font-medium">สาขาวิชา</th><th className="px-6 py-4 font-medium">รหัส ปชช.</th><th className="px-6 py-4 font-medium">กิจกรรม</th></tr></thead><tbody className="divide-y divide-orange-50">
-                                        {currentCheckins.map((c,i)=>(<tr key={i} className="transition-colors hover:bg-orange-50/30"><td className="px-6 py-4 text-xs font-light text-orange-500/80">{new Date(c.Timestamp).toLocaleString('th-TH')}</td><td className="px-6 py-4"><p className="font-medium text-charcoal-900">{c.StudentID}</p><p className="text-xs text-gray-500 font-light mt-0.5">{c.Name}</p></td><td className="px-6 py-4 font-light text-gray-600">{c.Major}</td><td className="px-6 py-4 text-xs font-light text-gray-400">{c.IDCard || '-'}</td><td className="px-6 py-4 text-xs font-light text-gray-500 truncate max-w-[200px]">{c.ActivityName}</td></tr>))}
+                                        {currentCheckins.map((c,i)=>(<tr key={i} className="transition-colors hover:bg-orange-50/30"><td className="px-6 py-4 text-xs font-light text-orange-500/80">{new Date(c.Timestamp).toLocaleDateString('th-TH')} {new Date(c.Timestamp).toLocaleTimeString('th-TH')}</td><td className="px-6 py-4"><p className="font-medium text-charcoal-900">{c.StudentID}</p><p className="text-xs text-gray-500 font-light mt-0.5">{c.Name}</p></td><td className="px-6 py-4 font-light text-gray-600">{c.Major}</td><td className="px-6 py-4 text-xs font-light text-gray-400">{c.IDCard || '-'}</td><td className="px-6 py-4 text-xs font-light text-gray-500 truncate max-w-[200px]">{c.ActivityName}</td></tr>))}
                                         {currentCheckins.length === 0 && <tr><td colSpan="5" className="text-center py-10 text-gray-400 font-light">ไม่พบข้อมูลที่ค้นหา</td></tr>}
                                     </tbody></table>
                                 </div>
@@ -1682,7 +1854,7 @@
                         {activeTab === 'spss' && (
                             <div className="bg-white/90 backdrop-blur p-8 border border-orange-100/50 rounded-2xl transition-colors shadow-sm">
                                 <div className="flex gap-4 mb-8 justify-between items-end">
-                                    <select className="border border-orange-200 p-3 rounded-xl text-sm bg-white outline-none w-full max-w-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all shadow-sm" value={selectedActivityForSpss} onChange={(e)=>setSelectedActivityForSpss(e.target.value)}><option value="">เลือกกิจกรรมเพื่อประมวลผล</option>{data.activities.map(a=><option key={a.ActivityID} value={a.ActivityID}>{a.Name}</option>)}</select>
+                                    <select className="border border-orange-200 p-3 rounded-xl text-sm bg-white outline-none w-full max-w-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all shadow-sm" value={selectedActivityForSpss} onChange={(e)=>setSelectedActivityForSpss(e.target.value)}><option value="">เลือกกิจกรรมเพื่อประมวลผล</option>{(data?.activities || []).map(a=><option key={a.ActivityID} value={a.ActivityID}>{a.Name}</option>)}</select>
                                     <button onClick={()=>{ const h = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>body{font-family:'TH Sarabun PSK',sans-serif;font-size:16pt;}table{width:100%;border-collapse:collapse;margin-bottom:15pt;}th,td{border:1px solid black;padding:5px;}th{background-color:#f2f2f2;}h4{font-weight:bold;margin-bottom:10pt;}p{text-indent:36pt;line-height:1.5;margin-bottom:20pt;}.word-export-title{display:block !important;}</style></head><body>${document.getElementById('spss-ex').innerHTML}</body></html>`; const a = document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff', h],{type:'application/msword'})); a.download=`SPSS.doc`; a.click(); }} className="btn-gradient px-5 py-2.5 rounded-xl text-xs font-medium tracking-widest uppercase flex items-center whitespace-nowrap shadow-lg shadow-orange-500/20"><i className="fa-solid fa-file-word mr-2"></i> โหลดไฟล์ Word</button>
                                 </div>
                                 {renderSpssContent()}
@@ -1696,13 +1868,13 @@
                                         <h3 className="text-sm font-medium text-charcoal-900 uppercase tracking-widest border-l-2 border-orange-500 pl-2">ระบบจัดการการจองเสื้อ</h3>
                                         <div className="flex items-center gap-3 mt-3 ml-2">
                                             <span className="text-[11px] font-semibold uppercase tracking-widest text-gray-500">สถานะเปิดรับจอง</span>
-                                            <button onClick={() => handleToggleShirtSystem(data.shirtPrice?.status || 'open')} className={`text-4xl transition-transform hover:scale-110 drop-shadow-sm focus:outline-none ${data.shirtPrice?.status !== 'closed' ? 'text-green-500' : 'text-gray-300'}`}><i className={`fa-solid ${data.shirtPrice?.status !== 'closed' ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i></button>
+                                            <button onClick={() => handleToggleShirtSystem(data?.shirtPrice?.status || 'open')} className={`text-4xl transition-transform hover:scale-110 drop-shadow-sm focus:outline-none ${data?.shirtPrice?.status !== 'closed' ? 'text-green-500' : 'text-gray-300'}`}><i className={`fa-solid ${data?.shirtPrice?.status !== 'closed' ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i></button>
                                         </div>
                                     </div>
                                     <div className="flex flex-wrap gap-2">
                                         <button onClick={handleUpdateReceiptConfig} className="border border-orange-200 text-charcoal-900 px-4 py-2.5 rounded-xl text-xs font-medium tracking-widest uppercase hover:bg-orange-50 transition-colors bg-white">ตั้งค่าใบเสร็จ</button>
                                         <button onClick={handleUpdateShirtPrice} className="border border-orange-200 text-charcoal-900 px-4 py-2.5 rounded-xl text-xs font-medium tracking-widest uppercase hover:bg-orange-50 transition-colors bg-white">แก้ไขราคา</button>
-                                        <button onClick={() => { const csv = Papa.unparse(data.shirtOrders); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'})); link.download = `ShirtOrders.csv`; link.click(); }} className="btn-gradient px-4 py-2.5 rounded-xl text-xs font-medium tracking-widest uppercase flex items-center shadow-lg shadow-orange-500/20"><i className="fa-solid fa-file-csv mr-2"></i> ส่งออก Excel</button>
+                                        <button onClick={() => { const csv = Papa.unparse(data.shirtOrders || []); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'})); link.download = `ShirtOrders.csv`; link.click(); }} className="btn-gradient px-4 py-2.5 rounded-xl text-xs font-medium tracking-widest uppercase flex items-center shadow-lg shadow-orange-500/20"><i className="fa-solid fa-file-csv mr-2"></i> ส่งออก Excel</button>
                                     </div>
                                 </div>
                                 
@@ -1718,11 +1890,11 @@
                                             <p className="text-xs font-bold text-white/80 uppercase tracking-widest mb-2">ยอดเงินรวมทั้งหมด</p>
                                             <p className="text-4xl lg:text-5xl font-extrabold text-white tracking-tight mb-4 drop-shadow-md">
                                                 <span className="text-2xl opacity-80 mr-1 font-medium">฿</span>
-                                                {(data.shirtOrders||[]).reduce((sum, o) => sum + (Number(o.TotalPrice) || 0), 0).toLocaleString()}
+                                                {(data?.shirtOrders||[]).reduce((sum, o) => sum + (Number(o.TotalPrice) || 0), 0).toLocaleString()}
                                             </p>
                                             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-xl backdrop-blur-md border border-white/10">
                                                 <i className="fa-solid fa-receipt text-white/90 text-sm"></i>
-                                                <span className="text-sm text-white font-medium">ยอดสั่งจอง {(data.shirtOrders||[]).length} รายการ</span>
+                                                <span className="text-sm text-white font-medium">ยอดสั่งจอง {(data?.shirtOrders||[]).length} รายการ</span>
                                             </div>
                                         </div>
                                     </div>
@@ -1764,7 +1936,7 @@
                                                     </div>
                                                 </div>
                                             ))}
-                                            {(data.shirtOrders||[]).length === 0 && (
+                                            {(data?.shirtOrders||[]).length === 0 && (
                                                 <div className="col-span-full flex flex-col items-center justify-center py-12 bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-200">
                                                     <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-100 mb-4">
                                                         <i className="fa-solid fa-box-open text-2xl text-gray-300"></i>
@@ -1779,9 +1951,9 @@
 
                                 <div className="overflow-x-auto border border-orange-100/50 rounded-xl transition-colors">
                                     <table className="w-full text-sm text-left whitespace-nowrap"><thead className="bg-orange-50/50 border-b border-orange-100 text-[10px] text-gray-500 uppercase tracking-widest transition-colors"><tr><th className="px-6 py-4 font-medium">วัน/เวลา</th><th className="px-6 py-4 font-medium">ชื่อ-สกุล / รหัส</th><th className="px-6 py-4 text-center font-medium">คอปกโปโล</th><th className="px-6 py-4 text-center font-medium">เสื้อยืดกิจกรรม</th><th className="px-6 py-4 text-right font-medium">ยอดชำระ</th><th className="px-6 py-4 text-center font-medium">สถานะ</th></tr></thead><tbody className="divide-y divide-orange-50">
-                                        {(data.shirtOrders||[]).slice().reverse().map((o,i)=>(
+                                        {currentShirtOrders.map((o,i)=>(
                                             <tr key={i} className="transition-colors hover:bg-orange-50/30">
-                                                <td className="px-6 py-4 text-xs font-light text-orange-500/80">{new Date(o.Timestamp).toLocaleString('th-TH')}</td>
+                                                <td className="px-6 py-4 text-xs font-light text-orange-500/80">{new Date(o.Timestamp).toLocaleDateString('th-TH')} {new Date(o.Timestamp).toLocaleTimeString('th-TH')}</td>
                                                 <td className="px-6 py-4"><p className="font-medium text-charcoal-900">{o.StudentID}</p><p className="text-xs text-gray-500 font-light mt-0.5">{o.Name}</p></td>
                                                 <td className="px-6 py-4 text-center text-xs font-light text-gray-600">{o.PoloGender} / {o.PoloSize} ({o.PoloQty})</td>
                                                 <td className="px-6 py-4 text-center text-xs font-light text-gray-600">{o.TshirtGender} / {o.TshirtSize} ({o.TshirtQty})</td>
@@ -1794,7 +1966,7 @@
                                                             await runGAS('updateShirtOrderStatus', o.StudentID, newStatus); 
                                                             setAdminData(prev => ({
                                                                 ...prev,
-                                                                shirtOrders: prev.shirtOrders.map(so => so.StudentID === o.StudentID ? { ...so, Status: newStatus } : so)
+                                                                shirtOrders: (prev?.shirtOrders || []).map(so => so.StudentID === o.StudentID ? { ...so, Status: newStatus } : so)
                                                             }));
                                                             Swal.close(); 
                                                             Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `เปลี่ยนสถานะเรียบร้อย` });
@@ -1806,9 +1978,16 @@
                                                 </td>
                                             </tr>
                                         ))}
-                                        {(data.shirtOrders||[]).length===0 && <tr><td colSpan="6" className="text-center py-10 text-gray-400 font-light">ยังไม่มีข้อมูลการสั่งจอง</td></tr>}
+                                        {currentShirtOrders.length===0 && <tr><td colSpan="6" className="text-center py-10 text-gray-400 font-light">ยังไม่มีข้อมูลการสั่งจอง</td></tr>}
                                     </tbody></table>
                                 </div>
+                                {totalShirtPages > 1 && (
+                                    <div className="flex justify-between items-center text-sm bg-white px-4 py-2 rounded-xl border border-orange-100">
+                                        <button disabled={shirtOrderPage===1} onClick={()=>setShirtOrderPage(prev=>Math.max(1,prev-1))} className={`text-xs uppercase tracking-widest font-medium ${shirtOrderPage===1?'text-gray-300':'text-orange-500 hover:text-orange-600'}`}>ก่อนหน้า</button>
+                                        <span className="text-gray-400 font-light text-xs">หน้าที่ {shirtOrderPage} จาก {totalShirtPages}</span>
+                                        <button disabled={shirtOrderPage===totalShirtPages} onClick={()=>setShirtOrderPage(prev=>Math.min(totalShirtPages,prev+1))} className={`text-xs uppercase tracking-widest font-medium ${shirtOrderPage===totalShirtPages?'text-gray-300':'text-orange-500 hover:text-orange-600'}`}>ถัดไป</button>
+                                    </div>
+                                )}
                             </div>
                         )}
                         
