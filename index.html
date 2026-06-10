@@ -60,6 +60,7 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
+        /* 🚀 สไตล์สำหรับ Pre-loader แจ้งสถานะการโหลดข้อมูล */
         #app-loader {
             position: fixed; inset: 0; background-color: #fffcf9; z-index: 999999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -94,11 +95,13 @@
 </head>
 <body class="selection:bg-orange-500 selection:text-white">
 
+    <!-- 🚀 หน้าต่างโหลดจะแสดงบังหน้าจอขาวตอนที่เบราว์เซอร์กำลังแปลไฟล์ -->
     <div id="app-loader">
         <div class="loader-spinner"></div>
         <h2 style="font-family: 'Prompt', sans-serif; font-size: 20px; font-weight: 700; color: #f97316; letter-spacing: 1px;">DIGIT.CRRU</h2>
     </div>
 
+    <!-- 🚀 หากเกิดข้อผิดพลาดรุนแรงในการโหลด React ระบบจะบังคับซ่อน Loader ใน 8 วินาทีเพื่อไม่ให้ค้างถาวร -->
     <script>
         setTimeout(() => {
             const loader = document.getElementById('app-loader');
@@ -112,6 +115,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
+        // เพิ่ม useMemo เพื่อใช้จดจำข้อมูลและลดการประมวลผลซ้ำซ้อน
         const { useState, useEffect, useMemo } = React;
 
         const API_CONFIG = {
@@ -232,7 +236,6 @@
             const [searchPurpose, setSearchPurpose] = useState(() => sessionStorage.getItem('search_purpose') || 'activity');
             
             const [shirtSystemOpen, setShirtSystemOpen] = useState(true);
-            // 🚀 เพิ่ม popupText และ popupImage ใน State เริ่มต้น
             const [shirtPrice, setShirtPrice] = useState({ normal: 250, oversize: 380, status: 'open', popupText: '', popupImage: '' });
             const [receiptSettings, setReceiptSettings] = useState({ header: 'สโมสรนักศึกษาคณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย\nที่อยู่: 80 ซอย 9 ตำบล บ้านดู่ อำเภอเมืองเชียงราย เชียงราย 57100', note: 'กรุณานำใบเสร็จนี้มาแสดงในวันรับเสื้อ' });
             
@@ -300,7 +303,7 @@
                                     normal: Number(priceRow.Value1), oversize: Number(priceRow.Value2), 
                                     status: statusRow.Value1, receiptHeader: receiptRow.Value1, receiptNote: receiptRow.Value2,
                                     systemStatus: systemRow.Value1,
-                                    popupText: popupRow.Value1, popupImage: popupRow.Value2 // 🚀 Map ค่า Popup จาก CSV
+                                    popupText: popupRow.Value1, popupImage: popupRow.Value2 
                                 };
                             } else {
                                 try { priceInfo = await runGAS('getShirtPrice'); } catch(err) { console.warn("Fallback to default settings"); }
@@ -351,7 +354,7 @@
                                     normal: Number(priceRow.Value1), oversize: Number(priceRow.Value2), 
                                     status: statusRow.Value1, receiptHeader: receiptRow.Value1, receiptNote: receiptRow.Value2,
                                     systemStatus: systemRow.Value1,
-                                    popupText: popupRow.Value1, popupImage: popupRow.Value2 // 🚀 Map ค่า Popup จาก CSV
+                                    popupText: popupRow.Value1, popupImage: popupRow.Value2
                                 };
                             } catch(e) { priceInfo = await runGAS('getShirtPrice'); }
                         } else { priceInfo = await runGAS('getShirtPrice'); }
@@ -1479,7 +1482,6 @@
                 }
             };
 
-            // 🚀 ฟังก์ชันสำหรับให้แอดมินตั้งค่า Popup หน้าฟอร์มสั่งจองเสื้อ
             const handleUpdateShirtPopup = async () => {
                 const { value: formValues } = await Swal.fire({
                     title: 'ตั้งค่า Popup แจ้งเตือน/ไซส์เสื้อ',
@@ -2133,8 +2135,15 @@
                                                             <i className="fa-solid fa-money-bill-wave mr-1"></i> เงินสด
                                                         </span>
                                                     ) : (o.SlipImage || o.SlipURL || o.Slip) ? (
-                                                        <button onClick={() => Swal.fire({imageUrl: o.SlipImage || o.SlipURL || o.Slip, imageAlt: 'Slip'})} className="text-emerald-600 hover:text-emerald-700 bg-emerald-50 w-8 h-8 rounded-lg flex items-center justify-center mx-auto transition-colors border border-emerald-200 shadow-sm" title="ดูสลิปโอนเงิน">
-                                                            <i className="fa-solid fa-image"></i>
+                                                        <button onClick={() => {
+                                                            const slipSrc = o.SlipImage || o.SlipURL || o.Slip;
+                                                            if (slipSrc.startsWith('data:image')) {
+                                                                Swal.fire({imageUrl: slipSrc, imageAlt: 'Slip'});
+                                                            } else {
+                                                                window.open(slipSrc, '_blank');
+                                                            }
+                                                        }} className="text-emerald-600 hover:text-emerald-700 bg-emerald-50 w-8 h-8 rounded-lg flex items-center justify-center mx-auto transition-colors border border-emerald-200 shadow-sm" title="ดูสลิปโอนเงิน">
+                                                            <i className="fa-solid fa-arrow-up-right-from-square"></i>
                                                         </button>
                                                     ) : (
                                                         <span className="text-xs font-medium text-gray-400">-</span>
