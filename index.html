@@ -3,18 +3,17 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>DIGIT.CRRU - ระบบกิจกรรมและจองเสื้อ</title>
+
+<!-- เพิ่ม Preconnect ช่วยให้โหลดฟอนต์เร็วขึ้น -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Prompt','sans-serif']},colors:{brand:{50:'#fff5f0',100:'#ffe8db',200:'#ffd0b5',300:'#ffaf85',400:'#ff844d',500:'#ff621f',600:'#eb480a',700:'#c2340a',800:'#9a2a0e',900:'#111827'}},boxShadow:{'glass':'0 8px 32px 0 rgba(31, 38, 135, 0.07)','glow':'0 8px 25px -5px rgba(255, 98, 31, 0.4)'}}}}
 </script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<!-- ย้าย Script หนักๆ ไปไว้ล่างสุดของ Body เพื่อให้หน้าเว็บ Render Loader ได้ทันที -->
 <style>
 body{font-family:'Prompt',sans-serif;background:transparent;color:#1e293b;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px;transition:color 0.3s ease,background 0.3s ease}
 @media (min-width: 768px){body{padding-bottom:0}}
@@ -52,6 +51,15 @@ html.dark .btn-outline:hover{border-color:#64748b;background-color:#1e293b;color
     <div id="app-loader"><div class="loader-ring"></div><h2 style="font-family:'Prompt',sans-serif;font-size:16px;font-weight:700;background:linear-gradient(135deg,#ff621f 0%,#f43f5e 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:0.1em">DIGIT.CRRU</h2></div>
     <script>setTimeout(()=>{const l=document.getElementById('app-loader');if(l&&l.style.display!=='none'){l.style.opacity='0';setTimeout(()=>{l.style.display='none'},400);}},8000);</script>
     <div id="root"></div>
+    
+    <!-- ย้ายไลบรารีต่างๆ มาไว้ตรงนี้ (เพิ่มความเร็วในการแสดงผลเริ่มต้น) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
@@ -134,6 +142,7 @@ html.dark .btn-outline:hover{border-color:#64748b;background-color:#1e293b;color
             const [suggestion, setSuggestion] = useState('');
             const [historyData, setHistoryData] = useState([]);
             const [systemOpen, setSystemOpen] = useState(true);
+            const [recruitSystemOpen, setRecruitSystemOpen] = useState(true); // เพิ่ม State ควบคุมระบบรับสมัคร
             const [adminData, setAdminData] = useState(null);
             const [searchPurpose, setSearchPurpose] = useState(() => sessionStorage.getItem('search_purpose') || 'activity');
             const [shirtSystemOpen, setShirtSystemOpen] = useState(true);
@@ -176,19 +185,27 @@ html.dark .btn-outline:hover{border-color:#64748b;background-color:#1e293b;color
                                 fetchFastCSV('ShirtOrders').catch(() => []), fetchFastCSV('Settings').catch(() => []), fetchFastCSV('Recruitments').catch(() => []), fetchFastCSV('Registrations').catch(() => [])
                             ]);
                             let priceInfo = { normal: 250, oversize: 380, status: 'open', receiptHeader: 'สโมสรนักศึกษาคณะเทคโนโลยีดิจิทัล', receiptNote: 'กรุณานำใบเสร็จนี้มาแสดงในวันรับเสื้อ', systemStatus: 'open', popupText: '', popupImage: '' };
+                            let recruitInfo = { status: 'open' }; // เก็บสถานะรับสมัคร
+                            
                             if (settings && settings.length > 0) {
                                 const priceRow = settings.find(r => r.Key === 'ShirtPrice') || {Value1: 250, Value2: 380};
                                 const statusRow = settings.find(r => r.Key === 'ShirtStatus') || {Value1: 'open', Value2: ''};
                                 const receiptRow = settings.find(r => r.Key === 'ReceiptConfig') || {Value1: priceInfo.receiptHeader, Value2: priceInfo.receiptNote};
                                 const systemRow = settings.find(r => r.Key === 'SystemStatus') || {Value1: 'open', Value2: ''};
                                 const popupRow = settings.find(r => r.Key === 'ShirtPopup') || {Value1: '', Value2: ''};
+                                const recruitStatusRow = settings.find(r => r.Key === 'RecruitStatus') || {Value1: 'open', Value2: ''};
+                                
                                 priceInfo = { normal: Number(priceRow.Value1), oversize: Number(priceRow.Value2), status: statusRow.Value1, receiptHeader: receiptRow.Value1, receiptNote: receiptRow.Value2, systemStatus: systemRow.Value1, popupText: popupRow.Value1, popupImage: popupRow.Value2 };
+                                recruitInfo.status = recruitStatusRow.Value1;
                             } else { try { priceInfo = await runGAS('getShirtPrice'); } catch(err) {} }
-                            data = { activities: acts, checkins: chks, evaluations: evals, shirtOrders: shirts, recruitments: recs, registrations: regis, shirtPrice: priceInfo };
+                            data = { activities: acts, checkins: chks, evaluations: evals, shirtOrders: shirts, recruitments: recs, registrations: regis, shirtPrice: priceInfo, recruitStatus: recruitInfo.status };
                         } else { data = await runGAS('getAdminDashboardData'); }
                         
-                        setAdminData(data || { activities: [], checkins: [], evaluations: [], shirtOrders: [], recruitments: [], registrations: [], shirtPrice: {} }); 
-                        if (data && data.shirtPrice) { setShirtPrice(data.shirtPrice); setShirtSystemOpen(data.shirtPrice.status !== 'closed'); setSystemOpen(data.shirtPrice.systemStatus !== 'maintenance'); }
+                        setAdminData(data || { activities: [], checkins: [], evaluations: [], shirtOrders: [], recruitments: [], registrations: [], shirtPrice: {}, recruitStatus: 'open' }); 
+                        if (data) { 
+                            if(data.shirtPrice) { setShirtPrice(data.shirtPrice); setShirtSystemOpen(data.shirtPrice.status !== 'closed'); setSystemOpen(data.shirtPrice.systemStatus !== 'maintenance'); }
+                            if(data.recruitStatus) { setRecruitSystemOpen(data.recruitStatus !== 'closed'); }
+                        }
                         setTimeout(() => { Swal.close(); setView('admin_dashboard'); }, 50);
                     } catch(e) { Swal.fire('ข้อผิดพลาดการเชื่อมต่อ', e.message, 'error'); }
                 }, 100);
@@ -197,7 +214,7 @@ html.dark .btn-outline:hover{border-color:#64748b;background-color:#1e293b;color
             useEffect(() => {
                 const loadInitialData = async () => {
                     try {
-                        let acts = [], recs = [], priceInfo = null;
+                        let acts = [], recs = [], priceInfo = null, recruitInfo = { status: 'open' };
                         if (isFastCSVReady()) {
                             try {
                                 const [allActs, allRecs, settings] = await Promise.all([
@@ -212,13 +229,17 @@ html.dark .btn-outline:hover{border-color:#64748b;background-color:#1e293b;color
                                     const receiptRow = settings.find(r => r.Key === 'ReceiptConfig') || {Value1: priceInfo.receiptHeader, Value2: priceInfo.receiptNote};
                                     const systemRow = settings.find(r => r.Key === 'SystemStatus') || {Value1: 'open', Value2: ''};
                                     const popupRow = settings.find(r => r.Key === 'ShirtPopup') || {Value1: '', Value2: ''};
+                                    const recruitStatusRow = settings.find(r => r.Key === 'RecruitStatus') || {Value1: 'open', Value2: ''};
+                                    
                                     priceInfo = { normal: Number(priceRow.Value1), oversize: Number(priceRow.Value2), status: statusRow.Value1, receiptHeader: receiptRow.Value1, receiptNote: receiptRow.Value2, systemStatus: systemRow.Value1, popupText: popupRow.Value1, popupImage: popupRow.Value2 };
+                                    recruitInfo.status = recruitStatusRow.Value1;
                                 }
                             } catch(e) { priceInfo = await runGAS('getShirtPrice'); acts = await runGAS('getActiveActivities'); }
                         } else { acts = await runGAS('getActiveActivities'); priceInfo = await runGAS('getShirtPrice'); }
 
                         setActivities(acts || []); setRecruitments(recs || []);
                         if (priceInfo) { setShirtPrice(priceInfo); setShirtSystemOpen(priceInfo.status !== 'closed'); setSystemOpen(priceInfo.systemStatus !== 'maintenance'); setReceiptSettings({ header: priceInfo.receiptHeader, note: priceInfo.receiptNote }); }
+                        setRecruitSystemOpen(recruitInfo.status !== 'closed');
                     } catch (e) {}
                 };
                 if (view === 'admin_dashboard' && localStorage.getItem('admin_logged_in') === 'true') { if (!adminData) loadAdminData(); } else { loadInitialData(); }
@@ -407,7 +428,7 @@ html.dark .btn-outline:hover{border-color:#64748b;background-color:#1e293b;color
                             <button onClick={goHome} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${view === 'home' ? 'text-brand-500' : 'text-gray-400 hover:text-gray-600'}`}>
                                 <i className={`fa-solid fa-house text-lg ${view === 'home' ? 'mb-0.5 scale-110 drop-shadow-md' : ''}`}></i><span className="text-[9px] font-medium tracking-wide">หน้าแรก</span>
                             </button>
-                            <button onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิด', icon:'info', confirmButtonColor: '#ff621f'}); setSearchPurpose('recruit'); setView('search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'select_recruit' || (view === 'search' && searchPurpose === 'recruit')) ? 'text-purple-500' : 'text-gray-400'}`}>
+                            <button onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิด', icon:'info', confirmButtonColor: '#ff621f'}); if(!recruitSystemOpen) return Swal.fire({title:'ปิดรับสมัคร', text:'ขณะนี้ระบบปิดรับสมัครกิจกรรมชั่วคราว', icon:'warning', confirmButtonColor:'#a855f7'}); setSearchPurpose('recruit'); setView('search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'select_recruit' || (view === 'search' && searchPurpose === 'recruit')) ? 'text-purple-500' : 'text-gray-400'}`}>
                                 <i className={`fa-solid fa-bullhorn text-lg ${(view === 'select_recruit' || (view === 'search' && searchPurpose === 'recruit')) ? 'mb-0.5' : ''}`}></i><span className="text-[9px] font-medium tracking-wide">สมัครกิจกรรม</span>
                             </button>
                             <button onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', icon:'info', confirmButtonColor: '#ff621f'}); setSearchPurpose('activity'); setView('search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'select' || view === 'survey' || (view === 'search' && searchPurpose === 'activity')) ? 'text-brand-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}>
@@ -451,7 +472,7 @@ html.dark .btn-outline:hover{border-color:#64748b;background-color:#1e293b;color
                             </div>
                             
                             <div className="w-full grid gap-8 mx-auto relative z-10 max-w-7xl grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                                <div onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', text:'ระบบกำลังอยู่ในช่วงปรับปรุง', icon:'info', confirmButtonColor:'#ff621f'}); setSearchPurpose('recruit'); setView('search'); }} className={`luxury-card p-8 md:p-10 cursor-pointer group flex flex-col items-center text-center ${!systemOpen ? 'opacity-60 grayscale' : ''}`}>
+                                <div onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', text:'ระบบกำลังอยู่ในช่วงปรับปรุง', icon:'info', confirmButtonColor:'#ff621f'}); if(!recruitSystemOpen) return Swal.fire({title:'ปิดรับสมัคร', text:'ขณะนี้ระบบปิดรับสมัครกิจกรรมชั่วคราว', icon:'warning', confirmButtonColor:'#a855f7'}); setSearchPurpose('recruit'); setView('search'); }} className={`luxury-card p-8 md:p-10 cursor-pointer group flex flex-col items-center text-center ${(!systemOpen || !recruitSystemOpen) ? 'opacity-60 grayscale' : ''}`}>
                                     <div className="w-20 h-20 mb-6 rounded-2xl flex items-center justify-center text-purple-500 text-3xl bg-purple-50 border border-purple-100 group-hover:bg-purple-500 group-hover:text-white group-hover:shadow-[0_8px_25px_-5px_rgba(168,85,247,0.4)] transition-all duration-500 dark:bg-gray-800 dark:border-gray-700 dark:text-purple-400"><i className="fa-solid fa-bullhorn"></i></div>
                                     <h3 className="text-xl font-bold text-gray-900 mb-3 dark:text-white">ประกาศรับสมัคร</h3>
                                     <p className="text-gray-500 text-sm font-light leading-relaxed">ค้นหาและลงทะเบียนเข้าร่วมกิจกรรมที่กำลังเปิดรับสมัคร</p>
@@ -985,6 +1006,11 @@ html.dark .btn-outline:hover{border-color:#64748b;background-color:#1e293b;color
                 try { const newStatus = currentStatus === 'open' ? 'closed' : 'open'; await runGAS('toggleShirtStatus', currentStatus); setAdminData(prev => ({ ...prev, shirtPrice: { ...prev.shirtPrice, status: newStatus } })); Swal.close(); Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตสถานะระบบแล้ว` }); } catch(err) { Swal.fire('ข้อผิดพลาด', err.message, 'error'); }
             };
 
+            const handleToggleRecruitSystem = async (currentStatus) => {
+                Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                try { const newStatus = currentStatus === 'open' ? 'closed' : 'open'; await runGAS('toggleRecruitSystemStatus', currentStatus); setAdminData(prev => ({ ...prev, recruitStatus: newStatus })); Swal.close(); Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตระบบรับสมัครแล้ว` }); } catch(err) { Swal.fire('ข้อผิดพลาด', err.message, 'error'); }
+            };
+
             const handleUpdateShirtPrice = async () => {
                 const { value: formValues } = await Swal.fire({
                     title: 'ตั้งค่าราคา',
@@ -1207,6 +1233,9 @@ html.dark .btn-outline:hover{border-color:#64748b;background-color:#1e293b;color
                         {activeTab === 'manage_recruit' && (
                             <div className="grid lg:grid-cols-3 gap-8">
                                 <div className="lg:col-span-1">
+                                    <div className="bg-white p-8 rounded-3xl border border-gray-200 shadow-sm mb-8 flex flex-col items-start gap-4">
+                                        <div><h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-3">แผงควบคุมระบบรับสมัคร</h3><button onClick={() => handleToggleRecruitSystem(data.recruitStatus || 'open')} className={`flex items-center gap-3 text-sm font-bold uppercase tracking-widest px-4 py-2.5 rounded-xl border-2 transition-colors ${data.recruitStatus !== 'closed' ? 'text-purple-600 border-purple-200 bg-purple-50 hover:bg-purple-100' : 'text-gray-500 border-gray-200 bg-gray-50 hover:bg-gray-100'}`}><i className={`fa-solid ${data.recruitStatus !== 'closed' ? 'fa-toggle-on text-purple-500' : 'fa-toggle-off text-gray-400'} text-2xl`}></i>{data.recruitStatus !== 'closed' ? 'เปิดระบบรับสมัคร' : 'ปิดระบบรับสมัคร'}</button></div>
+                                    </div>
                                     <div className="bg-white p-8 rounded-3xl border border-gray-200 shadow-sm sticky top-6">
                                         <div className="w-12 h-12 bg-purple-50 text-purple-500 rounded-xl flex items-center justify-center text-xl border border-purple-100 mb-6"><i className="fa-solid fa-bullhorn"></i></div><h3 className="text-lg font-bold text-gray-900 mb-6">สร้างประกาศรับสมัคร</h3>
                                         <form onSubmit={handleCreateRecruit} className="space-y-6">
