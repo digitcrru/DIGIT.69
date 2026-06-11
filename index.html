@@ -14,8 +14,9 @@
 tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Prompt','sans-serif']},colors:{brand:{50:'#fff5f0',100:'#ffe8db',200:'#ffd0b5',300:'#ffaf85',400:'#ff844d',500:'#ff621f',600:'#eb480a',700:'#c2340a',800:'#9a2a0e',900:'#111827'}},boxShadow:{'glass':'0 8px 32px 0 rgba(31, 38, 135, 0.07)','glow':'0 8px 25px -5px rgba(255, 98, 31, 0.4)','soft':'0 4px 20px -2px rgba(0, 0, 0, 0.05)'}}}}
 </script>
 <style>
-body{font-family:'Prompt',sans-serif;background:transparent;color:#1e293b;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:80px;transition:color 0.3s ease,background 0.3s ease}
+body{font-family:'Prompt',sans-serif;background:transparent;color:#1e293b;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:calc(80px + env(safe-area-inset-bottom));transition:color 0.3s ease,background 0.3s ease}
 @media (min-width: 768px){body{padding-bottom:0}}
+.pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 1rem); }
 .luxury-card{background:rgba(255,255,255,0.85);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.9);box-shadow:0 10px 40px -10px rgba(0,0,0,0.05),0 1px 3px rgba(0,0,0,0.02);border-radius:1.5rem;transition:all 0.4s ease}
 .luxury-card:hover{transform:translateY(-4px);box-shadow:0 20px 40px -10px rgba(255,98,31,0.12);border-color:rgba(255,98,31,0.2)}
 .luxury-input{background-color:rgba(255,255,255,0.9);border:2px solid #f1f5f9;border-radius:1rem;padding:1rem 1.25rem;color:#0f172a;transition:all 0.3s ease;box-shadow:inset 0 2px 4px rgba(0,0,0,0.01)}
@@ -565,34 +566,34 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                             <div className="absolute top-0 right-10 w-72 h-72 bg-rose-200 rounded-full mix-blend-multiply filter blur-[80px] opacity-30 animate-blob animation-delay-2000"></div>
                             <div className="absolute -bottom-8 left-20 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-[80px] opacity-30 animate-blob animation-delay-4000"></div>
 
-                            <div className="text-center mb-14 relative z-10">
-                                <span className="px-5 py-2 rounded-full bg-white text-gray-700 text-[10px] font-bold tracking-widest uppercase mb-6 inline-flex items-center gap-2 border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300"><span className="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span> Platform Management</span>
-                                <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 tracking-tight dark:text-white leading-tight mb-2">
+                            <div className="text-center mb-10 md:mb-14 relative z-10">
+                                <span className="px-4 py-1.5 sm:px-5 sm:py-2 rounded-full bg-white text-gray-700 text-[9px] sm:text-[10px] font-bold tracking-widest uppercase mb-4 sm:mb-6 inline-flex items-center gap-2 border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300"><span className="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span> Platform Management</span>
+                                <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold text-gray-900 tracking-tight dark:text-white leading-tight mb-2">
                                     Activities <span className="icon-gradient">DIGIT</span>
                                 </h1>
-                                <p className="mt-4 text-gray-500 dark:text-gray-400 font-medium text-lg tracking-wide">ระบบจัดการกิจกรรมและสั่งจองเสื้อแบบครบวงจร</p>
+                                <p className="mt-3 md:mt-4 text-gray-500 dark:text-gray-400 font-medium text-sm sm:text-lg tracking-wide px-4">ระบบจัดการกิจกรรมและสั่งจองเสื้อแบบครบวงจร</p>
                             </div>
                             
-                            <div className="w-full grid gap-6 mx-auto relative z-10 max-w-7xl grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                                <div onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', text:'ระบบกำลังอยู่ในช่วงปรับปรุง', icon:'info', confirmButtonColor:'#ff621f'}); if(!recruitSystemOpen) return Swal.fire({title:'ปิดรับสมัคร', text:'ขณะนี้ระบบปิดรับสมัครกิจกรรมชั่วคราว', icon:'warning', confirmButtonColor:'#a855f7'}); setSearchPurpose('recruit'); setView('search'); }} className={`luxury-card p-8 cursor-pointer group flex flex-col items-center text-center ${(!systemOpen || !recruitSystemOpen) ? 'opacity-60 grayscale' : ''}`}>
-                                    <div className="w-16 h-16 mb-5 rounded-2xl flex items-center justify-center text-purple-500 text-2xl bg-purple-50 border border-purple-100 group-hover:bg-purple-500 group-hover:text-white group-hover:shadow-[0_8px_25px_-5px_rgba(168,85,247,0.4)] group-hover:-translate-y-1 transition-all duration-300 dark:bg-gray-800 dark:border-gray-700 dark:text-purple-400"><i className="fa-solid fa-bullhorn"></i></div>
-                                    <h3 className="text-lg font-bold text-gray-900 mb-2 dark:text-white">ประกาศรับสมัคร</h3>
-                                    <p className="text-gray-500 text-xs font-medium leading-relaxed">ค้นหาและลงทะเบียนเข้าร่วมกิจกรรมที่กำลังเปิดรับ</p>
+                            <div className="w-full grid gap-4 sm:gap-6 mx-auto relative z-10 max-w-7xl grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 px-2 sm:px-0">
+                                <div onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', text:'ระบบกำลังอยู่ในช่วงปรับปรุง', icon:'info', confirmButtonColor:'#ff621f'}); if(!recruitSystemOpen) return Swal.fire({title:'ปิดรับสมัคร', text:'ขณะนี้ระบบปิดรับสมัครกิจกรรมชั่วคราว', icon:'warning', confirmButtonColor:'#a855f7'}); setSearchPurpose('recruit'); setView('search'); }} className={`luxury-card p-6 sm:p-8 cursor-pointer group flex flex-col items-center text-center ${(!systemOpen || !recruitSystemOpen) ? 'opacity-60 grayscale' : ''}`}>
+                                    <div className="w-14 h-14 sm:w-16 sm:h-16 mb-4 sm:mb-5 rounded-2xl flex items-center justify-center text-purple-500 text-xl sm:text-2xl bg-purple-50 border border-purple-100 group-hover:bg-purple-500 group-hover:text-white group-hover:shadow-[0_8px_25px_-5px_rgba(168,85,247,0.4)] group-hover:-translate-y-1 transition-all duration-300 dark:bg-gray-800 dark:border-gray-700 dark:text-purple-400"><i className="fa-solid fa-bullhorn"></i></div>
+                                    <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1 sm:mb-2 dark:text-white">ประกาศรับสมัคร</h3>
+                                    <p className="text-gray-500 text-[11px] sm:text-xs font-medium leading-relaxed">ค้นหาและลงทะเบียนเข้าร่วมกิจกรรมที่กำลังเปิดรับ</p>
                                 </div>
-                                <div onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', text:'ระบบกำลังอยู่ในช่วงปรับปรุง', icon:'info', confirmButtonColor:'#ff621f'}); setSearchPurpose('activity'); setView('search'); }} className={`luxury-card p-8 cursor-pointer group flex flex-col items-center text-center ${!systemOpen ? 'opacity-60 grayscale' : ''}`}>
-                                    <div className="w-16 h-16 mb-5 rounded-2xl flex items-center justify-center text-brand-500 text-2xl bg-brand-50 border border-brand-100 group-hover:bg-gradient-icon group-hover:text-white group-hover:shadow-glow group-hover:-translate-y-1 transition-all duration-300 dark:bg-gray-800 dark:border-gray-700 dark:text-brand-400"><i className="fa-solid fa-qrcode"></i></div>
-                                    <h3 className="text-lg font-bold text-gray-900 mb-2 dark:text-white">ลงทะเบียนกิจกรรม</h3>
-                                    <p className="text-gray-500 text-xs font-medium leading-relaxed">เช็คชื่อเข้าร่วมและทำแบบประเมินความพึงพอใจ</p>
+                                <div onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', text:'ระบบกำลังอยู่ในช่วงปรับปรุง', icon:'info', confirmButtonColor:'#ff621f'}); setSearchPurpose('activity'); setView('search'); }} className={`luxury-card p-6 sm:p-8 cursor-pointer group flex flex-col items-center text-center ${!systemOpen ? 'opacity-60 grayscale' : ''}`}>
+                                    <div className="w-14 h-14 sm:w-16 sm:h-16 mb-4 sm:mb-5 rounded-2xl flex items-center justify-center text-brand-500 text-xl sm:text-2xl bg-brand-50 border border-brand-100 group-hover:bg-gradient-icon group-hover:text-white group-hover:shadow-glow group-hover:-translate-y-1 transition-all duration-300 dark:bg-gray-800 dark:border-gray-700 dark:text-brand-400"><i className="fa-solid fa-qrcode"></i></div>
+                                    <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1 sm:mb-2 dark:text-white">ลงทะเบียนกิจกรรม</h3>
+                                    <p className="text-gray-500 text-[11px] sm:text-xs font-medium leading-relaxed">เช็คชื่อเข้าร่วมและทำแบบประเมินความพึงพอใจ</p>
                                 </div>
-                                <div onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', text:'ระบบกำลังอยู่ในช่วงปรับปรุง', icon:'info', confirmButtonColor:'#ff621f'}); if(!shirtSystemOpen) return Swal.fire({title:'ปิดรับสั่งจอง', text:'ขณะนี้ระบบปิดรับสั่งจองเสื้อคณะชั่วคราว', icon:'warning', confirmButtonColor:'#f43f5e'}); setSearchPurpose('shirt'); setView('search'); }} className={`luxury-card p-8 cursor-pointer group flex flex-col items-center text-center ${(!systemOpen || !shirtSystemOpen) ? 'opacity-60 grayscale' : ''}`}>
-                                    <div className="w-16 h-16 mb-5 rounded-2xl flex items-center justify-center text-rose-500 text-2xl bg-rose-50 border border-rose-100 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-[0_8px_25px_-5px_rgba(244,63,94,0.4)] group-hover:-translate-y-1 transition-all duration-300 dark:bg-gray-800 dark:border-gray-700 dark:text-rose-400"><i className="fa-solid fa-shirt"></i></div>
-                                    <h3 className="text-lg font-bold text-gray-900 mb-2 dark:text-white">สั่งจองเสื้อคณะ</h3>
-                                    <p className="text-gray-500 text-xs font-medium leading-relaxed">ระบุไซส์ สั่งจอง และแนบหลักฐานเพื่อรับใบเสร็จ</p>
+                                <div onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', text:'ระบบกำลังอยู่ในช่วงปรับปรุง', icon:'info', confirmButtonColor:'#ff621f'}); if(!shirtSystemOpen) return Swal.fire({title:'ปิดรับสั่งจอง', text:'ขณะนี้ระบบปิดรับสั่งจองเสื้อคณะชั่วคราว', icon:'warning', confirmButtonColor:'#f43f5e'}); setSearchPurpose('shirt'); setView('search'); }} className={`luxury-card p-6 sm:p-8 cursor-pointer group flex flex-col items-center text-center ${(!systemOpen || !shirtSystemOpen) ? 'opacity-60 grayscale' : ''}`}>
+                                    <div className="w-14 h-14 sm:w-16 sm:h-16 mb-4 sm:mb-5 rounded-2xl flex items-center justify-center text-rose-500 text-xl sm:text-2xl bg-rose-50 border border-rose-100 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-[0_8px_25px_-5px_rgba(244,63,94,0.4)] group-hover:-translate-y-1 transition-all duration-300 dark:bg-gray-800 dark:border-gray-700 dark:text-rose-400"><i className="fa-solid fa-shirt"></i></div>
+                                    <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1 sm:mb-2 dark:text-white">สั่งจองเสื้อคณะ</h3>
+                                    <p className="text-gray-500 text-[11px] sm:text-xs font-medium leading-relaxed">ระบุไซส์ สั่งจอง และแนบหลักฐานเพื่อรับใบเสร็จ</p>
                                 </div>
-                                <div onClick={() => { setSearchPurpose('history'); setView('search'); }} className={`luxury-card p-8 cursor-pointer group flex flex-col items-center text-center`}>
-                                    <div className="w-16 h-16 mb-5 rounded-2xl flex items-center justify-center text-blue-500 text-2xl bg-blue-50 border border-blue-100 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-[0_8px_25px_-5px_rgba(59,130,246,0.4)] group-hover:-translate-y-1 transition-all duration-300 dark:bg-gray-800 dark:border-gray-700 dark:text-blue-400"><i className="fa-solid fa-clock-rotate-left"></i></div>
-                                    <h3 className="text-lg font-bold text-gray-900 mb-2 dark:text-white">ประวัติกิจกรรม</h3>
-                                    <p className="text-gray-500 text-xs font-medium leading-relaxed">ตรวจสอบประวัติการเข้าร่วมกิจกรรมที่ผ่านมาของคุณ</p>
+                                <div onClick={() => { setSearchPurpose('history'); setView('search'); }} className={`luxury-card p-6 sm:p-8 cursor-pointer group flex flex-col items-center text-center`}>
+                                    <div className="w-14 h-14 sm:w-16 sm:h-16 mb-4 sm:mb-5 rounded-2xl flex items-center justify-center text-blue-500 text-xl sm:text-2xl bg-blue-50 border border-blue-100 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-[0_8px_25px_-5px_rgba(59,130,246,0.4)] group-hover:-translate-y-1 transition-all duration-300 dark:bg-gray-800 dark:border-gray-700 dark:text-blue-400"><i className="fa-solid fa-clock-rotate-left"></i></div>
+                                    <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1 sm:mb-2 dark:text-white">ประวัติกิจกรรม</h3>
+                                    <p className="text-gray-500 text-[11px] sm:text-xs font-medium leading-relaxed">ตรวจสอบประวัติการเข้าร่วมกิจกรรมที่ผ่านมาของคุณ</p>
                                 </div>
                             </div>
                         </div>
@@ -786,8 +787,8 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                                                 {category.questions.map((q) => (
                                                     <div key={q.id} className="p-4 border border-gray-100 dark:border-gray-700 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-5 hover:border-brand-200 hover:bg-brand-50/30 transition-all bg-gray-50/50 dark:bg-gray-800/80 group">
                                                         <div className="text-gray-700 dark:text-gray-300 font-medium text-sm md:w-3/5 group-hover:text-brand-700 dark:group-hover:text-brand-300 transition-colors pl-2">{q.text}</div>
-                                                        <div className="flex justify-between md:justify-end gap-2 w-full md:w-auto bg-white dark:bg-gray-900 p-1.5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
-                                                            {[5, 4, 3, 2, 1].map(score => (<label key={score} className={`relative w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center rounded-lg cursor-pointer text-base font-bold transition-all ${surveyAnswers[q.id] === score ? 'bg-brand-500 text-white shadow-md transform scale-105' : 'bg-transparent text-gray-400 hover:bg-gray-100 dark:text-gray-500 dark:hover:bg-gray-800'}`}><input type="radio" className="hidden" name={q.id} value={score} required onChange={() => setSurveyAnswers({...surveyAnswers, [q.id]: score})} />{score}</label>))}
+                                                        <div className="flex justify-between md:justify-end gap-2 w-full md:w-auto bg-white dark:bg-gray-900 p-1.5 sm:p-2 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm mt-3 md:mt-0">
+                                                            {[5, 4, 3, 2, 1].map(score => (<label key={score} className={`relative w-full md:w-10 h-10 sm:h-11 flex items-center justify-center rounded-lg cursor-pointer text-base font-bold transition-all flex-1 md:flex-none ${surveyAnswers[q.id] === score ? 'bg-brand-500 text-white shadow-md transform scale-105 md:scale-110' : 'bg-transparent text-gray-400 hover:bg-gray-100 dark:text-gray-500 dark:hover:bg-gray-800'}`}><input type="radio" className="hidden" name={q.id} value={score} required onChange={() => setSurveyAnswers({...surveyAnswers, [q.id]: score})} />{score}</label>))}
                                                         </div>
                                                     </div>
                                                 ))}
@@ -967,8 +968,8 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                         <Navbar />
                         <div className="flex-grow flex flex-col items-center pt-8 p-4 pb-20">
                             <div className="w-full max-w-[1200px]">
-                                <div className="flex justify-between items-end mb-8 px-2"><div><h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-wide">ยืนยันการสั่งจอง</h2><p className="text-gray-500 text-sm font-medium mt-2 bg-white/50 dark:bg-gray-800/50 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm inline-block">โปรดดาวน์โหลดใบเสร็จนี้เก็บไว้เป็นหลักฐาน</p></div><p className="text-xs text-brand-500 font-bold xl:hidden bg-brand-50 dark:bg-gray-800 px-3 py-1.5 rounded-lg border border-brand-100 dark:border-gray-700 shadow-sm"><i className="fa-solid fa-arrows-left-right animate-pulse"></i> เลื่อนเพื่อดูทั้งหมด</p></div>
-                                <div className="w-full overflow-x-auto pb-8 custom-scrollbar">
+                                <div className="flex justify-between items-end mb-6 md:mb-8 px-2"><div><h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white tracking-wide">ยืนยันการสั่งจอง</h2><p className="text-gray-500 text-xs sm:text-sm font-medium mt-2 bg-white/50 dark:bg-gray-800/50 px-3 sm:px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm inline-block">โปรดดาวน์โหลดใบเสร็จนี้เก็บไว้เป็นหลักฐาน</p></div><p className="text-[10px] sm:text-xs text-brand-500 font-bold xl:hidden bg-brand-50 dark:bg-gray-800 px-2 sm:px-3 py-1.5 rounded-lg border border-brand-100 dark:border-gray-700 shadow-sm"><i className="fa-solid fa-arrows-left-right animate-pulse"></i> เลื่อนดูทั้งหมด</p></div>
+                                <div className="w-full overflow-x-auto pb-4 md:pb-8 custom-scrollbar">
                                     <div id="receipt-card" className="bg-white flex flex-row justify-between items-stretch shadow-glass border border-gray-200 rounded-2xl overflow-hidden" style={{ width: '1123px', minHeight: '794px', margin: '0 auto' }}>
                                         <ReceiptSlip title="ต้นฉบับ" data={receiptData} config={receiptSettings} />
                                         <div className="flex flex-col items-center justify-center gap-6 text-gray-300 bg-[#f8fafc] px-4 border-x-2 border-dashed border-gray-300"><i className="fa-solid fa-scissors text-gray-400 text-base transform -rotate-90"></i><span className="text-xs font-bold uppercase tracking-[0.4em] whitespace-nowrap text-gray-400" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>ตัดตรงนี้</span><i className="fa-solid fa-scissors text-gray-400 text-base transform rotate-90"></i></div>
@@ -1064,22 +1065,50 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
             const filteredCheckins = useMemo(() => {
                 if (!data || !data.checkins) return [];
                 return (data.checkins || []).filter(c => {
-                    const matchActivity = selectedActivityForSummary ? String(c.ActivityID).trim() === String(selectedActivityForSummary).trim() : true;
+                    const keys = Object.keys(c);
+                    const getVal = (kws, fb) => c[findKeyByKeywords(keys, kws)] || c[fb] || '';
+                    
+                    const actId = getVal(['activityid', 'รหัสกิจกรรม'], 'ActivityID');
+                    const matchActivity = selectedActivityForSummary ? String(actId).trim() === String(selectedActivityForSummary).trim() : true;
                     if (!matchActivity) return false;
+                    
                     const term = (searchCheckinTerm || '').toLowerCase().trim();
                     if (!term) return true;
-                    return String(c.StudentID || '').toLowerCase().includes(term) || String(c.Name || '').toLowerCase().includes(term) || String(c.Major || '').toLowerCase().includes(term) || String(c.IDCard || '').toLowerCase().includes(term);
+                    
+                    const studentId = getVal(['studentid', 'รหัสนักศึกษา', 'รหัสประจำตัว'], 'StudentID');
+                    const name = getVal(['name', 'ชื่อ', 'ชื่อ-สกุล'], 'Name');
+                    const major = getVal(['major', 'สาขา'], 'Major');
+                    const idCard = getVal(['idcard', 'บัตรประชาชน', 'เลขบัตร'], 'IDCard');
+
+                    return String(studentId).toLowerCase().includes(term) || 
+                           String(name).toLowerCase().includes(term) || 
+                           String(major).toLowerCase().includes(term) || 
+                           String(idCard).toLowerCase().includes(term);
                 });
             }, [data, selectedActivityForSummary, searchCheckinTerm]);
 
             const filteredRegistrations = useMemo(() => {
                 if (!data || !data.registrations) return [];
                 return (data.registrations || []).filter(r => {
-                    const matchRecruit = selectedRecruitForRegis ? String(r.RecruitID).trim() === String(selectedRecruitForRegis).trim() : true;
+                    const keys = Object.keys(r);
+                    const getVal = (kws, fb) => r[findKeyByKeywords(keys, kws)] || r[fb] || '';
+
+                    const recId = getVal(['recruitid', 'รหัสรับสมัคร', 'รหัสกิจกรรม'], 'RecruitID');
+                    const matchRecruit = selectedRecruitForRegis ? String(recId).trim() === String(selectedRecruitForRegis).trim() : true;
                     if (!matchRecruit) return false;
+
                     const term = (searchRegisTerm || '').toLowerCase().trim();
                     if (!term) return true;
-                    return String(r.StudentID || '').toLowerCase().includes(term) || String(r.Name || '').toLowerCase().includes(term) || String(r.Major || '').toLowerCase().includes(term) || String(r.IDCard || '').toLowerCase().includes(term);
+
+                    const studentId = getVal(['studentid', 'รหัสนักศึกษา', 'รหัสประจำตัว'], 'StudentID');
+                    const name = getVal(['name', 'ชื่อ', 'ชื่อ-สกุล'], 'Name');
+                    const major = getVal(['major', 'สาขา'], 'Major');
+                    const idCard = getVal(['idcard', 'บัตรประชาชน', 'เลขบัตร'], 'IDCard');
+
+                    return String(studentId).toLowerCase().includes(term) || 
+                           String(name).toLowerCase().includes(term) || 
+                           String(major).toLowerCase().includes(term) || 
+                           String(idCard).toLowerCase().includes(term);
                 });
             }, [data, selectedRecruitForRegis, searchRegisTerm]);
 
@@ -1319,30 +1348,34 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
 
             return (
                 <div className="min-h-screen bg-gray-50/50 flex flex-col md:flex-row transition-colors selection:bg-brand-500 selection:text-white">
-                    <aside className="w-full md:w-72 bg-[#0b1120] text-gray-400 flex-shrink-0 flex flex-col z-20 shadow-[4px_0_24px_rgba(0,0,0,0.1)] border-r border-gray-800">
-                        <div className="p-8 border-b border-gray-800/50 bg-[#0f172a]/50 relative overflow-hidden">
+                    <aside className="w-full md:w-72 bg-[#0b1120] text-gray-400 flex-shrink-0 flex flex-col z-20 shadow-[4px_0_24px_rgba(0,0,0,0.1)] border-b md:border-b-0 md:border-r border-gray-800 sticky top-0 md:relative">
+                        <div className="p-4 md:p-8 border-b border-gray-800/50 bg-[#0f172a]/50 relative overflow-hidden flex flex-row md:flex-col items-center md:items-start justify-between md:justify-start">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-3xl"></div>
-                            <div className="w-12 h-12 bg-gradient-icon text-white rounded-xl flex items-center justify-center shadow-glow mb-5 text-xl relative z-10"><i className="fa-solid fa-layer-group"></i></div><h2 className="text-lg font-black tracking-[0.2em] uppercase text-white relative z-10">พื้นที่ทำงาน</h2><p className="text-[9px] text-brand-400 font-bold tracking-widest uppercase mt-1.5 relative z-10">Admin Dashboard</p>
+                            <div className="flex items-center md:items-start gap-3 md:gap-0 md:flex-col z-10">
+                                <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-icon text-white rounded-xl flex items-center justify-center shadow-glow md:mb-5 text-lg md:text-xl relative"><i className="fa-solid fa-layer-group"></i></div>
+                                <div><h2 className="text-sm md:text-lg font-black tracking-[0.2em] uppercase text-white relative">พื้นที่ทำงาน</h2><p className="text-[8px] md:text-[9px] text-brand-400 font-bold tracking-widest uppercase mt-0.5 md:mt-1.5 relative">Admin Dashboard</p></div>
+                            </div>
+                            <button onClick={() => { localStorage.removeItem('admin_logged_in'); goHome(); }} className="md:hidden w-auto flex-shrink-0 flex items-center justify-center px-4 py-2.5 rounded-lg bg-gray-800 border border-gray-700 text-[10px] font-bold uppercase tracking-widest text-gray-300 hover:text-white z-10"><i className="fa-solid fa-right-from-bracket mr-2"></i> ออกจากระบบ</button>
                         </div>
-                        <nav className="flex-grow py-8 space-y-1.5 px-4 overflow-y-auto custom-scrollbar">
-                            <div className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-4 mb-3 mt-2">เมนูหลัก</div>
+                        <nav className="flex-grow py-3 md:py-8 px-2 md:px-4 overflow-x-auto md:overflow-y-auto flex flex-row md:flex-col gap-2 md:gap-0 md:space-y-1.5 custom-scrollbar items-center md:items-stretch">
+                            <div className="hidden md:block text-[10px] font-bold text-gray-600 uppercase tracking-widest px-4 mb-3 mt-2">เมนูหลัก</div>
                             {['overview', 'manage_recruit', 'registrations', 'activities', 'summary', 'spss', 'shirt_summary'].map(tab => {
-                                const labels = { overview: 'ภาพรวมระบบ', activities: 'สร้างกิจกรรมใหม่', summary: 'ข้อมูลเช็คชื่อ', spss: 'รายงานประเมินผล', shirt_summary: 'ระบบสั่งจองเสื้อ', manage_recruit: 'จัดการรับสมัคร', registrations: 'ข้อมูลผู้สมัคร' };
+                                const labels = { overview: 'ภาพรวมระบบ', activities: 'สร้างกิจกรรม', summary: 'ข้อมูลเช็คชื่อ', spss: 'รายงานประเมินผล', shirt_summary: 'ระบบสั่งจองเสื้อ', manage_recruit: 'จัดการรับสมัคร', registrations: 'ข้อมูลผู้สมัคร' };
                                 const icons = { overview: 'fa-chart-pie', activities: 'fa-qrcode', summary: 'fa-users', spss: 'fa-file-lines', shirt_summary: 'fa-shirt', manage_recruit: 'fa-bullhorn', registrations: 'fa-user-plus' };
-                                return (<button key={tab} onClick={() => setActiveTab(tab)} className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all text-xs font-bold uppercase tracking-wider ${activeTab === tab ? 'bg-gradient-to-r from-brand-500 to-rose-500 text-white shadow-lg shadow-brand-500/20 translate-x-1' : 'text-gray-400 hover:text-gray-200 hover:bg-white/5 hover:translate-x-1'}`}><i className={`fa-solid ${icons[tab]} w-5 text-base ${activeTab !== tab && 'opacity-70'}`}></i> {labels[tab]}</button>);
+                                return (<button key={tab} onClick={() => setActiveTab(tab)} className={`w-auto md:w-full whitespace-nowrap flex-shrink-0 flex items-center justify-center md:justify-start gap-2 md:gap-4 px-4 md:px-5 py-2.5 md:py-3.5 rounded-xl transition-all text-[11px] md:text-xs font-bold uppercase tracking-wider ${activeTab === tab ? 'bg-gradient-to-r from-brand-500 to-rose-500 text-white shadow-lg shadow-brand-500/20 md:translate-x-1' : 'text-gray-400 hover:text-gray-200 hover:bg-white/5 md:hover:translate-x-1 border border-gray-800 md:border-transparent'}`}><i className={`fa-solid ${icons[tab]} w-4 md:w-5 text-sm md:text-base ${activeTab !== tab && 'opacity-70'}`}></i> <span>{labels[tab]}</span></button>);
                             })}
                         </nav>
-                        <div className="p-6 border-t border-gray-800/50 mt-auto bg-[#0f172a]/50">
+                        <div className="hidden md:block p-6 border-t border-gray-800/50 mt-auto bg-[#0f172a]/50">
                             <p className="text-[10px] text-gray-600 font-bold mb-4 uppercase tracking-[0.2em] px-2">Master Control</p>
                             <button onClick={toggleSystem} className={`w-full flex items-center justify-between px-5 py-3.5 rounded-xl border-2 text-[10px] font-bold uppercase tracking-widest transition-all mb-3 ${systemOpen ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500 hover:text-white' : 'bg-gray-800/50 text-gray-500 border-gray-700/50 hover:bg-gray-700 hover:text-white'}`}><span>{systemOpen ? 'ระบบออนไลน์' : 'ปิดซ่อมบำรุง'}</span><i className={`fa-solid ${systemOpen ? 'fa-signal' : 'fa-power-off'} text-base`}></i></button>
                             <button onClick={() => { localStorage.removeItem('admin_logged_in'); goHome(); }} className="w-full flex items-center justify-center gap-3 px-5 py-3.5 rounded-xl bg-gray-800/40 border border-gray-700/50 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-colors"><i className="fa-solid fa-right-from-bracket text-sm"></i> ออกจากระบบ</button>
                         </div>
                     </aside>
 
-                    <main className="flex-1 p-6 md:p-8 lg:p-12 overflow-y-auto">
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 border-b border-gray-200 pb-6 gap-5">
-                            <div><p className="text-[10px] font-black text-brand-500 tracking-[0.3em] uppercase mb-2 bg-brand-50 inline-block px-3 py-1 rounded-md border border-brand-100">Workspace</p><h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">{activeTab === 'overview' && 'ภาพรวมระบบ'}{activeTab === 'activities' && 'สร้างกิจกรรมใหม่'}{activeTab === 'summary' && 'ข้อมูลการเช็คชื่อ'}{activeTab === 'spss' && 'รายงานประเมินผล'}{activeTab === 'manage_recruit' && 'จัดการประกาศรับสมัคร'}{activeTab === 'registrations' && 'ข้อมูลผู้สมัคร'}{activeTab === 'shirt_summary' && 'ระบบสั่งจองเสื้อ'}</h2></div>
-                            <button onClick={reloadData} className="text-[10px] font-bold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 px-5 py-3 rounded-xl tracking-widest uppercase transition-all shadow-sm flex items-center gap-2.5"><i className="fa-solid fa-rotate-right text-brand-500 text-sm"></i> ซิงค์ข้อมูลล่าสุด</button>
+                    <main className="flex-1 p-4 sm:p-6 md:p-8 lg:p-12 overflow-y-auto pb-24 md:pb-12">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 md:mb-10 border-b border-gray-200 pb-4 md:pb-6 gap-3 md:gap-5">
+                            <div><p className="text-[10px] font-black text-brand-500 tracking-[0.3em] uppercase mb-2 bg-brand-50 inline-block px-3 py-1 rounded-md border border-brand-100">Workspace</p><h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">{activeTab === 'overview' && 'ภาพรวมระบบ'}{activeTab === 'activities' && 'สร้างกิจกรรมใหม่'}{activeTab === 'summary' && 'ข้อมูลการเช็คชื่อ'}{activeTab === 'spss' && 'รายงานประเมินผล'}{activeTab === 'manage_recruit' && 'จัดการประกาศรับสมัคร'}{activeTab === 'registrations' && 'ข้อมูลผู้สมัคร'}{activeTab === 'shirt_summary' && 'ระบบสั่งจองเสื้อ'}</h2></div>
+                            <button onClick={reloadData} className="text-[10px] font-bold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 px-4 py-2 sm:px-5 sm:py-3 rounded-xl tracking-widest uppercase transition-all shadow-sm flex items-center gap-2.5 w-full sm:w-auto justify-center"><i className="fa-solid fa-rotate-right text-brand-500 text-sm"></i> ซิงค์ข้อมูลล่าสุด</button>
                         </div>
 
                         {activeTab === 'overview' && (
@@ -1383,7 +1416,7 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                         {activeTab === 'manage_recruit' && (
                             <div className="grid lg:grid-cols-3 gap-8">
                                 <div className="lg:col-span-1">
-                                    <div className="bg-white p-7 rounded-[1.5rem] border border-gray-100 shadow-sm mb-6 flex flex-col items-start gap-4">
+                                    <div className="bg-white p-5 sm:p-7 rounded-[1.5rem] border border-gray-100 shadow-sm mb-6 flex flex-col items-start gap-4">
                                         <div className="w-full"><div className="flex items-center gap-2 mb-3"><i className="fa-solid fa-gear text-gray-400 text-sm"></i><h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Master Control</h3></div><button onClick={() => handleToggleRecruitSystem(data.recruitStatus || 'open')} className={`w-full flex items-center justify-between text-xs font-bold uppercase tracking-widest px-5 py-4 rounded-xl border-2 transition-all shadow-sm ${data.recruitStatus !== 'closed' ? 'text-purple-700 border-purple-200 bg-purple-50 hover:bg-purple-100' : 'text-gray-600 border-gray-200 bg-gray-50 hover:bg-gray-100'}`}><span>{data.recruitStatus !== 'closed' ? 'เปิดระบบรับสมัคร' : 'ปิดระบบรับสมัคร'}</span> <i className={`fa-solid ${data.recruitStatus !== 'closed' ? 'fa-toggle-on text-purple-500' : 'fa-toggle-off text-gray-400'} text-2xl`}></i></button></div>
                                     </div>
                                     <div className="bg-white p-7 rounded-[1.5rem] border border-gray-100 shadow-sm sticky top-6">
@@ -1416,13 +1449,13 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
 
                         {activeTab === 'registrations' && (
                             <div>
-                                <div className="bg-white p-7 rounded-[1.5rem] border border-gray-100 shadow-sm mb-6">
-                                    <div className="flex flex-col md:flex-row gap-5 justify-between items-end">
-                                        <div className="flex flex-col sm:flex-row gap-5 flex-grow w-full md:w-auto">
+                                <div className="bg-white p-5 sm:p-7 rounded-[1.5rem] border border-gray-100 shadow-sm mb-6">
+                                    <div className="flex flex-col md:flex-row gap-4 sm:gap-5 justify-between items-end">
+                                        <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 flex-grow w-full md:w-auto">
                                             <div className="w-full md:w-72"><label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2"><i className="fa-solid fa-filter text-purple-400 mr-1"></i> กรองตามกิจกรรมรับสมัคร</label><select className="w-full bg-gray-50 border border-gray-200 py-3 px-4 rounded-xl text-xs font-bold focus:border-purple-500 focus:bg-white outline-none transition-all shadow-inner text-gray-700" value={selectedRecruitForRegis} onChange={(e)=>setSelectedRecruitForRegis(e.target.value)}><option value="">ดูผู้สมัครทั้งหมด</option>{(data.recruitments||[]).map(r=><option key={r.RecruitID} value={r.RecruitID}>{r.Name}</option>)}</select></div>
                                             <div className="w-full md:w-72"><label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2"><i className="fa-solid fa-search text-purple-400 mr-1"></i> ค้นหารายชื่อ</label><div className="relative"><i className="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i><input type="text" placeholder="รหัส, ชื่อ..." value={searchRegisTerm} onChange={(e)=>setSearchRegisTerm(e.target.value)} className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold focus:border-purple-500 focus:bg-white outline-none transition-all shadow-inner text-gray-700" /></div></div>
                                         </div>
-                                        <div className="w-full md:w-auto pt-4 md:pt-0 border-t md:border-t-0 border-gray-100"><button onClick={()=>{ const list = sortedRegistrationsList; const csvData = Papa.unparse(list); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob(['\ufeff' + csvData], { type: 'text/csv;charset=utf-8;' })); link.download = `Registrations.csv`; link.click(); }} className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-500/20 px-6 py-3 rounded-xl text-[10px] font-bold tracking-widest uppercase transition-all w-full flex items-center justify-center gap-2 hover:-translate-y-0.5"><i className="fa-solid fa-file-export"></i> ส่งออก Excel</button></div>
+                                        <div className="w-full md:w-auto pt-4 md:pt-0 border-t md:border-t-0 border-gray-100"><button onClick={()=>{ if (sortedRegistrationsList.length === 0) return Swal.fire('แจ้งเตือน', 'ไม่มีข้อมูลให้ส่งออก', 'warning'); const fields = ["StudentID", "Name", "Major", "IDCard", "RecruitID", "RecruitName"]; const dataToExport = sortedRegistrationsList.map(r => { const keys = Object.keys(r); const getVal = (kws, fb) => r[findKeyByKeywords(keys, kws)] || r[fb] || ''; return [ getVal(['studentid', 'รหัสนักศึกษา', 'รหัสประจำตัว'], 'StudentID'), getVal(['name', 'ชื่อ', 'ชื่อ-สกุล'], 'Name'), getVal(['major', 'สาขา', 'คณะ'], 'Major'), getVal(['idcard', 'บัตรประชาชน', 'เลขบัตร'], 'IDCard'), getVal(['recruitid', 'รหัสกิจกรรม'], 'RecruitID'), getVal(['recruitname', 'ชื่อกิจกรรม'], 'RecruitName') ]; }); const csvData = Papa.unparse({ fields, data: dataToExport }); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob(['\ufeff' + csvData], { type: 'text/csv;charset=utf-8;' })); link.download = `Registrations.csv`; link.click(); }} className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-500/20 px-6 py-3 rounded-xl text-[10px] font-bold tracking-widest uppercase transition-all w-full flex items-center justify-center gap-2 hover:-translate-y-0.5"><i className="fa-solid fa-file-export"></i> ส่งออก Excel</button></div>
                                     </div>
                                 </div>
                                 <div className="bg-white border border-gray-100 rounded-[1.5rem] overflow-hidden shadow-sm">
@@ -1451,7 +1484,7 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                         {activeTab === 'activities' && (
                             <div className="grid lg:grid-cols-3 gap-8">
                                 <div className="lg:col-span-1">
-                                    <div className="bg-white p-7 rounded-[1.5rem] border border-gray-100 shadow-sm sticky top-6">
+                                    <div className="bg-white p-5 sm:p-7 rounded-[1.5rem] border border-gray-100 shadow-sm sticky top-6">
                                         <div className="w-12 h-12 bg-brand-50 text-brand-500 rounded-xl flex items-center justify-center text-xl border border-brand-100 mb-5"><i className="fa-solid fa-square-plus"></i></div><h3 className="text-base font-bold text-gray-900 mb-6 uppercase tracking-wider">สร้างกิจกรรมใหม่</h3>
                                         <form onSubmit={handleCreateActivity} className="space-y-5">
                                             <div><label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">ชื่อกิจกรรม</label><input name="name" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:border-brand-500 focus:bg-white outline-none transition-all shadow-inner" placeholder="กรอกชื่อกิจกรรม..." /></div>
@@ -1481,13 +1514,13 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
 
                         {activeTab === 'summary' && (
                             <div>
-                                <div className="bg-white p-7 rounded-[1.5rem] border border-gray-100 shadow-sm mb-6">
-                                    <div className="flex flex-col md:flex-row gap-5 justify-between items-end">
-                                        <div className="flex flex-col sm:flex-row gap-5 flex-grow w-full md:w-auto">
+                                <div className="bg-white p-5 sm:p-7 rounded-[1.5rem] border border-gray-100 shadow-sm mb-6">
+                                    <div className="flex flex-col md:flex-row gap-4 sm:gap-5 justify-between items-end">
+                                        <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 flex-grow w-full md:w-auto">
                                             <div className="w-full md:w-72"><label className="block text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-2"><i className="fa-solid fa-filter text-brand-400 mr-1"></i> กรองตามกิจกรรม</label><select className="w-full bg-gray-50 border border-gray-200 py-3 px-4 rounded-xl text-xs font-bold focus:border-brand-500 focus:bg-white outline-none transition-all shadow-inner text-gray-700" value={selectedActivityForSummary} onChange={(e)=>setSelectedActivityForSummary(e.target.value)}><option value="">ดูกิจกรรมทั้งหมด</option>{data.activities.map(a=><option key={a.ActivityID} value={a.ActivityID}>{a.Name}</option>)}</select></div>
                                             <div className="w-full md:w-72"><label className="block text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-2"><i className="fa-solid fa-search text-brand-400 mr-1"></i> ค้นหารายชื่อ</label><div className="relative"><i className="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i><input type="text" placeholder="รหัส, ชื่อ, หรือ สาขา..." value={searchCheckinTerm} onChange={(e)=>setSearchCheckinTerm(e.target.value)} className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold focus:border-brand-500 focus:bg-white outline-none transition-all shadow-inner text-gray-700" /></div></div>
                                         </div>
-                                        <div className="flex gap-3 w-full md:w-auto pt-4 md:pt-0 border-t md:border-t-0 border-gray-100"><label className="bg-white border border-gray-200 text-gray-600 hover:border-gray-400 px-5 py-3 rounded-xl cursor-pointer text-[10px] font-bold tracking-widest uppercase transition-all shadow-sm flex items-center justify-center w-full md:w-auto hover:bg-gray-50"><i className="fa-solid fa-upload mr-2"></i> นำเข้า</label><button onClick={()=>{ const list = sortedCheckinsList; const csvData = Papa.unparse(list); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob(['\ufeff' + csvData], { type: 'text/csv;charset=utf-8;' })); link.download = `CheckIns.csv`; link.click(); }} className="btn-premium px-5 py-3 text-[10px] font-bold tracking-widest uppercase w-full md:w-auto flex items-center justify-center gap-2 shadow-sm"><i className="fa-solid fa-download"></i> ส่งออก Excel</button></div>
+                                        <div className="flex gap-3 w-full md:w-auto pt-4 md:pt-0 border-t md:border-t-0 border-gray-100"><label className="bg-white border border-gray-200 text-gray-600 hover:border-gray-400 px-5 py-3 rounded-xl cursor-pointer text-[10px] font-bold tracking-widest uppercase transition-all shadow-sm flex items-center justify-center w-full md:w-auto hover:bg-gray-50"><i className="fa-solid fa-upload mr-2"></i> นำเข้า</label><button onClick={()=>{ if (sortedCheckinsList.length === 0) return Swal.fire('แจ้งเตือน', 'ไม่มีข้อมูลให้ส่งออก', 'warning'); const fields = ["StudentID", "Name", "Major", "IDCard", "ActivityID", "ActivityName"]; const dataToExport = sortedCheckinsList.map(c => { const keys = Object.keys(c); const getVal = (kws, fb) => c[findKeyByKeywords(keys, kws)] || c[fb] || ''; return [ getVal(['studentid', 'รหัสนักศึกษา', 'รหัสประจำตัว'], 'StudentID'), getVal(['name', 'ชื่อ', 'ชื่อ-สกุล'], 'Name'), getVal(['major', 'สาขา', 'คณะ'], 'Major'), getVal(['idcard', 'บัตรประชาชน', 'เลขบัตร'], 'IDCard'), getVal(['activityid', 'รหัสกิจกรรม'], 'ActivityID'), getVal(['activityname', 'ชื่อกิจกรรม'], 'ActivityName') ]; }); const csvData = Papa.unparse({ fields, data: dataToExport }); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob(['\ufeff' + csvData], { type: 'text/csv;charset=utf-8;' })); link.download = `CheckIns.csv`; link.click(); }} className="btn-premium px-5 py-3 text-[10px] font-bold tracking-widest uppercase w-full md:w-auto flex items-center justify-center gap-2 shadow-sm"><i className="fa-solid fa-download"></i> ส่งออก Excel</button></div>
                                     </div>
                                 </div>
                                 <div className="bg-white border border-gray-100 rounded-[1.5rem] overflow-hidden shadow-sm">
@@ -1495,14 +1528,21 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                                         <table className="w-full text-left whitespace-nowrap modern-table">
                                             <thead><tr><th>วัน/เวลา</th><th>ข้อมูลนักศึกษา</th><th>สาขาวิชา</th><th className="text-center">กิจกรรม</th></tr></thead>
                                             <tbody className="text-sm">
-                                                {currentCheckins.map((c,i)=>(
+                                                {currentCheckins.map((c,i)=>{
+                                                    const keys = Object.keys(c);
+                                                    const timestamp = c[findKeyByKeywords(keys, ['timestamp', 'เวลา'])] || c.Timestamp;
+                                                    const studentId = c[findKeyByKeywords(keys, ['studentid', 'รหัสนักศึกษา', 'รหัส'])] || c.StudentID;
+                                                    const name = c[findKeyByKeywords(keys, ['name', 'ชื่อ', 'ชื่อ-สกุล'])] || c.Name;
+                                                    const major = c[findKeyByKeywords(keys, ['major', 'สาขา'])] || c.Major;
+                                                    const actName = c[findKeyByKeywords(keys, ['activityname', 'ชื่อกิจกรรม'])] || c.ActivityName;
+                                                    return (
                                                     <tr key={i}>
-                                                        <td><span className="block font-bold text-gray-900 text-xs">{new Date(c.Timestamp).toLocaleDateString('th-TH')}</span><span className="block text-[10px] text-gray-400 font-bold tracking-widest mt-0.5"><i className="fa-regular fa-clock"></i> {new Date(c.Timestamp).toLocaleTimeString('th-TH', {hour:'2-digit',minute:'2-digit'})}</span></td>
-                                                        <td><div className="flex flex-col gap-1"><span className="inline-block bg-gray-100 text-gray-600 text-[9px] font-black tracking-widest px-2 py-0.5 rounded border border-gray-200 w-fit">{c.StudentID}</span><span className="font-bold text-gray-900">{c.Name}</span></div></td>
-                                                        <td className="text-gray-600 text-xs font-bold">{c.Major}</td>
-                                                        <td className="text-center"><span className="inline-block bg-brand-50 text-brand-700 text-[10px] font-bold px-3 py-1.5 rounded-lg border border-brand-100 truncate max-w-[200px]" title={c.ActivityName}>{c.ActivityName}</span></td>
+                                                        <td><span className="block font-bold text-gray-900 text-xs">{timestamp ? new Date(timestamp).toLocaleDateString('th-TH') : '-'}</span><span className="block text-[10px] text-gray-400 font-bold tracking-widest mt-0.5"><i className="fa-regular fa-clock"></i> {timestamp ? new Date(timestamp).toLocaleTimeString('th-TH', {hour:'2-digit',minute:'2-digit'}) : '-'}</span></td>
+                                                        <td><div className="flex flex-col gap-1"><span className="inline-block bg-gray-100 text-gray-600 text-[9px] font-black tracking-widest px-2 py-0.5 rounded border border-gray-200 w-fit">{studentId || '-'}</span><span className="font-bold text-gray-900">{name || '-'}</span></div></td>
+                                                        <td className="text-gray-600 text-xs font-bold">{major || '-'}</td>
+                                                        <td className="text-center"><span className="inline-block bg-brand-50 text-brand-700 text-[10px] font-bold px-3 py-1.5 rounded-lg border border-brand-100 truncate max-w-[200px]" title={actName || '-'}>{actName || '-'}</span></td>
                                                     </tr>
-                                                ))}
+                                                )})}
                                                 {currentCheckins.length === 0 && <tr><td colSpan="4" className="text-center py-16 text-gray-400 font-bold text-sm bg-gray-50/50"><i className="fa-solid fa-inbox block text-3xl mb-3 text-gray-300"></i> ไม่พบข้อมูล</td></tr>}
                                             </tbody>
                                         </table>
@@ -1514,7 +1554,7 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
 
                         {activeTab === 'spss' && (
                             <div>
-                                <div className="bg-white p-7 rounded-[1.5rem] border border-gray-100 shadow-sm flex flex-col md:flex-row gap-5 mb-8 justify-between items-end">
+                                <div className="bg-white p-5 sm:p-7 rounded-[1.5rem] border border-gray-100 shadow-sm flex flex-col md:flex-row gap-4 sm:gap-5 mb-8 justify-between items-end">
                                     <div className="w-full md:w-96"><label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2"><i className="fa-solid fa-chart-bar text-blue-400 mr-1"></i> เลือกกิจกรรมเพื่อวิเคราะห์ผล</label><select className="w-full bg-gray-50 border border-gray-200 py-3 px-4 rounded-xl text-xs font-bold focus:border-brand-500 focus:bg-white outline-none transition-all shadow-inner text-gray-700" value={selectedActivityForSpss} onChange={(e)=>setSelectedActivityForSpss(e.target.value)}><option value="">-- เลือกกิจกรรม --</option>{data.activities.map(a=><option key={a.ActivityID} value={a.ActivityID}>{a.Name}</option>)}</select></div>
                                     <button onClick={()=>{ const h = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>body{font-family:'TH Sarabun PSK',sans-serif;font-size:16pt;}table{width:100%;border-collapse:collapse;margin-bottom:15pt;}th,td{border:1px solid black;padding:5px;}th{background-color:#f2f2f2;}h4{font-weight:bold;margin-bottom:10pt;}p{text-indent:36pt;line-height:1.5;margin-bottom:20pt;}.word-export-title{display:block !important;}</style></head><body>${document.getElementById('spss-ex').innerHTML}</body></html>`; const a = document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff', h],{type:'application/msword'})); a.download=`SPSS.doc`; a.click(); }} className="bg-[#2b579a] hover:bg-[#1f4278] text-white shadow-lg shadow-blue-900/20 px-6 py-3 rounded-xl text-[10px] font-bold tracking-widest uppercase transition-all flex items-center justify-center w-full md:w-auto gap-2 hover:-translate-y-0.5"><i className="fa-solid fa-file-word text-sm"></i> Export Word (.doc)</button>
                                 </div>
@@ -1526,7 +1566,7 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                             <div>
                                 <div className="grid lg:grid-cols-3 gap-8 mb-8">
                                     <div className="lg:col-span-1">
-                                        <div className="bg-white p-7 rounded-[1.5rem] border border-gray-100 shadow-sm flex flex-col items-start gap-4">
+                                        <div className="bg-white p-5 sm:p-7 rounded-[1.5rem] border border-gray-100 shadow-sm flex flex-col items-start gap-4">
                                             <div className="w-full"><div className="flex items-center gap-2 mb-3"><i className="fa-solid fa-gear text-gray-400 text-sm"></i><h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Master Control</h3></div><button onClick={() => handleToggleShirtSystem(data.shirtPrice?.status || 'open')} className={`w-full flex items-center justify-between text-xs font-bold uppercase tracking-widest px-5 py-4 rounded-xl border-2 transition-all shadow-sm ${data.shirtPrice?.status !== 'closed' ? 'text-rose-700 border-rose-200 bg-rose-50 hover:bg-rose-100' : 'text-gray-600 border-gray-200 bg-gray-50 hover:bg-gray-100'}`}><span>{data.shirtPrice?.status !== 'closed' ? 'เปิดระบบจองเสื้อ' : 'ปิดระบบจองเสื้อ'}</span> <i className={`fa-solid ${data.shirtPrice?.status !== 'closed' ? 'fa-toggle-on text-rose-500' : 'fa-toggle-off text-gray-400'} text-2xl`}></i></button></div>
                                         </div>
                                     </div>
