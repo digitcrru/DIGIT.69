@@ -45,6 +45,8 @@
         @media (min-width: 768px) { body { padding-bottom: 0; } }
 
         .luxury-card { background-color: #ffffff; border: 1px solid rgba(255, 237, 213, 0.6); box-shadow: 0 10px 40px -10px rgba(249, 115, 22, 0.08), 0 1px 3px rgba(0,0,0,0.02); border-radius: 1.5rem; transition: all 0.4s ease; }
+        .luxury-card:hover { border-color: rgba(249, 115, 22, 0.3); box-shadow: 0 20px 40px -10px rgba(249, 115, 22, 0.15); transform: translateY(-4px); }
+        
         .luxury-input { background-color: #fdfdfd; border: 1px solid #fce7d2; border-radius: 1rem; padding: 1rem 1.25rem; color: #111827; transition: all 0.3s ease; }
         .luxury-input:focus { border-color: #f97316; box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15); outline: none; }
         .btn-primary { background-color: #111827; color: #ffffff; border: 1px solid #111827; transition: all 0.3s ease; }
@@ -55,8 +57,8 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        .custom-scrollbar::-webkit-scrollbar { height: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
@@ -83,6 +85,7 @@
         html.dark .bg-gray-50, html.dark .bg-charcoal-50 { background-color: #262626 !important; }
         html.dark .bg-charcoal-900 { background-color: #0a0a0a !important; }
         html.dark .luxury-card { background-color: #1e1e1e; border-color: #333; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); }
+        html.dark .luxury-card:hover { border-color: rgba(249, 115, 22, 0.4); box-shadow: 0 20px 40px -10px rgba(249, 115, 22, 0.1); }
         html.dark .luxury-input { background-color: #121212; border-color: #333; color: #f5f5f5; }
         html.dark .luxury-input:focus { border-color: #f97316; box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.2); }
         html.dark .btn-primary { background-color: #f5f5f5; color: #121212; border-color: #f5f5f5; }
@@ -90,6 +93,10 @@
         html.dark tr, html.dark td, html.dark th { border-color: #333 !important; }
         html.dark tr:hover { background-color: #262626 !important; }
         html.dark select { background-color: #121212 !important; color: #fff !important; }
+
+        .modern-table th { background-color: #f1f5f9; color: #475569; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.75rem; padding: 1rem 1.5rem; border-bottom: 2px solid #e2e8f0; }
+        .modern-table td { padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9; color: #334155; }
+        .modern-table tr:hover td { background-color: #f8fafc; }
     </style>
 </head>
 <body class="selection:bg-orange-500 selection:text-white">
@@ -211,6 +218,23 @@
             return { icon: 'fa-user', bg: 'bg-orange-50', text: 'text-orange-600' };
         };
 
+        const findKey = (keys, kws) => keys.find(k => kws.some(kw => String(k).toLowerCase().replace(/\s+/g, '').includes(kw)));
+        const getVal = (obj, keys, kws, fallback) => obj[findKey(keys, kws)] || obj[fallback] || '';
+
+        const formatDisplayDate = (dateStr) => {
+            if (!dateStr) return { month: '-', date: '-' };
+            const d = new Date(dateStr);
+            if (!isNaN(d.getTime())) return { month: d.toLocaleDateString('en-US',{month:'short'}).toUpperCase(), date: d.getDate() };
+            const parts = String(dateStr).split(/[/-]/);
+            if (parts.length >= 3) {
+                const day = parts[0].length === 4 ? parseInt(parts[2], 10) : parseInt(parts[0], 10);
+                const mNum = parts[0].length === 4 ? parseInt(parts[1], 10) : parseInt(parts[1], 10);
+                const mNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+                return { month: mNames[mNum-1] || '-', date: day || '-' };
+            }
+            return { month: '-', date: '-' };
+        };
+
         function App() {
             const [view, setView] = useState(() => {
                 const savedView = sessionStorage.getItem('app_view');
@@ -221,12 +245,14 @@
             
             const [student, setStudent] = useState(null);
             const [activities, setActivities] = useState([]);
+            const [recruitments, setRecruitments] = useState([]); 
             const [selectedActivity, setSelectedActivity] = useState(null);
             const [surveyAnswers, setSurveyAnswers] = useState({});
             const [suggestion, setSuggestion] = useState('');
             const [historyData, setHistoryData] = useState([]);
 
             const [systemOpen, setSystemOpen] = useState(true);
+            const [recruitSystemOpen, setRecruitSystemOpen] = useState(true);
             const [adminData, setAdminData] = useState(null);
 
             const [searchPurpose, setSearchPurpose] = useState(() => sessionStorage.getItem('search_purpose') || 'activity');
@@ -269,7 +295,7 @@
 
             const loadAdminData = () => {
                 if (API_CONFIG.USE_FAST_CSV && !isFastCSVReady()) {
-                    Swal.fire({ title: 'ตั้งค่าระบบดึงข้อมูลเร็วไม่สมบูรณ์', text: 'กรุณาใส่ SHEET_ID ของคุณในโค้ด (บรรทัดที่ 106) ให้ถูกต้องครับ', icon: 'warning', confirmButtonColor: '#ea580c' });
+                    Swal.fire({ title: 'ตั้งค่าระบบดึงข้อมูลเร็วไม่สมบูรณ์', text: 'กรุณาใส่ SHEET_ID ของคุณในโค้ดให้ถูกต้องครับ', icon: 'warning', confirmButtonColor: '#ea580c' });
                     return;
                 }
 
@@ -278,22 +304,26 @@
                     try {
                         let data;
                         if (isFastCSVReady()) {
-                            const [acts, chks, evals, shirts, settings] = await Promise.all([
+                            const [acts, chks, evals, shirts, settings, recs, regis] = await Promise.all([
                                 fetchFastCSV('Activities').catch(() => []), 
                                 fetchFastCSV('CheckIns').catch(() => []),
                                 fetchFastCSV('Evaluations').catch(() => []), 
                                 fetchFastCSV('ShirtOrders').catch(() => []),
-                                fetchFastCSV('Settings').catch(() => [])
+                                fetchFastCSV('Settings').catch(() => []),
+                                fetchFastCSV('Recruitments').catch(() => []),
+                                fetchFastCSV('Registrations').catch(() => [])
                             ]);
                             
-                            let priceInfo = { normal: 250, oversize: 380, status: 'open', receiptHeader: 'สโมสรนักศึกษาคณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย\nที่อยู่: 80 ซอย 9 ตำบล บ้านดู่ อำเภอเมืองเชียงราย เชียงราย 57100', receiptNote: 'กรุณานำใบเสร็จนี้มาแสดงในวันรับเสื้อ', systemStatus: 'open', popupText: '', popupImage: '' };
-                            
+                            let priceInfo = { normal: 250, oversize: 380, status: 'open', receiptHeader: 'สโมสรนักศึกษาคณะเทคโนโลยีดิจิทัล', receiptNote: 'กรุณานำใบเสร็จนี้มาแสดงในวันรับเสื้อ', systemStatus: 'open', popupText: '', popupImage: '' };
+                            let recruitInfo = { status: 'open' }; 
+
                             if (settings && settings.length > 0) {
                                 const priceRow = settings.find(r => r.Key === 'ShirtPrice') || {Value1: 250, Value2: 380};
                                 const statusRow = settings.find(r => r.Key === 'ShirtStatus') || {Value1: 'open', Value2: ''};
                                 const receiptRow = settings.find(r => r.Key === 'ReceiptConfig') || {Value1: priceInfo.receiptHeader, Value2: priceInfo.receiptNote};
                                 const systemRow = settings.find(r => r.Key === 'SystemStatus') || {Value1: 'open', Value2: ''};
                                 const popupRow = settings.find(r => r.Key === 'ShirtPopup') || {Value1: '', Value2: ''};
+                                const recruitStatusRow = settings.find(r => r.Key === 'RecruitStatus') || {Value1: 'open', Value2: ''};
                                 
                                 priceInfo = { 
                                     normal: Number(priceRow.Value1), oversize: Number(priceRow.Value2), 
@@ -301,26 +331,29 @@
                                     systemStatus: systemRow.Value1,
                                     popupText: popupRow.Value1, popupImage: popupRow.Value2
                                 };
+                                recruitInfo.status = recruitStatusRow.Value1;
                             } else {
-                                try { priceInfo = await runGAS('getShirtPrice'); } catch(err) { console.warn("Fallback to default settings"); }
+                                try { priceInfo = await runGAS('getShirtPrice'); } catch(err) {}
                             }
                             
-                            data = { activities: acts, checkins: chks, evaluations: evals, shirtOrders: shirts, shirtPrice: priceInfo };
+                            data = { activities: acts, checkins: chks, evaluations: evals, shirtOrders: shirts, recruitments: recs, registrations: regis, shirtPrice: priceInfo, recruitStatus: recruitInfo.status };
                         } else { 
                             data = await runGAS('getAdminDashboardData'); 
                         }
                         
-                        setAdminData(data || { activities: [], checkins: [], evaluations: [], shirtOrders: [], shirtPrice: {} }); 
-                        if (data && data.shirtPrice) { 
-                            setShirtPrice(data.shirtPrice); 
-                            setShirtSystemOpen(data.shirtPrice.status !== 'closed'); 
-                            setSystemOpen(data.shirtPrice.systemStatus !== 'maintenance');
+                        setAdminData(data || { activities: [], checkins: [], evaluations: [], shirtOrders: [], recruitments: [], registrations: [], shirtPrice: {}, recruitStatus: 'open' }); 
+                        if (data) { 
+                            if(data.shirtPrice) {
+                                setShirtPrice(data.shirtPrice); 
+                                setShirtSystemOpen(data.shirtPrice.status !== 'closed'); 
+                                setSystemOpen(data.shirtPrice.systemStatus !== 'maintenance');
+                            }
+                            if(data.recruitStatus) {
+                                setRecruitSystemOpen(data.recruitStatus !== 'closed');
+                            }
                         }
                         
-                        setTimeout(() => {
-                            Swal.close(); 
-                            setView('admin_dashboard');
-                        }, 50);
+                        setTimeout(() => { Swal.close(); setView('admin_dashboard'); }, 50);
 
                     } catch(e) { Swal.fire('ข้อผิดพลาดการเชื่อมต่อ', e.message, 'error'); }
                 }, 100);
@@ -329,36 +362,40 @@
             useEffect(() => {
                 const loadInitialData = async () => {
                     try {
-                        let acts = [];
-                        if (isFastCSVReady()) {
-                            const allActs = await fetchFastCSV('Activities');
-                            acts = allActs.filter(a => a.Status === 'open');
-                        } else { acts = await runGAS('getActiveActivities'); }
-                        setActivities(acts || []);
+                        let acts = [], recs = [];
+                        let priceInfo = null, recStatus = 'open', sysStatus = 'open';
                         
-                        let priceInfo = null;
                         if (isFastCSVReady()) {
                             try {
-                                const settings = await fetchFastCSV('Settings');
-                                const priceRow = settings.find(r => r.Key === 'ShirtPrice') || {Value1: 250, Value2: 380};
-                                const statusRow = settings.find(r => r.Key === 'ShirtStatus') || {Value1: 'open', Value2: ''};
-                                const receiptRow = settings.find(r => r.Key === 'ReceiptConfig') || {Value1: 'สโมสรนักศึกษาคณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย\nที่อยู่: 80 ซอย 9 ตำบล บ้านดู่ อำเภอเมืองเชียงราย เชียงราย 57100', Value2: 'กรุณานำใบเสร็จนี้มาแสดงในวันรับเสื้อ'};
-                                const systemRow = settings.find(r => r.Key === 'SystemStatus') || {Value1: 'open', Value2: ''};
-                                const popupRow = settings.find(r => r.Key === 'ShirtPopup') || {Value1: '', Value2: ''};
+                                const [allActs, allRecs, settings] = await Promise.all([
+                                    fetchFastCSV('Activities').catch(() => []),
+                                    fetchFastCSV('Recruitments').catch(() => []),
+                                    fetchFastCSV('Settings').catch(() => [])
+                                ]);
                                 
-                                priceInfo = { 
-                                    normal: Number(priceRow.Value1), oversize: Number(priceRow.Value2), 
-                                    status: statusRow.Value1, receiptHeader: receiptRow.Value1, receiptNote: receiptRow.Value2,
-                                    systemStatus: systemRow.Value1,
-                                    popupText: popupRow.Value1, popupImage: popupRow.Value2
-                                };
-                            } catch(e) { priceInfo = await runGAS('getShirtPrice'); }
-                        } else { priceInfo = await runGAS('getShirtPrice'); }
+                                acts = allActs.filter(a => a.Status === 'open');
+                                recs = allRecs.filter(r => r.Status === 'open');
+                                
+                                if (settings.length > 0) {
+                                    const getSet = (k, f1, f2) => { const row = settings.find(r => r.Key === k); return row ? { v1: row.Value1, v2: row.Value2 } : { v1: f1, v2: f2 }; };
+                                    const pSet = getSet('ShirtPrice', 250, 380); priceInfo = { normal: Number(pSet.v1), oversize: Number(pSet.v2) };
+                                    priceInfo.status = getSet('ShirtStatus', 'open').v1;
+                                    sysStatus = getSet('SystemStatus', 'open').v1;
+                                    const rSet = getSet('ReceiptConfig', '', ''); priceInfo.receiptHeader = rSet.v1; priceInfo.receiptNote = rSet.v2;
+                                    const popSet = getSet('ShirtPopup', '', ''); priceInfo.popupText = popSet.v1; priceInfo.popupImage = popSet.v2;
+                                    recStatus = getSet('RecruitStatus', 'open').v1;
+                                }
+                            } catch(e) { acts = await runGAS('getActiveActivities'); priceInfo = await runGAS('getShirtPrice'); }
+                        } else { acts = await runGAS('getActiveActivities'); priceInfo = await runGAS('getShirtPrice'); }
 
+                        setActivities(acts || []);
+                        setRecruitments(recs || []);
+                        setRecruitSystemOpen(recStatus === 'open');
+                        setSystemOpen(sysStatus === 'open');
+                        
                         if (priceInfo) {
                             setShirtPrice(priceInfo);
                             setShirtSystemOpen(priceInfo.status !== 'closed');
-                            setSystemOpen(priceInfo.systemStatus !== 'maintenance');
                             setReceiptSettings({ header: priceInfo.receiptHeader, note: priceInfo.receiptNote });
                         }
                     } catch (e) { console.error("Initial load failed", e); }
@@ -429,12 +466,16 @@
                                 setPaymentMethod(pastOrder.PaymentMethod || (pastOrder.SlipImage || pastOrder.SlipURL || pastOrder.Slip ? 'promptpay' : 'cash'));
                                 setView('receipt');
                             } else { setView('shirt_form'); }
-                        } else { Swal.close(); setView('select'); }
+                        } else if (searchPurpose === 'recruit') {
+                            Swal.close(); setView('select_recruit');
+                        } else { 
+                            Swal.close(); setView('select'); 
+                        }
                     } else { 
                         Swal.close(); 
                         Swal.fire({
                             title:'ไม่พบข้อมูล', 
-                            text:'ไม่พบข้อมูลของท่านในฐานข้อมูล กรุณาติดต่อฝ่ายกิจการนักศึกษา คณะเทคโนโลยีดิจิทัล เพื่อตรวจสอบข้อมูล', 
+                            text:'ไม่พบข้อมูลของท่านในระบบ กรุณาตรวจสอบและลองใหม่อีกครั้ง', 
                             icon:'error', 
                             confirmButtonColor: '#1a1a1a'
                         }); 
@@ -474,6 +515,50 @@
                     setSelectedActivity(act);
                     setView('survey');
                 }
+            };
+
+            const handleRegisterRecruit = async (recruit) => {
+                Swal.fire({ title: 'กำลังตรวจสอบสิทธิ์...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                try {
+                    let hasJoined = false;
+                    if (isFastCSVReady()) {
+                        try {
+                            const allRegis = await fetchFastCSV('Registrations');
+                            const cleanSid = String(student.StudentID).replace(/\s+/g, '').toLowerCase();
+                            const cleanRecId = String(recruit.RecruitID).replace(/\s+/g, '').toLowerCase();
+                            if (allRegis.length > 0) {
+                                const keys = Object.keys(allRegis[0]);
+                                const idKey = findKey(keys, ['studentid', 'รหัสนักศึกษา', 'รหัส']);
+                                const recKey = findKey(keys, ['recruitid', 'รหัสกิจกรรม']);
+                                
+                                hasJoined = allRegis.some(r => {
+                                    const matchStudent = idKey ? String(r[idKey]).replace(/\s+/g, '').toLowerCase() === cleanSid : false;
+                                    const matchRec = recKey ? String(r[recKey]).replace(/\s+/g, '').toLowerCase() === cleanRecId : false;
+                                    return matchStudent && matchRec;
+                                });
+                            }
+                        } catch (csvErr) { console.warn("Registrations check failed locally"); }
+                    }
+                    Swal.close();
+                    if (hasJoined) { 
+                        return Swal.fire({ title: 'สมัครแล้ว', text: 'คุณได้ลงทะเบียนสมัครโครงการนี้ไปแล้ว', icon: 'info', confirmButtonColor: '#a855f7' }); 
+                    }
+                    
+                    Swal.fire({
+                        title: 'ยืนยันการสมัคร?', text: `คุณต้องการลงทะเบียนสมัครเข้าร่วม "${recruit.Name}" ใช่หรือไม่?`, icon: 'question',
+                        showCancelButton: true, confirmButtonText: 'ยืนยัน', cancelButtonText: 'ยกเลิก', confirmButtonColor: '#a855f7'
+                    }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            Swal.fire({ title: 'กำลังสมัคร...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                            try {
+                                const res = await runGAS('saveRegistration', { student, recruit });
+                                Swal.close();
+                                if(res.success) { Swal.fire({ title: 'สมัครสำเร็จ!', text: 'บันทึกข้อมูลการรับสมัครเรียบร้อยแล้ว', icon: 'success', confirmButtonColor: '#a855f7' }).then(goHome); } 
+                                else { Swal.fire('ข้อผิดพลาด', res.error, 'error'); }
+                            } catch(e) { Swal.fire('ข้อผิดพลาด', e.message, 'error'); }
+                        }
+                    });
+                } catch(e) { Swal.close(); Swal.fire('ข้อผิดพลาด', e.message, 'error'); }
             };
 
             const handleSubmitShirtOrder = async (e) => {
@@ -559,13 +644,13 @@
                                 {view === 'home' && <div className="absolute top-0 w-8 h-1 bg-orange-500 rounded-b-full"></div>}
                                 <i className={`fa-solid fa-house text-xl ${view === 'home' ? 'mb-0.5 scale-110' : ''}`}></i><span className="text-[10px] font-medium">หน้าแรก</span>
                             </button>
-                            <button onClick={() => { if(!systemOpen) return Swal.fire({title:'วันนี้ผมรักผมทักผมรอ วันไหนผมท้อผมพอผมลา', icon:'info', confirmButtonColor: '#1a1a1a'}); setSearchPurpose('activity'); setView('search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'select' || view === 'survey' || (view === 'search' && searchPurpose === 'activity')) ? 'text-orange-600' : 'text-gray-400'}`}>
+                            <button onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิด', icon:'info', confirmButtonColor: '#1a1a1a'}); setSearchPurpose('recruit'); setView('search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'select_recruit' || (view === 'search' && searchPurpose === 'recruit')) ? 'text-purple-600' : 'text-gray-400'}`}>
+                                {(view === 'select_recruit' || (view === 'search' && searchPurpose === 'recruit')) && <div className="absolute top-0 w-8 h-1 bg-purple-500 rounded-b-full"></div>}
+                                <i className={`fa-solid fa-bullhorn text-xl ${(view === 'select_recruit' || (view === 'search' && searchPurpose === 'recruit')) ? 'mb-0.5 scale-110' : ''}`}></i><span className="text-[10px] font-medium">รับสมัคร</span>
+                            </button>
+                            <button onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิด', icon:'info', confirmButtonColor: '#1a1a1a'}); setSearchPurpose('activity'); setView('search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'select' || view === 'survey' || (view === 'search' && searchPurpose === 'activity')) ? 'text-orange-600' : 'text-gray-400'}`}>
                                 {(view === 'select' || view === 'survey' || (view === 'search' && searchPurpose === 'activity')) && <div className="absolute top-0 w-8 h-1 bg-orange-500 rounded-b-full"></div>}
                                 <i className={`fa-solid fa-qrcode text-xl ${(view === 'select' || view === 'survey' || (view === 'search' && searchPurpose === 'activity')) ? 'mb-0.5 scale-110' : ''}`}></i><span className="text-[10px] font-medium">เช็คชื่อ</span>
-                            </button>
-                            <button onClick={() => setView('history_search')} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'history_search' || view === 'history_result') ? 'text-orange-600' : 'text-gray-400'}`}>
-                                {(view === 'history_search' || view === 'history_result') && <div className="absolute top-0 w-8 h-1 bg-orange-500 rounded-b-full"></div>}
-                                <i className={`fa-solid fa-clock-rotate-left text-xl ${(view === 'history_search' || view === 'history_result') ? 'mb-0.5 scale-110' : ''}`}></i><span className="text-[10px] font-medium">ประวัติ</span>
                             </button>
                             {shirtSystemOpen && systemOpen && (
                                 <button onClick={() => { setSearchPurpose('shirt'); setView('search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'shirt_form' || view === 'receipt' || (view === 'search' && searchPurpose === 'shirt')) ? 'text-orange-600' : 'text-gray-400'}`}>
@@ -573,6 +658,10 @@
                                     <i className={`fa-solid fa-shirt text-xl ${(view === 'shirt_form' || view === 'receipt' || (view === 'search' && searchPurpose === 'shirt')) ? 'mb-0.5 scale-110' : ''}`}></i><span className="text-[10px] font-medium">จองเสื้อ</span>
                                 </button>
                             )}
+                            <button onClick={() => setView('history_search')} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'history_search' || view === 'history_result') ? 'text-orange-600' : 'text-gray-400'}`}>
+                                {(view === 'history_search' || view === 'history_result') && <div className="absolute top-0 w-8 h-1 bg-orange-500 rounded-b-full"></div>}
+                                <i className={`fa-solid fa-clock-rotate-left text-xl ${(view === 'history_search' || view === 'history_result') ? 'mb-0.5 scale-110' : ''}`}></i><span className="text-[10px] font-medium">ประวัติ</span>
+                            </button>
                         </div>
                     </div>
                 );
@@ -594,13 +683,13 @@
                                 <h2 className="text-sm font-bold text-orange-500 tracking-widest uppercase mb-3">Welcome to Platform</h2>
                                 <h1 className="text-4xl md:text-5xl font-light text-charcoal-900 tracking-tight">Activities <span className="font-semibold text-orange-600">DIGIT.CRRU</span></h1>
                             </div>
-                            <div className={`w-full grid gap-6 mx-auto ${(shirtSystemOpen && systemOpen) ? 'max-w-5xl md:grid-cols-3' : 'max-w-3xl md:grid-cols-2'}`}>
-                                <div onClick={() => { if(!systemOpen) return Swal.fire({title:'วันนี้ผมรักผมทักผมรอ วันไหนผมท้อผมพอผมลา', icon:'info', confirmButtonColor:'#111827'}); setSearchPurpose('recruit'); setView('search'); }} 
+                            <div className={`w-full grid gap-6 mx-auto ${(shirtSystemOpen && systemOpen) ? 'max-w-5xl md:grid-cols-4 sm:grid-cols-2' : 'max-w-4xl md:grid-cols-3 sm:grid-cols-2'}`}>
+                                <div onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', icon:'info', confirmButtonColor:'#111827'}); setSearchPurpose('recruit'); setView('search'); }} 
                                      className={`luxury-card p-8 md:p-10 cursor-pointer group hover:-translate-y-1 ${!systemOpen ? 'opacity-50 grayscale' : ''}`}>
                                     <div className="w-14 h-14 bg-purple-50 text-purple-500 rounded-full flex items-center justify-center text-2xl mb-8 group-hover:bg-gradient-to-br group-hover:from-purple-400 group-hover:to-purple-600 group-hover:text-white shadow-sm transition-all duration-300"><i className="fa-solid fa-bullhorn"></i></div>
                                     <h3 className="text-xl font-semibold text-charcoal-900 mb-2">ประกาศรับสมัคร</h3><p className="text-gray-500 text-sm font-light leading-relaxed">ประกาศรับสมัครนักศึกษาเข้าร่วมกิจกรรม</p>
                                 </div>
-                                <div onClick={() => { if(!systemOpen) return Swal.fire({title:'วันนี้ผมรักผมทักผมรอ วันไหนผมท้อผมพอผมลา', icon:'info', confirmButtonColor:'#111827'}); setSearchPurpose('activity'); setView('search'); }} 
+                                <div onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', icon:'info', confirmButtonColor:'#111827'}); setSearchPurpose('activity'); setView('search'); }} 
                                      className={`luxury-card p-8 md:p-10 cursor-pointer group hover:-translate-y-1 ${!systemOpen ? 'opacity-50 grayscale' : ''}`}>
                                     <div className="w-14 h-14 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center text-2xl mb-8 group-hover:bg-gradient-to-br group-hover:from-orange-400 group-hover:to-orange-600 group-hover:text-white shadow-sm transition-all duration-300"><i className="fa-solid fa-qrcode"></i></div>
                                     <h3 className="text-xl font-semibold text-charcoal-900 mb-2">ลงทะเบียนกิจกรรม</h3><p className="text-gray-500 text-sm font-light leading-relaxed">เช็คชื่อเข้าร่วมและประเมินความพึงพอใจ</p>
@@ -611,7 +700,7 @@
                                 </div>
                                 {shirtSystemOpen && systemOpen && (
                                     <div onClick={() => { setSearchPurpose('shirt'); setView('search'); }} className={`luxury-card p-8 md:p-10 cursor-pointer group hover:-translate-y-1`}>
-                                        <div className="w-14 h-14 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center text-2xl mb-8 group-hover:bg-gradient-to-br group-hover:from-orange-400 group-hover:to-orange-600 group-hover:text-white shadow-sm transition-all duration-300"><i className="fa-solid fa-shirt"></i></div>
+                                        <div className="w-14 h-14 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center text-2xl mb-8 group-hover:bg-gradient-to-br group-hover:from-rose-400 group-hover:to-rose-600 group-hover:text-white shadow-sm transition-all duration-300"><i className="fa-solid fa-shirt"></i></div>
                                         <h3 className="text-xl font-semibold text-charcoal-900 mb-2">สั่งจองเสื้อคณะ</h3><p className="text-gray-500 text-sm font-light leading-relaxed">ระบุไซส์และบันทึกการสั่งจองรับใบเสร็จ</p>
                                     </div>
                                 )}
@@ -944,14 +1033,12 @@
                                                 <div className="bg-white border border-blue-100 p-6 rounded-2xl mb-8 flex flex-col gap-6 shadow-sm">
                                                     <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
                                                         <div className="bg-white p-2 rounded-xl border border-gray-200 shadow-sm relative">
-                                                            {/* 🚨 แก้ไขเบอร์โทรศัพท์ 0812345678 ด้านล่างนี้ ให้เป็นเบอร์พร้อมเพย์ของคุณ */}
                                                             <img src={`https://promptpay.io/0812345678/${grandTotal}.png`} alt="PromptPay QR" className="w-32 h-32 object-contain" />
                                                         </div>
                                                         <div className="text-center sm:text-left">
                                                             <h4 className="font-bold text-[#113566] mb-1 flex items-center justify-center sm:justify-start gap-2 text-lg">
                                                                 PromptPay
                                                             </h4>
-                                                            {/* 🚨 แก้ไขเบอร์โทรศัพท์ และ ชื่อบัญชี ที่จะแสดงให้ผู้ใช้เห็น */}
                                                             <p className="text-sm text-gray-600 font-medium mb-0.5">เบอร์พร้อมเพย์: 081-234-5678</p>
                                                             <p className="text-xs text-gray-500 mb-2">ชื่อบัญชี: สโมสรนักศึกษา คณะเทคโนโลยีดิจิทัล</p>
                                                             <div className="inline-block bg-orange-50 text-orange-600 px-3 py-1.5 rounded-lg text-[10px] font-semibold border border-orange-100">
@@ -960,7 +1047,6 @@
                                                         </div>
                                                     </div>
 
-                                                    {/* Slip Upload Area */}
                                                     <div className="border-t border-dashed border-gray-200 pt-6">
                                                         <label className="block text-sm font-semibold text-charcoal-900 mb-3 text-center sm:text-left">
                                                             <i className="fa-solid fa-file-invoice-dollar text-orange-500 mr-2"></i>แนบสลิปโอนเงิน (บังคับ)
@@ -1508,17 +1594,30 @@
             };
 
             const renderSpssContent = () => {
-                if(!selectedActivityForSpss) return <div id="spss-ex" className="text-center py-10 text-gray-400 font-light border border-gray-100 rounded-xl">กรุณาเลือกกิจกรรมเพื่อดูรายงาน</div>;
+                if(!selectedActivityForSpss) return <div id="spss-ex" className="text-center py-10 text-gray-400 font-light border border-gray-100 rounded-xl bg-white">กรุณาเลือกกิจกรรมเพื่อดูรายงาน</div>;
                 const selectedActivityName = (data?.activities || []).find(a=>String(a.ActivityID)===String(selectedActivityForSpss))?.Name;
-                const evals = (data?.evaluations || []).filter(e => String(e.ActivityName).trim() === String(selectedActivityName).trim());
-                if(evals.length === 0) return <div id="spss-ex" className="text-center py-10 text-gray-400 font-light border border-gray-100 rounded-xl">ไม่พบข้อมูลการประเมิน</div>;
+                const evals = (data?.evaluations || []).filter(e => {
+                    const keys = Object.keys(e);
+                    const actNameKey = keys.find(k => k.toLowerCase().includes('activityname') || k.toLowerCase().includes('ชื่อกิจกรรม'));
+                    return actNameKey && String(e[actNameKey]).trim() === String(selectedActivityName).trim();
+                });
+                if(evals.length === 0) return <div id="spss-ex" className="text-center py-10 text-gray-400 font-light border border-gray-100 rounded-xl bg-white">ไม่พบข้อมูลการประเมิน</div>;
 
-                const actCheckins = (data?.checkins || []).filter(c => String(c.ActivityID).trim() === String(selectedActivityForSpss).trim());
+                const actCheckins = (data?.checkins || []).filter(c => {
+                    const keys = Object.keys(c);
+                    const actIdKey = keys.find(k => k.toLowerCase() === 'activityid' || k.toLowerCase() === 'รหัสกิจกรรม');
+                    return actIdKey && String(c[actIdKey]).trim() === String(selectedActivityForSpss).trim();
+                });
+                
                 let mCount = 0; let fCount = 0;
                 actCheckins.forEach(c => {
-                    if (c.Name && c.Name.trim().startsWith('นาย')) mCount++;
-                    else if (c.Name) fCount++;
+                    const keys = Object.keys(c);
+                    const nameKey = keys.find(k => k.toLowerCase() === 'name' || k.toLowerCase() === 'ชื่อ');
+                    const n = nameKey ? String(c[nameKey]).trim() : '';
+                    if (n.startsWith('นาย')) mCount++;
+                    else if (n) fCount++;
                 });
+                
                 const totalDemo = mCount + fCount || 1;
                 const mPct = ((mCount / totalDemo) * 100).toFixed(2);
                 const fPct = ((fCount / totalDemo) * 100).toFixed(2);
@@ -1538,9 +1637,9 @@
                     cat.questions.forEach(q => {
                         const hKey = ['Q1_1','Q1_2','Q1_3','Q1_4','Q2_1','Q2_2','Q2_3','Q2_4','Q3_1','Q3_2','Q3_3','Q3_4','Q3_5'][overallIdx - 1];
                         const scores = evals.map(e => {
-                            let val = e[hKey];
-                            if (val === undefined || val === null || val === '') val = e[`q${overallIdx}`];
-                            return Number(val) || 0;
+                            const keys = Object.keys(e);
+                            const matchedKey = keys.find(x => x.toLowerCase() === hKey.toLowerCase() || x.toLowerCase() === `q${overallIdx}`);
+                            return Number(matchedKey ? e[matchedKey] : 0) || 0;
                         }).filter(s => s > 0);
                         
                         allScoresForGrand.push(...scores);
@@ -1569,15 +1668,15 @@
                 const top3 = sortedQStats[2] || {text: '-', mean: 0};
 
                 const validComments = evals
-                    .map(e => e.Comment || e.Suggestion)
-                    .filter(c => {
-                        if (!c) return false;
-                        const text = String(c).trim();
-                        return text !== '' && text !== '-' && text !== '.' && text !== 'ไม่มี' && text !== 'ไม่มีครับ' && text !== 'ไม่มีค่ะ' && text !== 'ไม่มีข้อเสนอแนะ';
-                    });
+                    .map(e => {
+                        const keys = Object.keys(e);
+                        const k = keys.find(x => ['comment', 'ข้อเสนอแนะ', 'suggestion'].includes(x.toLowerCase()));
+                        return k ? String(e[k]).trim() : '';
+                    })
+                    .filter(text => text !== '' && text !== '-' && text !== '.' && text !== 'ไม่มี' && text !== 'ไม่มีครับ' && text !== 'ไม่มีค่ะ' && text !== 'ไม่มีข้อเสนอแนะ');
 
                 return (
-                    <div id="spss-ex" className="overflow-x-auto border border-gray-100 rounded-xl p-6 transition-colors">
+                    <div id="spss-ex" className="overflow-x-auto border border-gray-100 bg-white rounded-xl p-6 transition-colors shadow-sm mt-6">
                         <div style={{ display: 'none' }} className="word-export-title">
                             <h3 style={{ textAlign: 'center', fontSize: '18pt', fontWeight: 'bold' }}>รายงานผลการประเมินความพึงพอใจ</h3>
                             <p style={{ textAlign: 'center', marginBottom: '20pt' }}>กิจกรรม: {selectedActivityName}</p>
@@ -1699,45 +1798,70 @@
             const currentRegistrations = sortedRegistrationsList.slice((regisPage - 1) * regisItemsPerPage, regisPage * regisItemsPerPage);
             const totalRegisPages = Math.ceil(sortedRegistrationsList.length / regisItemsPerPage) || 1;
 
+            const menuGroups = [
+                { 
+                    label: 'Dashboard', 
+                    items: [{ id: 'overview', icon: 'fa-chart-pie', text: 'ภาพรวมระบบ' }] 
+                },
+                { 
+                    label: 'Activity System', 
+                    items: [
+                        { id: 'activities', icon: 'fa-list', text: 'จัดการกิจกรรม' },
+                        { id: 'summary', icon: 'fa-users', text: 'ยอดเช็คชื่อ' },
+                        { id: 'spss', icon: 'fa-file-lines', text: 'รายงานผลประเมิน' }
+                    ] 
+                },
+                { 
+                    label: 'Recruitment', 
+                    items: [
+                        { id: 'manage_recruit', icon: 'fa-bullhorn', text: 'จัดการรับสมัคร' },
+                        { id: 'registrations', icon: 'fa-user-plus', text: 'ข้อมูลผู้สมัคร' }
+                    ] 
+                },
+                { 
+                    label: 'Welfare / Orders', 
+                    items: [{ id: 'shirt_summary', icon: 'fa-shirt', text: 'สรุปการสั่งจองเสื้อ' }] 
+                }
+            ];
+
             return (
                 <div className="min-h-screen bg-[#fffcf9] dark:bg-[#121212] flex flex-col md:flex-row transition-colors">
                     <aside className="w-full md:w-64 bg-charcoal-900 text-white flex-shrink-0 flex flex-col z-20 shadow-xl border-r border-charcoal-800">
-                        <div className="p-8 border-b border-gray-800">
+                        <div className="p-6 border-b border-gray-800 flex justify-between items-center md:block">
                             <h2 className="text-xl font-semibold tracking-widest uppercase text-orange-500">Workspace</h2>
+                            <button onClick={goHome} className="md:hidden text-xs bg-gray-800 text-gray-300 px-3 py-1.5 rounded font-bold">ออก</button>
                         </div>
-                        <nav className="flex-1 px-4 py-6 space-y-1">
-                            {['overview', 'activities', 'summary', 'spss', 'manage_recruit', 'registrations', 'shirt_summary'].map(tab => {
-                                const labels = { overview: 'ภาพรวมระบบ', activities: 'จัดการกิจกรรม', summary: 'ยอดเช็คชื่อ', spss: 'รายงานผลประเมิน', manage_recruit: 'จัดการรับสมัคร', registrations: 'ข้อมูลผู้สมัคร', shirt_summary: 'สรุปการสั่งจองเสื้อ' };
-                                const icons = { overview: 'fa-chart-pie', activities: 'fa-list', summary: 'fa-users', spss: 'fa-file-lines', manage_recruit: 'fa-bullhorn', registrations: 'fa-user-plus', shirt_summary: 'fa-shirt' };
-                                return (
-                                    <button key={tab} onClick={() => setActiveTab(tab)} className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg transition-all text-sm font-light tracking-wide ${activeTab === tab ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}><i className={`fa-solid ${icons[tab]} w-4 opacity-80`}></i> {labels[tab]}</button>
-                                );
-                            })}
-                            <div className="mt-8 pt-6 border-t border-gray-800">
-                                <p className="text-[9px] text-gray-500 font-medium mb-3 px-4 uppercase tracking-widest">สถานะแพลตฟอร์ม</p>
-                                <button onClick={toggleSystem} className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm transition-all ${systemOpen ? 'text-white bg-green-900/30 hover:bg-green-900/50 border border-green-800' : 'text-gray-400 bg-black/30 border border-gray-800'}`}>
-                                    <span className="font-light flex items-center"><i className={`fa-solid ${systemOpen ? 'fa-toggle-on text-green-500' : 'fa-toggle-off text-gray-500'} text-2xl mr-3`}></i> ระบบหลัก</span>
-                                    <span className="text-[10px] uppercase tracking-widest">{systemOpen ? 'Online' : 'Offline'}</span>
-                                </button>
-                            </div>
+                        <nav className="flex-1 px-4 py-4 md:py-6 overflow-x-auto md:overflow-y-auto custom-scrollbar flex md:flex-col gap-2 md:gap-6">
+                            {menuGroups.map((group, gIdx) => (
+                                <div key={gIdx} className="flex md:flex-col gap-2">
+                                    <p className="hidden md:block text-[10px] text-gray-500 font-semibold px-3 uppercase tracking-widest mb-1">{group.label}</p>
+                                    <div className="flex md:flex-col gap-2 md:gap-1.5">
+                                        {group.items.map(m => (
+                                            <button key={m.id} onClick={() => setActiveTab(m.id)} className={`flex-shrink-0 w-auto md:w-full flex items-center justify-center md:justify-start gap-3 px-4 py-3 md:px-5 md:py-3.5 rounded-xl transition-all text-xs font-medium tracking-wide ${activeTab === m.id ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md md:translate-x-1' : 'text-gray-400 hover:text-white hover:bg-white/5 border border-gray-800 md:border-transparent'}`}><i className={`fa-solid ${m.icon} w-5 opacity-80 text-center text-sm`}></i> <span className="hidden md:inline">{m.text}</span><span className="md:hidden inline">{activeTab === m.id ? m.text : ''}</span></button>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
                         </nav>
-                        <div className="p-4 border-t border-gray-800">
+                        <div className="p-6 bg-charcoal-900 border-t border-gray-800 hidden md:block">
+                            <p className="text-[9px] text-gray-500 font-medium mb-3 px-4 uppercase tracking-widest">สถานะแพลตฟอร์ม</p>
+                            <button onClick={toggleSystem} className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm transition-all mb-3 ${systemOpen ? 'text-white bg-green-900/30 hover:bg-green-900/50 border border-green-800' : 'text-gray-400 bg-black/30 border border-gray-800'}`}>
+                                <span className="font-light flex items-center"><i className={`fa-solid ${systemOpen ? 'fa-toggle-on text-green-500' : 'fa-toggle-off text-gray-500'} text-2xl mr-3`}></i> ระบบหลัก</span>
+                                <span className="text-[10px] uppercase tracking-widest">{systemOpen ? 'Online' : 'Offline'}</span>
+                            </button>
                             <button onClick={goHome} className="w-full py-3 text-xs text-gray-400 hover:text-white font-light tracking-widest uppercase transition-colors"><i className="fa-solid fa-arrow-left mr-2"></i> ออกจากระบบ</button>
                         </div>
                     </aside>
 
                     <main className="flex-1 p-6 md:p-12 overflow-y-auto bg-gradient-to-br from-[#fffcf9] to-[#ffedd5] dark:from-[#1c1512] dark:to-[#120c0a]">
-                        <div className="flex justify-between items-end mb-12 border-b border-orange-200/50 dark:border-gray-800 pb-4">
-                            <h2 className="text-3xl font-light text-charcoal-900 tracking-tight capitalize">
-                                {activeTab === 'overview' && 'ภาพรวมระบบ (Overview)'}
-                                {activeTab === 'activities' && 'การจัดการกิจกรรม (Activities)'}
-                                {activeTab === 'summary' && 'ยอดเช็คชื่อ (Check-ins)'}
-                                {activeTab === 'spss' && 'รายงานผลการประเมิน (SPSS)'}
-                                {activeTab === 'manage_recruit' && 'การจัดการรับสมัคร (Recruit)'}
-                                {activeTab === 'registrations' && 'รายชื่อผู้สมัคร (Registrations)'}
-                                {activeTab === 'shirt_summary' && 'สรุปการสั่งจองเสื้อ (Orders)'}
-                            </h2>
-                            <button onClick={reloadData} className="text-xs font-medium text-orange-500 hover:text-orange-700 tracking-widest uppercase transition-colors bg-white/50 px-3 py-1.5 rounded-lg border border-orange-100 shadow-sm"><i className="fa-solid fa-rotate-right mr-1"></i> ซิงค์ข้อมูล</button>
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 border-b border-orange-200/50 dark:border-gray-800 pb-6 gap-4">
+                            <div>
+                                <p className="text-[10px] font-bold text-orange-500 uppercase tracking-widest mb-2 bg-orange-50 dark:bg-orange-500/10 inline-block px-3 py-1 rounded-md border border-orange-100 dark:border-orange-500/20 shadow-sm">Workspace</p>
+                                <h2 className="text-3xl font-bold text-charcoal-900 dark:text-white tracking-tight">
+                                    {menuGroups.flatMap(g => g.items).find(i => i.id === activeTab)?.text || 'แดชบอร์ด'}
+                                </h2>
+                            </div>
+                            <button onClick={reloadData} className="text-xs font-medium text-orange-600 bg-white hover:bg-orange-50 border border-orange-200 px-5 py-2.5 rounded-xl shadow-sm transition-all flex items-center gap-2 w-full md:w-auto justify-center"><i className="fa-solid fa-rotate-right"></i> ซิงค์ข้อมูลล่าสุด</button>
                         </div>
 
                         {activeTab === 'overview' && (
@@ -1758,39 +1882,6 @@
                                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-orange-100/50 flex items-center space-x-4 transition-transform hover:scale-[1.02]">
                                         <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center"><i className="fa-solid fa-globe text-xl"></i></div>
                                         <div><p className="text-xs text-gray-500 font-medium">กำลังออนไลน์</p><h3 className="text-2xl font-bold text-gray-800">{activeUsersCount}</h3></div>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                                    <div onClick={() => setActiveTab('activities')} className="cursor-pointer group bg-white/80 backdrop-blur p-8 border border-orange-100/50 rounded-2xl shadow-sm transition-all hover:shadow-xl hover:shadow-orange-500/10 hover:-translate-y-1 relative overflow-hidden">
-                                        <div className="absolute -right-4 -top-4 w-20 h-20 bg-orange-50 rounded-full group-hover:scale-150 transition-transform duration-500 z-0"></div>
-                                        <div className="relative z-10 flex justify-between items-start">
-                                            <div>
-                                                <p className="text-xs text-orange-500 font-semibold uppercase tracking-widest mb-1">กิจกรรมทั้งหมด</p>
-                                                <p className="text-4xl font-light text-charcoal-900">{(data?.activities || []).length}</p>
-                                            </div>
-                                            <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center text-xl shadow-sm group-hover:bg-gradient-to-br group-hover:from-orange-400 group-hover:to-orange-600 group-hover:text-white transition-colors"><i className="fa-solid fa-list-check"></i></div>
-                                        </div>
-                                    </div>
-                                    <div onClick={() => { setSelectedActivityForSummary(''); setActiveTab('summary'); }} className="cursor-pointer group bg-white/80 backdrop-blur p-8 border border-orange-100/50 rounded-2xl shadow-sm transition-all hover:shadow-xl hover:shadow-orange-500/10 hover:-translate-y-1 relative overflow-hidden">
-                                        <div className="absolute -right-4 -top-4 w-20 h-20 bg-orange-50 rounded-full group-hover:scale-150 transition-transform duration-500 z-0"></div>
-                                        <div className="relative z-10 flex justify-between items-start">
-                                            <div>
-                                                <p className="text-xs text-orange-500 font-semibold uppercase tracking-widest mb-1">ยอดเช็คชื่อรวม</p>
-                                                <p className="text-4xl font-light text-charcoal-900">{(data?.checkins || []).length}</p>
-                                            </div>
-                                            <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center text-xl shadow-sm group-hover:bg-gradient-to-br group-hover:from-orange-400 group-hover:to-orange-600 group-hover:text-white transition-colors"><i className="fa-solid fa-users"></i></div>
-                                        </div>
-                                    </div>
-                                    <div onClick={() => { setSelectedActivityForSpss(''); setActiveTab('spss'); }} className="cursor-pointer group bg-white/80 backdrop-blur p-8 border border-orange-100/50 rounded-2xl shadow-sm transition-all hover:shadow-xl hover:shadow-orange-500/10 hover:-translate-y-1 relative overflow-hidden">
-                                        <div className="absolute -right-4 -top-4 w-20 h-20 bg-orange-50 rounded-full group-hover:scale-150 transition-transform duration-500 z-0"></div>
-                                        <div className="relative z-10 flex justify-between items-start">
-                                            <div>
-                                                <p className="text-xs text-orange-500 font-semibold uppercase tracking-widest mb-1">แบบประเมินรวม</p>
-                                                <p className="text-4xl font-light text-charcoal-900">{(data?.evaluations || []).length}</p>
-                                            </div>
-                                            <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center text-xl shadow-sm group-hover:bg-gradient-to-br group-hover:from-orange-400 group-hover:to-orange-600 group-hover:text-white transition-colors"><i className="fa-solid fa-star"></i></div>
-                                        </div>
                                     </div>
                                 </div>
 
@@ -2110,7 +2201,45 @@
                                             {(data?.activities || []).map(a=><option key={a.ActivityID} value={a.ActivityID}>{a.Name}</option>)}
                                         </select>
                                     </div>
-                                    <button onClick={()=>{ const h = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>body{font-family:'TH Sarabun PSK',sans-serif;font-size:16pt;}table{width:100%;border-collapse:collapse;margin-bottom:15pt;}th,td{border:1px solid black;padding:5px;}th{background-color:#f2f2f2;}h4{font-weight:bold;margin-bottom:10pt;}p{text-indent:36pt;line-height:1.5;margin-bottom:20pt;}.word-export-title{display:block !important;}</style></head><body>${document.getElementById('spss-ex').innerHTML}</body></html>`; const a = document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff', h],{type:'application/msword'})); a.download=`SPSS.doc`; a.click(); }} className="btn-gradient px-5 py-3 rounded-xl text-xs font-medium tracking-widest uppercase flex items-center justify-center whitespace-nowrap shadow-lg shadow-orange-500/20 w-full md:w-auto"><i className="fa-solid fa-file-word mr-2 text-lg"></i> โหลดไฟล์ Word</button>
+                                    <div className="flex gap-2 w-full md:w-auto">
+                                        <button onClick={()=>{ 
+                                            const evalsToExport = (data?.evaluations || []).filter(e => {
+                                                if (!selectedActivityForSpss) return true;
+                                                const actName = (data?.activities || []).find(a=>String(a.ActivityID)===String(selectedActivityForSpss))?.Name;
+                                                const keys = Object.keys(e);
+                                                const actNameKey = keys.find(k => k.toLowerCase().includes('activityname') || k.toLowerCase().includes('ชื่อกิจกรรม'));
+                                                return actNameKey && String(e[actNameKey]).trim() === String(actName).trim();
+                                            });
+                                            if(evalsToExport.length === 0) return Swal.fire('แจ้งเตือน','ไม่มีข้อมูลการประเมินให้ส่งออก','warning');
+                                            
+                                            const fields = ["Timestamp", "StudentID", "ActivityID", "ActivityName", "Q1_1", "Q1_2", "Q1_3", "Q1_4", "Q2_1", "Q2_2", "Q2_3", "Q2_4", "Q3_1", "Q3_2", "Q3_3", "Q3_4", "Q3_5", "Comment"];
+                                            const dataToExport = evalsToExport.map(e => {
+                                                const keys = Object.keys(e);
+                                                const getK = (names) => {
+                                                    const found = keys.find(k => names.includes(k.toLowerCase().trim()));
+                                                    return found ? e[found] : '';
+                                                };
+                                                return [
+                                                    getK(['timestamp', 'เวลา', 'ประทับเวลา']),
+                                                    getK(['studentid', 'รหัสนักศึกษา', 'รหัสประจำตัว']),
+                                                    getK(['activityid', 'รหัสกิจกรรม']),
+                                                    getK(['activityname', 'ชื่อกิจกรรม', 'กิจกรรม']),
+                                                    getK(['q1_1', 'q1']), getK(['q1_2', 'q2']), getK(['q1_3', 'q3']), getK(['q1_4', 'q4']),
+                                                    getK(['q2_1', 'q5']), getK(['q2_2', 'q6']), getK(['q2_3', 'q7']), getK(['q2_4', 'q8']),
+                                                    getK(['q3_1', 'q9']), getK(['q3_2', 'q10']), getK(['q3_3', 'q11']), getK(['q3_4', 'q12']), getK(['q3_5', 'q13']),
+                                                    getK(['comment', 'ข้อเสนอแนะ', 'suggestion'])
+                                                ];
+                                            });
+                                            
+                                            const csv = Papa.unparse({fields, data:dataToExport});
+                                            const link = document.createElement("a"); 
+                                            link.href = URL.createObjectURL(new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'})); 
+                                            link.download = `Evaluations_SPSS.csv`; 
+                                            link.click();
+                                        }} className="btn-gradient px-4 py-3 rounded-xl text-xs font-medium tracking-widest uppercase flex items-center justify-center whitespace-nowrap shadow-lg shadow-orange-500/20 flex-1"><i className="fa-solid fa-file-csv mr-2 text-lg"></i> ส่งออกข้อมูล CSV</button>
+
+                                        <button onClick={()=>{ const h = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>body{font-family:'TH Sarabun PSK',sans-serif;font-size:16pt;}table{width:100%;border-collapse:collapse;margin-bottom:15pt;}th,td{border:1px solid black;padding:5px;}th{background-color:#f2f2f2;}h4{font-weight:bold;margin-bottom:10pt;}p{text-indent:36pt;line-height:1.5;margin-bottom:20pt;}.word-export-title{display:block !important;}</style></head><body>${document.getElementById('spss-ex').innerHTML}</body></html>`; const a = document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff', h],{type:'application/msword'})); a.download=`SPSS.doc`; a.click(); }} className="bg-[#2b579a] hover:bg-[#1f4278] text-white shadow-lg shadow-blue-900/20 px-4 py-3 rounded-xl text-xs font-medium tracking-widest uppercase transition-all flex items-center justify-center whitespace-nowrap flex-1"><i className="fa-solid fa-file-word mr-2 text-lg"></i> โหลดไฟล์ Word</button>
+                                    </div>
                                 </div>
                                 {renderSpssContent()}
                             </div>
