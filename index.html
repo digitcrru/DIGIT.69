@@ -171,6 +171,7 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
             const [slipImage, setSlipImage] = useState(null); 
             const [receiptData, setReceiptData] = useState(null);
             const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
+            const [studentHistory, setStudentHistory] = useState([]);
 
             useEffect(() => {
                 const loader = document.getElementById('app-loader');
@@ -184,6 +185,45 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                 if (isDarkMode) { document.documentElement.classList.add('dark'); localStorage.setItem('theme', 'dark'); }
                 else { document.documentElement.classList.remove('dark'); localStorage.setItem('theme', 'light'); }
             }, [isDarkMode]);
+
+            useEffect(() => {
+                const fetchHistory = async () => {
+                    if (view === 'history' && student) {
+                        Swal.fire({ title: 'กำลังโหลดประวัติ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                        try {
+                            let historyData = [];
+                            if (isFastCSVReady()) {
+                                try {
+                                    const allChks = await fetchFastCSV('CheckIns');
+                                    const cleanSid = String(student.StudentID).replace(/\s+/g, '').toLowerCase();
+                                    if (allChks.length > 0) {
+                                        const keys = Object.keys(allChks[0]);
+                                        const idKey = findKeyByKeywords(keys, ['studentid', 'รหัสนักศึกษา', 'รหัส']);
+                                        const actNameKey = findKeyByKeywords(keys, ['activityname', 'ชื่อกิจกรรม']);
+                                        const timeKey = findKeyByKeywords(keys, ['timestamp', 'เวลา']);
+
+                                        const userChks = allChks.filter(c => idKey && String(c[idKey]).replace(/\s+/g, '').toLowerCase() === cleanSid);
+                                        historyData = userChks.map(c => ({
+                                            ActivityName: actNameKey && c[actNameKey] ? c[actNameKey] : 'กิจกรรม (ไม่ระบุชื่อ)',
+                                            Timestamp: timeKey ? c[timeKey] : ''
+                                        })).reverse();
+                                    }
+                                } catch(csvErr) {
+                                    historyData = await runGAS('getStudentHistory', student.StudentID) || [];
+                                }
+                            } else {
+                                historyData = await runGAS('getStudentHistory', student.StudentID) || [];
+                            }
+                            setStudentHistory(historyData);
+                            Swal.close();
+                        } catch(e) {
+                            Swal.close();
+                            Swal.fire('ข้อผิดพลาด', e.message, 'error');
+                        }
+                    }
+                };
+                fetchHistory();
+            }, [view, student]);
 
             const loadAdminData = () => {
                 if (API_CONFIG.USE_FAST_CSV && !isFastCSVReady()) { Swal.fire({ title: 'การตั้งค่าระบบไม่สมบูรณ์', text: 'กรุณากำหนดค่า SHEET_ID ในโค้ดครับ', icon: 'warning', confirmButtonColor: '#ff621f' }); return; }
@@ -345,7 +385,7 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                                 setPaymentMethod(findOVal(['paymentmethod', 'วิธีชำระเงิน'], 11) || (findOVal(['slip', 'สลิป'], 12) ? 'promptpay' : 'cash'));
                                 setView('receipt');
                             } else { setView('shirt_form'); }
-                        } else if (searchPurpose === 'recruit') { Swal.close(); setView('select_recruit'); } else { Swal.close(); setView('select'); }
+                        } else if (searchPurpose === 'recruit') { Swal.close(); setView('select_recruit'); } else if (searchPurpose === 'history') { Swal.close(); setView('history'); } else { Swal.close(); setView('select'); }
                     } else { Swal.close(); Swal.fire({ title:'ไม่พบข้อมูล', text:'ไม่พบข้อมูลของท่านในฐานข้อมูล กรุณาติดต่อฝ่ายกิจการนักศึกษา', icon:'error', confirmButtonColor: '#ff621f' }); }
                 } catch(e) { Swal.fire('ข้อผิดพลาด', e.message, 'error'); }
             };
@@ -493,13 +533,16 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                                 <i className={`fa-solid fa-house text-lg ${view === 'home' ? 'mb-0.5 scale-110 drop-shadow-md' : ''}`}></i><span className="text-[9px] font-medium tracking-wide">หน้าแรก</span>
                             </button>
                             <button onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิด', icon:'info', confirmButtonColor: '#ff621f'}); if(!recruitSystemOpen) return Swal.fire({title:'ปิดรับสมัคร', text:'ขณะนี้ระบบปิดรับสมัครกิจกรรมชั่วคราว', icon:'warning', confirmButtonColor:'#a855f7'}); setSearchPurpose('recruit'); setView('search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'select_recruit' || (view === 'search' && searchPurpose === 'recruit')) ? 'text-purple-500' : 'text-gray-400'}`}>
-                                <i className={`fa-solid fa-bullhorn text-lg ${(view === 'select_recruit' || (view === 'search' && searchPurpose === 'recruit')) ? 'mb-0.5' : ''}`}></i><span className="text-[9px] font-medium tracking-wide">สมัครกิจกรรม</span>
+                                <i className={`fa-solid fa-bullhorn text-lg ${(view === 'select_recruit' || (view === 'search' && searchPurpose === 'recruit')) ? 'mb-0.5' : ''}`}></i><span className="text-[9px] font-medium tracking-wide">รับสมัคร</span>
                             </button>
                             <button onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', icon:'info', confirmButtonColor: '#ff621f'}); setSearchPurpose('activity'); setView('search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'select' || view === 'survey' || (view === 'search' && searchPurpose === 'activity')) ? 'text-brand-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}>
                                 <i className={`fa-solid fa-qrcode text-lg ${(view === 'select' || view === 'survey' || (view === 'search' && searchPurpose === 'activity')) ? 'mb-0.5 scale-110 drop-shadow-md' : ''}`}></i><span className="text-[9px] font-medium tracking-wide">เช็คชื่อ</span>
                             </button>
                             <button onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', icon:'info', confirmButtonColor: '#ff621f'}); if(!shirtSystemOpen) return Swal.fire({title:'ปิดรับสั่งจอง', text:'ขณะนี้ระบบปิดรับสั่งจองเสื้อคณะชั่วคราว', icon:'warning', confirmButtonColor:'#f43f5e'}); setSearchPurpose('shirt'); setView('search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'shirt_form' || view === 'receipt' || (view === 'search' && searchPurpose === 'shirt')) ? 'text-brand-500' : 'text-gray-400 hover:text-gray-600'}`}>
-                                <i className={`fa-solid fa-shirt text-lg ${(view === 'shirt_form' || view === 'receipt' || (view === 'search' && searchPurpose === 'shirt')) ? 'mb-0.5 scale-110 drop-shadow-md' : ''}`}></i><span className="text-[9px] font-medium tracking-wide">สั่งจอง</span>
+                                <i className={`fa-solid fa-shirt text-lg ${(view === 'shirt_form' || view === 'receipt' || (view === 'search' && searchPurpose === 'shirt')) ? 'mb-0.5 scale-110 drop-shadow-md' : ''}`}></i><span className="text-[9px] font-medium tracking-wide">จองเสื้อ</span>
+                            </button>
+                            <button onClick={() => { setSearchPurpose('history'); setView('search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'history' || (view === 'search' && searchPurpose === 'history')) ? 'text-blue-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}>
+                                <i className={`fa-solid fa-clock-rotate-left text-lg ${(view === 'history' || (view === 'search' && searchPurpose === 'history')) ? 'mb-0.5 scale-110 drop-shadow-md' : ''}`}></i><span className="text-[9px] font-medium tracking-wide">ประวัติ</span>
                             </button>
                         </div>
                     </div>
@@ -530,7 +573,7 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                                 <p className="mt-4 text-gray-500 dark:text-gray-400 font-medium text-lg tracking-wide">ระบบจัดการกิจกรรมและสั่งจองเสื้อแบบครบวงจร</p>
                             </div>
                             
-                            <div className="w-full grid gap-6 mx-auto relative z-10 max-w-7xl grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                            <div className="w-full grid gap-6 mx-auto relative z-10 max-w-7xl grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                                 <div onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', text:'ระบบกำลังอยู่ในช่วงปรับปรุง', icon:'info', confirmButtonColor:'#ff621f'}); if(!recruitSystemOpen) return Swal.fire({title:'ปิดรับสมัคร', text:'ขณะนี้ระบบปิดรับสมัครกิจกรรมชั่วคราว', icon:'warning', confirmButtonColor:'#a855f7'}); setSearchPurpose('recruit'); setView('search'); }} className={`luxury-card p-8 cursor-pointer group flex flex-col items-center text-center ${(!systemOpen || !recruitSystemOpen) ? 'opacity-60 grayscale' : ''}`}>
                                     <div className="w-16 h-16 mb-5 rounded-2xl flex items-center justify-center text-purple-500 text-2xl bg-purple-50 border border-purple-100 group-hover:bg-purple-500 group-hover:text-white group-hover:shadow-[0_8px_25px_-5px_rgba(168,85,247,0.4)] group-hover:-translate-y-1 transition-all duration-300 dark:bg-gray-800 dark:border-gray-700 dark:text-purple-400"><i className="fa-solid fa-bullhorn"></i></div>
                                     <h3 className="text-lg font-bold text-gray-900 mb-2 dark:text-white">ประกาศรับสมัคร</h3>
@@ -546,6 +589,11 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                                     <h3 className="text-lg font-bold text-gray-900 mb-2 dark:text-white">สั่งจองเสื้อคณะ</h3>
                                     <p className="text-gray-500 text-xs font-medium leading-relaxed">ระบุไซส์ สั่งจอง และแนบหลักฐานเพื่อรับใบเสร็จ</p>
                                 </div>
+                                <div onClick={() => { setSearchPurpose('history'); setView('search'); }} className={`luxury-card p-8 cursor-pointer group flex flex-col items-center text-center`}>
+                                    <div className="w-16 h-16 mb-5 rounded-2xl flex items-center justify-center text-blue-500 text-2xl bg-blue-50 border border-blue-100 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-[0_8px_25px_-5px_rgba(59,130,246,0.4)] group-hover:-translate-y-1 transition-all duration-300 dark:bg-gray-800 dark:border-gray-700 dark:text-blue-400"><i className="fa-solid fa-clock-rotate-left"></i></div>
+                                    <h3 className="text-lg font-bold text-gray-900 mb-2 dark:text-white">ประวัติกิจกรรม</h3>
+                                    <p className="text-gray-500 text-xs font-medium leading-relaxed">ตรวจสอบประวัติการเข้าร่วมกิจกรรมที่ผ่านมาของคุณ</p>
+                                </div>
                             </div>
                         </div>
                         <Footer />
@@ -557,16 +605,20 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
             if (view === 'search') {
                 const isShirtSearch = searchPurpose === 'shirt';
                 const isRecruitSearch = searchPurpose === 'recruit';
+                const isHistorySearch = searchPurpose === 'history';
                 let iconClass = 'fa-id-card'; let iconColor = 'text-brand-500'; let bgIconColor = 'bg-brand-50 border-brand-100 dark:bg-gray-800 dark:border-gray-700';
                 let titleText = 'ยืนยันตัวตนเพื่อเช็คชื่อ'; let descText = 'กรุณาระบุรหัสนักศึกษา หรือ เลขบัตรประจำตัวประชาชนของคุณ';
-                if (isShirtSearch) { iconClass = 'fa-shirt'; iconColor = 'text-rose-500'; bgIconColor = 'bg-rose-50 border-rose-100 dark:bg-gray-800 dark:border-gray-700'; titleText = 'ตรวจสอบการจองเสื้อ'; descText = 'กรุณาระบุรหัสนักศึกษา เพื่อดำเนินการสั่งจองหรือตรวจสอบใบเสร็จของคุณ'; } 
-                else if (isRecruitSearch) { iconClass = 'fa-bullhorn'; iconColor = 'text-purple-500'; bgIconColor = 'bg-purple-50 border-purple-100 dark:bg-gray-800 dark:border-gray-700'; titleText = 'ระบบสมัครเข้าร่วมกิจกรรม'; descText = 'กรุณาระบุรหัสนักศึกษาเพื่อสมัครและรับข่าวสารกิจกรรมที่กำลังเปิดรับ'; }
+                
+                if (isShirtSearch) { iconClass = 'fa-shirt'; iconColor = 'text-rose-500'; bgIconColor = 'bg-rose-50 border-rose-100 dark:bg-gray-800 dark:border-gray-700'; titleText = 'ตรวจสอบการจองเสื้อ'; descText = 'กรุณาระบุรหัสนักศึกษา หรือ เลขบัตรประจำตัวประชาชน เพื่อสั่งจองและดูใบเสร็จ'; } 
+                else if (isRecruitSearch) { iconClass = 'fa-bullhorn'; iconColor = 'text-purple-500'; bgIconColor = 'bg-purple-50 border-purple-100 dark:bg-gray-800 dark:border-gray-700'; titleText = 'ระบบสมัครเข้าร่วมกิจกรรม'; descText = 'กรุณาระบุรหัสนักศึกษา หรือ เลขบัตรประจำตัวประชาชน เพื่อดูประกาศรับสมัคร'; }
+                else if (isHistorySearch) { iconClass = 'fa-clock-rotate-left'; iconColor = 'text-blue-500'; bgIconColor = 'bg-blue-50 border-blue-100 dark:bg-gray-800 dark:border-gray-700'; titleText = 'ประวัติการเข้าร่วมกิจกรรม'; descText = 'กรุณาระบุรหัสนักศึกษา หรือ เลขบัตรประจำตัวประชาชน เพื่อตรวจสอบประวัติ'; }
+                
                 return (
                     <div className="min-h-screen flex flex-col relative z-10">
                         <Navbar />
                         <div className="flex-grow flex flex-col items-center justify-center p-6">
                             <div className="luxury-card w-full max-w-md p-10 relative overflow-hidden">
-                                <div className={`absolute top-0 left-0 w-full h-2 ${isRecruitSearch ? 'bg-gradient-to-r from-purple-500 to-fuchsia-500' : isShirtSearch ? 'bg-gradient-to-r from-rose-400 to-rose-600' : 'bg-gradient-icon'}`}></div>
+                                <div className={`absolute top-0 left-0 w-full h-2 ${isRecruitSearch ? 'bg-gradient-to-r from-purple-500 to-fuchsia-500' : isShirtSearch ? 'bg-gradient-to-r from-rose-400 to-rose-600' : isHistorySearch ? 'bg-gradient-to-r from-blue-400 to-blue-600' : 'bg-gradient-icon'}`}></div>
                                 <button onClick={goHome} className="absolute top-6 left-6 text-gray-400 hover:text-gray-900 transition-colors text-sm font-medium dark:hover:text-white"><i className="fa-solid fa-arrow-left mr-2"></i> กลับ</button>
                                 <div className="text-center mt-10 mb-8">
                                     <div className={`w-20 h-20 rounded-3xl mx-auto flex items-center justify-center mb-5 shadow-sm border ${bgIconColor}`}><i className={`fa-solid ${iconClass} text-3xl ${iconColor}`}></i></div>
@@ -575,8 +627,57 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                                 </div>
                                 <form onSubmit={(e) => { e.preventDefault(); handleSearchStudent(e.target.studentId.value); }}>
                                     <div className="mb-6"><input type="text" name="studentId" required placeholder="กรอกรหัสนักศึกษา/บัตรประชาชน..." defaultValue={localStorage.getItem('last_student_id')||''} className="w-full luxury-input text-center tracking-widest text-lg font-bold" /></div>
-                                    <button type="submit" className={`w-full py-3.5 font-bold text-base rounded-2xl shadow-lg transition-all hover:-translate-y-1 text-white ${isRecruitSearch ? 'bg-gradient-to-r from-purple-500 to-fuchsia-500 shadow-purple-500/30' : isShirtSearch ? 'bg-gradient-to-r from-rose-500 to-rose-600 shadow-rose-500/30' : 'btn-premium'}`}>ดำเนินการต่อ <i className="fa-solid fa-arrow-right ml-2 text-sm"></i></button>
+                                    <button type="submit" className={`w-full py-3.5 font-bold text-base rounded-2xl shadow-lg transition-all hover:-translate-y-1 text-white ${isRecruitSearch ? 'bg-gradient-to-r from-purple-500 to-fuchsia-500 shadow-purple-500/30' : isShirtSearch ? 'bg-gradient-to-r from-rose-500 to-rose-600 shadow-rose-500/30' : isHistorySearch ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-blue-500/30' : 'btn-premium'}`}>ดำเนินการต่อ <i className="fa-solid fa-arrow-right ml-2 text-sm"></i></button>
                                 </form>
+                            </div>
+                        </div>
+                        <Footer />
+                        <MobileTabBar />
+                    </div>
+                );
+            }
+
+            if (view === 'history') {
+                if (!student) return null;
+                const gProps = getGenderProps(student.Name);
+                return (
+                    <div className="min-h-screen flex flex-col relative z-10">
+                        <Navbar />
+                        <div className="flex-grow flex flex-col items-center pt-10 p-4 sm:p-6">
+                            <div className="w-full max-w-3xl mb-8 flex flex-col sm:flex-row justify-between items-center sm:items-end bg-white/80 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-soft dark:bg-gray-800/80 dark:border-gray-700 gap-6">
+                                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
+                                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shadow-sm border ${gProps.bg}`}><i className={`fa-solid ${gProps.icon}`}></i></div>
+                                    <div className="pt-1"><p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">ข้อมูลนักศึกษา</p><h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{student.Name}</h2><span className="text-gray-600 text-xs font-bold bg-gray-100 px-3 py-1.5 rounded-lg inline-block dark:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600">{student.StudentID} <span className="mx-2 text-gray-300 font-normal">|</span> {student.Major}</span></div>
+                                </div>
+                                <button onClick={() => setView('search')} className="text-xs text-blue-600 hover:text-white hover:bg-blue-500 border border-blue-200 bg-blue-50 px-5 py-2.5 rounded-xl font-bold transition-all shadow-sm dark:bg-transparent dark:border-blue-500">เปลี่ยนผู้ใช้</button>
+                            </div>
+                            <div className="w-full max-w-3xl">
+                                <div className="flex items-center gap-3 mb-6"><h3 className="font-bold text-gray-900 dark:text-white text-lg">ประวัติกิจกรรมที่เข้าร่วม</h3><span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2.5 py-1 rounded-md border border-blue-200 uppercase tracking-widest">History</span></div>
+                                <div className="space-y-4 pb-10">
+                                    {studentHistory.length === 0 ? (
+                                        <div className="text-center py-20 bg-white/50 backdrop-blur rounded-3xl border-2 border-dashed border-gray-200 dark:border-gray-700 dark:bg-gray-800/50 shadow-sm">
+                                            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 text-2xl mx-auto mb-4 border border-gray-100 dark:bg-gray-700 dark:text-gray-500 dark:border-gray-600"><i className="fa-solid fa-clock-rotate-left"></i></div>
+                                            <p className="text-gray-500 font-bold text-sm">ไม่พบประวัติการเข้าร่วมกิจกรรมของคุณ</p>
+                                        </div>
+                                    ) : (
+                                        studentHistory.map((hist, idx) => (
+                                            <div key={idx} className="bg-white/90 backdrop-blur border border-gray-100 shadow-soft rounded-3xl p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 transition-all duration-300 dark:bg-gray-800/90 dark:border-gray-700 hover:shadow-md hover:border-blue-200">
+                                                <div className="flex items-start gap-5 w-full">
+                                                    <div className="w-14 h-14 bg-blue-50 text-blue-500 rounded-xl flex flex-col items-center justify-center shrink-0 border border-blue-100 shadow-sm dark:bg-gray-800 dark:border-gray-700 dark:text-blue-400">
+                                                        <i className="fa-solid fa-check text-xl"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-2 line-clamp-2">{hist.ActivityName}</h4>
+                                                        <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
+                                                            <i className="fa-regular fa-clock text-gray-400"></i> 
+                                                            <span>{hist.Timestamp ? new Date(hist.Timestamp).toLocaleString('th-TH') : 'ไม่มีข้อมูลเวลา'}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
                             </div>
                         </div>
                         <Footer />
@@ -1226,7 +1327,7 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                         <nav className="flex-grow py-8 space-y-1.5 px-4 overflow-y-auto custom-scrollbar">
                             <div className="text-[10px] font-bold text-gray-600 uppercase tracking-widest px-4 mb-3 mt-2">เมนูหลัก</div>
                             {['overview', 'manage_recruit', 'registrations', 'activities', 'summary', 'spss', 'shirt_summary'].map(tab => {
-                                const labels = { overview: 'ภาพรวมระบบ', activities: 'จัดการเช็คชื่อ', summary: 'ข้อมูลเช็คชื่อ', spss: 'รายงานประเมินผล', shirt_summary: 'ระบบสั่งจองเสื้อ', manage_recruit: 'จัดการรับสมัคร', registrations: 'ข้อมูลผู้สมัคร' };
+                                const labels = { overview: 'ภาพรวมระบบ', activities: 'สร้างกิจกรรมใหม่', summary: 'ข้อมูลเช็คชื่อ', spss: 'รายงานประเมินผล', shirt_summary: 'ระบบสั่งจองเสื้อ', manage_recruit: 'จัดการรับสมัคร', registrations: 'ข้อมูลผู้สมัคร' };
                                 const icons = { overview: 'fa-chart-pie', activities: 'fa-qrcode', summary: 'fa-users', spss: 'fa-file-lines', shirt_summary: 'fa-shirt', manage_recruit: 'fa-bullhorn', registrations: 'fa-user-plus' };
                                 return (<button key={tab} onClick={() => setActiveTab(tab)} className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all text-xs font-bold uppercase tracking-wider ${activeTab === tab ? 'bg-gradient-to-r from-brand-500 to-rose-500 text-white shadow-lg shadow-brand-500/20 translate-x-1' : 'text-gray-400 hover:text-gray-200 hover:bg-white/5 hover:translate-x-1'}`}><i className={`fa-solid ${icons[tab]} w-5 text-base ${activeTab !== tab && 'opacity-70'}`}></i> {labels[tab]}</button>);
                             })}
@@ -1240,7 +1341,7 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
 
                     <main className="flex-1 p-6 md:p-8 lg:p-12 overflow-y-auto">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 border-b border-gray-200 pb-6 gap-5">
-                            <div><p className="text-[10px] font-black text-brand-500 tracking-[0.3em] uppercase mb-2 bg-brand-50 inline-block px-3 py-1 rounded-md border border-brand-100">Workspace</p><h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">{activeTab === 'overview' && 'ภาพรวมระบบ'}{activeTab === 'activities' && 'จัดการเช็คชื่อ'}{activeTab === 'summary' && 'ข้อมูลการเช็คชื่อ'}{activeTab === 'spss' && 'รายงานประเมินผล'}{activeTab === 'manage_recruit' && 'จัดการประกาศรับสมัคร'}{activeTab === 'registrations' && 'ข้อมูลผู้สมัคร'}{activeTab === 'shirt_summary' && 'ระบบสั่งจองเสื้อ'}</h2></div>
+                            <div><p className="text-[10px] font-black text-brand-500 tracking-[0.3em] uppercase mb-2 bg-brand-50 inline-block px-3 py-1 rounded-md border border-brand-100">Workspace</p><h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">{activeTab === 'overview' && 'ภาพรวมระบบ'}{activeTab === 'activities' && 'สร้างกิจกรรมใหม่'}{activeTab === 'summary' && 'ข้อมูลการเช็คชื่อ'}{activeTab === 'spss' && 'รายงานประเมินผล'}{activeTab === 'manage_recruit' && 'จัดการประกาศรับสมัคร'}{activeTab === 'registrations' && 'ข้อมูลผู้สมัคร'}{activeTab === 'shirt_summary' && 'ระบบสั่งจองเสื้อ'}</h2></div>
                             <button onClick={reloadData} className="text-[10px] font-bold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 px-5 py-3 rounded-xl tracking-widest uppercase transition-all shadow-sm flex items-center gap-2.5"><i className="fa-solid fa-rotate-right text-brand-500 text-sm"></i> ซิงค์ข้อมูลล่าสุด</button>
                         </div>
 
@@ -1472,7 +1573,7 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                                                 </tr>
                                             ))}
                                             {(data.shirtOrders||[]).length===0 && <tr><td colSpan="7" className="text-center py-16 text-gray-400 font-bold text-sm bg-gray-50/50"><i className="fa-solid fa-inbox block text-3xl mb-3 text-gray-300"></i> ยังไม่มีออเดอร์</td></tr>}
-                                        </tbody></table>
+                                            </tbody></table>
                                     </div>
                                     {totalShirtPages > 1 && (<div className="flex justify-between items-center p-4 border-t border-gray-100 bg-gray-50/50"><button disabled={shirtOrderPage===1} onClick={()=>setShirtOrderPage(p=>Math.max(1,p-1))} className="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-gray-900 px-3 py-1.5 transition-colors disabled:opacity-30">ก่อนหน้า</button><span className="text-gray-500 font-bold text-[10px] uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm">หน้า {shirtOrderPage} จาก {totalShirtPages}</span><button disabled={shirtOrderPage===totalShirtPages} onClick={()=>setShirtOrderPage(p=>Math.min(totalShirtPages,p+1))} className="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-gray-900 px-3 py-1.5 transition-colors disabled:opacity-30">ถัดไป</button></div>)}
                                 </div>
