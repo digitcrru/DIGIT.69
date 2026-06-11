@@ -164,12 +164,14 @@
                         headers: { 'Content-Type': 'text/plain' } 
                     });
                     const result = await response.json();
-                    if (result.success === false && result.error) throw new Error(result.error);
+                    if (result.success === false) {
+                        throw new Error(result.error || "เกิดข้อผิดพลาดจากเซิร์ฟเวอร์");
+                    }
                     return result.data !== undefined ? result.data : result;
                 } catch (error) { 
                     console.warn(`runGAS Fetch Error (${functionName}):`, error);
-                    if (error.name === 'TypeError' || error.message.includes('Failed to fetch')) {
-                        throw new Error('ไม่สามารถเชื่อมต่อฐานข้อมูลได้ \nกรุณาตรวจสอบว่าสิทธิ์การแชร์ของ Web App เป็น "ทุกคน (Anyone)" และอัปเดตเป็น "เวอร์ชันใหม่ (New version)" แล้ว');
+                    if (error.name === 'TypeError' || error.message.includes('Failed to fetch') || error.message.includes('Unexpected token')) {
+                        throw new Error('ไม่สามารถเชื่อมต่อฐานข้อมูลได้ \nกรุณาตรวจสอบว่าลิงก์ Web App ถูกต้อง และตั้งค่าการแชร์เป็น "ทุกคน (Anyone)" แล้ว');
                     }
                     throw error; 
                 }
@@ -180,7 +182,7 @@
                     icon: 'warning',
                     confirmButtonColor: '#ea580c'
                 });
-                return new Promise((resolve) => setTimeout(() => resolve({ success: false, error: 'Missing WEB_APP_URL' }), 500));
+                return new Promise((resolve, reject) => setTimeout(() => reject(new Error('Missing WEB_APP_URL')), 500));
             }
         };
 
@@ -219,7 +221,21 @@
         };
 
         const findKey = (keys, kws) => keys.find(k => kws.some(kw => String(k).toLowerCase().replace(/\s+/g, '').includes(kw)));
-        const getVal = (obj, keys, kws, fallback) => obj[findKey(keys, kws)] || obj[fallback] || '';
+        
+        // ฟังก์ชันดึงค่าที่ฉลาดขึ้น ป้องกันการดึงค่า Header ภาษาไทยพลาด
+        const getVal = (obj, kws, fallback) => {
+            if(!obj) return '';
+            const keys = Object.keys(obj);
+            const found = findKey(keys, kws);
+            return found ? obj[found] : (obj[fallback] || '');
+        };
+
+        const getK = (obj, names, fallback) => {
+            if(!obj) return '';
+            const keys = Object.keys(obj);
+            const fKey = keys.find(k => names.some(n => String(k).toLowerCase().replace(/\s+/g, '').includes(n)));
+            return fKey ? obj[fKey] : (obj[fallback] || '');
+        };
 
         const formatDisplayDate = (dateStr) => {
             if (!dateStr) return { month: '-', date: '-' };
@@ -345,17 +361,19 @@
                         if (data) { 
                             if(data.shirtPrice) {
                                 setShirtPrice(data.shirtPrice); 
-                                setShirtSystemOpen(data.shirtPrice.status === 'open'); 
-                                setSystemOpen(data.shirtPrice.systemStatus === 'open');
+                                setShirtSystemOpen(data.shirtPrice.status !== 'closed'); 
+                                setSystemOpen(data.shirtPrice.systemStatus !== 'maintenance');
                             }
                             if(data.recruitStatus) {
-                                setRecruitSystemOpen(data.recruitStatus === 'open');
+                                setRecruitSystemOpen(data.recruitStatus !== 'closed');
                             }
                         }
                         
                         setTimeout(() => { Swal.close(); setView('admin_dashboard'); }, 50);
 
-                    } catch(e) { Swal.fire('ข้อผิดพลาดการเชื่อมต่อ', e.message, 'error'); }
+                    } catch(e) { 
+                        Swal.fire('ข้อผิดพลาดการเชื่อมต่อ', e.message || 'ไม่สามารถโหลดข้อมูลผู้ดูแลได้', 'error'); 
+                    }
                 }, 100);
             };
 
@@ -385,8 +403,8 @@
                                     const popSet = getSet('ShirtPopup', '', ''); priceInfo.popupText = popSet.v1; priceInfo.popupImage = popSet.v2;
                                     recStatus = getSet('RecruitStatus', 'open').v1;
                                 }
-                            } catch(e) { acts = await runGAS('getActiveActivities'); priceInfo = await runGAS('getShirtPrice'); }
-                        } else { acts = await runGAS('getActiveActivities'); priceInfo = await runGAS('getShirtPrice'); }
+                            } catch(e) { acts = await runGAS('getActiveActivities').catch(()=>[]); priceInfo = await runGAS('getShirtPrice').catch(()=>null); }
+                        } else { acts = await runGAS('getActiveActivities').catch(()=>[]); priceInfo = await runGAS('getShirtPrice').catch(()=>null); }
 
                         setActivities(acts || []);
                         setRecruitments(recs || []);
@@ -395,7 +413,7 @@
                         
                         if (priceInfo) {
                             setShirtPrice(priceInfo);
-                            setShirtSystemOpen(priceInfo.status === 'open');
+                            setShirtSystemOpen(priceInfo.status !== 'closed');
                             setReceiptSettings({ header: priceInfo.receiptHeader, note: priceInfo.receiptNote });
                         }
                     } catch (e) { console.error("Initial load failed", e); }
@@ -421,7 +439,9 @@
                 if(!studentId) return Swal.fire('แจ้งเตือน', 'กรุณากรอกรหัสนักศึกษา', 'warning');
                 Swal.fire({ title: 'ตรวจสอบข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                 try {
-                    let res = { success: false };
+                    let found = null;
+                    const cId = studentId.replace(/\s+/g, '').toLowerCase();
+
                     if (isFastCSVReady()) {
                         try {
                             const allStudents = await fetchFastCSV('Students');
@@ -429,21 +449,19 @@
                                 const keys = Object.keys(s);
                                 const idK = findKey(keys, ['studentid', 'รหัส']);
                                 const icK = findKey(keys, ['idcard', 'บัตร']);
-                                return (idK && String(s[idK]).replace(/\s+/g,'').toLowerCase() === studentId.replace(/\s+/g,'').toLowerCase()) || 
-                                       (icK && String(s[icK]).replace(/\s+/g,'').toLowerCase() === studentId.replace(/\s+/g,'').toLowerCase());
+                                return (idK && String(s[idK]).replace(/\s+/g,'').toLowerCase() === cId) || 
+                                       (icK && String(s[icK]).replace(/\s+/g,'').toLowerCase() === cId);
                             });
-                            if (studentData) res = { success: true, data: studentData };
-                            else res = { success: false };
-                        } catch(csvErr) { res = await runGAS('verifyStudent', studentId).catch(e => { throw e }); }
-                    } else { res = await runGAS('verifyStudent', studentId); }
+                            if (studentData) found = studentData;
+                        } catch(csvErr) { found = await runGAS('verifyStudent', studentId).catch(()=>null); }
+                    } else { found = await runGAS('verifyStudent', studentId).catch(()=>null); }
 
-                    if(res.success && (res.data.Name || res.data[Object.keys(res.data).find(k=>k.toLowerCase().includes('name'))])) {
-                        const keys = Object.keys(res.data);
+                    if(found && (found.Name || getVal(found, ['name', 'ชื่อ'], 'Name'))) {
                         const cleanStudent = {
-                            StudentID: res.data[findKey(keys, ['studentid', 'รหัส'])] || studentId,
-                            Name: res.data[findKey(keys, ['name', 'ชื่อ'])] || '',
-                            Major: res.data[findKey(keys, ['major', 'สาขา'])] || '',
-                            IDCard: res.data[findKey(keys, ['idcard', 'บัตร'])] || ''
+                            StudentID: getVal(found, ['studentid', 'รหัส'], 'StudentID') || studentId,
+                            Name: getVal(found, ['name', 'ชื่อ'], 'Name'),
+                            Major: getVal(found, ['major', 'สาขา'], 'Major'),
+                            IDCard: getVal(found, ['idcard', 'บัตร'], 'IDCard')
                         };
                         setStudent(cleanStudent);
                         localStorage.setItem('last_student_id', studentId);
@@ -454,8 +472,7 @@
                                 try {
                                     const allOrders = await fetchFastCSV('ShirtOrders');
                                     for (let i = allOrders.length - 1; i >= 0; i--) {
-                                        const oKeys = Object.keys(allOrders[i]);
-                                        const stdK = findKey(oKeys, ['studentid', 'รหัส']);
+                                        const stdK = findKey(Object.keys(allOrders[i]), ['studentid', 'รหัส']);
                                         if (stdK && String(allOrders[i][stdK]).trim() === cleanStudent.StudentID) {
                                             orderCheck = { hasOrdered: true, data: allOrders[i] };
                                             break;
@@ -470,22 +487,33 @@
                                 const pKeys = Object.keys(pastOrder);
                                 setReceiptData({
                                     student: cleanStudent,
-                                    poloGender: pastOrder[findKey(pKeys, ['pologender', 'ทรงโปโล'])] || 'ชาย', 
-                                    poloSize: pastOrder[findKey(pKeys, ['polosize', 'ไซส์โปโล'])], 
-                                    poloQty: Number(pastOrder[findKey(pKeys, ['poloqty', 'จำนวนโปโล'])]||1),
-                                    tshirtGender: pastOrder[findKey(pKeys, ['tshirtgender', 'ทรงเสื้อยืด'])] || 'ชาย', 
-                                    tshirtSize: pastOrder[findKey(pKeys, ['tshirtsize', 'ไซส์เสื้อยืด'])], 
-                                    tshirtQty: Number(pastOrder[findKey(pKeys, ['tshirtqty', 'จำนวนเสื้อยืด'])]||1),
-                                    grandTotal: Number(pastOrder[findKey(pKeys, ['totalprice', 'ยอดรวม'])]||0),
-                                    paymentMethod: pastOrder[findKey(pKeys, ['paymentmethod', 'วิธีชำระ'])] || (pastOrder[findKey(pKeys, ['slip', 'สลิป'])] ? 'promptpay' : 'cash'),
-                                    orderId: 'ORD-' + new Date(pastOrder[findKey(pKeys, ['timestamp', 'เวลา'])] || Date.now()).getTime().toString().slice(-6),
-                                    date: new Date(pastOrder[findKey(pKeys, ['timestamp', 'เวลา'])] || Date.now()).toLocaleString('th-TH')
+                                    poloGender: getVal(pastOrder, ['pologender', 'ทรงโปโล'], 'PoloGender') || 'ชาย', 
+                                    poloSize: getVal(pastOrder, ['polosize', 'ไซส์โปโล'], 'PoloSize'), 
+                                    poloQty: Number(getVal(pastOrder, ['poloqty', 'จำนวนโปโล'], 'PoloQty') || 1),
+                                    tshirtGender: getVal(pastOrder, ['tshirtgender', 'ทรงเสื้อยืด'], 'TshirtGender') || 'ชาย', 
+                                    tshirtSize: getVal(pastOrder, ['tshirtsize', 'ไซส์เสื้อยืด'], 'TshirtSize'), 
+                                    tshirtQty: Number(getVal(pastOrder, ['tshirtqty', 'จำนวนเสื้อยืด'], 'TshirtQty') || 1),
+                                    grandTotal: Number(getVal(pastOrder, ['totalprice', 'ยอดรวม'], 'TotalPrice') || 0),
+                                    paymentMethod: getVal(pastOrder, ['paymentmethod', 'วิธีชำระ'], 'PaymentMethod') || (getVal(pastOrder, ['slip', 'สลิป'], 'SlipImage') ? 'promptpay' : 'cash'),
+                                    orderId: 'ORD-' + new Date(getVal(pastOrder, ['timestamp', 'เวลา'], 'Timestamp') || Date.now()).getTime().toString().slice(-6),
+                                    date: new Date(getVal(pastOrder, ['timestamp', 'เวลา'], 'Timestamp') || Date.now()).toLocaleString('th-TH')
                                 });
-                                setPoloGender(pastOrder.PoloGender || 'ชาย'); setPoloSize(pastOrder.PoloSize); setPoloQty(Number(pastOrder.PoloQty));
-                                setTshirtGender(pastOrder.TshirtGender || 'ชาย'); setTshirtSize(pastOrder.TshirtSize); setTshirtQty(Number(pastOrder.TshirtQty));
-                                setPaymentMethod(pastOrder.PaymentMethod || (pastOrder.SlipImage || pastOrder.SlipURL || pastOrder.Slip ? 'promptpay' : 'cash'));
+                                setPoloGender(getVal(pastOrder, ['pologender', 'ทรงโปโล'], 'PoloGender') || 'ชาย'); 
+                                setPoloSize(getVal(pastOrder, ['polosize', 'ไซส์โปโล'], 'PoloSize')); 
+                                setPoloQty(Number(getVal(pastOrder, ['poloqty', 'จำนวนโปโล'], 'PoloQty') || 1));
+                                setTshirtGender(getVal(pastOrder, ['tshirtgender', 'ทรงเสื้อยืด'], 'TshirtGender') || 'ชาย'); 
+                                setTshirtSize(getVal(pastOrder, ['tshirtsize', 'ไซส์เสื้อยืด'], 'TshirtSize')); 
+                                setTshirtQty(Number(getVal(pastOrder, ['tshirtqty', 'จำนวนเสื้อยืด'], 'TshirtQty') || 1));
+                                setPaymentMethod(getVal(pastOrder, ['paymentmethod', 'วิธีชำระ'], 'PaymentMethod') || (getVal(pastOrder, ['slip', 'สลิป'], 'SlipImage') ? 'promptpay' : 'cash'));
                                 setView('receipt');
-                            } else { setView('shirt_form'); }
+                            } else { 
+                                if (!shirtSystemOpen) {
+                                    Swal.fire({ title: 'ปิดรับการจอง', text: 'ขณะนี้ระบบปิดรับการสั่งจองเสื้อชั่วคราว', icon: 'warning', confirmButtonColor: '#ea580c' });
+                                    setView('home');
+                                } else {
+                                    setView('shirt_form'); 
+                                }
+                            }
                         } else if (searchPurpose === 'recruit') {
                             Swal.close(); setView('select_recruit');
                         } else if (searchPurpose === 'history') {
@@ -537,10 +565,9 @@
                             const cleanSid = String(student.StudentID).replace(/\s+/g, '').toLowerCase();
                             const cleanRecId = String(recruit.RecruitID).replace(/\s+/g, '').toLowerCase();
                             if (allRegis.length > 0) {
-                                const keys = Object.keys(allRegis[0]);
-                                const idKey = findKey(keys, ['studentid', 'รหัสนักศึกษา', 'รหัส']);
-                                const recKey = findKey(keys, ['recruitid', 'รหัสกิจกรรม']);
                                 hasJoined = allRegis.some(r => {
+                                    const idKey = findKey(Object.keys(r), ['studentid', 'รหัสนักศึกษา', 'รหัส']);
+                                    const recKey = findKey(Object.keys(r), ['recruitid', 'รหัสกิจกรรม']);
                                     const matchStudent = idKey ? String(r[idKey]).replace(/\s+/g, '').toLowerCase() === cleanSid : false;
                                     const matchRec = recKey ? String(r[recKey]).replace(/\s+/g, '').toLowerCase() === cleanRecId : false;
                                     return matchStudent && matchRec;
@@ -566,7 +593,7 @@
                             } catch(e) { Swal.fire('ข้อผิดพลาด', e.message || 'ไม่สามารถสมัครได้', 'error'); }
                         }
                     });
-                } catch(e) { Swal.close(); Swal.fire('ข้อผิดพลาด', e.message, 'error'); }
+                } catch(e) { Swal.close(); Swal.fire('ข้อผิดพลาด', e.message || String(e), 'error'); }
             };
 
             const handleSubmitShirtOrder = async (e) => {
@@ -612,24 +639,20 @@
                     if (isFastCSVReady()) {
                         const allChks = await fetchFastCSV('CheckIns').catch(() => []);
                         data = allChks.filter(c => {
-                            const keys = Object.keys(c);
-                            const val1 = String(c[findKey(keys, ['studentid', 'รหัส'])]).trim();
-                            const val2 = String(c[findKey(keys, ['idcard', 'บัตร'])]).trim();
+                            const val1 = String(getVal(c, ['studentid', 'รหัส'], 'StudentID')).trim();
+                            const val2 = String(getVal(c, ['idcard', 'บัตร'], 'IDCard')).trim();
                             return val1 === studentId || val2 === studentId;
-                        }).map(c => {
-                            const keys = Object.keys(c);
-                            return {
-                                ActivityName: c[findKey(keys, ['activityname', 'ชื่อกิจกรรม'])] || 'กิจกรรม (ไม่ระบุชื่อ)',
-                                Timestamp: c[findKey(keys, ['timestamp', 'เวลา'])] || '',
-                                StudentID: c[findKey(keys, ['studentid', 'รหัส'])] || '',
-                                Name: c[findKey(keys, ['name', 'ชื่อ'])] || ''
-                            };
-                        }).reverse();
+                        }).map(c => ({
+                            ActivityName: getVal(c, ['activityname', 'ชื่อกิจกรรม'], 'ActivityName') || 'กิจกรรม (ไม่ระบุชื่อ)',
+                            Timestamp: getVal(c, ['timestamp', 'เวลา'], 'Timestamp') || '',
+                            StudentID: getVal(c, ['studentid', 'รหัส'], 'StudentID') || '',
+                            Name: getVal(c, ['name', 'ชื่อ'], 'Name') || ''
+                        })).reverse();
                     } else { 
                         data = await runGAS('getStudentHistory', studentId); 
                     }
                     Swal.close(); setHistoryData(data || []); setView('history_result');
-                } catch(e) { Swal.fire('ข้อผิดพลาด', e.message, 'error'); }
+                } catch(e) { Swal.fire('ข้อผิดพลาด', e.message || String(e), 'error'); }
             };
 
             const Navbar = () => (
@@ -664,7 +687,7 @@
                                 {view === 'home' && <div className="absolute top-0 w-8 h-1 bg-orange-500 rounded-b-full"></div>}
                                 <i className={`fa-solid fa-house text-xl ${view === 'home' ? 'mb-0.5 scale-110' : ''}`}></i><span className="text-[10px] font-medium">หน้าแรก</span>
                             </button>
-                            <button onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิด', icon:'info', confirmButtonColor: '#1a1a1a'}); if(!recruitSystemOpen) return Swal.fire({title:'ปิดรับสมัคร', text:'ขณะนี้ระบบปิดรับสมัครกิจกรรมชั่วคราว', icon:'info', confirmButtonColor: '#a855f7'}); setSearchPurpose('recruit'); setView('search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'select_recruit' || (view === 'search' && searchPurpose === 'recruit')) ? 'text-purple-600' : 'text-gray-400'}`}>
+                            <button onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิด', icon:'info', confirmButtonColor: '#1a1a1a'}); setSearchPurpose('recruit'); setView('search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'select_recruit' || (view === 'search' && searchPurpose === 'recruit')) ? 'text-purple-600' : 'text-gray-400'}`}>
                                 {(view === 'select_recruit' || (view === 'search' && searchPurpose === 'recruit')) && <div className="absolute top-0 w-8 h-1 bg-purple-500 rounded-b-full"></div>}
                                 <i className={`fa-solid fa-bullhorn text-xl ${(view === 'select_recruit' || (view === 'search' && searchPurpose === 'recruit')) ? 'mb-0.5 scale-110' : ''}`}></i><span className="text-[10px] font-medium">รับสมัคร</span>
                             </button>
@@ -678,7 +701,7 @@
                                     <i className={`fa-solid fa-shirt text-xl ${(view === 'shirt_form' || view === 'receipt' || (view === 'search' && searchPurpose === 'shirt')) ? 'mb-0.5 scale-110' : ''}`}></i><span className="text-[10px] font-medium">จองเสื้อ</span>
                                 </button>
                             )}
-                            <button onClick={() => { setSearchPurpose('history'); setView('search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'history_search' || view === 'history_result' || (view === 'search' && searchPurpose === 'history')) ? 'text-orange-600' : 'text-gray-400'}`}>
+                            <button onClick={() => { setSearchPurpose('history'); setView('history_search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'history_search' || view === 'history_result' || (view === 'search' && searchPurpose === 'history')) ? 'text-orange-600' : 'text-gray-400'}`}>
                                 {(view === 'history_search' || view === 'history_result' || (view === 'search' && searchPurpose === 'history')) && <div className="absolute top-0 w-8 h-1 bg-orange-500 rounded-b-full"></div>}
                                 <i className={`fa-solid fa-clock-rotate-left text-xl ${(view === 'history_search' || view === 'history_result' || (view === 'search' && searchPurpose === 'history')) ? 'mb-0.5 scale-110' : ''}`}></i><span className="text-[10px] font-medium">ประวัติ</span>
                             </button>
@@ -704,8 +727,8 @@
                                 <h1 className="text-4xl md:text-5xl font-light text-charcoal-900 tracking-tight">Activities <span className="font-semibold text-orange-600">DIGIT.CRRU</span></h1>
                             </div>
                             <div className={`w-full grid gap-6 mx-auto ${(shirtSystemOpen && systemOpen) ? 'max-w-5xl md:grid-cols-4 sm:grid-cols-2' : 'max-w-4xl md:grid-cols-3 sm:grid-cols-2'}`}>
-                                <div onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', icon:'info', confirmButtonColor:'#111827'}); if(!recruitSystemOpen) return Swal.fire({title:'ปิดรับสมัคร', text:'ขณะนี้ระบบปิดรับสมัครกิจกรรมชั่วคราว', icon:'info', confirmButtonColor:'#a855f7'}); setSearchPurpose('recruit'); setView('search'); }} 
-                                     className={`luxury-card p-8 md:p-10 cursor-pointer group transition-all ${(!systemOpen || !recruitSystemOpen) ? 'opacity-50 grayscale cursor-not-allowed' : 'hover:-translate-y-1'}`}>
+                                <div onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', icon:'info', confirmButtonColor:'#111827'}); setSearchPurpose('recruit'); setView('search'); }} 
+                                     className={`luxury-card p-8 md:p-10 cursor-pointer group transition-all ${!systemOpen ? 'opacity-50 grayscale cursor-not-allowed' : 'hover:-translate-y-1'}`}>
                                     <div className="w-14 h-14 bg-purple-50 text-purple-500 rounded-full flex items-center justify-center text-2xl mb-8 group-hover:bg-gradient-to-br group-hover:from-purple-400 group-hover:to-purple-600 group-hover:text-white shadow-sm transition-all duration-300"><i className="fa-solid fa-bullhorn"></i></div>
                                     <h3 className="text-xl font-semibold text-charcoal-900 mb-2">ประกาศรับสมัคร</h3><p className="text-gray-500 text-sm font-light leading-relaxed">ประกาศรับสมัครนักศึกษาเข้าร่วมกิจกรรม</p>
                                 </div>
@@ -714,7 +737,7 @@
                                     <div className="w-14 h-14 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center text-2xl mb-8 group-hover:bg-gradient-to-br group-hover:from-orange-400 group-hover:to-orange-600 group-hover:text-white shadow-sm transition-all duration-300"><i className="fa-solid fa-qrcode"></i></div>
                                     <h3 className="text-xl font-semibold text-charcoal-900 mb-2">ลงทะเบียนกิจกรรม</h3><p className="text-gray-500 text-sm font-light leading-relaxed">เช็คชื่อเข้าร่วมและประเมินความพึงพอใจ</p>
                                 </div>
-                                <div onClick={() => { setSearchPurpose('history'); setView('search'); }} className="luxury-card p-8 md:p-10 cursor-pointer group hover:-translate-y-1">
+                                <div onClick={() => { setSearchPurpose('history'); setView('history_search'); }} className="luxury-card p-8 md:p-10 cursor-pointer group hover:-translate-y-1">
                                     <div className="w-14 h-14 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center text-2xl mb-8 group-hover:bg-gradient-to-br group-hover:from-orange-400 group-hover:to-orange-600 group-hover:text-white shadow-sm transition-all duration-300"><i className="fa-solid fa-clock-rotate-left"></i></div>
                                     <h3 className="text-xl font-semibold text-charcoal-900 mb-2">ประวัติการเข้าร่วม</h3><p className="text-gray-500 text-sm font-light leading-relaxed">ตรวจสอบรายการกิจกรรมย้อนหลังทั้งหมด</p>
                                 </div>
@@ -805,6 +828,7 @@
             }
 
             if (view === 'select') {
+                if(!student) return null;
                 const gProps = getGenderProps(student.Name);
                 return (
                     <div className="min-h-screen flex flex-col relative z-10">
@@ -904,6 +928,7 @@
             }
 
             if (view === 'shirt_form') {
+                if(!student) return null;
                 const getPrice = (size) => ['XL', '2XL', '3XL'].includes(size) ? shirtPrice.oversize : shirtPrice.normal;
                 const grandTotal = (getPrice(poloSize) * poloQty) + (getPrice(tshirtSize) * tshirtQty);
                 const gProps = getGenderProps(student?.Name || '');
@@ -1422,6 +1447,7 @@
             const [overviewActivityPage, setOverviewActivityPage] = useState(1);
             const [searchOverviewActTerm, setSearchOverviewActTerm] = useState('');
             const [shirtOrderPage, setShirtOrderPage] = useState(1);
+            const [searchShirtTerm, setSearchShirtTerm] = useState('');
             const [selectedRecruitForRegis, setSelectedRecruitForRegis] = useState('');
             const [searchRegisTerm, setSearchRegisTerm] = useState('');
             const [regisPage, setRegisPage] = useState(1);
@@ -1433,8 +1459,8 @@
                 if (!data) return 1;
                 const minAgo = Date.now() - (15 * 60000);
                 const s = new Set();
-                (data.checkins||[]).forEach(c=>{if(new Date(c.Timestamp).getTime()>=minAgo && c.StudentID) s.add(c.StudentID);});
-                (data.registrations||[]).forEach(c=>{if(new Date(c.Timestamp).getTime()>=minAgo && c.StudentID) s.add(c.StudentID);});
+                (data.checkins||[]).forEach(c=>{if(new Date(getVal(c, ['timestamp','เวลา'], 'Timestamp')).getTime()>=minAgo) s.add(getVal(c, ['studentid','รหัส'], 'StudentID'));});
+                (data.registrations||[]).forEach(c=>{if(new Date(getVal(c, ['timestamp','เวลา'], 'Timestamp')).getTime()>=minAgo) s.add(getVal(c, ['studentid','รหัส'], 'StudentID'));});
                 return s.size > 0 ? s.size + 1 : 1; 
             }, [data]);
 
@@ -1443,33 +1469,66 @@
                 const uniqueUsers = new Set();
                 const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0); const startOfTodayTime = startOfToday.getTime();
                 let todayCheckins = 0; let todayOrders = 0; let todayRegis = 0;
-                (data.checkins || []).forEach(c => { if(c.StudentID) uniqueUsers.add(String(c.StudentID).trim()); if(c.Timestamp && new Date(c.Timestamp).getTime() >= startOfTodayTime) todayCheckins++; });
-                (data.shirtOrders || []).forEach(o => { if(o.StudentID) uniqueUsers.add(String(o.StudentID).trim()); if(o.Timestamp && new Date(o.Timestamp).getTime() >= startOfTodayTime) todayOrders++; });
-                (data.evaluations || []).forEach(e => { if(e.StudentID) uniqueUsers.add(String(e.StudentID).trim()); });
-                (data.registrations || []).forEach(r => { if(r.StudentID) uniqueUsers.add(String(r.StudentID).trim()); if(r.Timestamp && new Date(r.Timestamp).getTime() >= startOfTodayTime) todayRegis++; });
+                
+                (data.checkins || []).forEach(c => { 
+                    const sid = getVal(c, ['studentid','รหัส'], 'StudentID');
+                    const ts = getVal(c, ['timestamp','เวลา'], 'Timestamp');
+                    if(sid) uniqueUsers.add(String(sid).trim()); 
+                    if(ts && new Date(ts).getTime() >= startOfTodayTime) todayCheckins++; 
+                });
+                (data.shirtOrders || []).forEach(o => { 
+                    const sid = getVal(o, ['studentid','รหัส'], 'StudentID');
+                    const ts = getVal(o, ['timestamp','เวลา'], 'Timestamp');
+                    if(sid) uniqueUsers.add(String(sid).trim()); 
+                    if(ts && new Date(ts).getTime() >= startOfTodayTime) todayOrders++; 
+                });
+                (data.evaluations || []).forEach(e => { 
+                    const sid = getVal(e, ['studentid','รหัส'], 'StudentID');
+                    if(sid) uniqueUsers.add(String(sid).trim()); 
+                });
+                (data.registrations || []).forEach(r => { 
+                    const sid = getVal(r, ['studentid','รหัส'], 'StudentID');
+                    const ts = getVal(r, ['timestamp','เวลา'], 'Timestamp');
+                    if(sid) uniqueUsers.add(String(sid).trim()); 
+                    if(ts && new Date(ts).getTime() >= startOfTodayTime) todayRegis++; 
+                });
                 return { totalUniqueUsers: uniqueUsers.size, todayCheckins, todayOrders, todaysTransactions: todayCheckins + todayOrders + todayRegis };
             }, [data]);
 
             const checkinCountByActivity = useMemo(() => {
                 const counts = {}; if (!data || !data.checkins) return counts;
-                (data.checkins || []).forEach(c => { const id = String(c.ActivityID).trim(); counts[id] = (counts[id] || 0) + 1; });
+                (data.checkins || []).forEach(c => { 
+                    const id = String(getVal(c, ['activityid','รหัสกิจกรรม'], 'ActivityID')).trim(); 
+                    counts[id] = (counts[id] || 0) + 1; 
+                });
                 return counts;
             }, [data]);
 
             const regisCountByRecruit = useMemo(() => {
                 const counts = {}; if (!data || !data.registrations) return counts;
-                (data.registrations || []).forEach(r => { const id = String(r.RecruitID).trim(); counts[id] = (counts[id] || 0) + 1; });
+                (data.registrations || []).forEach(r => { 
+                    const id = String(getVal(r, ['recruitid','รหัสกิจกรรม'], 'RecruitID')).trim(); 
+                    counts[id] = (counts[id] || 0) + 1; 
+                });
                 return counts;
             }, [data]);
 
             const filteredCheckins = useMemo(() => {
                 if (!data || !data.checkins) return [];
                 return (data.checkins || []).filter(c => {
-                    const matchActivity = selectedActivityForSummary ? String(c.ActivityID).trim() === String(selectedActivityForSummary).trim() : true;
+                    const actId = getVal(c, ['activityid', 'รหัสกิจกรรม'], 'ActivityID');
+                    const matchActivity = selectedActivityForSummary ? String(actId).trim() === String(selectedActivityForSummary).trim() : true;
                     if (!matchActivity) return false;
+                    
                     const term = (searchCheckinTerm || '').toLowerCase().trim();
                     if (!term) return true;
-                    return String(c.StudentID || '').toLowerCase().includes(term) || String(c.Name || '').toLowerCase().includes(term) || String(c.Major || '').toLowerCase().includes(term) || String(c.IDCard || '').toLowerCase().includes(term);
+                    
+                    const sid = String(getVal(c, ['studentid', 'รหัส'], 'StudentID')).toLowerCase();
+                    const name = String(getVal(c, ['name', 'ชื่อ'], 'Name')).toLowerCase();
+                    const major = String(getVal(c, ['major', 'สาขา'], 'Major')).toLowerCase();
+                    const idc = String(getVal(c, ['idcard', 'บัตร'], 'IDCard')).toLowerCase();
+                    
+                    return sid.includes(term) || name.includes(term) || major.includes(term) || idc.includes(term);
                 });
             }, [data, selectedActivityForSummary, searchCheckinTerm]);
             const sortedCheckins = useMemo(() => [...filteredCheckins].reverse(), [filteredCheckins]);
@@ -1477,11 +1536,19 @@
             const filteredRegistrations = useMemo(() => {
                 if (!data || !data.registrations) return [];
                 return (data.registrations || []).filter(r => {
-                    const matchRecruit = selectedRecruitForRegis ? String(r.RecruitID).trim() === String(selectedRecruitForRegis).trim() : true;
+                    const recId = getVal(r, ['recruitid', 'รหัสกิจกรรม'], 'RecruitID');
+                    const matchRecruit = selectedRecruitForRegis ? String(recId).trim() === String(selectedRecruitForRegis).trim() : true;
                     if (!matchRecruit) return false;
+                    
                     const term = (searchRegisTerm || '').toLowerCase().trim();
                     if (!term) return true;
-                    return String(r.StudentID || '').toLowerCase().includes(term) || String(r.Name || '').toLowerCase().includes(term) || String(r.Major || '').toLowerCase().includes(term) || String(r.IDCard || '').toLowerCase().includes(term);
+                    
+                    const sid = String(getVal(r, ['studentid', 'รหัส'], 'StudentID')).toLowerCase();
+                    const name = String(getVal(r, ['name', 'ชื่อ'], 'Name')).toLowerCase();
+                    const major = String(getVal(r, ['major', 'สาขา'], 'Major')).toLowerCase();
+                    const idc = String(getVal(r, ['idcard', 'บัตร'], 'IDCard')).toLowerCase();
+                    
+                    return sid.includes(term) || name.includes(term) || major.includes(term) || idc.includes(term);
                 });
             }, [data, selectedRecruitForRegis, searchRegisTerm]);
             const sortedRegistrationsList = useMemo(() => [...filteredRegistrations].reverse(), [filteredRegistrations]);
@@ -1490,12 +1557,29 @@
                 if (!data || !data.shirtOrders) return [];
                 const acc = {};
                 (data.shirtOrders || []).forEach(o => {
-                    const m = o.Major || 'ไม่ระบุสาขา'; if(!acc[m]) acc[m] = { count: 0, total: 0 };
-                    acc[m].count++; acc[m].total += Number(o.TotalPrice) || 0;
+                    const m = getVal(o, ['major', 'สาขา', 'คณะ'], 'Major') || 'ไม่ระบุสาขา'; 
+                    if(!acc[m]) acc[m] = { count: 0, total: 0 };
+                    acc[m].count++; 
+                    const price = getVal(o, ['totalprice', 'ยอดรวม', 'ยอดสุทธิ'], 'TotalPrice') || 0;
+                    acc[m].total += Number(price) || 0;
                 });
                 return Object.entries(acc).sort((a,b) => b[1].count - a[1].count);
             }, [data]);
-            const sortedShirtOrders = useMemo(() => [...(data?.shirtOrders || [])].reverse(), [data]);
+            
+            const filteredShirtOrders = useMemo(() => {
+                if (!data || !data.shirtOrders) return [];
+                const term = (searchShirtTerm || '').toLowerCase().trim();
+                if (!term) return data.shirtOrders;
+                
+                return data.shirtOrders.filter(o => {
+                    const sid = String(getVal(o, ['studentid', 'รหัส'], 'StudentID')).toLowerCase();
+                    const name = String(getVal(o, ['name', 'ชื่อ'], 'Name')).toLowerCase();
+                    const major = String(getVal(o, ['major', 'สาขา', 'คณะ'], 'Major')).toLowerCase();
+                    return sid.includes(term) || name.includes(term) || major.includes(term);
+                });
+            }, [data, searchShirtTerm]);
+
+            const sortedShirtOrders = useMemo(() => [...filteredShirtOrders].reverse(), [filteredShirtOrders]);
 
             const filteredOverviewActivities = useMemo(() => {
                 if (!data || !data.activities) return [];
@@ -1507,7 +1591,7 @@
             useEffect(() => { setCurrentPage(1); }, [selectedActivityForSummary, searchCheckinTerm]);
             useEffect(() => { setRegisPage(1); }, [selectedRecruitForRegis, searchRegisTerm]); 
             useEffect(() => { setOverviewActivityPage(1); }, [searchOverviewActTerm]); 
-            useEffect(() => { setShirtOrderPage(1); }, [activeTab]); 
+            useEffect(() => { setShirtOrderPage(1); }, [activeTab, searchShirtTerm]); 
 
             const toggleSystem = async () => {
                 const currentStatus = systemOpen ? 'maintenance' : 'open';
@@ -1515,12 +1599,12 @@
                 try { 
                     await runGAS('toggleMasterSystemStatus', currentStatus); 
                     Swal.close(); reloadData(); 
-                } catch(err) { Swal.fire('Error', err.message, 'error'); }
+                } catch(err) { Swal.fire('Error', err.message || 'เกิดข้อผิดพลาด', 'error'); }
             };
 
             const handleCreateActivity = async (e) => {
                 e.preventDefault(); Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-                try { await runGAS('createActivity', { name: e.target.name.value, date: e.target.date.value, location: e.target.location.value }); Swal.fire('สำเร็จ', 'สร้างกิจกรรมเรียบร้อยแล้ว', 'success'); e.target.reset(); reloadData(); } catch(err) { Swal.fire('Error', err.message, 'error'); }
+                try { await runGAS('createActivity', { name: e.target.name.value, date: e.target.date.value, location: e.target.location.value }); Swal.fire('สำเร็จ', 'สร้างกิจกรรมเรียบร้อยแล้ว', 'success'); e.target.reset(); reloadData(); } catch(err) { Swal.fire('Error', err.message || 'เกิดข้อผิดพลาด', 'error'); }
             };
 
             const toggleActivityStatus = async (id, currentStatus) => {
@@ -1529,28 +1613,28 @@
                     const newStatus = currentStatus === 'open' ? 'closed' : 'open';
                     await runGAS('toggleActivityStatus', id, currentStatus); 
                     setAdminData(prev => ({...prev, activities: (prev?.activities || []).map(a => a.ActivityID === id ? { ...a, Status: newStatus } : a)}));
-                    Swal.close(); Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตกิจกรรมเป็น ${newStatus === 'open' ? 'เปิดรับ' : 'ปิดแล้ว'}` });
-                } catch(err) { Swal.fire('Error', err.message, 'error'); }
+                    Swal.close(); Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตสถานะสำเร็จ` });
+                } catch(err) { Swal.fire('Error', err.message || 'เกิดข้อผิดพลาด', 'error'); }
             };
 
             const handleCreateRecruit = async (e) => {
                 e.preventDefault(); Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-                try { await runGAS('createRecruit', { name: e.target.name.value, date: e.target.date.value, location: e.target.location.value }); Swal.fire('สำเร็จ', 'สร้างประกาศรับสมัครเรียบร้อยแล้ว', 'success'); e.target.reset(); reloadData(); } catch(err) { Swal.fire('ข้อผิดพลาด', err.message, 'error'); }
+                try { await runGAS('createRecruit', { name: e.target.name.value, date: e.target.date.value, location: e.target.location.value }); Swal.fire('สำเร็จ', 'สร้างประกาศรับสมัครเรียบร้อยแล้ว', 'success'); e.target.reset(); reloadData(); } catch(err) { Swal.fire('Error', err.message || 'เกิดข้อผิดพลาด', 'error'); }
             };
 
             const toggleRecruitStatus = async (id, currentStatus) => {
                 Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-                try { const newStatus = currentStatus === 'open' ? 'closed' : 'open'; await runGAS('toggleRecruitStatus', id, currentStatus); setAdminData(prev => ({ ...prev, recruitments: prev.recruitments.map(r => r.RecruitID === id ? { ...r, Status: newStatus } : r) })); Swal.close(); Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตสถานะแล้ว` }); } catch(err) { Swal.fire('ข้อผิดพลาด', err.message, 'error'); }
+                try { const newStatus = currentStatus === 'open' ? 'closed' : 'open'; await runGAS('toggleRecruitStatus', id, currentStatus); setAdminData(prev => ({ ...prev, recruitments: prev.recruitments.map(r => r.RecruitID === id ? { ...r, Status: newStatus } : r) })); Swal.close(); Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตสถานะแล้ว` }); } catch(err) { Swal.fire('Error', err.message || 'เกิดข้อผิดพลาด', 'error'); }
             };
 
             const handleToggleShirtSystem = async (currentStatus) => {
                 Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-                try { const newStatus = currentStatus === 'open' ? 'closed' : 'open'; await runGAS('toggleShirtStatus', currentStatus); setAdminData(prev => ({ ...prev, shirtPrice: { ...(prev?.shirtPrice || {}), status: newStatus } })); Swal.close(); Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตจองเสื้อเป็น ${newStatus === 'open' ? 'เปิดรับ' : 'ปิดรับ'}` }); } catch(err) { Swal.fire('Error', err.message, 'error'); }
+                try { const newStatus = currentStatus === 'open' ? 'closed' : 'open'; await runGAS('toggleShirtStatus', currentStatus); setAdminData(prev => ({ ...prev, shirtPrice: { ...(prev?.shirtPrice || {}), status: newStatus } })); Swal.close(); Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตสำเร็จ` }); } catch(err) { Swal.fire('Error', err.message || 'เกิดข้อผิดพลาด', 'error'); }
             };
 
             const handleToggleRecruitSystem = async (currentStatus) => {
                 Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-                try { const newStatus = currentStatus === 'open' ? 'closed' : 'open'; await runGAS('toggleRecruitSystemStatus', currentStatus); setAdminData(prev => ({ ...prev, recruitStatus: newStatus })); Swal.close(); Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตระบบรับสมัครแล้ว` }); } catch(err) { Swal.fire('ข้อผิดพลาด', err.message, 'error'); }
+                try { const newStatus = currentStatus === 'open' ? 'closed' : 'open'; await runGAS('toggleRecruitSystemStatus', currentStatus); setAdminData(prev => ({ ...prev, recruitStatus: newStatus })); Swal.close(); Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตสำเร็จ` }); } catch(err) { Swal.fire('Error', err.message || 'เกิดข้อผิดพลาด', 'error'); }
             };
 
             const handleUpdateShirtPrice = async () => {
@@ -1561,7 +1645,7 @@
                 });
                 if (formValues) { 
                     Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } }); 
-                    try { await runGAS('updateShirtPrice', formValues); setAdminData(prev => ({ ...prev, shirtPrice: { ...(prev?.shirtPrice || {}), normal: formValues.normal, oversize: formValues.oversize } })); Swal.close(); Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตราคาสำเร็จ` }); } catch (err) { Swal.fire('Error', err.message, 'error'); } 
+                    try { await runGAS('updateShirtPrice', formValues); setAdminData(prev => ({ ...prev, shirtPrice: { ...(prev?.shirtPrice || {}), normal: formValues.normal, oversize: formValues.oversize } })); Swal.close(); Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตราคาสำเร็จ` }); } catch (err) { Swal.fire('Error', err.message || 'เกิดข้อผิดพลาด', 'error'); } 
                 }
             };
 
@@ -1573,7 +1657,7 @@
                 });
                 if (formValues) { 
                     Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } }); 
-                    try { await runGAS('updateReceiptConfig', formValues); setAdminData(prev => ({ ...prev, shirtPrice: { ...(prev?.shirtPrice || {}), receiptHeader: formValues.header, receiptNote: formValues.note } })); Swal.close(); Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตใบเสร็จสำเร็จ` }); } catch (err) { Swal.fire('Error', err.message, 'error'); } 
+                    try { await runGAS('updateReceiptConfig', formValues); setAdminData(prev => ({ ...prev, shirtPrice: { ...(prev?.shirtPrice || {}), receiptHeader: formValues.header, receiptNote: formValues.note } })); Swal.close(); Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตใบเสร็จสำเร็จ` }); } catch (err) { Swal.fire('Error', err.message || 'เกิดข้อผิดพลาด', 'error'); } 
                 }
             };
 
@@ -1586,7 +1670,7 @@
                 });
                 if (formValues) { 
                     Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } }); 
-                    try { await runGAS('updateShirtPopup', formValues); setAdminData(prev => ({ ...prev, shirtPrice: { ...(prev?.shirtPrice || {}), popupText: formValues.text, popupImage: formValues.image } })); Swal.close(); Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `ตั้งค่า Popup สำเร็จ` }); } catch (err) { Swal.fire('Error', err.message, 'error'); } 
+                    try { await runGAS('updateShirtPopup', formValues); setAdminData(prev => ({ ...prev, shirtPrice: { ...(prev?.shirtPrice || {}), popupText: formValues.text, popupImage: formValues.image } })); Swal.close(); Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `ตั้งค่า Popup สำเร็จ` }); } catch (err) { Swal.fire('Error', err.message || 'เกิดข้อผิดพลาด', 'error'); } 
                 }
             };
 
@@ -1595,45 +1679,45 @@
                 Papa.parse(file, { header: true, skipEmptyLines: true, complete: async function(results) {
                     if(results.data.length === 0) return Swal.fire('Error', 'Empty CSV', 'error');
                     Swal.fire({ title: `กำลังนำเข้า ${results.data.length} รายการ...`, didOpen: () => { Swal.showLoading() } });
-                    try { const res = await runGAS('importCheckins', results.data); if(res.success) { Swal.fire('สำเร็จ', `นำเข้าแล้ว ${res.count} รายการ`, 'success'); reloadData(); } else Swal.fire('Error', res.error, 'error'); } catch(err) { Swal.fire('Error', err.message, 'error'); } e.target.value = '';
+                    try { const res = await runGAS('importCheckins', results.data); Swal.fire('สำเร็จ', `นำเข้าแล้ว ${res.count} รายการ`, 'success'); reloadData(); } catch(err) { Swal.fire('Error', err.message || 'นำเข้าไม่สำเร็จ', 'error'); } e.target.value = '';
                 }});
             };
 
             const exportCSV = (arr, fn, fields) => {
                 if(!arr||arr.length===0) return Swal.fire('แจ้งเตือน','ไม่มีข้อมูล','warning');
-                const dataToExport = arr.map(r => {
-                    const keys = Object.keys(r);
-                    return fields.map(f => {
-                        const kwMatch = f.toLowerCase();
-                        const foundK = keys.find(k => k.toLowerCase().replace(/\s+/g,'').includes(kwMatch));
-                        return foundK ? r[foundK] : (r[f] || '');
-                    });
-                });
+                const dataToExport = arr.map(r => fields.map(f => getVal(r, [f.toLowerCase()], f)));
                 const csv = Papa.unparse({fields, data:dataToExport});
                 const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'})); link.download = fn; link.click();
+            };
+
+            const toggleShirtOrderStatus = async (studentId, currentStatus) => {
+                Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                try {
+                    const newStatus = currentStatus === 'received' ? 'paid' : 'received';
+                    await runGAS('updateShirtOrderStatus', studentId, newStatus);
+                    setAdminData(prev => ({ ...prev, shirtOrders: (prev?.shirtOrders || []).map(so => getVal(so, ['studentid', 'รหัส'], 'StudentID') === studentId ? { ...so, Status: newStatus } : so) }));
+                    Swal.close();
+                    Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตสถานะสำเร็จ` });
+                } catch(err) { Swal.fire('ข้อผิดพลาด', err.message || 'เกิดข้อผิดพลาด', 'error'); }
             };
 
             const renderSpssContent = () => {
                 if(!selectedActivityForSpss) return <div id="spss-ex" className="text-center py-10 text-gray-400 font-light border border-gray-100 rounded-xl bg-white">กรุณาเลือกกิจกรรมเพื่อดูรายงาน</div>;
                 const selectedActivityName = (data?.activities || []).find(a=>String(a.ActivityID)===String(selectedActivityForSpss))?.Name;
                 const evals = (data?.evaluations || []).filter(e => {
-                    const keys = Object.keys(e);
-                    const actNameKey = keys.find(k => k.toLowerCase().includes('activityname') || k.toLowerCase().includes('ชื่อกิจกรรม'));
-                    return actNameKey && String(e[actNameKey]).trim() === String(selectedActivityName).trim();
+                    const actNameKey = getVal(e, ['activityname', 'ชื่อกิจกรรม'], 'ActivityName');
+                    return actNameKey && String(actNameKey).trim() === String(selectedActivityName).trim();
                 });
                 if(evals.length === 0) return <div id="spss-ex" className="text-center py-10 text-gray-400 font-light border border-gray-100 rounded-xl bg-white">ไม่พบข้อมูลการประเมิน</div>;
 
                 const actCheckins = (data?.checkins || []).filter(c => {
-                    const keys = Object.keys(c);
-                    const actIdKey = keys.find(k => k.toLowerCase() === 'activityid' || k.toLowerCase() === 'รหัสกิจกรรม');
-                    return actIdKey && String(c[actIdKey]).trim() === String(selectedActivityForSpss).trim();
+                    const actIdKey = getVal(c, ['activityid', 'รหัสกิจกรรม'], 'ActivityID');
+                    return actIdKey && String(actIdKey).trim() === String(selectedActivityForSpss).trim();
                 });
                 
                 let mCount = 0; let fCount = 0;
                 actCheckins.forEach(c => {
-                    const keys = Object.keys(c);
-                    const nameKey = keys.find(k => k.toLowerCase() === 'name' || k.toLowerCase() === 'ชื่อ');
-                    const n = nameKey ? String(c[nameKey]).trim() : '';
+                    const n = getVal(c, ['name', 'ชื่อ'], 'Name').trim();
                     if (n.startsWith('นาย')) mCount++;
                     else if (n) fCount++;
                 });
@@ -1657,9 +1741,8 @@
                     cat.questions.forEach(q => {
                         const hKey = ['Q1_1','Q1_2','Q1_3','Q1_4','Q2_1','Q2_2','Q2_3','Q2_4','Q3_1','Q3_2','Q3_3','Q3_4','Q3_5'][overallIdx - 1];
                         const scores = evals.map(e => {
-                            const keys = Object.keys(e);
-                            const matchedKey = keys.find(x => x.toLowerCase() === hKey.toLowerCase() || x.toLowerCase() === `q${overallIdx}`);
-                            return Number(matchedKey ? e[matchedKey] : 0) || 0;
+                            const val = getVal(e, [hKey.toLowerCase(), `q${overallIdx}`], hKey);
+                            return Number(val) || 0;
                         }).filter(s => s > 0);
                         
                         allScoresForGrand.push(...scores);
@@ -1688,11 +1771,7 @@
                 const top3 = sortedQStats[2] || {text: '-', mean: 0};
 
                 const validComments = evals
-                    .map(e => {
-                        const keys = Object.keys(e);
-                        const k = keys.find(x => ['comment', 'ข้อเสนอแนะ', 'suggestion'].includes(x.toLowerCase()));
-                        return k ? String(e[k]).trim() : '';
-                    })
+                    .map(e => String(getVal(e, ['comment', 'ข้อเสนอแนะ', 'suggestion'], 'Comment')).trim())
                     .filter(text => text !== '' && text !== '-' && text !== '.' && text !== 'ไม่มี' && text !== 'ไม่มีครับ' && text !== 'ไม่มีค่ะ' && text !== 'ไม่มีข้อเสนอแนะ');
 
                 return (
@@ -2163,20 +2242,35 @@
                                     </div>
                                     <div className="flex gap-2">
                                         <label className="border border-orange-200 text-charcoal-900 px-4 py-2.5 rounded-xl cursor-pointer text-xs font-medium tracking-widest uppercase hover:bg-orange-50 transition-colors flex items-center bg-white"><i className="fa-solid fa-upload mr-2 text-orange-500"></i> นำเข้าข้อมูล<input type="file" accept=".csv" className="hidden" onChange={handleImportCSV} /></label>
-                                        <button onClick={()=>{ const list = sortedCheckins; const csvData = Papa.unparse(list); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob(['\ufeff' + csvData], { type: 'text/csv;charset=utf-8;' })); link.download = `CheckIns.csv`; link.click(); }} className="btn-gradient px-4 py-2.5 rounded-xl text-xs font-medium tracking-widest uppercase flex items-center shadow-lg shadow-orange-500/20"><i className="fa-solid fa-download mr-2"></i> ส่งออก Excel</button>
+                                        <button onClick={()=>exportCSV(sortedCheckins, 'CheckIns.csv', ['Timestamp', 'StudentID', 'Name', 'Major', 'IDCard', 'ActivityID', 'ActivityName'])} className="btn-gradient px-4 py-2.5 rounded-xl text-xs font-medium tracking-widest uppercase flex items-center shadow-lg shadow-orange-500/20"><i className="fa-solid fa-download mr-2"></i> ส่งออก Excel</button>
                                     </div>
                                 </div>
                                 <div className="overflow-x-auto border border-orange-100/50 rounded-xl mb-4 transition-colors">
                                     <table className="w-full text-sm text-left whitespace-nowrap"><thead className="bg-orange-50/50 border-b border-orange-100 text-[10px] text-gray-500 uppercase tracking-widest transition-colors"><tr><th className="px-6 py-4 font-medium">วัน/เวลา</th><th className="px-6 py-4 font-medium">ชื่อ-สกุล / รหัส</th><th className="px-6 py-4 font-medium">สาขาวิชา</th><th className="px-6 py-4 font-medium">รหัส ปชช.</th><th className="px-6 py-4 font-medium">กิจกรรม</th></tr></thead><tbody className="divide-y divide-orange-50">
-                                        {currentCheckins.map((c,i)=>(<tr key={i} className="transition-colors hover:bg-orange-50/30"><td className="px-6 py-4 text-xs font-light text-orange-500/80">{c.Timestamp ? new Date(c.Timestamp).toLocaleDateString('th-TH') : '-'} {c.Timestamp ? new Date(c.Timestamp).toLocaleTimeString('th-TH') : ''}</td><td className="px-6 py-4"><p className="font-medium text-charcoal-900">{c.StudentID}</p><p className="text-xs text-gray-500 font-light mt-0.5">{c.Name}</p></td><td className="px-6 py-4 font-light text-gray-600">{c.Major}</td><td className="px-6 py-4 text-xs font-light text-gray-400">{c.IDCard || '-'}</td><td className="px-6 py-4 text-xs font-light text-gray-500 truncate max-w-[200px]">{c.ActivityName}</td></tr>))}
+                                        {currentCheckins.map((c,i)=>{
+                                            const ts = getVal(c, ['timestamp', 'เวลา', 'ประทับเวลา'], 'Timestamp');
+                                            const stdId = getVal(c, ['studentid', 'รหัส'], 'StudentID');
+                                            const name = getVal(c, ['name', 'ชื่อ'], 'Name');
+                                            const major = getVal(c, ['major', 'สาขา'], 'Major');
+                                            const idCard = getVal(c, ['idcard', 'บัตร'], 'IDCard');
+                                            const actName = getVal(c, ['activityname', 'ชื่อกิจกรรม', 'กิจกรรม'], 'ActivityName');
+                                            return (
+                                                <tr key={i} className="transition-colors hover:bg-orange-50/30"><td className="px-6 py-4 text-xs font-light text-orange-500/80">{ts ? new Date(ts).toLocaleDateString('th-TH') : '-'} {ts ? new Date(ts).toLocaleTimeString('th-TH') : ''}</td><td className="px-6 py-4"><p className="font-medium text-charcoal-900">{stdId}</p><p className="text-xs text-gray-500 font-light mt-0.5">{name}</p></td><td className="px-6 py-4 font-light text-gray-600">{major}</td><td className="px-6 py-4 text-xs font-light text-gray-400">{idCard || '-'}</td><td className="px-6 py-4 text-xs font-light text-gray-500 truncate max-w-[200px]">{actName}</td></tr>
+                                            )
+                                        })}
                                         {currentCheckins.length === 0 && <tr><td colSpan="5" className="text-center py-10 text-gray-400 font-light">ไม่พบข้อมูลที่ค้นหา</td></tr>}
                                     </tbody></table>
                                 </div>
-                                {totalPages > 1 && (
-                                    <div className="flex justify-between items-center text-sm bg-white px-4 py-2 rounded-xl border border-orange-100">
-                                        <button disabled={currentPage===1} onClick={()=>setCurrentPage(prev=>Math.max(1,prev-1))} className={`text-xs uppercase tracking-widest font-medium ${currentPage===1?'text-gray-300':'text-orange-500 hover:text-orange-600'}`}>ก่อนหน้า</button>
-                                        <span className="text-gray-400 font-light text-xs">หน้าที่ {currentPage} จาก {totalPages}</span>
-                                        <button disabled={currentPage===totalPages} onClick={()=>setCurrentPage(prev=>Math.min(totalPages,prev+1))} className={`text-xs uppercase tracking-widest font-medium ${currentPage===totalPages?'text-gray-300':'text-orange-500 hover:text-orange-600'}`}>ถัดไป</button>
+                                {sortedCheckins.length > 0 && (
+                                    <div className="flex flex-col sm:flex-row justify-between items-center px-6 py-4 border-t border-gray-100 bg-gray-50/50 gap-4 rounded-b-2xl">
+                                        <span className="text-[10px] font-bold text-gray-500 tracking-widest">
+                                            แสดง {Math.min(sortedCheckins.length, (currentPage - 1) * itemsPerPage + 1)} - {Math.min(sortedCheckins.length, currentPage * itemsPerPage)} จากทั้งหมด {sortedCheckins.length} รายการ
+                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <button disabled={currentPage===1} onClick={()=>setCurrentPage(prev=>Math.max(1,prev-1))} className="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-orange-600 px-3 py-1.5 transition-colors disabled:opacity-30 bg-white border border-gray-200 rounded-lg shadow-sm">ก่อนหน้า</button>
+                                            <span className="text-orange-600 font-bold text-[10px] uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg border border-orange-200 shadow-sm">หน้า {currentPage} / {totalPages}</span>
+                                            <button disabled={currentPage===totalPages} onClick={()=>setCurrentPage(prev=>Math.min(totalPages,prev+1))} className="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-orange-600 px-3 py-1.5 transition-colors disabled:opacity-30 bg-white border border-gray-200 rounded-lg shadow-sm">ถัดไป</button>
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -2195,19 +2289,34 @@
                                             <input type="text" placeholder="ค้นหารหัส, ชื่อ, สาขา..." value={searchRegisTerm} onChange={(e)=>setSearchRegisTerm(e.target.value)} className="w-full pl-10 pr-4 py-3 border border-orange-200 rounded-xl text-sm bg-white outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/10 transition-all shadow-sm" />
                                         </div>
                                     </div>
-                                    <button onClick={()=>{ const list = sortedRegistrationsList; const csvData = Papa.unparse(list); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob(['\ufeff' + csvData], { type: 'text/csv;charset=utf-8;' })); link.download = `Registrations.csv`; link.click(); }} className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2.5 rounded-xl text-xs font-medium tracking-widest uppercase flex items-center shadow-lg shadow-purple-500/20"><i className="fa-solid fa-download mr-2"></i> ส่งออก Excel</button>
+                                    <button onClick={()=>exportCSV(sortedRegistrationsList, 'Registrations.csv', ['Timestamp', 'StudentID', 'Name', 'Major', 'IDCard', 'RecruitID', 'RecruitName'])} className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2.5 rounded-xl text-xs font-medium tracking-widest uppercase flex items-center shadow-lg shadow-purple-500/20"><i className="fa-solid fa-download mr-2"></i> ส่งออก Excel</button>
                                 </div>
                                 <div className="overflow-x-auto border border-orange-100/50 rounded-xl mb-4 transition-colors">
                                     <table className="w-full text-sm text-left whitespace-nowrap"><thead className="bg-purple-50/50 border-b border-orange-100 text-[10px] text-gray-500 uppercase tracking-widest transition-colors"><tr><th className="px-6 py-4 font-medium">วัน/เวลาสมัคร</th><th className="px-6 py-4 font-medium">ชื่อ-สกุล / รหัส</th><th className="px-6 py-4 font-medium">สาขาวิชา</th><th className="px-6 py-4 font-medium">รหัส ปชช.</th><th className="px-6 py-4 font-medium">กิจกรรมที่สมัคร</th></tr></thead><tbody className="divide-y divide-orange-50">
-                                        {currentRegistrations.map((c,i)=>(<tr key={i} className="transition-colors hover:bg-purple-50/30"><td className="px-6 py-4 text-xs font-light text-purple-500/80">{c.Timestamp ? new Date(c.Timestamp).toLocaleDateString('th-TH') : '-'} {c.Timestamp ? new Date(c.Timestamp).toLocaleTimeString('th-TH') : ''}</td><td className="px-6 py-4"><p className="font-medium text-charcoal-900">{c.StudentID}</p><p className="text-xs text-gray-500 font-light mt-0.5">{c.Name}</p></td><td className="px-6 py-4 font-light text-gray-600">{c.Major}</td><td className="px-6 py-4 text-xs font-light text-gray-400">{c.IDCard || '-'}</td><td className="px-6 py-4 text-xs font-medium text-purple-600 truncate max-w-[200px]">{c.RecruitName}</td></tr>))}
+                                        {currentRegistrations.map((c,i)=>{
+                                            const ts = getVal(c, ['timestamp', 'เวลา', 'ประทับเวลา'], 'Timestamp');
+                                            const stdId = getVal(c, ['studentid', 'รหัส'], 'StudentID');
+                                            const name = getVal(c, ['name', 'ชื่อ'], 'Name');
+                                            const major = getVal(c, ['major', 'สาขา'], 'Major');
+                                            const idCard = getVal(c, ['idcard', 'บัตร'], 'IDCard');
+                                            const recName = getVal(c, ['recruitname', 'ชื่อกิจกรรม'], 'RecruitName');
+                                            return (
+                                                <tr key={i} className="transition-colors hover:bg-purple-50/30"><td className="px-6 py-4 text-xs font-light text-purple-500/80">{ts ? new Date(ts).toLocaleDateString('th-TH') : '-'} {ts ? new Date(ts).toLocaleTimeString('th-TH') : ''}</td><td className="px-6 py-4"><p className="font-medium text-charcoal-900">{stdId}</p><p className="text-xs text-gray-500 font-light mt-0.5">{name}</p></td><td className="px-6 py-4 font-light text-gray-600">{major}</td><td className="px-6 py-4 text-xs font-light text-gray-400">{idCard || '-'}</td><td className="px-6 py-4 text-xs font-medium text-purple-600 truncate max-w-[200px]">{recName}</td></tr>
+                                            )
+                                        })}
                                         {currentRegistrations.length === 0 && <tr><td colSpan="5" className="text-center py-10 text-gray-400 font-light">ไม่พบข้อมูลผู้สมัคร</td></tr>}
                                     </tbody></table>
                                 </div>
-                                {totalRegisPages > 1 && (
-                                    <div className="flex justify-between items-center text-sm bg-white px-4 py-2 rounded-xl border border-orange-100">
-                                        <button disabled={regisPage===1} onClick={()=>setRegisPage(prev=>Math.max(1,prev-1))} className={`text-xs uppercase tracking-widest font-medium ${regisPage===1?'text-gray-300':'text-purple-500 hover:text-purple-600'}`}>ก่อนหน้า</button>
-                                        <span className="text-gray-400 font-light text-xs">หน้าที่ {regisPage} จาก {totalRegisPages}</span>
-                                        <button disabled={regisPage===totalRegisPages} onClick={()=>setRegisPage(prev=>Math.min(totalRegisPages,prev+1))} className={`text-xs uppercase tracking-widest font-medium ${regisPage===totalRegisPages?'text-gray-300':'text-purple-500 hover:text-purple-600'}`}>ถัดไป</button>
+                                {sortedRegistrationsList.length > 0 && (
+                                    <div className="flex flex-col sm:flex-row justify-between items-center px-6 py-4 border-t border-gray-100 bg-gray-50/50 gap-4 rounded-b-2xl">
+                                        <span className="text-[10px] font-bold text-gray-500 tracking-widest">
+                                            แสดง {Math.min(sortedRegistrationsList.length, (regisPage - 1) * regisItemsPerPage + 1)} - {Math.min(sortedRegistrationsList.length, regisPage * regisItemsPerPage)} จากทั้งหมด {sortedRegistrationsList.length} รายการ
+                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <button disabled={regisPage===1} onClick={()=>setRegisPage(prev=>Math.max(1,prev-1))} className="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-purple-600 px-3 py-1.5 transition-colors disabled:opacity-30 bg-white border border-gray-200 rounded-lg shadow-sm">ก่อนหน้า</button>
+                                            <span className="text-purple-600 font-bold text-[10px] uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg border border-purple-200 shadow-sm">หน้า {regisPage} / {totalRegisPages}</span>
+                                            <button disabled={regisPage===totalRegisPages} onClick={()=>setRegisPage(prev=>Math.min(totalRegisPages,prev+1))} className="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-purple-600 px-3 py-1.5 transition-colors disabled:opacity-30 bg-white border border-gray-200 rounded-lg shadow-sm">ถัดไป</button>
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -2228,36 +2337,13 @@
                                             const evalsToExport = (data?.evaluations || []).filter(e => {
                                                 if (!selectedActivityForSpss) return true;
                                                 const actName = (data?.activities || []).find(a=>String(a.ActivityID)===String(selectedActivityForSpss))?.Name;
-                                                const keys = Object.keys(e);
-                                                const actNameKey = keys.find(k => k.toLowerCase().includes('activityname') || k.toLowerCase().includes('ชื่อกิจกรรม'));
-                                                return actNameKey && String(e[actNameKey]).trim() === String(actName).trim();
+                                                const actNameKey = getVal(e, ['activityname', 'ชื่อกิจกรรม'], 'ActivityName');
+                                                return actNameKey && String(actNameKey).trim() === String(actName).trim();
                                             });
                                             if(evalsToExport.length === 0) return Swal.fire('แจ้งเตือน','ไม่มีข้อมูลการประเมินให้ส่งออก','warning');
                                             
                                             const fields = ["Timestamp", "StudentID", "ActivityID", "ActivityName", "Q1_1", "Q1_2", "Q1_3", "Q1_4", "Q2_1", "Q2_2", "Q2_3", "Q2_4", "Q3_1", "Q3_2", "Q3_3", "Q3_4", "Q3_5", "Comment"];
-                                            const dataToExport = evalsToExport.map(e => {
-                                                const keys = Object.keys(e);
-                                                const getK = (names) => {
-                                                    const found = keys.find(k => names.includes(k.toLowerCase().trim()));
-                                                    return found ? e[found] : '';
-                                                };
-                                                return [
-                                                    getK(['timestamp', 'เวลา', 'ประทับเวลา']),
-                                                    getK(['studentid', 'รหัสนักศึกษา', 'รหัสประจำตัว']),
-                                                    getK(['activityid', 'รหัสกิจกรรม']),
-                                                    getK(['activityname', 'ชื่อกิจกรรม', 'กิจกรรม']),
-                                                    getK(['q1_1', 'q1']), getK(['q1_2', 'q2']), getK(['q1_3', 'q3']), getK(['q1_4', 'q4']),
-                                                    getK(['q2_1', 'q5']), getK(['q2_2', 'q6']), getK(['q2_3', 'q7']), getK(['q2_4', 'q8']),
-                                                    getK(['q3_1', 'q9']), getK(['q3_2', 'q10']), getK(['q3_3', 'q11']), getK(['q3_4', 'q12']), getK(['q3_5', 'q13']),
-                                                    getK(['comment', 'ข้อเสนอแนะ', 'suggestion'])
-                                                ];
-                                            });
-                                            
-                                            const csv = Papa.unparse({fields, data:dataToExport});
-                                            const link = document.createElement("a"); 
-                                            link.href = URL.createObjectURL(new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'})); 
-                                            link.download = `Evaluations_SPSS.csv`; 
-                                            link.click();
+                                            exportCSV(evalsToExport, 'Evaluations_SPSS.csv', fields);
                                         }} className="btn-gradient px-4 py-3 rounded-xl text-xs font-medium tracking-widest uppercase flex items-center justify-center whitespace-nowrap shadow-lg shadow-orange-500/20 flex-1"><i className="fa-solid fa-file-csv mr-2 text-lg"></i> ส่งออกข้อมูล CSV</button>
 
                                         <button onClick={()=>{ const h = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>body{font-family:'TH Sarabun PSK',sans-serif;font-size:16pt;}table{width:100%;border-collapse:collapse;margin-bottom:15pt;}th,td{border:1px solid black;padding:5px;}th{background-color:#f2f2f2;}h4{font-weight:bold;margin-bottom:10pt;}p{text-indent:36pt;line-height:1.5;margin-bottom:20pt;}.word-export-title{display:block !important;}</style></head><body>${document.getElementById('spss-ex').innerHTML}</body></html>`; const a = document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff', h],{type:'application/msword'})); a.download=`SPSS.doc`; a.click(); }} className="bg-[#2b579a] hover:bg-[#1f4278] text-white shadow-lg shadow-blue-900/20 px-4 py-3 rounded-xl text-xs font-medium tracking-widest uppercase transition-all flex items-center justify-center whitespace-nowrap flex-1"><i className="fa-solid fa-file-word mr-2 text-lg"></i> โหลดไฟล์ Word</button>
@@ -2288,7 +2374,7 @@
                                                 <button onClick={handleUpdateShirtPrice} className="flex-1 min-w-[100px] text-[10px] font-bold uppercase tracking-widest text-charcoal-900 bg-white hover:bg-orange-50 transition-colors px-4 py-3 border border-orange-200 rounded-xl shadow-sm text-center flex flex-col gap-1.5 items-center"><i className="fa-solid fa-tag text-rose-500 text-lg"></i> ตั้งราคา</button>
                                                 <button onClick={handleUpdateReceiptConfig} className="flex-1 min-w-[100px] text-[10px] font-bold uppercase tracking-widest text-charcoal-900 bg-white hover:bg-orange-50 transition-colors px-4 py-3 border border-orange-200 rounded-xl shadow-sm text-center flex flex-col gap-1.5 items-center"><i className="fa-solid fa-receipt text-rose-500 text-lg"></i> ใบเสร็จ</button>
                                                 <button onClick={handleUpdateShirtPopup} className="flex-1 min-w-[100px] text-[10px] font-bold uppercase tracking-widest text-charcoal-900 bg-white hover:bg-orange-50 transition-colors px-4 py-3 border border-orange-200 rounded-xl shadow-sm text-center flex flex-col gap-1.5 items-center"><i className="fa-solid fa-bullhorn text-rose-500 text-lg"></i> ป๊อปอัป</button>
-                                                <button onClick={() => { const csv = Papa.unparse(data.shirtOrders || []); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'})); link.download = `ShirtOrders.csv`; link.click(); }} className="flex-1 min-w-[100px] text-[10px] font-bold uppercase tracking-widest bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-400 hover:to-orange-500 transition-colors px-4 py-3 rounded-xl shadow-md text-center flex flex-col gap-1.5 items-center"><i className="fa-solid fa-file-export text-white text-lg"></i> Export CSV</button>
+                                                <button onClick={() => exportCSV(data.shirtOrders || [], 'ShirtOrders.csv', ['Timestamp', 'StudentID', 'Name', 'Major', 'PoloGender', 'PoloSize', 'PoloQty', 'TshirtGender', 'TshirtSize', 'TshirtQty', 'TotalPrice', 'PaymentMethod', 'Status'])} className="flex-1 min-w-[100px] text-[10px] font-bold uppercase tracking-widest bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-400 hover:to-orange-500 transition-colors px-4 py-3 rounded-xl shadow-md text-center flex flex-col gap-1.5 items-center"><i className="fa-solid fa-file-export text-white text-lg"></i> Export CSV</button>
                                             </div>
                                         </div>
                                     </div>
@@ -2302,7 +2388,7 @@
                                         </div>
                                         <div className="relative z-10 mt-auto pt-4">
                                             <p className="text-[10px] font-medium text-white/80 uppercase tracking-widest mb-1">ยอดรับชำระทั้งหมด</p>
-                                            <p className="text-4xl lg:text-5xl font-black text-white tracking-tight drop-shadow-md"><span className="text-xl opacity-70 mr-1 font-medium">฿</span>{(data.shirtOrders||[]).reduce((sum, o) => sum + (Number(o.TotalPrice) || 0), 0).toLocaleString()}</p>
+                                            <p className="text-4xl lg:text-5xl font-black text-white tracking-tight drop-shadow-md"><span className="text-xl opacity-70 mr-1 font-medium">฿</span>{(data.shirtOrders||[]).reduce((sum, o) => sum + (Number(getK(o, ['totalprice', 'ยอดรวม'], 'TotalPrice')) || 0), 0).toLocaleString()}</p>
                                         </div>
                                     </div>
                                     <div className="lg:col-span-3 bg-white/90 backdrop-blur p-8 rounded-[2rem] border border-orange-100/50 shadow-sm relative">
@@ -2333,57 +2419,89 @@
                                     </div>
                                 </div>
                                 <div className="bg-white/90 backdrop-blur border border-orange-100/50 rounded-[1.5rem] overflow-hidden shadow-sm">
+                                    <div className="p-5 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-gray-50/50">
+                                        <h3 className="font-semibold text-charcoal-900 text-sm flex items-center gap-2"><i className="fa-solid fa-list-ul text-orange-500"></i> รายการสั่งจองเสื้อทั้งหมด</h3>
+                                        <div className="relative w-full sm:max-w-xs">
+                                            <i className="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                            <input type="text" placeholder="ค้นหารหัส, ชื่อ, สาขา..." value={searchShirtTerm} onChange={(e)=>setSearchShirtTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm bg-white outline-none focus:border-orange-500 transition-all shadow-sm" />
+                                        </div>
+                                    </div>
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-left whitespace-nowrap modern-table">
                                             <thead className="bg-orange-50/50 border-b border-orange-100">
                                                 <tr><th className="font-semibold text-gray-500 tracking-wider">วัน/เวลา</th><th className="font-semibold text-gray-500 tracking-wider">ข้อมูลผู้สั่งจอง</th><th className="text-center font-semibold text-gray-500 tracking-wider">คอปกโปโล</th><th className="text-center font-semibold text-gray-500 tracking-wider">เสื้อยืด</th><th className="text-right font-semibold text-gray-500 tracking-wider">ยอดรวม</th><th className="text-center font-semibold text-gray-500 tracking-wider">สลิป</th><th className="text-center font-semibold text-gray-500 tracking-wider">สถานะออเดอร์</th></tr>
                                             </thead>
                                             <tbody className="text-sm text-charcoal-900 divide-y divide-gray-50">
-                                            {currentShirtOrders.map((o,i)=>(
-                                                <tr key={i} className="hover:bg-orange-50/30 transition-colors group">
-                                                    <td className="px-6 py-4">
-                                                        <span className="block font-medium text-charcoal-900 text-xs">{new Date(o.Timestamp).toLocaleDateString('th-TH')}</span>
-                                                        <span className="block text-[10px] text-gray-400 font-medium tracking-widest mt-0.5"><i className="fa-regular fa-clock"></i> {new Date(o.Timestamp).toLocaleTimeString('th-TH', {hour:'2-digit',minute:'2-digit'})}</span>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <div className="flex flex-col gap-1">
-                                                            <span className="inline-block bg-gray-100 text-gray-600 text-[9px] font-bold tracking-widest px-2 py-0.5 rounded border border-gray-200 w-fit">{o.StudentID}</span>
-                                                            <span className="font-semibold text-charcoal-900">{o.Name}</span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-center">
-                                                        <div className="inline-flex items-center justify-center gap-1.5 bg-gray-50 px-2.5 py-1.5 rounded-md border border-gray-100 text-xs">
-                                                            <span className="text-gray-500">{o.PoloGender}</span><span className="text-gray-300">|</span><span className="text-gray-700 font-bold">{o.PoloSize}</span><span className="font-black text-charcoal-900 ml-1 text-[10px] bg-white px-1.5 py-0.5 rounded shadow-sm border border-gray-200">x{o.PoloQty}</span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-center">
-                                                        <div className="inline-flex items-center justify-center gap-1.5 bg-gray-50 px-2.5 py-1.5 rounded-md border border-gray-100 text-xs">
-                                                            <span className="text-gray-500">{o.TshirtGender}</span><span className="text-gray-300">|</span><span className="text-gray-700 font-bold">{o.TshirtSize}</span><span className="font-black text-charcoal-900 ml-1 text-[10px] bg-white px-1.5 py-0.5 rounded shadow-sm border border-gray-200">x{o.TshirtQty}</span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-right font-black text-rose-600 text-base">฿{Number(o.TotalPrice||0).toLocaleString()}</td>
-                                                    <td className="px-6 py-4 text-center">
-                                                        {(() => {
-                                                            const rawSlip = o.SlipImage || o.SlipURL || o.Slip || ''; const slipStr = String(rawSlip).trim(); const hasValidSlip = slipStr && slipStr !== 'null' && slipStr !== 'undefined' && slipStr !== '-';
-                                                            if (o.PaymentMethod === 'cash') { return <span className="text-[9px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-1.5 rounded-md shadow-sm whitespace-nowrap"><i className="fa-solid fa-coins mr-1"></i> เงินสด</span>; } else if (hasValidSlip) { return (<button onClick={() => { if (slipStr.startsWith('data:image')) { Swal.fire({imageUrl: slipStr, imageAlt: 'Slip'}); } else if (slipStr.startsWith('http')) { window.open(slipStr, '_blank'); } else if (/^[a-zA-Z0-9_-]{15,}$/.test(slipStr)) { window.open(`https://drive.google.com/file/d/${slipStr}/view`, '_blank'); } else { Swal.fire('ข้อผิดพลาด', 'ข้อมูลรูปภาพไม่ถูกต้อง', 'error'); } }} className="text-emerald-500 hover:text-white bg-emerald-50 hover:bg-emerald-500 w-9 h-9 rounded-lg flex items-center justify-center mx-auto transition-all shadow-sm border border-emerald-200" title="ดูสลิปโอนเงิน"><i className="fa-solid fa-image"></i></button>); } else { return <span className="text-xs text-gray-300 font-medium">-</span>; }
-                                                        })()}
-                                                    </td>
-                                                    <td className="px-6 py-4 text-center">
-                                                        <button onClick={async () => { Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => Swal.showLoading() }); try { const newStatus = o.Status === 'received' ? 'paid' : 'received'; await runGAS('updateShirtOrderStatus', o.StudentID, newStatus); setAdminData(prev => ({ ...prev, shirtOrders: prev.shirtOrders.map(so => so.StudentID === o.StudentID ? { ...so, Status: newStatus } : so) })); Swal.close(); Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตสถานะสำเร็จ` }); } catch(err) { Swal.fire('ข้อผิดพลาด', err.message, 'error'); } }} className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest border transition-all shadow-sm w-full max-w-[100px] mx-auto block ${o.Status === 'received' ? 'text-rose-600 border-rose-200 bg-rose-50 hover:bg-rose-500 hover:text-white hover:border-rose-500' : 'text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-500 hover:text-white hover:border-emerald-500'}`}>
-                                                            <i className={`fa-solid ${o.Status === 'received' ? 'fa-spinner' : 'fa-check'} mr-1`}></i> {o.Status === 'received' ? 'รอยืนยัน' : 'ชำระแล้ว'}
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                            {(data.shirtOrders||[]).length===0 && <tr><td colSpan="7" className="text-center py-16 text-gray-400 font-medium text-sm bg-gray-50/50"><i className="fa-solid fa-inbox block text-3xl mb-3 text-gray-300"></i> ยังไม่มีออเดอร์</td></tr>}
+                                            {currentShirtOrders.map((o,i) => {
+                                                const ts = getK(o, ['timestamp', 'เวลา'], 'Timestamp');
+                                                const stdId = getK(o, ['studentid', 'รหัส'], 'StudentID');
+                                                const name = getK(o, ['name', 'ชื่อ'], 'Name');
+                                                const pGen = getK(o, ['pologender', 'ทรงโปโล'], 'PoloGender');
+                                                const pSize = getK(o, ['polosize', 'ไซส์โปโล'], 'PoloSize');
+                                                const pQty = getK(o, ['poloqty', 'จำนวนโปโล'], 'PoloQty');
+                                                const tGen = getK(o, ['tshirtgender', 'ทรงเสื้อยืด'], 'TshirtGender');
+                                                const tSize = getK(o, ['tshirtsize', 'ไซส์เสื้อยืด'], 'TshirtSize');
+                                                const tQty = getK(o, ['tshirtqty', 'จำนวนเสื้อยืด'], 'TshirtQty');
+                                                const totalPrice = getK(o, ['totalprice', 'ยอดรวม'], 'TotalPrice');
+                                                const paymentMethod = getK(o, ['paymentmethod', 'วิธีชำระ'], 'PaymentMethod');
+                                                const status = getK(o, ['status', 'สถานะ'], 'Status');
+                                                const slipStr = String(getK(o, ['slipimage', 'slipurl', 'slip', 'สลิป'], 'SlipImage')).trim();
+                                                const hasValidSlip = slipStr && slipStr !== 'null' && slipStr !== 'undefined' && slipStr !== '-';
+
+                                                return (
+                                                    <tr key={i} className="hover:bg-orange-50/30 transition-colors group">
+                                                        <td className="px-6 py-4">
+                                                            <span className="block font-medium text-charcoal-900 text-xs">{ts ? new Date(ts).toLocaleDateString('th-TH') : '-'}</span>
+                                                            <span className="block text-[10px] text-gray-400 font-medium tracking-widest mt-0.5"><i className="fa-regular fa-clock"></i> {ts ? new Date(ts).toLocaleTimeString('th-TH', {hour:'2-digit',minute:'2-digit'}) : '-'}</span>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex flex-col gap-1">
+                                                                <span className="inline-block bg-gray-100 text-gray-600 text-[9px] font-bold tracking-widest px-2 py-0.5 rounded border border-gray-200 w-fit">{stdId}</span>
+                                                                <span className="font-semibold text-charcoal-900">{name}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-center">
+                                                            <div className="inline-flex items-center justify-center gap-1.5 bg-gray-50 px-2.5 py-1.5 rounded-md border border-gray-100 text-xs">
+                                                                <span className="text-gray-500">{pGen}</span><span className="text-gray-300">|</span><span className="text-gray-700 font-bold">{pSize}</span><span className="font-black text-charcoal-900 ml-1 text-[10px] bg-white px-1.5 py-0.5 rounded shadow-sm border border-gray-200">x{pQty}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-center">
+                                                            <div className="inline-flex items-center justify-center gap-1.5 bg-gray-50 px-2.5 py-1.5 rounded-md border border-gray-100 text-xs">
+                                                                <span className="text-gray-500">{tGen}</span><span className="text-gray-300">|</span><span className="text-gray-700 font-bold">{tSize}</span><span className="font-black text-charcoal-900 ml-1 text-[10px] bg-white px-1.5 py-0.5 rounded shadow-sm border border-gray-200">x{tQty}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-right font-black text-rose-600 text-base">฿{Number(totalPrice||0).toLocaleString()}</td>
+                                                        <td className="px-6 py-4 text-center">
+                                                            {paymentMethod === 'cash' ? (
+                                                                <span className="text-[9px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-1.5 rounded-md shadow-sm whitespace-nowrap"><i className="fa-solid fa-coins mr-1"></i> เงินสด</span>
+                                                            ) : hasValidSlip ? (
+                                                                <button onClick={() => { if (slipStr.startsWith('data:image')) { Swal.fire({imageUrl: slipStr, imageAlt: 'Slip'}); } else if (slipStr.startsWith('http')) { window.open(slipStr, '_blank'); } else if (/^[a-zA-Z0-9_-]{15,}$/.test(slipStr)) { window.open(`https://drive.google.com/file/d/${slipStr}/view`, '_blank'); } else { Swal.fire('ข้อผิดพลาด', 'ข้อมูลรูปภาพไม่ถูกต้อง', 'error'); } }} className="text-emerald-500 hover:text-white bg-emerald-50 hover:bg-emerald-500 w-9 h-9 rounded-lg flex items-center justify-center mx-auto transition-all shadow-sm border border-emerald-200" title="ดูสลิปโอนเงิน"><i className="fa-solid fa-image"></i></button>
+                                                            ) : (
+                                                                <span className="text-xs text-gray-300 font-medium">-</span>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-center">
+                                                            <button onClick={async () => { Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => Swal.showLoading() }); try { const newStatus = status === 'received' ? 'paid' : 'received'; await runGAS('updateShirtOrderStatus', stdId, newStatus); setAdminData(prev => ({ ...prev, shirtOrders: prev.shirtOrders.map(so => getK(so, ['studentid', 'รหัส'], 'StudentID') === stdId ? { ...so, Status: newStatus } : so) })); Swal.close(); Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตสถานะสำเร็จ` }); } catch(err) { Swal.fire('ข้อผิดพลาด', err.message, 'error'); } }} className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest border transition-all shadow-sm w-full max-w-[100px] mx-auto block ${status === 'received' ? 'text-rose-600 border-rose-200 bg-rose-50 hover:bg-rose-500 hover:text-white hover:border-rose-500' : 'text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-500 hover:text-white hover:border-emerald-500'}`}>
+                                                                <i className={`fa-solid ${status === 'received' ? 'fa-spinner' : 'fa-check'} mr-1`}></i> {status === 'received' ? 'รอยืนยัน' : 'ชำระแล้ว'}
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                            {currentShirtOrders.length===0 && <tr><td colSpan="7" className="text-center py-16 text-gray-400 font-medium text-sm bg-gray-50/50"><i className="fa-solid fa-inbox block text-3xl mb-3 text-gray-300"></i> ยังไม่มีออเดอร์</td></tr>}
                                             </tbody>
                                         </table>
                                     </div>
-                                    {totalShirtPages > 1 && (
-                                        <div className="flex justify-between items-center px-6 py-4 border-t border-gray-100 bg-gray-50/50">
-                                            <button disabled={shirtOrderPage===1} onClick={()=>setShirtOrderPage(p=>Math.max(1,p-1))} className="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-orange-600 px-3 py-1.5 transition-colors disabled:opacity-30">ก่อนหน้า</button>
-                                            <span className="text-gray-500 font-medium text-[10px] uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm">หน้า {shirtOrderPage} จาก {totalShirtPages}</span>
-                                            <button disabled={shirtOrderPage===totalShirtPages} onClick={()=>setShirtOrderPage(p=>Math.min(totalShirtPages,p+1))} className="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-orange-600 px-3 py-1.5 transition-colors disabled:opacity-30">ถัดไป</button>
+                                    {sortedShirtOrders.length > 0 && (
+                                        <div className="flex flex-col sm:flex-row justify-between items-center px-6 py-4 border-t border-gray-100 bg-gray-50/50 gap-4">
+                                            <span className="text-[10px] font-bold text-gray-500 tracking-widest">
+                                                แสดง {Math.min(sortedShirtOrders.length, (shirtOrderPage - 1) * shirtItemsPerPage + 1)} - {Math.min(sortedShirtOrders.length, shirtOrderPage * shirtItemsPerPage)} จากทั้งหมด {sortedShirtOrders.length} รายการ
+                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <button disabled={shirtOrderPage===1} onClick={()=>setShirtOrderPage(p=>Math.max(1,p-1))} className="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-orange-600 px-3 py-1.5 transition-colors disabled:opacity-30 bg-white border border-gray-200 rounded-lg shadow-sm">ก่อนหน้า</button>
+                                                <span className="text-orange-600 font-bold text-[10px] uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg border border-orange-200 shadow-sm">หน้า {shirtOrderPage} / {totalShirtPages}</span>
+                                                <button disabled={shirtOrderPage===totalShirtPages} onClick={()=>setShirtOrderPage(p=>Math.min(totalShirtPages,p+1))} className="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-orange-600 px-3 py-1.5 transition-colors disabled:opacity-30 bg-white border border-gray-200 rounded-lg shadow-sm">ถัดไป</button>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
