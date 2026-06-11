@@ -410,7 +410,12 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                     if (isFastCSVReady()) {
                         const allChks = await fetchFastCSV('CheckIns').catch(() => []);
                         const cleanSearchId = studentId.replace(/\s+/g, '').toLowerCase();
-                        data = allChks.filter(c => { return Object.values(c).some(val => String(val).replace(/\s+/g, '').toLowerCase() === cleanSearchId); });
+                        data = allChks.filter(c => { 
+                            const sId = String(c.StudentID || c['รหัสนักศึกษา'] || '').replace(/\s+/g, '').toLowerCase();
+                            const idCard = String(c.IDCard || c['บัตรประชาชน'] || '').replace(/\s+/g, '').toLowerCase();
+                            const matchAny = Object.values(c).some(val => String(val).replace(/\s+/g, '').toLowerCase() === cleanSearchId);
+                            return sId === cleanSearchId || idCard === cleanSearchId || matchAny;
+                        });
                     } else { data = await runGAS('getStudentHistory', studentId); }
                     Swal.close(); setHistoryData(data || []); setView('history_result');
                 } catch(e) { Swal.fire('ข้อผิดพลาด', e.message, 'error'); }
@@ -456,11 +461,9 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                             <button onClick={() => setView('history_search')} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'history_search' || view === 'history_result') ? 'text-brand-500' : 'text-gray-400 hover:text-gray-600'}`}>
                                 <i className={`fa-solid fa-clock-rotate-left text-lg ${(view === 'history_search' || view === 'history_result') ? 'mb-0.5 scale-110 drop-shadow-md' : ''}`}></i><span className="text-[9px] font-medium tracking-wide">ประวัติ</span>
                             </button>
-                            {shirtSystemOpen && systemOpen && (
-                                <button onClick={() => { setSearchPurpose('shirt'); setView('search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'shirt_form' || view === 'receipt' || (view === 'search' && searchPurpose === 'shirt')) ? 'text-brand-500' : 'text-gray-400 hover:text-gray-600'}`}>
-                                    <i className={`fa-solid fa-shirt text-lg ${(view === 'shirt_form' || view === 'receipt' || (view === 'search' && searchPurpose === 'shirt')) ? 'mb-0.5 scale-110 drop-shadow-md' : ''}`}></i><span className="text-[9px] font-medium tracking-wide">สั่งจอง</span>
-                                </button>
-                            )}
+                            <button onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', icon:'info', confirmButtonColor: '#ff621f'}); if(!shirtSystemOpen) return Swal.fire({title:'ปิดรับสั่งจอง', text:'ขณะนี้ระบบปิดรับสั่งจองเสื้อคณะชั่วคราว', icon:'warning', confirmButtonColor:'#f43f5e'}); setSearchPurpose('shirt'); setView('search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'shirt_form' || view === 'receipt' || (view === 'search' && searchPurpose === 'shirt')) ? 'text-brand-500' : 'text-gray-400 hover:text-gray-600'}`}>
+                                <i className={`fa-solid fa-shirt text-lg ${(view === 'shirt_form' || view === 'receipt' || (view === 'search' && searchPurpose === 'shirt')) ? 'mb-0.5 scale-110 drop-shadow-md' : ''}`}></i><span className="text-[9px] font-medium tracking-wide">สั่งจอง</span>
+                            </button>
                         </div>
                     </div>
                 );
@@ -506,13 +509,11 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                                     <h3 className="text-lg font-bold text-gray-900 mb-2 dark:text-white">ประวัติการเข้าร่วม</h3>
                                     <p className="text-gray-500 text-xs font-medium leading-relaxed">ตรวจสอบรายการกิจกรรมที่คุณเคยเข้าร่วมทั้งหมด</p>
                                 </div>
-                                {shirtSystemOpen && systemOpen && (
-                                    <div onClick={() => { setSearchPurpose('shirt'); setView('search'); }} className="luxury-card p-8 cursor-pointer group flex flex-col items-center text-center">
-                                        <div className="w-16 h-16 mb-5 rounded-2xl flex items-center justify-center text-rose-500 text-2xl bg-rose-50 border border-rose-100 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-[0_8px_25px_-5px_rgba(244,63,94,0.4)] group-hover:-translate-y-1 transition-all duration-300 dark:bg-gray-800 dark:border-gray-700 dark:text-rose-400"><i className="fa-solid fa-shirt"></i></div>
-                                        <h3 className="text-lg font-bold text-gray-900 mb-2 dark:text-white">สั่งจองเสื้อคณะ</h3>
-                                        <p className="text-gray-500 text-xs font-medium leading-relaxed">ระบุไซส์ สั่งจอง และแนบหลักฐานเพื่อรับใบเสร็จ</p>
-                                    </div>
-                                )}
+                                <div onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', text:'ระบบกำลังอยู่ในช่วงปรับปรุง', icon:'info', confirmButtonColor:'#ff621f'}); if(!shirtSystemOpen) return Swal.fire({title:'ปิดรับสั่งจอง', text:'ขณะนี้ระบบปิดรับสั่งจองเสื้อคณะชั่วคราว', icon:'warning', confirmButtonColor:'#f43f5e'}); setSearchPurpose('shirt'); setView('search'); }} className={`luxury-card p-8 cursor-pointer group flex flex-col items-center text-center ${(!systemOpen || !shirtSystemOpen) ? 'opacity-60 grayscale' : ''}`}>
+                                    <div className="w-16 h-16 mb-5 rounded-2xl flex items-center justify-center text-rose-500 text-2xl bg-rose-50 border border-rose-100 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-[0_8px_25px_-5px_rgba(244,63,94,0.4)] group-hover:-translate-y-1 transition-all duration-300 dark:bg-gray-800 dark:border-gray-700 dark:text-rose-400"><i className="fa-solid fa-shirt"></i></div>
+                                    <h3 className="text-lg font-bold text-gray-900 mb-2 dark:text-white">สั่งจองเสื้อคณะ</h3>
+                                    <p className="text-gray-500 text-xs font-medium leading-relaxed">ระบุไซส์ สั่งจอง และแนบหลักฐานเพื่อรับใบเสร็จ</p>
+                                </div>
                             </div>
                         </div>
                         <Footer />
@@ -893,8 +894,8 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                                                 <div key={i} className="relative group">
                                                     <div className="absolute -left-[33px] sm:-left-[49px] top-4 w-4 h-4 bg-white dark:bg-gray-900 border-4 border-blue-500 rounded-full transition-transform group-hover:scale-125 group-hover:bg-blue-100 shadow-sm"></div>
                                                     <div className="bg-white dark:bg-gray-800/90 p-5 sm:p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md hover:border-blue-200 dark:hover:border-blue-900/50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 group-hover:-translate-y-0.5">
-                                                        <div><span className="inline-block bg-blue-50 text-blue-600 border border-blue-100 text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md mb-2.5 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-400"><i className="fa-solid fa-check mr-1"></i> เข้าร่วมแล้ว</span><h4 className="font-bold text-gray-900 dark:text-white text-base sm:text-lg mb-1">{h.ActivityName}</h4><p className="text-xs text-gray-500 font-medium">{h.Name} <span className="mx-1 text-gray-300">|</span> <span className="font-mono text-gray-400">{h.StudentID}</span></p></div>
-                                                        <div className="text-[10px] text-gray-700 dark:text-gray-300 font-bold tracking-widest uppercase whitespace-nowrap bg-gray-50 dark:bg-gray-900 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-inner flex items-center gap-2 w-fit"><i className="fa-regular fa-clock text-blue-400 text-sm"></i>{new Date(h.Timestamp).toLocaleString('th-TH')}</div>
+                                                        <div><span className="inline-block bg-blue-50 text-blue-600 border border-blue-100 text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md mb-2.5 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-400"><i className="fa-solid fa-check mr-1"></i> เข้าร่วมแล้ว</span><h4 className="font-bold text-gray-900 dark:text-white text-base sm:text-lg mb-1">{h.ActivityName || h['ชื่อกิจกรรม'] || h.ActivityID || 'กิจกรรม'}</h4><p className="text-xs text-gray-500 font-medium">{h.Name || h['ชื่อ-สกุล'] || h['ชื่อ']} <span className="mx-1 text-gray-300">|</span> <span className="font-mono text-gray-400">{h.StudentID || h['รหัสนักศึกษา']}</span></p></div>
+                                                        <div className="text-[10px] text-gray-700 dark:text-gray-300 font-bold tracking-widest uppercase whitespace-nowrap bg-gray-50 dark:bg-gray-900 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-inner flex items-center gap-2 w-fit"><i className="fa-regular fa-clock text-blue-400 text-sm"></i>{new Date(h.Timestamp || h['เวลา'] || Date.now()).toLocaleString('th-TH')}</div>
                                                     </div>
                                                 </div>
                                             ))}
