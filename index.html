@@ -134,11 +134,16 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
             return { icon: 'fa-user', bg: 'bg-brand-50 text-brand-600 border-brand-200' };
         }
 
+        // Helper function for fuzzy matching keys
+        const findKeyByKeywords = (keys, keywords) => {
+            return keys.find(k => keywords.some(kw => String(k).toLowerCase().replace(/\s+/g, '').includes(kw)));
+        };
+
         function App() {
             const [view, setView] = useState(() => {
                 const savedView = sessionStorage.getItem('app_view');
                 if (savedView === 'admin_dashboard' && localStorage.getItem('admin_logged_in') === 'true') return 'admin_dashboard';
-                if (['home', 'search', 'history_search', 'admin_login', 'select_recruit'].includes(savedView)) return savedView;
+                if (['home', 'search', 'admin_login', 'select_recruit'].includes(savedView)) return savedView;
                 return 'home';
             }); 
             
@@ -148,7 +153,6 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
             const [selectedActivity, setSelectedActivity] = useState(null);
             const [surveyAnswers, setSurveyAnswers] = useState({});
             const [suggestion, setSuggestion] = useState('');
-            const [historyData, setHistoryData] = useState([]);
             const [systemOpen, setSystemOpen] = useState(true);
             const [recruitSystemOpen, setRecruitSystemOpen] = useState(true);
             const [adminData, setAdminData] = useState(null);
@@ -270,47 +274,63 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
 
             const handleSearchStudent = async (rawStudentId) => {
                 const studentId = String(rawStudentId).trim();
-                if(!studentId) return Swal.fire('แจ้งเตือน', 'กรุณากรอกรหัสนักศึกษา', 'warning');
+                if(!studentId) return Swal.fire('แจ้งเตือน', 'กรุณากรอกรหัสนักศึกษา/บัตรประชาชน', 'warning');
                 Swal.fire({ title: 'กำลังตรวจสอบ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                 try {
                     let studentFound = null;
+                    const cleanSearchId = studentId.replace(/\s+/g, '').toLowerCase();
+
                     if (isFastCSVReady()) {
                         try {
                             const allStudents = await fetchFastCSV('Students');
-                            const cleanSearchId = studentId.replace(/\s+/g, '').toLowerCase();
-                            const studentData = allStudents.find(s => {
-                                return Object.values(s).some(val => String(val).replace(/\s+/g, '').toLowerCase() === cleanSearchId);
-                            });
-                            if (studentData) {
-                                const keys = Object.keys(studentData);
-                                const findVal = (keywords, fallbackIdx) => {
-                                    const matchKey = keys.find(k => keywords.some(kw => String(k).toLowerCase().replace(/\s+/g, '').includes(kw)));
-                                    return String(matchKey ? studentData[matchKey] : (studentData[keys[fallbackIdx]] || '')).trim();
-                                };
-                                studentFound = { StudentID: studentId, IDCard: findVal(['idcard', 'บัตรประชาชน'], 1), Name: findVal(['name', 'ชื่อ'], 2), Major: findVal(['major', 'สาขา'], 3) };
-                            } else { throw new Error("ไม่พบข้อมูลใน CSV"); }
+                            if (allStudents.length > 0) {
+                                const keys = Object.keys(allStudents[0]);
+                                const idKey = findKeyByKeywords(keys, ['studentid', 'รหัสนักศึกษา', 'รหัส']);
+                                const idCardKey = findKeyByKeywords(keys, ['idcard', 'บัตรประชาชน', 'เลขบัตร']);
+                                
+                                const studentData = allStudents.find(s => {
+                                    const sId = idKey ? String(s[idKey]).replace(/\s+/g, '').toLowerCase() : '';
+                                    const idCard = idCardKey ? String(s[idCardKey]).replace(/\s+/g, '').toLowerCase() : '';
+                                    return (sId && sId === cleanSearchId) || (idCard && idCard === cleanSearchId);
+                                });
+
+                                if (studentData) {
+                                    studentFound = { 
+                                        StudentID: idKey ? studentData[idKey] : studentId, 
+                                        IDCard: idCardKey ? studentData[idCardKey] : '', 
+                                        Name: studentData[findKeyByKeywords(keys, ['name', 'ชื่อ']) || keys[2]] || '', 
+                                        Major: studentData[findKeyByKeywords(keys, ['major', 'สาขา']) || keys[3]] || '' 
+                                    };
+                                }
+                            }
+                            if(!studentFound) throw new Error("ไม่พบข้อมูลใน CSV");
                         } catch(csvErr) { studentFound = await runGAS('verifyStudent', studentId).catch(() => null); }
                     } else { studentFound = await runGAS('verifyStudent', studentId).catch(() => null); }
 
                     if(studentFound && studentFound.Name) {
-                        setStudent(studentFound); localStorage.setItem('last_student_id', studentId);
+                        setStudent(studentFound); localStorage.setItem('last_student_id', studentFound.StudentID);
                         if (searchPurpose === 'shirt') {
                             let orderCheck = { hasOrdered: false };
                             if (isFastCSVReady()) {
                                 try {
                                     const allOrders = await fetchFastCSV('ShirtOrders');
-                                    const cleanSearchId = studentId.replace(/\s+/g, '').toLowerCase();
-                                    for (let i = allOrders.length - 1; i >= 0; i--) {
-                                        const hasId = Object.values(allOrders[i]).some(val => String(val).replace(/\s+/g, '').toLowerCase() === cleanSearchId);
-                                        if (hasId) { orderCheck = { hasOrdered: true, data: allOrders[i] }; break; }
+                                    if(allOrders.length > 0) {
+                                        const keys = Object.keys(allOrders[0]);
+                                        const orderIdKey = findKeyByKeywords(keys, ['studentid', 'รหัสนักศึกษา', 'รหัส']);
+                                        for (let i = allOrders.length - 1; i >= 0; i--) {
+                                            const oId = orderIdKey ? String(allOrders[i][orderIdKey]).replace(/\s+/g, '').toLowerCase() : '';
+                                            if (oId && oId === String(studentFound.StudentID).replace(/\s+/g, '').toLowerCase()) { 
+                                                orderCheck = { hasOrdered: true, data: allOrders[i] }; break; 
+                                            }
+                                        }
                                     }
-                                } catch(csvErr) { orderCheck = await runGAS('checkShirtOrder', studentId).catch(()=>({hasOrdered: false})); }
-                            } else { orderCheck = await runGAS('checkShirtOrder', studentId).catch(()=>({hasOrdered: false})); }
+                                } catch(csvErr) { orderCheck = await runGAS('checkShirtOrder', studentFound.StudentID).catch(()=>({hasOrdered: false})); }
+                            } else { orderCheck = await runGAS('checkShirtOrder', studentFound.StudentID).catch(()=>({hasOrdered: false})); }
 
                             Swal.close();
                             if (orderCheck.hasOrdered && orderCheck.data) {
                                 const pastOrder = orderCheck.data; const oKeys = Object.keys(pastOrder);
-                                const findOVal = (kws, fIdx) => { const mKey = oKeys.find(k => kws.some(kw => String(k).toLowerCase().replace(/\s+/g, '').includes(kw))); return mKey ? pastOrder[mKey] : (pastOrder[oKeys[fIdx]] || ''); };
+                                const findOVal = (kws, fIdx) => { const mKey = findKeyByKeywords(oKeys, kws); return mKey ? pastOrder[mKey] : (pastOrder[oKeys[fIdx]] || ''); };
                                 setReceiptData({
                                     student: studentFound,
                                     poloGender: findOVal(['pologender', 'ทรงเสื้อโปโล'], 4) || 'ชาย', poloSize: findOVal(['polosize', 'ไซส์โปโล'], 5), poloQty: Number(findOVal(['poloqty', 'จำนวนโปโล'], 6) || 1),
@@ -339,11 +359,17 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                             const allChks = await fetchFastCSV('CheckIns');
                             const cleanSid = String(student.StudentID).replace(/\s+/g, '').toLowerCase();
                             const cleanActId = String(act.ActivityID).replace(/\s+/g, '').toLowerCase();
-                            hasJoined = allChks.some(c => {
-                                const matchStudent = Object.values(c).some(val => String(val).replace(/\s+/g, '').toLowerCase() === cleanSid);
-                                const matchAct = Object.values(c).some(val => String(val).replace(/\s+/g, '').toLowerCase() === cleanActId);
-                                return matchStudent && matchAct;
-                            });
+                            if (allChks.length > 0) {
+                                const keys = Object.keys(allChks[0]);
+                                const idKey = findKeyByKeywords(keys, ['studentid', 'รหัสนักศึกษา', 'รหัส']);
+                                const actKey = findKeyByKeywords(keys, ['activityid', 'รหัสกิจกรรม']);
+                                
+                                hasJoined = allChks.some(c => {
+                                    const matchStudent = idKey ? String(c[idKey]).replace(/\s+/g, '').toLowerCase() === cleanSid : false;
+                                    const matchAct = actKey ? String(c[actKey]).replace(/\s+/g, '').toLowerCase() === cleanActId : false;
+                                    return matchStudent && matchAct;
+                                });
+                            }
                         } catch (csvErr) {
                             const history = await runGAS('getStudentHistory', student.StudentID);
                             hasJoined = history.some(h => String(h.ActivityID).trim() === String(act.ActivityID).trim());
@@ -358,20 +384,49 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
             };
 
             const handleRegisterRecruit = async (recruit) => {
-                Swal.fire({
-                    title: 'ยืนยันการสมัคร?', text: `คุณต้องการลงทะเบียนสมัครเข้าร่วม "${recruit.Name}" ใช่หรือไม่?`, icon: 'question',
-                    showCancelButton: true, confirmButtonText: 'ยืนยัน', cancelButtonText: 'ยกเลิก', confirmButtonColor: '#a855f7'
-                }).then(async (result) => {
-                    if (result.isConfirmed) {
-                        Swal.fire({ title: 'กำลังสมัคร...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                Swal.fire({ title: 'กำลังตรวจสอบสิทธิ์...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                try {
+                    let hasJoined = false;
+                    if (isFastCSVReady()) {
                         try {
-                            const res = await runGAS('saveRegistration', { student, recruit });
-                            Swal.close();
-                            if(res.success) { Swal.fire({ title: 'สมัครสำเร็จ!', text: 'บันทึกข้อมูลการรับสมัครเรียบร้อยแล้ว', icon: 'success', confirmButtonColor: '#a855f7' }).then(goHome); } 
-                            else { Swal.fire('ข้อผิดพลาด', res.error, 'error'); }
-                        } catch(e) { Swal.fire('ข้อผิดพลาด', e.message, 'error'); }
+                            const allRegis = await fetchFastCSV('Registrations');
+                            const cleanSid = String(student.StudentID).replace(/\s+/g, '').toLowerCase();
+                            const cleanRecId = String(recruit.RecruitID).replace(/\s+/g, '').toLowerCase();
+                            if (allRegis.length > 0) {
+                                const keys = Object.keys(allRegis[0]);
+                                const idKey = findKeyByKeywords(keys, ['studentid', 'รหัสนักศึกษา', 'รหัส']);
+                                const recKey = findKeyByKeywords(keys, ['recruitid', 'รหัสกิจกรรม']);
+                                
+                                hasJoined = allRegis.some(r => {
+                                    const matchStudent = idKey ? String(r[idKey]).replace(/\s+/g, '').toLowerCase() === cleanSid : false;
+                                    const matchRec = recKey ? String(r[recKey]).replace(/\s+/g, '').toLowerCase() === cleanRecId : false;
+                                    return matchStudent && matchRec;
+                                });
+                            }
+                        } catch (csvErr) {
+                            console.warn("Registrations check failed locally");
+                        }
                     }
-                });
+                    Swal.close();
+                    if (hasJoined) { 
+                        return Swal.fire({ title: 'สมัครแล้ว', text: 'คุณได้ลงทะเบียนสมัครกิจกรรมนี้ไปแล้ว', icon: 'info', confirmButtonColor: '#a855f7' }); 
+                    }
+                    
+                    Swal.fire({
+                        title: 'ยืนยันการสมัคร?', text: `คุณต้องการลงทะเบียนสมัครเข้าร่วม "${recruit.Name}" ใช่หรือไม่?`, icon: 'question',
+                        showCancelButton: true, confirmButtonText: 'ยืนยัน', cancelButtonText: 'ยกเลิก', confirmButtonColor: '#a855f7'
+                    }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            Swal.fire({ title: 'กำลังสมัคร...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                            try {
+                                const res = await runGAS('saveRegistration', { student, recruit });
+                                Swal.close();
+                                if(res.success) { Swal.fire({ title: 'สมัครสำเร็จ!', text: 'บันทึกข้อมูลการรับสมัครเรียบร้อยแล้ว', icon: 'success', confirmButtonColor: '#a855f7' }).then(goHome); } 
+                                else { Swal.fire('ข้อผิดพลาด', res.error, 'error'); }
+                            } catch(e) { Swal.fire('ข้อผิดพลาด', e.message, 'error'); }
+                        }
+                    });
+                } catch(e) { Swal.close(); Swal.fire('ข้อผิดพลาด', e.message, 'error'); }
             };
 
             const handleSubmitShirtOrder = async (e) => {
@@ -404,86 +459,6 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                     if(res.success) Swal.fire({title: 'เสร็จสมบูรณ์', text: 'ขอบคุณที่เข้าร่วมกิจกรรมและทำแบบประเมิน', icon: 'success', confirmButtonColor: '#10b981'}).then(goHome);
                     else Swal.fire('ข้อผิดพลาด', res.error, 'error');
                 } catch(e) { Swal.fire('ข้อผิดพลาด', e.message, 'error'); }
-            };
-
-            const handleSearchHistory = async (rawStudentId) => {
-                const studentId = String(rawStudentId).trim();
-                if(!studentId) return Swal.fire('แจ้งเตือน', 'กรอกรหัสนักศึกษา', 'warning');
-                Swal.fire({ title: 'กำลังค้นหา...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-                try {
-                    let historyRecords = [];
-                    const cleanSearchId = studentId.replace(/\s+/g, '').toLowerCase();
-
-                    // ฟังก์ชันผู้ช่วยสำหรับค้นหาค่าใน Object แบบไม่สนตัวพิมพ์เล็ก/ใหญ่และช่องว่าง
-                    const findValue = (obj, keywords) => {
-                        const keys = Object.keys(obj);
-                        const matchKey = keys.find(k => keywords.some(kw => String(k).toLowerCase().replace(/\s+/g, '').includes(kw)));
-                        return matchKey ? obj[matchKey] : '';
-                    };
-
-                    if (isFastCSVReady()) {
-                        try {
-                            // โหลดข้อมูลเฉพาะจากชีต CheckIns
-                            const allChks = await fetchFastCSV('CheckIns');
-
-                            // ดึงประวัติ "เช็คชื่อ" (CheckIns) และค้นหาเฉพาะ StudentID หรือ IDCard
-                            const chkData = allChks.filter(c => {
-                                const sId = String(c.StudentID || c['รหัสนักศึกษา'] || '').replace(/\s+/g, '').toLowerCase();
-                                const idCard = String(c.IDCard || c['บัตรประชาชน'] || '').replace(/\s+/g, '').toLowerCase();
-                                return sId === cleanSearchId || idCard === cleanSearchId;
-                            }).map(c => ({
-                                Type: 'checkin',
-                                ActivityName: findValue(c, ['activityname', 'ชื่อกิจกรรม', 'รายการ', 'name']),
-                                StudentID: findValue(c, ['studentid', 'รหัสนักศึกษา', 'รหัส']),
-                                Name: findValue(c, ['name', 'ชื่อ-สกุล', 'ชื่อ']),
-                                Timestamp: findValue(c, ['timestamp', 'เวลา', 'วันที่']),
-                                StatusText: 'เข้าร่วมแล้ว',
-                                StatusColor: 'text-blue-600 bg-blue-50 border-blue-100 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-400',
-                                Icon: 'fa-check'
-                            }));
-
-                            // นำข้อมูลเข้าสู่ตัวแปรหลัก
-                            historyRecords = [...chkData];
-
-                        } catch (csvErr) {
-                            console.warn("เกิดข้อผิดพลาดในการโหลด CSV ระบบกำลังใช้ Fallback (GAS)", csvErr);
-                            // กรณี CSV ล้มเหลวทั้งหมด (Fallback 1)
-                            const gasData = await runGAS('getStudentHistory', studentId);
-                            historyRecords = (gasData || []).map(c => ({
-                                 Type: 'checkin',
-                                 ActivityName: c.ActivityName || c['ชื่อกิจกรรม'] || 'กิจกรรม',
-                                 StudentID: c.StudentID || c['รหัสนักศึกษา'] || studentId,
-                                 Name: c.Name || c['ชื่อ-สกุล'] || '-',
-                                 Timestamp: c.Timestamp || c['เวลา'] || new Date(),
-                                 StatusText: 'เข้าร่วมแล้ว',
-                                 StatusColor: 'text-blue-600 bg-blue-50 border-blue-100 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-400',
-                                 Icon: 'fa-check'
-                            }));
-                        }
-                    } else {
-                         // กรณีไม่ได้เปิดโหมด CSV ไว้ (Fallback 2)
-                         const gasData = await runGAS('getStudentHistory', studentId);
-                         historyRecords = (gasData || []).map(c => ({
-                             Type: 'checkin',
-                             ActivityName: c.ActivityName || c['ชื่อกิจกรรม'] || 'กิจกรรม',
-                             StudentID: c.StudentID || c['รหัสนักศึกษา'] || studentId,
-                             Name: c.Name || c['ชื่อ-สกุล'] || '-',
-                             Timestamp: c.Timestamp || c['เวลา'] || new Date(),
-                             StatusText: 'เข้าร่วมแล้ว',
-                             StatusColor: 'text-blue-600 bg-blue-50 border-blue-100 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-400',
-                             Icon: 'fa-check'
-                         }));
-                    }
-
-                    // จัดเรียงข้อมูลตามเวลาจากใหม่สุดไปเก่าสุด (Descending)
-                    historyRecords.sort((a, b) => new Date(b.Timestamp).getTime() - new Date(a.Timestamp).getTime());
-
-                    Swal.close(); 
-                    setHistoryData(historyRecords); 
-                    setView('history_result');
-                } catch(e) { 
-                    Swal.fire('ข้อผิดพลาด', e.message, 'error'); 
-                }
             };
 
             const Navbar = () => (
@@ -523,9 +498,6 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                             <button onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', icon:'info', confirmButtonColor: '#ff621f'}); setSearchPurpose('activity'); setView('search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'select' || view === 'survey' || (view === 'search' && searchPurpose === 'activity')) ? 'text-brand-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}>
                                 <i className={`fa-solid fa-qrcode text-lg ${(view === 'select' || view === 'survey' || (view === 'search' && searchPurpose === 'activity')) ? 'mb-0.5 scale-110 drop-shadow-md' : ''}`}></i><span className="text-[9px] font-medium tracking-wide">เช็คชื่อ</span>
                             </button>
-                            <button onClick={() => setView('history_search')} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'history_search' || view === 'history_result') ? 'text-brand-500' : 'text-gray-400 hover:text-gray-600'}`}>
-                                <i className={`fa-solid fa-clock-rotate-left text-lg ${(view === 'history_search' || view === 'history_result') ? 'mb-0.5 scale-110 drop-shadow-md' : ''}`}></i><span className="text-[9px] font-medium tracking-wide">ประวัติ</span>
-                            </button>
                             <button onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', icon:'info', confirmButtonColor: '#ff621f'}); if(!shirtSystemOpen) return Swal.fire({title:'ปิดรับสั่งจอง', text:'ขณะนี้ระบบปิดรับสั่งจองเสื้อคณะชั่วคราว', icon:'warning', confirmButtonColor:'#f43f5e'}); setSearchPurpose('shirt'); setView('search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'shirt_form' || view === 'receipt' || (view === 'search' && searchPurpose === 'shirt')) ? 'text-brand-500' : 'text-gray-400 hover:text-gray-600'}`}>
                                 <i className={`fa-solid fa-shirt text-lg ${(view === 'shirt_form' || view === 'receipt' || (view === 'search' && searchPurpose === 'shirt')) ? 'mb-0.5 scale-110 drop-shadow-md' : ''}`}></i><span className="text-[9px] font-medium tracking-wide">สั่งจอง</span>
                             </button>
@@ -558,7 +530,7 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                                 <p className="mt-4 text-gray-500 dark:text-gray-400 font-medium text-lg tracking-wide">ระบบจัดการกิจกรรมและสั่งจองเสื้อแบบครบวงจร</p>
                             </div>
                             
-                            <div className="w-full grid gap-6 mx-auto relative z-10 max-w-7xl grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                            <div className="w-full grid gap-6 mx-auto relative z-10 max-w-7xl grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                                 <div onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', text:'ระบบกำลังอยู่ในช่วงปรับปรุง', icon:'info', confirmButtonColor:'#ff621f'}); if(!recruitSystemOpen) return Swal.fire({title:'ปิดรับสมัคร', text:'ขณะนี้ระบบปิดรับสมัครกิจกรรมชั่วคราว', icon:'warning', confirmButtonColor:'#a855f7'}); setSearchPurpose('recruit'); setView('search'); }} className={`luxury-card p-8 cursor-pointer group flex flex-col items-center text-center ${(!systemOpen || !recruitSystemOpen) ? 'opacity-60 grayscale' : ''}`}>
                                     <div className="w-16 h-16 mb-5 rounded-2xl flex items-center justify-center text-purple-500 text-2xl bg-purple-50 border border-purple-100 group-hover:bg-purple-500 group-hover:text-white group-hover:shadow-[0_8px_25px_-5px_rgba(168,85,247,0.4)] group-hover:-translate-y-1 transition-all duration-300 dark:bg-gray-800 dark:border-gray-700 dark:text-purple-400"><i className="fa-solid fa-bullhorn"></i></div>
                                     <h3 className="text-lg font-bold text-gray-900 mb-2 dark:text-white">ประกาศรับสมัคร</h3>
@@ -568,11 +540,6 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                                     <div className="w-16 h-16 mb-5 rounded-2xl flex items-center justify-center text-brand-500 text-2xl bg-brand-50 border border-brand-100 group-hover:bg-gradient-icon group-hover:text-white group-hover:shadow-glow group-hover:-translate-y-1 transition-all duration-300 dark:bg-gray-800 dark:border-gray-700 dark:text-brand-400"><i className="fa-solid fa-qrcode"></i></div>
                                     <h3 className="text-lg font-bold text-gray-900 mb-2 dark:text-white">ลงทะเบียนกิจกรรม</h3>
                                     <p className="text-gray-500 text-xs font-medium leading-relaxed">เช็คชื่อเข้าร่วมและทำแบบประเมินความพึงพอใจ</p>
-                                </div>
-                                <div onClick={() => setView('history_search')} className="luxury-card p-8 cursor-pointer group flex flex-col items-center text-center">
-                                    <div className="w-16 h-16 mb-5 rounded-2xl flex items-center justify-center text-blue-500 text-2xl bg-blue-50 border border-blue-100 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-[0_8px_25px_-5px_rgba(59,130,246,0.4)] group-hover:-translate-y-1 transition-all duration-300 dark:bg-gray-800 dark:border-gray-700 dark:text-blue-400"><i className="fa-solid fa-clock-rotate-left"></i></div>
-                                    <h3 className="text-lg font-bold text-gray-900 mb-2 dark:text-white">ประวัติการเข้าร่วม</h3>
-                                    <p className="text-gray-500 text-xs font-medium leading-relaxed">ตรวจสอบรายการกิจกรรมที่คุณเคยเข้าร่วมทั้งหมด</p>
                                 </div>
                                 <div onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', text:'ระบบกำลังอยู่ในช่วงปรับปรุง', icon:'info', confirmButtonColor:'#ff621f'}); if(!shirtSystemOpen) return Swal.fire({title:'ปิดรับสั่งจอง', text:'ขณะนี้ระบบปิดรับสั่งจองเสื้อคณะชั่วคราว', icon:'warning', confirmButtonColor:'#f43f5e'}); setSearchPurpose('shirt'); setView('search'); }} className={`luxury-card p-8 cursor-pointer group flex flex-col items-center text-center ${(!systemOpen || !shirtSystemOpen) ? 'opacity-60 grayscale' : ''}`}>
                                     <div className="w-16 h-16 mb-5 rounded-2xl flex items-center justify-center text-rose-500 text-2xl bg-rose-50 border border-rose-100 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-[0_8px_25px_-5px_rgba(244,63,94,0.4)] group-hover:-translate-y-1 transition-all duration-300 dark:bg-gray-800 dark:border-gray-700 dark:text-rose-400"><i className="fa-solid fa-shirt"></i></div>
@@ -607,7 +574,7 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                                     <p className="text-gray-500 mt-2 text-xs font-medium leading-relaxed">{descText}</p>
                                 </div>
                                 <form onSubmit={(e) => { e.preventDefault(); handleSearchStudent(e.target.studentId.value); }}>
-                                    <div className="mb-6"><input type="text" name="studentId" required placeholder="กรอกรหัสนักศึกษา..." defaultValue={localStorage.getItem('last_student_id')||''} className="w-full luxury-input text-center tracking-widest text-lg font-bold" /></div>
+                                    <div className="mb-6"><input type="text" name="studentId" required placeholder="กรอกรหัสนักศึกษา/บัตรประชาชน..." defaultValue={localStorage.getItem('last_student_id')||''} className="w-full luxury-input text-center tracking-widest text-lg font-bold" /></div>
                                     <button type="submit" className={`w-full py-3.5 font-bold text-base rounded-2xl shadow-lg transition-all hover:-translate-y-1 text-white ${isRecruitSearch ? 'bg-gradient-to-r from-purple-500 to-fuchsia-500 shadow-purple-500/30' : isShirtSearch ? 'bg-gradient-to-r from-rose-500 to-rose-600 shadow-rose-500/30' : 'btn-premium'}`}>ดำเนินการต่อ <i className="fa-solid fa-arrow-right ml-2 text-sm"></i></button>
                                 </form>
                             </div>
@@ -911,65 +878,6 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                                     <button onClick={goHome} className="w-full sm:w-1/4 btn-outline py-4 font-bold tracking-[0.1em] text-sm uppercase bg-white shadow-sm dark:bg-gray-800">หน้าแรก</button>
                                     {shirtSystemOpen && <button onClick={() => { setIsEditingOrder(true); setView('shirt_form'); }} className="w-full sm:w-1/4 bg-gray-900 text-white hover:bg-black transition-colors py-4 font-bold tracking-[0.1em] text-sm uppercase rounded-xl shadow-lg dark:bg-gray-700 dark:hover:bg-gray-600"><i className="fa-solid fa-pen-to-square mr-1"></i> แก้ไข</button>}
                                     <button onClick={handleDownloadReceipt} className="w-full sm:w-2/4 btn-premium py-4 font-bold tracking-[0.1em] text-sm uppercase shadow-xl shadow-brand-500/30 flex justify-center items-center gap-3 dark:bg-white dark:text-black dark:hover:bg-gray-200"><i className="fa-solid fa-download"></i> ดาวน์โหลดรูปภาพ</button>
-                                </div>
-                            </div>
-                        </div>
-                        <Footer />
-                        <MobileTabBar />
-                    </div>
-                );
-            }
-
-            if (view === 'history_search') {
-                return (
-                    <div className="min-h-screen flex flex-col relative z-10">
-                        <Navbar />
-                        <div className="flex-grow flex flex-col items-center justify-center p-6">
-                            <div className="luxury-card w-full max-w-md p-10 relative overflow-hidden">
-                                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-400 to-blue-600"></div>
-                                <button onClick={goHome} className="absolute top-6 left-6 text-gray-400 hover:text-gray-900 transition-colors text-sm font-medium dark:hover:text-white"><i className="fa-solid fa-arrow-left mr-2"></i> กลับ</button>
-                                <div className="text-center mt-12 mb-10"><div className="w-20 h-20 rounded-3xl mx-auto flex items-center justify-center mb-5 shadow-sm border bg-blue-50 border-blue-100 dark:bg-gray-800 dark:border-gray-700"><i className="fa-solid fa-clock-rotate-left text-3xl text-blue-500"></i></div><h2 className="text-xl font-bold text-gray-900 tracking-tight dark:text-white">ประวัติกิจกรรม</h2><p className="text-gray-500 mt-2 text-xs font-medium leading-relaxed">ตรวจสอบประวัติการเข้าร่วมกิจกรรมของคุณทั้งหมดในระบบ</p></div>
-                                <form onSubmit={(e) => { e.preventDefault(); handleSearchHistory(e.target.studentId.value); }}>
-                                    <div className="mb-6"><input type="text" name="studentId" required placeholder="กรอกรหัสนักศึกษา..." defaultValue={localStorage.getItem('last_student_id')||''} className="w-full luxury-input text-center tracking-widest text-lg font-bold" /></div>
-                                    <button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg shadow-blue-500/30 rounded-2xl py-3.5 font-bold tracking-[0.1em] text-base transition-all hover:-translate-y-1">ค้นหา <i className="fa-solid fa-search ml-2 text-sm"></i></button>
-                                </form>
-                            </div>
-                        </div>
-                        <Footer />
-                        <MobileTabBar />
-                    </div>
-                );
-            }
-
-            if (view === 'history_result') {
-                return (
-                    <div className="min-h-screen flex flex-col relative z-10">
-                        <Navbar />
-                        <div className="flex-grow flex flex-col items-center pt-8 p-4 pb-20">
-                            <div className="luxury-card w-full max-w-3xl p-6 sm:p-10 relative overflow-hidden shadow-soft">
-                                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-400 to-blue-600"></div>
-                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 border-b border-gray-100 dark:border-gray-800 pb-5 gap-4 pt-2">
-                                    <div><h2 className="text-xl font-bold text-gray-900 dark:text-white tracking-wide flex items-center gap-3"><i className="fa-solid fa-clock-rotate-left text-blue-500 bg-blue-50 p-2 rounded-lg"></i> ประวัติกิจกรรม</h2><p className="text-gray-500 text-xs font-bold mt-2 bg-gray-50 dark:bg-gray-800 px-3 py-1.5 rounded-lg inline-block border border-gray-200 dark:border-gray-700 shadow-sm uppercase tracking-widest">พบข้อมูลทั้งหมด <span className="text-blue-600 font-black">{historyData.length}</span> รายการ</p></div>
-                                    <button onClick={() => setView('history_search')} className="text-xs text-gray-500 hover:text-gray-900 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 px-4 py-2.5 rounded-xl font-bold transition-all dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:text-white shadow-sm uppercase tracking-wider"><i className="fa-solid fa-search mr-1.5"></i>ค้นหาใหม่</button>
-                                </div>
-                                <div className="space-y-4">
-                                    {historyData.length === 0 ? (<div className="text-center py-20 bg-gray-50/50 dark:bg-gray-800/50 rounded-3xl border-2 border-dashed border-gray-200 dark:border-gray-700"><div className="w-16 h-16 bg-white dark:bg-gray-700 rounded-2xl flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-600 mb-4 text-gray-400 mx-auto"><i className="fa-solid fa-folder-open text-2xl"></i></div><p className="text-gray-500 font-bold text-sm">ไม่พบประวัติการเข้าร่วมกิจกรรม</p></div>) : (
-                                        <div className="relative border-l-2 border-blue-100 dark:border-blue-900/50 ml-4 sm:ml-6 pl-6 sm:pl-10 space-y-8 py-4">
-                                            {historyData.map((h, i) => (
-                                                <div key={i} className="relative group">
-                                                    <div className="absolute -left-[33px] sm:-left-[49px] top-4 w-4 h-4 bg-white dark:bg-gray-900 border-4 border-blue-500 rounded-full transition-transform group-hover:scale-125 group-hover:bg-blue-100 shadow-sm"></div>
-                                                    <div className="bg-white dark:bg-gray-800/90 p-5 sm:p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md hover:border-blue-200 dark:hover:border-blue-900/50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 group-hover:-translate-y-0.5">
-                                                        <div>
-                                                            <span className={`inline-block ${h.StatusColor} text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md mb-2.5`}><i className={`fa-solid ${h.Icon} mr-1`}></i> {h.StatusText}</span>
-                                                            <h4 className="font-bold text-gray-900 dark:text-white text-base sm:text-lg mb-1">{h.ActivityName || 'กิจกรรม'}</h4>
-                                                            <p className="text-xs text-gray-500 font-medium">{h.Name || '-'} <span className="mx-1 text-gray-300">|</span> <span className="font-mono text-gray-400">{h.StudentID || '-'}</span></p>
-                                                        </div>
-                                                        <div className="text-[10px] text-gray-700 dark:text-gray-300 font-bold tracking-widest uppercase whitespace-nowrap bg-gray-50 dark:bg-gray-900 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-inner flex items-center gap-2 w-fit"><i className="fa-regular fa-clock text-blue-400 text-sm"></i>{new Date(h.Timestamp).toLocaleString('th-TH')}</div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         </div>
@@ -1342,7 +1250,7 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                                     <div className="bg-white p-7 rounded-[1.5rem] border border-gray-100 shadow-sm flex flex-col justify-between h-44 hover:shadow-md transition-all hover:-translate-y-1 relative overflow-hidden group"><div className="absolute -right-6 -top-6 w-24 h-24 bg-blue-50 rounded-full group-hover:scale-150 transition-transform duration-500"></div><div className="relative z-10 flex justify-between items-start"><div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center text-xl border border-blue-100"><i className="fa-solid fa-users"></i></div></div><div className="relative z-10 mt-auto pt-4"><p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mb-1">ผู้ใช้งานทั้งหมด</p><h3 className="text-4xl font-black text-gray-900 tracking-tight">{overviewStats.totalUniqueUsers.toLocaleString()}</h3></div></div>
                                     <div className="bg-white p-7 rounded-[1.5rem] border border-gray-100 shadow-sm flex flex-col justify-between h-44 hover:shadow-md transition-all hover:-translate-y-1 relative overflow-hidden group"><div className="absolute -right-6 -top-6 w-24 h-24 bg-emerald-50 rounded-full group-hover:scale-150 transition-transform duration-500"></div><div className="relative z-10 flex justify-between items-start"><div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl border border-emerald-100"><i className="fa-solid fa-clipboard-check"></i></div></div><div className="relative z-10 mt-auto pt-4"><p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mb-1">ยอดเช็คชื่อรวม</p><h3 className="text-4xl font-black text-gray-900 tracking-tight">{(data.checkins?.length || 0).toLocaleString()}</h3></div></div>
                                     <div className="bg-white p-7 rounded-[1.5rem] border border-gray-100 shadow-sm flex flex-col justify-between h-44 hover:shadow-md transition-all hover:-translate-y-1 relative overflow-hidden group"><div className="absolute -right-6 -top-6 w-24 h-24 bg-purple-50 rounded-full group-hover:scale-150 transition-transform duration-500"></div><div className="relative z-10 flex justify-between items-start"><div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-500 flex items-center justify-center text-xl border border-purple-100"><i className="fa-solid fa-bolt"></i></div></div><div className="relative z-10 mt-auto pt-4"><p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mb-1">ทำรายการวันนี้</p><h3 className="text-4xl font-black text-gray-900 tracking-tight">{overviewStats.todaysTransactions.toLocaleString()}</h3></div></div>
-                                    <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-7 rounded-[1.5rem] flex flex-col justify-between h-44 text-white shadow-xl shadow-gray-900/20 relative overflow-hidden"><div className="absolute right-0 top-0 w-32 h-32 bg-brand-500/20 rounded-full filter blur-2xl"></div><div className="relative z-10 flex justify-between items-start"><div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 backdrop-blur text-brand-400 flex items-center justify-center text-xl shadow-inner"><i className="fa-solid fa-globe"></i></div><span className="flex h-3 w-3 relative mt-2 mr-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span></span></div><div className="relative z-10 mt-auto pt-4"><p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mb-1">ออนไลน์ขณะนี้</p><h3 className="text-4xl font-black text-white tracking-tight">{activeUsersCount}</h3></div></div>
+                                    <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-7 rounded-[1.5rem] flex flex-col justify-between h-44 text-white shadow-xl shadow-gray-900/20 relative overflow-hidden"><div className="absolute right-0 top-0 w-32 h-32 bg-brand-500/20 rounded-full filter blur-2xl"></div><div className="relative z-10 flex justify-between items-start"><div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 backdrop-blur text-brand-400 flex items-center justify-center text-xl shadow-inner"><i className="fa-solid fa-globe"></i></div><span className="flex h-3 w-3 relative mt-2 mr-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span></span></div><div className="relative z-10 mt-auto pt-4"><p className="text-[10px] text-white/80 font-bold uppercase tracking-[0.2em] mb-1">ออนไลน์ขณะนี้</p><h3 className="text-4xl font-black text-white tracking-tight">{activeUsersCount}</h3></div></div>
                                 </div>
                                 <div className="flex justify-between items-center mb-6"><h3 className="text-sm font-bold text-gray-900 uppercase tracking-widest flex items-center gap-3"><i className="fa-solid fa-fire text-orange-500"></i> กิจกรรมปัจจุบัน</h3><div className="relative w-full sm:w-72"><i className="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i><input type="text" placeholder="ค้นหากิจกรรม..." value={searchOverviewActTerm} onChange={(e) => setSearchOverviewActTerm(e.target.value)} className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-xs font-bold focus:border-brand-500 outline-none transition-all shadow-sm" /></div></div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
