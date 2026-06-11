@@ -335,14 +335,19 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                 try {
                     let hasJoined = false;
                     if (isFastCSVReady()) {
-                        const allChks = await fetchFastCSV('CheckIns').catch(() => []);
-                        const cleanSid = String(student.StudentID).replace(/\s+/g, '').toLowerCase();
-                        const cleanActId = String(act.ActivityID).replace(/\s+/g, '').toLowerCase();
-                        hasJoined = allChks.some(c => {
-                            const matchStudent = Object.values(c).some(val => String(val).replace(/\s+/g, '').toLowerCase() === cleanSid);
-                            const matchAct = Object.values(c).some(val => String(val).replace(/\s+/g, '').toLowerCase() === cleanActId);
-                            return matchStudent && matchAct;
-                        });
+                        try {
+                            const allChks = await fetchFastCSV('CheckIns');
+                            const cleanSid = String(student.StudentID).replace(/\s+/g, '').toLowerCase();
+                            const cleanActId = String(act.ActivityID).replace(/\s+/g, '').toLowerCase();
+                            hasJoined = allChks.some(c => {
+                                const matchStudent = Object.values(c).some(val => String(val).replace(/\s+/g, '').toLowerCase() === cleanSid);
+                                const matchAct = Object.values(c).some(val => String(val).replace(/\s+/g, '').toLowerCase() === cleanActId);
+                                return matchStudent && matchAct;
+                            });
+                        } catch (csvErr) {
+                            const history = await runGAS('getStudentHistory', student.StudentID);
+                            hasJoined = history.some(h => String(h.ActivityID).trim() === String(act.ActivityID).trim());
+                        }
                     } else {
                         const history = await runGAS('getStudentHistory', student.StudentID);
                         hasJoined = history.some(h => String(h.ActivityID).trim() === String(act.ActivityID).trim());
@@ -406,19 +411,79 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                 if(!studentId) return Swal.fire('แจ้งเตือน', 'กรอกรหัสนักศึกษา', 'warning');
                 Swal.fire({ title: 'กำลังค้นหา...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                 try {
-                    let data = [];
+                    let historyRecords = [];
+                    const cleanSearchId = studentId.replace(/\s+/g, '').toLowerCase();
+
+                    // ฟังก์ชันผู้ช่วยสำหรับค้นหาค่าใน Object แบบไม่สนตัวพิมพ์เล็ก/ใหญ่และช่องว่าง
+                    const findValue = (obj, keywords) => {
+                        const keys = Object.keys(obj);
+                        const matchKey = keys.find(k => keywords.some(kw => String(k).toLowerCase().replace(/\s+/g, '').includes(kw)));
+                        return matchKey ? obj[matchKey] : '';
+                    };
+
                     if (isFastCSVReady()) {
-                        const allChks = await fetchFastCSV('CheckIns').catch(() => []);
-                        const cleanSearchId = studentId.replace(/\s+/g, '').toLowerCase();
-                        data = allChks.filter(c => { 
-                            const sId = String(c.StudentID || c['รหัสนักศึกษา'] || '').replace(/\s+/g, '').toLowerCase();
-                            const idCard = String(c.IDCard || c['บัตรประชาชน'] || '').replace(/\s+/g, '').toLowerCase();
-                            const matchAny = Object.values(c).some(val => String(val).replace(/\s+/g, '').toLowerCase() === cleanSearchId);
-                            return sId === cleanSearchId || idCard === cleanSearchId || matchAny;
-                        });
-                    } else { data = await runGAS('getStudentHistory', studentId); }
-                    Swal.close(); setHistoryData(data || []); setView('history_result');
-                } catch(e) { Swal.fire('ข้อผิดพลาด', e.message, 'error'); }
+                        try {
+                            // โหลดข้อมูลเฉพาะจากชีต CheckIns
+                            const allChks = await fetchFastCSV('CheckIns');
+
+                            // ดึงประวัติ "เช็คชื่อ" (CheckIns) และค้นหาเฉพาะ StudentID หรือ IDCard
+                            const chkData = allChks.filter(c => {
+                                const sId = String(c.StudentID || c['รหัสนักศึกษา'] || '').replace(/\s+/g, '').toLowerCase();
+                                const idCard = String(c.IDCard || c['บัตรประชาชน'] || '').replace(/\s+/g, '').toLowerCase();
+                                return sId === cleanSearchId || idCard === cleanSearchId;
+                            }).map(c => ({
+                                Type: 'checkin',
+                                ActivityName: findValue(c, ['activityname', 'ชื่อกิจกรรม', 'รายการ', 'name']),
+                                StudentID: findValue(c, ['studentid', 'รหัสนักศึกษา', 'รหัส']),
+                                Name: findValue(c, ['name', 'ชื่อ-สกุล', 'ชื่อ']),
+                                Timestamp: findValue(c, ['timestamp', 'เวลา', 'วันที่']),
+                                StatusText: 'เข้าร่วมแล้ว',
+                                StatusColor: 'text-blue-600 bg-blue-50 border-blue-100 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-400',
+                                Icon: 'fa-check'
+                            }));
+
+                            // นำข้อมูลเข้าสู่ตัวแปรหลัก
+                            historyRecords = [...chkData];
+
+                        } catch (csvErr) {
+                            console.warn("เกิดข้อผิดพลาดในการโหลด CSV ระบบกำลังใช้ Fallback (GAS)", csvErr);
+                            // กรณี CSV ล้มเหลวทั้งหมด (Fallback 1)
+                            const gasData = await runGAS('getStudentHistory', studentId);
+                            historyRecords = (gasData || []).map(c => ({
+                                 Type: 'checkin',
+                                 ActivityName: c.ActivityName || c['ชื่อกิจกรรม'] || 'กิจกรรม',
+                                 StudentID: c.StudentID || c['รหัสนักศึกษา'] || studentId,
+                                 Name: c.Name || c['ชื่อ-สกุล'] || '-',
+                                 Timestamp: c.Timestamp || c['เวลา'] || new Date(),
+                                 StatusText: 'เข้าร่วมแล้ว',
+                                 StatusColor: 'text-blue-600 bg-blue-50 border-blue-100 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-400',
+                                 Icon: 'fa-check'
+                            }));
+                        }
+                    } else {
+                         // กรณีไม่ได้เปิดโหมด CSV ไว้ (Fallback 2)
+                         const gasData = await runGAS('getStudentHistory', studentId);
+                         historyRecords = (gasData || []).map(c => ({
+                             Type: 'checkin',
+                             ActivityName: c.ActivityName || c['ชื่อกิจกรรม'] || 'กิจกรรม',
+                             StudentID: c.StudentID || c['รหัสนักศึกษา'] || studentId,
+                             Name: c.Name || c['ชื่อ-สกุล'] || '-',
+                             Timestamp: c.Timestamp || c['เวลา'] || new Date(),
+                             StatusText: 'เข้าร่วมแล้ว',
+                             StatusColor: 'text-blue-600 bg-blue-50 border-blue-100 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-400',
+                             Icon: 'fa-check'
+                         }));
+                    }
+
+                    // จัดเรียงข้อมูลตามเวลาจากใหม่สุดไปเก่าสุด (Descending)
+                    historyRecords.sort((a, b) => new Date(b.Timestamp).getTime() - new Date(a.Timestamp).getTime());
+
+                    Swal.close(); 
+                    setHistoryData(historyRecords); 
+                    setView('history_result');
+                } catch(e) { 
+                    Swal.fire('ข้อผิดพลาด', e.message, 'error'); 
+                }
             };
 
             const Navbar = () => (
@@ -894,8 +959,12 @@ html.dark .modern-table tr:hover td { background-color: #0f172a; }
                                                 <div key={i} className="relative group">
                                                     <div className="absolute -left-[33px] sm:-left-[49px] top-4 w-4 h-4 bg-white dark:bg-gray-900 border-4 border-blue-500 rounded-full transition-transform group-hover:scale-125 group-hover:bg-blue-100 shadow-sm"></div>
                                                     <div className="bg-white dark:bg-gray-800/90 p-5 sm:p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md hover:border-blue-200 dark:hover:border-blue-900/50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 group-hover:-translate-y-0.5">
-                                                        <div><span className="inline-block bg-blue-50 text-blue-600 border border-blue-100 text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md mb-2.5 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-400"><i className="fa-solid fa-check mr-1"></i> เข้าร่วมแล้ว</span><h4 className="font-bold text-gray-900 dark:text-white text-base sm:text-lg mb-1">{h.ActivityName || h['ชื่อกิจกรรม'] || h.ActivityID || 'กิจกรรม'}</h4><p className="text-xs text-gray-500 font-medium">{h.Name || h['ชื่อ-สกุล'] || h['ชื่อ']} <span className="mx-1 text-gray-300">|</span> <span className="font-mono text-gray-400">{h.StudentID || h['รหัสนักศึกษา']}</span></p></div>
-                                                        <div className="text-[10px] text-gray-700 dark:text-gray-300 font-bold tracking-widest uppercase whitespace-nowrap bg-gray-50 dark:bg-gray-900 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-inner flex items-center gap-2 w-fit"><i className="fa-regular fa-clock text-blue-400 text-sm"></i>{new Date(h.Timestamp || h['เวลา'] || Date.now()).toLocaleString('th-TH')}</div>
+                                                        <div>
+                                                            <span className={`inline-block ${h.StatusColor} text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md mb-2.5`}><i className={`fa-solid ${h.Icon} mr-1`}></i> {h.StatusText}</span>
+                                                            <h4 className="font-bold text-gray-900 dark:text-white text-base sm:text-lg mb-1">{h.ActivityName || 'กิจกรรม'}</h4>
+                                                            <p className="text-xs text-gray-500 font-medium">{h.Name || '-'} <span className="mx-1 text-gray-300">|</span> <span className="font-mono text-gray-400">{h.StudentID || '-'}</span></p>
+                                                        </div>
+                                                        <div className="text-[10px] text-gray-700 dark:text-gray-300 font-bold tracking-widest uppercase whitespace-nowrap bg-gray-50 dark:bg-gray-900 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-inner flex items-center gap-2 w-fit"><i className="fa-regular fa-clock text-blue-400 text-sm"></i>{new Date(h.Timestamp).toLocaleString('th-TH')}</div>
                                                     </div>
                                                 </div>
                                             ))}
