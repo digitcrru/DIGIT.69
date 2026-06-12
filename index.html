@@ -107,8 +107,8 @@
         // ==========================================
         const API_CONFIG = {
             USE_FAST_CSV: true,
-            SHEET_ID: "1KLJNWUUIj1r6eqCZnaF-F6nA2FQg7pvOHMk0PyDCyAc", 
-            WEB_APP_URL: "https://script.google.com/macros/s/AKfycbz5D2FANCj69Hc6JZb_DdNl0iKvgiNTv18dswnlhgKc6eyM50MSt3S2TLOwDBmbrU1-PQ/exec", 
+            SHEET_ID: "1KLJNWUUIj1r6eqCZnaF-F6nA2FQg7pvOHMk0PyDCyAc", // ⚠️ เปลี่ยนเป็น Sheet ID ของคุณ
+            WEB_APP_URL: "https://script.google.com/macros/s/AKfycbz5D2FANCj69Hc6JZb_DdNl0iKvgiNTv18dswnlhgKc6eyM50MSt3S2TLOwDBmbrU1-PQ/exec", // ⚠️ เปลี่ยนเป็น Web App URL ใหม่ที่เพิ่ง Deploy 
             getCSVUrl: function(sheetName) {
                 return `https://docs.google.com/spreadsheets/d/${this.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}&_=${new Date().getTime()}`;
             }
@@ -182,7 +182,8 @@
                     if (result.success === false) throw new Error(result.error || "เกิดข้อผิดพลาดจากเซิร์ฟเวอร์");
                     return result.data !== undefined ? result.data : result;
                 } catch (error) { 
-                    throw new Error('ไม่สามารถเชื่อมต่อ Web App ได้ กรุณาตรวจสอบสิทธิ์เป็น "ทุกคน (Anyone)"'); 
+                    console.error("GAS Connection Error:", error);
+                    throw new Error('ไม่สามารถเชื่อมต่อ Web App ได้ ⚠️ กรุณาตรวจสอบว่านำลิงก์มาใส่ถูกต้อง และตั้งค่าการใช้งานเป็น "ทุกคน (Anyone)" แล้ว'); 
                 }
             } else {
                 throw new Error('Missing WEB_APP_URL');
@@ -1561,7 +1562,7 @@
                 );
             };
 
-            // ADD PAGINATION VARIABLES HERE
+            // 🚀 แก้ไข: นำการคำนวณ Pagination กลับมาให้ครบถ้วนเพื่อไม่ให้เกิด ReferenceError
             const currentCheckins = sortedCheckins.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
             const totalPages = Math.ceil(sortedCheckins.length / itemsPerPage) || 1;
 
