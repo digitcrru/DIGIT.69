@@ -222,7 +222,6 @@
 
         const findKey = (keys, kws) => keys.find(k => kws.some(kw => String(k).toLowerCase().replace(/\s+/g, '').includes(kw)));
         
-        // ฟังก์ชันดึงค่าที่ฉลาดขึ้น ป้องกันการดึงค่า Header ภาษาไทยพลาด
         const getVal = (obj, kws, fallback) => {
             if(!obj) return '';
             const keys = Object.keys(obj);
@@ -269,11 +268,11 @@
 
             const [systemOpen, setSystemOpen] = useState(true);
             const [recruitSystemOpen, setRecruitSystemOpen] = useState(true);
+            const [shirtSystemOpen, setShirtSystemOpen] = useState(true);
+            
             const [adminData, setAdminData] = useState(null);
-
             const [searchPurpose, setSearchPurpose] = useState(() => sessionStorage.getItem('search_purpose') || 'activity');
             
-            const [shirtSystemOpen, setShirtSystemOpen] = useState(true);
             const [shirtPrice, setShirtPrice] = useState({ normal: 250, oversize: 380, status: 'open', popupText: '', popupImage: '' });
             const [receiptSettings, setReceiptSettings] = useState({ header: 'สโมสรนักศึกษาคณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย\nที่อยู่: 80 ซอย 9 ตำบล บ้านดู่ อำเภอเมืองเชียงราย เชียงราย 57100', note: 'กรุณานำใบเสร็จนี้มาแสดงในวันรับเสื้อ' });
             
@@ -439,9 +438,7 @@
                 if(!studentId) return Swal.fire('แจ้งเตือน', 'กรุณากรอกรหัสนักศึกษา', 'warning');
                 Swal.fire({ title: 'ตรวจสอบข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                 try {
-                    let found = null;
-                    const cId = studentId.replace(/\s+/g, '').toLowerCase();
-
+                    let res = { success: false };
                     if (isFastCSVReady()) {
                         try {
                             const allStudents = await fetchFastCSV('Students');
@@ -449,19 +446,20 @@
                                 const keys = Object.keys(s);
                                 const idK = findKey(keys, ['studentid', 'รหัส']);
                                 const icK = findKey(keys, ['idcard', 'บัตร']);
-                                return (idK && String(s[idK]).replace(/\s+/g,'').toLowerCase() === cId) || 
-                                       (icK && String(s[icK]).replace(/\s+/g,'').toLowerCase() === cId);
+                                return (idK && String(s[idK]).replace(/\s+/g,'').toLowerCase() === studentId.replace(/\s+/g,'').toLowerCase()) || 
+                                       (icK && String(s[icK]).replace(/\s+/g,'').toLowerCase() === studentId.replace(/\s+/g,'').toLowerCase());
                             });
-                            if (studentData) found = studentData;
-                        } catch(csvErr) { found = await runGAS('verifyStudent', studentId).catch(()=>null); }
-                    } else { found = await runGAS('verifyStudent', studentId).catch(()=>null); }
+                            if (studentData) res = { success: true, data: studentData };
+                            else res = { success: false };
+                        } catch(csvErr) { res = await runGAS('verifyStudent', studentId).catch(e => { throw e }); }
+                    } else { res = await runGAS('verifyStudent', studentId); }
 
-                    if(found && (found.Name || getVal(found, ['name', 'ชื่อ'], 'Name'))) {
+                    if(res.success && (res.data.Name || getVal(res.data, ['name', 'ชื่อ'], 'Name'))) {
                         const cleanStudent = {
-                            StudentID: getVal(found, ['studentid', 'รหัส'], 'StudentID') || studentId,
-                            Name: getVal(found, ['name', 'ชื่อ'], 'Name'),
-                            Major: getVal(found, ['major', 'สาขา'], 'Major'),
-                            IDCard: getVal(found, ['idcard', 'บัตร'], 'IDCard')
+                            StudentID: getVal(res.data, ['studentid', 'รหัส'], 'StudentID') || studentId,
+                            Name: getVal(res.data, ['name', 'ชื่อ'], 'Name'),
+                            Major: getVal(res.data, ['major', 'สาขา'], 'Major'),
+                            IDCard: getVal(res.data, ['idcard', 'บัตร'], 'IDCard')
                         };
                         setStudent(cleanStudent);
                         localStorage.setItem('last_student_id', studentId);
@@ -695,12 +693,10 @@
                                 {(view === 'select' || view === 'survey' || (view === 'search' && searchPurpose === 'activity')) && <div className="absolute top-0 w-8 h-1 bg-orange-500 rounded-b-full"></div>}
                                 <i className={`fa-solid fa-qrcode text-xl ${(view === 'select' || view === 'survey' || (view === 'search' && searchPurpose === 'activity')) ? 'mb-0.5 scale-110' : ''}`}></i><span className="text-[10px] font-medium">เช็คชื่อ</span>
                             </button>
-                            {shirtSystemOpen && systemOpen && (
-                                <button onClick={() => { setSearchPurpose('shirt'); setView('search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'shirt_form' || view === 'receipt' || (view === 'search' && searchPurpose === 'shirt')) ? 'text-orange-600' : 'text-gray-400'}`}>
-                                    {(view === 'shirt_form' || view === 'receipt' || (view === 'search' && searchPurpose === 'shirt')) && <div className="absolute top-0 w-8 h-1 bg-orange-500 rounded-b-full"></div>}
-                                    <i className={`fa-solid fa-shirt text-xl ${(view === 'shirt_form' || view === 'receipt' || (view === 'search' && searchPurpose === 'shirt')) ? 'mb-0.5 scale-110' : ''}`}></i><span className="text-[10px] font-medium">จองเสื้อ</span>
-                                </button>
-                            )}
+                            <button onClick={() => { setSearchPurpose('shirt'); setView('search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'shirt_form' || view === 'receipt' || (view === 'search' && searchPurpose === 'shirt')) ? 'text-orange-600' : 'text-gray-400'}`}>
+                                {(view === 'shirt_form' || view === 'receipt' || (view === 'search' && searchPurpose === 'shirt')) && <div className="absolute top-0 w-8 h-1 bg-orange-500 rounded-b-full"></div>}
+                                <i className={`fa-solid fa-shirt text-xl ${(view === 'shirt_form' || view === 'receipt' || (view === 'search' && searchPurpose === 'shirt')) ? 'mb-0.5 scale-110' : ''}`}></i><span className="text-[10px] font-medium">จองเสื้อ</span>
+                            </button>
                             <button onClick={() => { setSearchPurpose('history'); setView('history_search'); }} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${(view === 'history_search' || view === 'history_result' || (view === 'search' && searchPurpose === 'history')) ? 'text-orange-600' : 'text-gray-400'}`}>
                                 {(view === 'history_search' || view === 'history_result' || (view === 'search' && searchPurpose === 'history')) && <div className="absolute top-0 w-8 h-1 bg-orange-500 rounded-b-full"></div>}
                                 <i className={`fa-solid fa-clock-rotate-left text-xl ${(view === 'history_search' || view === 'history_result' || (view === 'search' && searchPurpose === 'history')) ? 'mb-0.5 scale-110' : ''}`}></i><span className="text-[10px] font-medium">ประวัติ</span>
@@ -726,27 +722,26 @@
                                 <h2 className="text-sm font-bold text-orange-500 tracking-widest uppercase mb-3">Welcome to Platform</h2>
                                 <h1 className="text-4xl md:text-5xl font-light text-charcoal-900 tracking-tight">Activities <span className="font-semibold text-orange-600">DIGIT.CRRU</span></h1>
                             </div>
-                            <div className={`w-full grid gap-6 mx-auto ${(shirtSystemOpen && systemOpen) ? 'max-w-5xl md:grid-cols-4 sm:grid-cols-2' : 'max-w-4xl md:grid-cols-3 sm:grid-cols-2'}`}>
-                                <div onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', icon:'info', confirmButtonColor:'#111827'}); setSearchPurpose('recruit'); setView('search'); }} 
-                                     className={`luxury-card p-8 md:p-10 cursor-pointer group transition-all ${!systemOpen ? 'opacity-50 grayscale cursor-not-allowed' : 'hover:-translate-y-1'}`}>
+                            <div className="w-full grid gap-6 mx-auto max-w-5xl md:grid-cols-4 sm:grid-cols-2">
+                                <div onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', icon:'info', confirmButtonColor:'#111827'}); if(!recruitSystemOpen) return Swal.fire({title:'ปิดรับสมัคร', text:'ขณะนี้ระบบปิดรับสมัครกิจกรรมชั่วคราว', icon:'info', confirmButtonColor:'#a855f7'}); setSearchPurpose('recruit'); setView('search'); }} 
+                                     className={`luxury-card p-8 md:p-10 cursor-pointer group transition-all ${(!systemOpen || !recruitSystemOpen) ? 'opacity-50 grayscale cursor-not-allowed' : 'hover:-translate-y-1'}`}>
                                     <div className="w-14 h-14 bg-purple-50 text-purple-500 rounded-full flex items-center justify-center text-2xl mb-8 group-hover:bg-gradient-to-br group-hover:from-purple-400 group-hover:to-purple-600 group-hover:text-white shadow-sm transition-all duration-300"><i className="fa-solid fa-bullhorn"></i></div>
                                     <h3 className="text-xl font-semibold text-charcoal-900 mb-2">ประกาศรับสมัคร</h3><p className="text-gray-500 text-sm font-light leading-relaxed">ประกาศรับสมัครนักศึกษาเข้าร่วมกิจกรรม</p>
                                 </div>
                                 <div onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', icon:'info', confirmButtonColor:'#111827'}); setSearchPurpose('activity'); setView('search'); }} 
-                                     className={`luxury-card p-8 md:p-10 cursor-pointer group hover:-translate-y-1 ${!systemOpen ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}>
+                                     className={`luxury-card p-8 md:p-10 cursor-pointer group transition-all ${!systemOpen ? 'opacity-50 grayscale cursor-not-allowed' : 'hover:-translate-y-1'}`}>
                                     <div className="w-14 h-14 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center text-2xl mb-8 group-hover:bg-gradient-to-br group-hover:from-orange-400 group-hover:to-orange-600 group-hover:text-white shadow-sm transition-all duration-300"><i className="fa-solid fa-qrcode"></i></div>
                                     <h3 className="text-xl font-semibold text-charcoal-900 mb-2">ลงทะเบียนกิจกรรม</h3><p className="text-gray-500 text-sm font-light leading-relaxed">เช็คชื่อเข้าร่วมและประเมินความพึงพอใจ</p>
                                 </div>
-                                <div onClick={() => { setSearchPurpose('history'); setView('history_search'); }} className="luxury-card p-8 md:p-10 cursor-pointer group hover:-translate-y-1">
-                                    <div className="w-14 h-14 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center text-2xl mb-8 group-hover:bg-gradient-to-br group-hover:from-orange-400 group-hover:to-orange-600 group-hover:text-white shadow-sm transition-all duration-300"><i className="fa-solid fa-clock-rotate-left"></i></div>
+                                <div onClick={() => { setSearchPurpose('history'); setView('history_search'); }} className="luxury-card p-8 md:p-10 cursor-pointer group hover:-translate-y-1 transition-all">
+                                    <div className="w-14 h-14 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center text-2xl mb-8 group-hover:bg-gradient-to-br group-hover:from-blue-400 group-hover:to-blue-600 group-hover:text-white shadow-sm transition-all duration-300"><i className="fa-solid fa-clock-rotate-left"></i></div>
                                     <h3 className="text-xl font-semibold text-charcoal-900 mb-2">ประวัติการเข้าร่วม</h3><p className="text-gray-500 text-sm font-light leading-relaxed">ตรวจสอบรายการกิจกรรมย้อนหลังทั้งหมด</p>
                                 </div>
-                                {shirtSystemOpen && systemOpen && (
-                                    <div onClick={() => { setSearchPurpose('shirt'); setView('search'); }} className={`luxury-card p-8 md:p-10 cursor-pointer group hover:-translate-y-1`}>
-                                        <div className="w-14 h-14 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center text-2xl mb-8 group-hover:bg-gradient-to-br group-hover:from-rose-400 group-hover:to-rose-600 group-hover:text-white shadow-sm transition-all duration-300"><i className="fa-solid fa-shirt"></i></div>
-                                        <h3 className="text-xl font-semibold text-charcoal-900 mb-2">สั่งจองเสื้อคณะ</h3><p className="text-gray-500 text-sm font-light leading-relaxed">ระบุไซส์และบันทึกการสั่งจองรับใบเสร็จ</p>
-                                    </div>
-                                )}
+                                <div onClick={() => { if(!systemOpen) return Swal.fire({title:'ระบบปิดให้บริการ', icon:'info', confirmButtonColor:'#111827'}); if(!shirtSystemOpen) return Swal.fire({title:'ปิดรับการจอง', text:'ขณะนี้ระบบปิดรับการสั่งจองเสื้อคณะชั่วคราว', icon:'info', confirmButtonColor:'#ea580c'}); setSearchPurpose('shirt'); setView('search'); }} 
+                                     className={`luxury-card p-8 md:p-10 cursor-pointer group transition-all ${(!systemOpen || !shirtSystemOpen) ? 'opacity-50 grayscale cursor-not-allowed' : 'hover:-translate-y-1'}`}>
+                                    <div className="w-14 h-14 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center text-2xl mb-8 group-hover:bg-gradient-to-br group-hover:from-rose-400 group-hover:to-rose-600 group-hover:text-white shadow-sm transition-all duration-300"><i className="fa-solid fa-shirt"></i></div>
+                                    <h3 className="text-xl font-semibold text-charcoal-900 mb-2">สั่งจองเสื้อคณะ</h3><p className="text-gray-500 text-sm font-light leading-relaxed">ระบุไซส์และบันทึกการสั่งจองรับใบเสร็จ</p>
+                                </div>
                             </div>
                         </div>
                         <Footer />
@@ -2261,16 +2256,11 @@
                                         {currentCheckins.length === 0 && <tr><td colSpan="5" className="text-center py-10 text-gray-400 font-light">ไม่พบข้อมูลที่ค้นหา</td></tr>}
                                     </tbody></table>
                                 </div>
-                                {sortedCheckins.length > 0 && (
-                                    <div className="flex flex-col sm:flex-row justify-between items-center px-6 py-4 border-t border-gray-100 bg-gray-50/50 gap-4 rounded-b-2xl">
-                                        <span className="text-[10px] font-bold text-gray-500 tracking-widest">
-                                            แสดง {Math.min(sortedCheckins.length, (currentPage - 1) * itemsPerPage + 1)} - {Math.min(sortedCheckins.length, currentPage * itemsPerPage)} จากทั้งหมด {sortedCheckins.length} รายการ
-                                        </span>
-                                        <div className="flex items-center gap-2">
-                                            <button disabled={currentPage===1} onClick={()=>setCurrentPage(prev=>Math.max(1,prev-1))} className="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-orange-600 px-3 py-1.5 transition-colors disabled:opacity-30 bg-white border border-gray-200 rounded-lg shadow-sm">ก่อนหน้า</button>
-                                            <span className="text-orange-600 font-bold text-[10px] uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg border border-orange-200 shadow-sm">หน้า {currentPage} / {totalPages}</span>
-                                            <button disabled={currentPage===totalPages} onClick={()=>setCurrentPage(prev=>Math.min(totalPages,prev+1))} className="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-orange-600 px-3 py-1.5 transition-colors disabled:opacity-30 bg-white border border-gray-200 rounded-lg shadow-sm">ถัดไป</button>
-                                        </div>
+                                {totalPages > 1 && (
+                                    <div className="flex justify-between items-center text-sm bg-white px-4 py-2 rounded-xl border border-orange-100">
+                                        <button disabled={currentPage===1} onClick={()=>setCurrentPage(prev=>Math.max(1,prev-1))} className={`text-xs uppercase tracking-widest font-medium ${currentPage===1?'text-gray-300':'text-orange-500 hover:text-orange-600'}`}>ก่อนหน้า</button>
+                                        <span className="text-gray-400 font-light text-xs">หน้าที่ {currentPage} จาก {totalPages}</span>
+                                        <button disabled={currentPage===totalPages} onClick={()=>setCurrentPage(prev=>Math.min(totalPages,prev+1))} className={`text-xs uppercase tracking-widest font-medium ${currentPage===totalPages?'text-gray-300':'text-orange-500 hover:text-orange-600'}`}>ถัดไป</button>
                                     </div>
                                 )}
                             </div>
@@ -2307,16 +2297,11 @@
                                         {currentRegistrations.length === 0 && <tr><td colSpan="5" className="text-center py-10 text-gray-400 font-light">ไม่พบข้อมูลผู้สมัคร</td></tr>}
                                     </tbody></table>
                                 </div>
-                                {sortedRegistrationsList.length > 0 && (
-                                    <div className="flex flex-col sm:flex-row justify-between items-center px-6 py-4 border-t border-gray-100 bg-gray-50/50 gap-4 rounded-b-2xl">
-                                        <span className="text-[10px] font-bold text-gray-500 tracking-widest">
-                                            แสดง {Math.min(sortedRegistrationsList.length, (regisPage - 1) * regisItemsPerPage + 1)} - {Math.min(sortedRegistrationsList.length, regisPage * regisItemsPerPage)} จากทั้งหมด {sortedRegistrationsList.length} รายการ
-                                        </span>
-                                        <div className="flex items-center gap-2">
-                                            <button disabled={regisPage===1} onClick={()=>setRegisPage(prev=>Math.max(1,prev-1))} className="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-purple-600 px-3 py-1.5 transition-colors disabled:opacity-30 bg-white border border-gray-200 rounded-lg shadow-sm">ก่อนหน้า</button>
-                                            <span className="text-purple-600 font-bold text-[10px] uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg border border-purple-200 shadow-sm">หน้า {regisPage} / {totalRegisPages}</span>
-                                            <button disabled={regisPage===totalRegisPages} onClick={()=>setRegisPage(prev=>Math.min(totalRegisPages,prev+1))} className="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-purple-600 px-3 py-1.5 transition-colors disabled:opacity-30 bg-white border border-gray-200 rounded-lg shadow-sm">ถัดไป</button>
-                                        </div>
+                                {totalRegisPages > 1 && (
+                                    <div className="flex justify-between items-center text-sm bg-white px-4 py-2 rounded-xl border border-orange-100">
+                                        <button disabled={regisPage===1} onClick={()=>setRegisPage(prev=>Math.max(1,prev-1))} className={`text-xs uppercase tracking-widest font-medium ${regisPage===1?'text-gray-300':'text-purple-500 hover:text-purple-600'}`}>ก่อนหน้า</button>
+                                        <span className="text-gray-400 font-light text-xs">หน้าที่ {regisPage} จาก {totalRegisPages}</span>
+                                        <button disabled={regisPage===totalRegisPages} onClick={()=>setRegisPage(prev=>Math.min(totalRegisPages,prev+1))} className={`text-xs uppercase tracking-widest font-medium ${regisPage===totalRegisPages?'text-gray-300':'text-purple-500 hover:text-purple-600'}`}>ถัดไป</button>
                                     </div>
                                 )}
                             </div>
@@ -2354,10 +2339,10 @@
                         )}
 
                         {activeTab === 'shirt_summary' && (
-                            <div>
-                                <div className="grid lg:grid-cols-3 gap-8 mb-8">
+                            <div className="flex flex-col gap-8">
+                                <div className="grid lg:grid-cols-3 gap-8">
                                     <div className="lg:col-span-1">
-                                        <div className="bg-white/90 backdrop-blur p-6 rounded-[1.5rem] border border-orange-100/50 shadow-sm mb-6 flex flex-col items-start gap-4">
+                                        <div className="bg-white/90 backdrop-blur p-6 rounded-[1.5rem] border border-orange-100/50 shadow-sm flex flex-col items-start gap-4">
                                             <div className="w-full">
                                                 <div className="flex items-center gap-2 mb-3"><i className="fa-solid fa-gear text-orange-400 text-sm"></i><h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Master Control</h3></div>
                                                 <button onClick={() => handleToggleShirtSystem(data?.shirtPrice?.status || 'open')} className={`w-full flex items-center justify-between text-xs font-bold uppercase tracking-widest px-5 py-4 rounded-xl border-2 transition-all shadow-sm ${data?.shirtPrice?.status !== 'closed' ? 'text-rose-700 border-rose-200 bg-rose-50 hover:bg-rose-100' : 'text-gray-600 border-gray-200 bg-gray-50 hover:bg-gray-100'}`}>
@@ -2379,7 +2364,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-8">
+                                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                                     <div className="lg:col-span-1 bg-gradient-to-br from-rose-500 to-rose-700 p-8 rounded-[2rem] shadow-lg shadow-rose-500/30 flex flex-col justify-between h-48 relative overflow-hidden group">
                                         <div className="absolute right-0 top-0 w-32 h-32 bg-white/20 rounded-full mix-blend-overlay blur-xl group-hover:scale-150 transition-transform duration-700"></div>
                                         <div className="relative z-10 flex justify-between items-start">
@@ -2388,7 +2373,7 @@
                                         </div>
                                         <div className="relative z-10 mt-auto pt-4">
                                             <p className="text-[10px] font-medium text-white/80 uppercase tracking-widest mb-1">ยอดรับชำระทั้งหมด</p>
-                                            <p className="text-4xl lg:text-5xl font-black text-white tracking-tight drop-shadow-md"><span className="text-xl opacity-70 mr-1 font-medium">฿</span>{(data.shirtOrders||[]).reduce((sum, o) => sum + (Number(getK(o, ['totalprice', 'ยอดรวม'], 'TotalPrice')) || 0), 0).toLocaleString()}</p>
+                                            <p className="text-4xl lg:text-5xl font-black text-white tracking-tight drop-shadow-md"><span className="text-xl opacity-70 mr-1 font-medium">฿</span>{(data.shirtOrders||[]).reduce((sum, o) => sum + (Number(getVal(o, ['totalprice', 'ยอดรวม'], 'TotalPrice')) || 0), 0).toLocaleString()}</p>
                                         </div>
                                     </div>
                                     <div className="lg:col-span-3 bg-white/90 backdrop-blur p-8 rounded-[2rem] border border-orange-100/50 shadow-sm relative">
@@ -2433,19 +2418,19 @@
                                             </thead>
                                             <tbody className="text-sm text-charcoal-900 divide-y divide-gray-50">
                                             {currentShirtOrders.map((o,i) => {
-                                                const ts = getK(o, ['timestamp', 'เวลา'], 'Timestamp');
-                                                const stdId = getK(o, ['studentid', 'รหัส'], 'StudentID');
-                                                const name = getK(o, ['name', 'ชื่อ'], 'Name');
-                                                const pGen = getK(o, ['pologender', 'ทรงโปโล'], 'PoloGender');
-                                                const pSize = getK(o, ['polosize', 'ไซส์โปโล'], 'PoloSize');
-                                                const pQty = getK(o, ['poloqty', 'จำนวนโปโล'], 'PoloQty');
-                                                const tGen = getK(o, ['tshirtgender', 'ทรงเสื้อยืด'], 'TshirtGender');
-                                                const tSize = getK(o, ['tshirtsize', 'ไซส์เสื้อยืด'], 'TshirtSize');
-                                                const tQty = getK(o, ['tshirtqty', 'จำนวนเสื้อยืด'], 'TshirtQty');
-                                                const totalPrice = getK(o, ['totalprice', 'ยอดรวม'], 'TotalPrice');
-                                                const paymentMethod = getK(o, ['paymentmethod', 'วิธีชำระ'], 'PaymentMethod');
-                                                const status = getK(o, ['status', 'สถานะ'], 'Status');
-                                                const slipStr = String(getK(o, ['slipimage', 'slipurl', 'slip', 'สลิป'], 'SlipImage')).trim();
+                                                const ts = getVal(o, ['timestamp', 'เวลา'], 'Timestamp');
+                                                const stdId = getVal(o, ['studentid', 'รหัส'], 'StudentID');
+                                                const name = getVal(o, ['name', 'ชื่อ'], 'Name');
+                                                const pGen = getVal(o, ['pologender', 'ทรงโปโล'], 'PoloGender');
+                                                const pSize = getVal(o, ['polosize', 'ไซส์โปโล'], 'PoloSize');
+                                                const pQty = getVal(o, ['poloqty', 'จำนวนโปโล'], 'PoloQty');
+                                                const tGen = getVal(o, ['tshirtgender', 'ทรงเสื้อยืด'], 'TshirtGender');
+                                                const tSize = getVal(o, ['tshirtsize', 'ไซส์เสื้อยืด'], 'TshirtSize');
+                                                const tQty = getVal(o, ['tshirtqty', 'จำนวนเสื้อยืด'], 'TshirtQty');
+                                                const totalPrice = getVal(o, ['totalprice', 'ยอดรวม'], 'TotalPrice');
+                                                const paymentMethod = getVal(o, ['paymentmethod', 'วิธีชำระ'], 'PaymentMethod');
+                                                const status = getVal(o, ['status', 'สถานะ'], 'Status');
+                                                const slipStr = String(getVal(o, ['slipimage', 'slipurl', 'slip', 'สลิป'], 'SlipImage')).trim();
                                                 const hasValidSlip = slipStr && slipStr !== 'null' && slipStr !== 'undefined' && slipStr !== '-';
 
                                                 return (
@@ -2481,7 +2466,7 @@
                                                             )}
                                                         </td>
                                                         <td className="px-6 py-4 text-center">
-                                                            <button onClick={async () => { Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => Swal.showLoading() }); try { const newStatus = status === 'received' ? 'paid' : 'received'; await runGAS('updateShirtOrderStatus', stdId, newStatus); setAdminData(prev => ({ ...prev, shirtOrders: prev.shirtOrders.map(so => getK(so, ['studentid', 'รหัส'], 'StudentID') === stdId ? { ...so, Status: newStatus } : so) })); Swal.close(); Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตสถานะสำเร็จ` }); } catch(err) { Swal.fire('ข้อผิดพลาด', err.message, 'error'); } }} className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest border transition-all shadow-sm w-full max-w-[100px] mx-auto block ${status === 'received' ? 'text-rose-600 border-rose-200 bg-rose-50 hover:bg-rose-500 hover:text-white hover:border-rose-500' : 'text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-500 hover:text-white hover:border-emerald-500'}`}>
+                                                            <button onClick={() => toggleShirtOrderStatus(stdId, status)} className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest border transition-all shadow-sm w-full max-w-[100px] mx-auto block ${status === 'received' ? 'text-rose-600 border-rose-200 bg-rose-50 hover:bg-rose-500 hover:text-white hover:border-rose-500' : 'text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-500 hover:text-white hover:border-emerald-500'}`}>
                                                                 <i className={`fa-solid ${status === 'received' ? 'fa-spinner' : 'fa-check'} mr-1`}></i> {status === 'received' ? 'รอยืนยัน' : 'ชำระแล้ว'}
                                                             </button>
                                                         </td>
@@ -2493,7 +2478,7 @@
                                         </table>
                                     </div>
                                     {sortedShirtOrders.length > 0 && (
-                                        <div className="flex flex-col sm:flex-row justify-between items-center px-6 py-4 border-t border-gray-100 bg-gray-50/50 gap-4">
+                                        <div className="flex flex-col sm:flex-row justify-between items-center px-6 py-4 border-t border-gray-100 bg-gray-50/50 gap-4 rounded-b-2xl">
                                             <span className="text-[10px] font-bold text-gray-500 tracking-widest">
                                                 แสดง {Math.min(sortedShirtOrders.length, (shirtOrderPage - 1) * shirtItemsPerPage + 1)} - {Math.min(sortedShirtOrders.length, shirtOrderPage * shirtItemsPerPage)} จากทั้งหมด {sortedShirtOrders.length} รายการ
                                             </span>
