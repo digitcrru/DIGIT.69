@@ -796,16 +796,23 @@
                                     <div className="text-center py-20 bg-white/50 dark:bg-slate-800/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700"><i className="fa-solid fa-folder-open text-4xl text-slate-300 mb-4 block"></i><span className="text-slate-500 font-bold text-sm">ไม่มีประกาศรับสมัครในขณะนี้</span></div>
                                 ) : (
                                     recruitments.map(a=>(
-                                        <div key={a.RecruitID} className="luxury-card p-5 md:p-6 group flex items-center justify-between gap-4 transition-all hover:shadow-lg hover:shadow-purple-500/10 hover:-translate-y-1">
+                                        <div key={a.RecruitID} className="luxury-card p-5 md:p-6 group flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:shadow-lg hover:shadow-purple-500/10 hover:-translate-y-1 border border-transparent hover:border-purple-200">
                                             <div className="flex items-start gap-4 flex-1 cursor-pointer" onClick={()=>handleRegisterRecruit(a)}>
                                                 <div className="w-14 h-14 bg-purple-50 text-purple-500 rounded-xl flex flex-col items-center justify-center border border-purple-100 group-hover:bg-purple-500 group-hover:text-white transition-colors shrink-0"><span className="text-[9px] font-black uppercase">{formatDisplayDate(a.Date).month}</span><span className="text-xl font-black leading-none">{formatDisplayDate(a.Date).date}</span></div>
-                                                <div><h4 className="font-bold text-slate-800 dark:text-white text-sm md:text-base mb-1.5 group-hover:text-purple-600 transition-colors">{a.Name}</h4><p className="text-[11px] text-slate-500 font-bold"><i className="fa-solid fa-location-dot text-purple-400 mr-1"></i> {a.Location}</p></div>
+                                                <div>
+                                                    <h4 className="font-bold text-slate-800 dark:text-white text-sm md:text-base mb-1.5 group-hover:text-purple-600 transition-colors">{a.Name}</h4>
+                                                    <p className="text-[11px] text-slate-500 font-bold"><i className="fa-solid fa-location-dot text-purple-400 mr-1"></i> {a.Location}</p>
+                                                </div>
                                             </div>
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 mt-2 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100">
                                                 {getVal(a, ['attachment', 'แนบไฟล์'], 'Attachment') && (
-                                                    <button onClick={() => window.open(getVal(a, ['attachment', 'แนบไฟล์'], 'Attachment'), '_blank')} className="text-purple-500 hover:text-white bg-purple-50 hover:bg-purple-500 font-bold text-xs px-3 py-2 rounded-lg border border-purple-100 transition-all shrink-0"><i className="fa-solid fa-file-pdf"></i> <span className="hidden sm:inline">ดูไฟล์แนบ</span></button>
+                                                    <button onClick={(e) => { e.stopPropagation(); window.open(getVal(a, ['attachment', 'แนบไฟล์'], 'Attachment'), '_blank'); }} className="text-purple-600 hover:text-white bg-purple-50 hover:bg-purple-500 font-bold text-xs px-3 py-2.5 rounded-lg border border-purple-200 transition-all flex items-center gap-1.5 shadow-sm">
+                                                        <i className="fa-solid fa-paperclip"></i> <span className="hidden sm:inline">ดูไฟล์แนบ</span>
+                                                    </button>
                                                 )}
-                                                <button onClick={()=>handleRegisterRecruit(a)} className="text-white font-bold text-xs bg-purple-500 hover:bg-purple-600 px-3 py-2 rounded-lg shadow-sm transition-all shrink-0"><i className="fa-solid fa-user-plus"></i> <span className="hidden sm:inline">สมัครเข้าร่วม</span></button>
+                                                <button onClick={(e)=>{ e.stopPropagation(); handleRegisterRecruit(a); }} className="text-white font-bold text-xs bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 px-4 py-2.5 rounded-lg shadow-md shadow-purple-500/30 transition-all flex items-center gap-1.5">
+                                                    <i className="fa-solid fa-user-plus"></i> สมัครเข้าร่วม
+                                                </button>
                                             </div>
                                         </div>
                                     ))
@@ -2229,6 +2236,11 @@
                                                                 <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 font-medium">
                                                                     <span className="flex items-center gap-1.5 bg-white border border-gray-100 shadow-sm px-2.5 py-1 rounded-md"><i className="fa-regular fa-clock text-purple-400"></i> {formatDisplayDate(r.Date).date} {formatDisplayDate(r.Date).month}</span>
                                                                     <span className="flex items-center gap-1.5 bg-white border border-gray-100 shadow-sm px-2.5 py-1 rounded-md"><i className="fa-solid fa-location-dot text-purple-400"></i> {r.Location}</span>
+                                                                    {getVal(r, ['attachment', 'แนบไฟล์'], 'Attachment') && (
+                                                                        <span onClick={() => window.open(getVal(r, ['attachment', 'แนบไฟล์'], 'Attachment'), '_blank')} className="flex items-center gap-1.5 bg-purple-50 text-purple-600 border border-purple-200 shadow-sm px-2.5 py-1 rounded-md cursor-pointer hover:bg-purple-500 hover:text-white transition-colors">
+                                                                            <i className="fa-solid fa-paperclip"></i> มีไฟล์แนบ
+                                                                        </span>
+                                                                    )}
                                                                 </div>
                                                             </div>
                                                         </div>
