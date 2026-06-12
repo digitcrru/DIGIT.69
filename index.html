@@ -274,7 +274,7 @@
             const [searchPurpose, setSearchPurpose] = useState(() => sessionStorage.getItem('search_purpose') || 'activity');
             
             const [shirtPrice, setShirtPrice] = useState({ normal: 250, oversize: 380, status: 'open', popupText: '', popupImage: '' });
-            const [receiptSettings, setReceiptSettings] = useState({ header: 'สโมสรนักศึกษาคณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย\nที่อยู่: 80 ซอย 9 ตำบล บ้านดู่ อำเภอเมืองเชียงราย เชียงราย 57100', note: 'กรุณานำใบเสร็จนี้มาแสดงในวันรับเสื้อ' });
+            const [receiptSettings, setReceiptSettings] = useState({ header: 'สโมสรนักศึกษาคณะเทคโนโลยีดิจิทัล', note: 'กรุณานำใบเสร็จนี้มาแสดงในวันรับเสื้อ' });
             
             const [isEditingOrder, setIsEditingOrder] = useState(false);
             const [poloGender, setPoloGender] = useState('ชาย');
@@ -310,10 +310,9 @@
 
             const loadAdminData = () => {
                 if (API_CONFIG.USE_FAST_CSV && !isFastCSVReady()) {
-                    Swal.fire({ title: 'ตั้งค่าระบบดึงข้อมูลเร็วไม่สมบูรณ์', text: 'กรุณาใส่ SHEET_ID ของคุณในโค้ดให้ถูกต้องครับ', icon: 'warning', confirmButtonColor: '#ea580c' });
+                    Swal.fire({ title: 'ตั้งค่าระบบไม่สมบูรณ์', text: 'กรุณาใส่ SHEET_ID', icon: 'warning', confirmButtonColor: '#ea580c' });
                     return;
                 }
-
                 Swal.fire({ title: 'โปรดรอสักครู่...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                 setTimeout(async () => {
                     try {
@@ -438,7 +437,9 @@
                 if(!studentId) return Swal.fire('แจ้งเตือน', 'กรุณากรอกรหัสนักศึกษา', 'warning');
                 Swal.fire({ title: 'ตรวจสอบข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                 try {
-                    let res = { success: false };
+                    let found = null;
+                    const cId = studentId.replace(/\s+/g, '').toLowerCase();
+
                     if (isFastCSVReady()) {
                         try {
                             const allStudents = await fetchFastCSV('Students');
@@ -446,20 +447,19 @@
                                 const keys = Object.keys(s);
                                 const idK = findKey(keys, ['studentid', 'รหัส']);
                                 const icK = findKey(keys, ['idcard', 'บัตร']);
-                                return (idK && String(s[idK]).replace(/\s+/g,'').toLowerCase() === studentId.replace(/\s+/g,'').toLowerCase()) || 
-                                       (icK && String(s[icK]).replace(/\s+/g,'').toLowerCase() === studentId.replace(/\s+/g,'').toLowerCase());
+                                return (idK && String(s[idK]).replace(/\s+/g,'').toLowerCase() === cId) || 
+                                       (icK && String(s[icK]).replace(/\s+/g,'').toLowerCase() === cId);
                             });
-                            if (studentData) res = { success: true, data: studentData };
-                            else res = { success: false };
-                        } catch(csvErr) { res = await runGAS('verifyStudent', studentId).catch(e => { throw e }); }
-                    } else { res = await runGAS('verifyStudent', studentId); }
+                            if (studentData) found = studentData;
+                        } catch(csvErr) { found = await runGAS('verifyStudent', studentId).catch(()=>null); }
+                    } else { found = await runGAS('verifyStudent', studentId).catch(()=>null); }
 
-                    if(res.success && (res.data.Name || getVal(res.data, ['name', 'ชื่อ'], 'Name'))) {
+                    if(found && (found.Name || getVal(found, ['name', 'ชื่อ'], 'Name'))) {
                         const cleanStudent = {
-                            StudentID: getVal(res.data, ['studentid', 'รหัส'], 'StudentID') || studentId,
-                            Name: getVal(res.data, ['name', 'ชื่อ'], 'Name'),
-                            Major: getVal(res.data, ['major', 'สาขา'], 'Major'),
-                            IDCard: getVal(res.data, ['idcard', 'บัตร'], 'IDCard')
+                            StudentID: getVal(found, ['studentid', 'รหัส'], 'StudentID') || studentId,
+                            Name: getVal(found, ['name', 'ชื่อ'], 'Name'),
+                            Major: getVal(found, ['major', 'สาขา'], 'Major'),
+                            IDCard: getVal(found, ['idcard', 'บัตร'], 'IDCard')
                         };
                         setStudent(cleanStudent);
                         localStorage.setItem('last_student_id', studentId);
@@ -571,7 +571,7 @@
                                     return matchStudent && matchRec;
                                 });
                             }
-                        } catch (csvErr) { console.warn("Registrations check failed locally"); }
+                        } catch (csvErr) {}
                     }
                     Swal.close();
                     if (hasJoined) { 
@@ -713,10 +713,10 @@
                 </footer>
             );
 
-            if (view === 'home') {
-                return (
-                    <div className="min-h-screen flex flex-col relative z-10 overflow-hidden">
-                        <Navbar />
+            // View Renderer Helper
+            const renderView = () => {
+                if (view === 'home') {
+                    return (
                         <div className="flex-grow flex flex-col items-center justify-center p-6 md:p-10">
                             <div className="text-center mb-12">
                                 <h2 className="text-sm font-bold text-orange-500 tracking-widest uppercase mb-3">Welcome to Platform</h2>
@@ -744,26 +744,21 @@
                                 </div>
                             </div>
                         </div>
-                        <Footer />
-                        <MobileTabBar />
-                    </div>
-                );
-            }
+                    );
+                }
 
-            if (view === 'search') {
-                const isShirtSearch = searchPurpose === 'shirt';
-                const isRecruitSearch = searchPurpose === 'recruit';
-                const isHistorySearch = searchPurpose === 'history';
-                let iconClass = 'fa-id-card'; let iconColor = 'text-orange-500'; let bgIconColor = 'bg-orange-50 border-orange-100 dark:bg-gray-800 dark:border-gray-700';
-                let titleText = 'ยืนยันตัวตนเพื่อเช็คชื่อ'; let descText = 'กรุณาระบุรหัสนักศึกษา หรือ เลขบัตรประจำตัวประชาชนของคุณ';
-                
-                if (isShirtSearch) { iconClass = 'fa-shirt'; iconColor = 'text-rose-500'; bgIconColor = 'bg-rose-50 border-rose-100 dark:bg-gray-800 dark:border-gray-700'; titleText = 'ตรวจสอบการจองเสื้อ'; descText = 'กรุณาระบุรหัสนักศึกษา หรือ เลขบัตรประจำตัวประชาชน เพื่อสั่งจองและดูใบเสร็จ'; } 
-                else if (isRecruitSearch) { iconClass = 'fa-bullhorn'; iconColor = 'text-purple-500'; bgIconColor = 'bg-purple-50 border-purple-100 dark:bg-gray-800 dark:border-gray-700'; titleText = 'ประกาศรับสมัครเข้าร่วมกิจกรรม'; descText = 'กรุณาระบุรหัสนักศึกษา หรือ เลขบัตรประจำตัวประชาชน เพื่อดูประกาศและสมัครเข้าร่วม'; }
-                else if (isHistorySearch) { iconClass = 'fa-clock-rotate-left'; iconColor = 'text-blue-500'; bgIconColor = 'bg-blue-50 border-blue-100 dark:bg-gray-800 dark:border-gray-700'; titleText = 'ประวัติการเข้าร่วมกิจกรรม'; descText = 'กรุณาระบุรหัสนักศึกษา หรือ เลขบัตรประจำตัวประชาชน เพื่อตรวจสอบประวัติ'; }
-                
-                return (
-                    <div className="min-h-screen flex flex-col relative z-10">
-                        <Navbar />
+                if (view === 'search') {
+                    const isShirtSearch = searchPurpose === 'shirt';
+                    const isRecruitSearch = searchPurpose === 'recruit';
+                    const isHistorySearch = searchPurpose === 'history';
+                    let iconClass = 'fa-id-card'; let iconColor = 'text-orange-500'; let bgIconColor = 'bg-orange-50 border-orange-100 dark:bg-gray-800 dark:border-gray-700';
+                    let titleText = 'ยืนยันตัวตนเพื่อเช็คชื่อ'; let descText = 'กรุณาระบุรหัสนักศึกษา หรือ เลขบัตรประจำตัวประชาชนของคุณ';
+                    
+                    if (isShirtSearch) { iconClass = 'fa-shirt'; iconColor = 'text-rose-500'; bgIconColor = 'bg-rose-50 border-rose-100 dark:bg-gray-800 dark:border-gray-700'; titleText = 'ตรวจสอบการจองเสื้อ'; descText = 'กรุณาระบุรหัสนักศึกษา หรือ เลขบัตรประจำตัวประชาชน เพื่อสั่งจองและดูใบเสร็จ'; } 
+                    else if (isRecruitSearch) { iconClass = 'fa-bullhorn'; iconColor = 'text-purple-500'; bgIconColor = 'bg-purple-50 border-purple-100 dark:bg-gray-800 dark:border-gray-700'; titleText = 'ประกาศรับสมัครเข้าร่วมกิจกรรม'; descText = 'กรุณาระบุรหัสนักศึกษา หรือ เลขบัตรประจำตัวประชาชน เพื่อดูประกาศและสมัครเข้าร่วม'; }
+                    else if (isHistorySearch) { iconClass = 'fa-clock-rotate-left'; iconColor = 'text-blue-500'; bgIconColor = 'bg-blue-50 border-blue-100 dark:bg-gray-800 dark:border-gray-700'; titleText = 'ประวัติการเข้าร่วมกิจกรรม'; descText = 'กรุณาระบุรหัสนักศึกษา หรือ เลขบัตรประจำตัวประชาชน เพื่อตรวจสอบประวัติ'; }
+                    
+                    return (
                         <div className="flex-grow flex flex-col items-center justify-center p-6">
                             <div className="luxury-card w-full max-w-md p-10 relative overflow-hidden">
                                 <div className={`absolute top-0 left-0 w-full h-2 ${isRecruitSearch ? 'bg-gradient-to-r from-purple-500 to-purple-600' : isShirtSearch ? 'bg-gradient-to-r from-rose-400 to-rose-600' : isHistorySearch ? 'bg-gradient-to-r from-blue-400 to-blue-600' : 'bg-gradient-to-r from-orange-400 to-orange-600'}`}></div>
@@ -781,19 +776,14 @@
                                 </form>
                             </div>
                         </div>
-                        <Footer />
-                        <MobileTabBar />
-                    </div>
-                );
-            }
+                    );
+                }
 
-            if (view === 'select_recruit') {
-                if(!student) return null;
-                return (
-                    <div className="min-h-screen flex flex-col">
-                        <Navbar />
+                if (view === 'select_recruit') {
+                    if(!student) return null;
+                    return (
                         <div className="flex-grow p-4 md:p-10 max-w-4xl w-full mx-auto">
-                            <div className="glass-card p-6 md:p-8 flex justify-between items-center mb-8">
+                            <div className="luxury-card p-6 md:p-8 flex justify-between items-center mb-8">
                                 <div className="flex items-center gap-4">
                                     <div className="w-14 h-14 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center text-xl"><i className="fa-solid fa-user-check"></i></div>
                                     <div><p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">ข้อมูลผู้สมัคร</p><h2 className="font-bold text-lg dark:text-white">{student.Name}</h2><p className="text-xs font-bold text-slate-600 dark:text-slate-400 mt-1">{student.StudentID} | {student.Major}</p></div>
@@ -806,28 +796,29 @@
                                     <div className="text-center py-20 bg-white/50 dark:bg-slate-800/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700"><i className="fa-solid fa-folder-open text-4xl text-slate-300 mb-4 block"></i><span className="text-slate-500 font-bold text-sm">ไม่มีประกาศรับสมัครในขณะนี้</span></div>
                                 ) : (
                                     recruitments.map(a=>(
-                                        <div key={a.RecruitID} onClick={()=>handleRegisterRecruit(a)} className="glass-card p-5 md:p-6 cursor-pointer hover:border-purple-400 group flex items-center justify-between gap-4 transition-all hover:shadow-lg hover:shadow-purple-500/10 hover:-translate-y-1">
-                                            <div className="flex items-start gap-4 flex-1">
+                                        <div key={a.RecruitID} className="luxury-card p-5 md:p-6 group flex items-center justify-between gap-4 transition-all hover:shadow-lg hover:shadow-purple-500/10 hover:-translate-y-1">
+                                            <div className="flex items-start gap-4 flex-1 cursor-pointer" onClick={()=>handleRegisterRecruit(a)}>
                                                 <div className="w-14 h-14 bg-purple-50 text-purple-500 rounded-xl flex flex-col items-center justify-center border border-purple-100 group-hover:bg-purple-500 group-hover:text-white transition-colors shrink-0"><span className="text-[9px] font-black uppercase">{formatDisplayDate(a.Date).month}</span><span className="text-xl font-black leading-none">{formatDisplayDate(a.Date).date}</span></div>
                                                 <div><h4 className="font-bold text-slate-800 dark:text-white text-sm md:text-base mb-1.5 group-hover:text-purple-600 transition-colors">{a.Name}</h4><p className="text-[11px] text-slate-500 font-bold"><i className="fa-solid fa-location-dot text-purple-400 mr-1"></i> {a.Location}</p></div>
                                             </div>
-                                            <div className="flex items-center gap-2 text-purple-500 font-bold text-xs bg-purple-50 px-3 py-2 rounded-lg border border-purple-100 group-hover:bg-purple-500 group-hover:text-white transition-all shrink-0"><i className="fa-solid fa-user-plus"></i> <span className="hidden sm:inline">สมัครเข้าร่วม</span></div>
+                                            <div className="flex items-center gap-2">
+                                                {getVal(a, ['attachment', 'แนบไฟล์'], 'Attachment') && (
+                                                    <button onClick={() => window.open(getVal(a, ['attachment', 'แนบไฟล์'], 'Attachment'), '_blank')} className="text-purple-500 hover:text-white bg-purple-50 hover:bg-purple-500 font-bold text-xs px-3 py-2 rounded-lg border border-purple-100 transition-all shrink-0"><i className="fa-solid fa-file-pdf"></i> <span className="hidden sm:inline">ดูไฟล์แนบ</span></button>
+                                                )}
+                                                <button onClick={()=>handleRegisterRecruit(a)} className="text-white font-bold text-xs bg-purple-500 hover:bg-purple-600 px-3 py-2 rounded-lg shadow-sm transition-all shrink-0"><i className="fa-solid fa-user-plus"></i> <span className="hidden sm:inline">สมัครเข้าร่วม</span></button>
+                                            </div>
                                         </div>
                                     ))
                                 )}
                             </div>
                         </div>
-                        <MobileTabBar />
-                    </div>
-                );
-            }
+                    );
+                }
 
-            if (view === 'select') {
-                if(!student) return null;
-                const gProps = getGenderProps(student.Name);
-                return (
-                    <div className="min-h-screen flex flex-col relative z-10">
-                        <Navbar />
+                if (view === 'select') {
+                    if(!student) return null;
+                    const gProps = getGenderProps(student.Name);
+                    return (
                         <div className="flex-grow flex flex-col items-center pt-10 p-6">
                             <div className="w-full max-w-2xl mb-8 flex justify-between items-end bg-white/50 p-6 rounded-2xl border border-orange-100/50 backdrop-blur-sm">
                                 <div className="flex items-center gap-5">
@@ -852,16 +843,11 @@
                                 </div>
                             </div>
                         </div>
-                        <Footer />
-                        <MobileTabBar />
-                    </div>
-                );
-            }
+                    );
+                }
 
-            if (view === 'survey') {
-                return (
-                    <div className="min-h-screen flex flex-col relative z-10">
-                        <Navbar />
+                if (view === 'survey') {
+                    return (
                         <div className="flex-grow flex flex-col items-center pt-6 p-4 pb-20">
                             <div className="luxury-card w-full max-w-4xl p-6 sm:p-12 border-t-4 border-t-orange-500">
                                 <div className="mb-10 relative">
@@ -917,20 +903,16 @@
                                 </form>
                             </div>
                         </div>
-                        <Footer />
-                    </div>
-                );
-            }
+                    );
+                }
 
-            if (view === 'shirt_form') {
-                if(!student) return null;
-                const getPrice = (size) => ['XL', '2XL', '3XL'].includes(size) ? shirtPrice.oversize : shirtPrice.normal;
-                const grandTotal = (getPrice(poloSize) * poloQty) + (getPrice(tshirtSize) * tshirtQty);
-                const gProps = getGenderProps(student?.Name || '');
+                if (view === 'shirt_form') {
+                    if(!student) return null;
+                    const getPrice = (size) => ['XL', '2XL', '3XL'].includes(size) ? shirtPrice.oversize : shirtPrice.normal;
+                    const grandTotal = (getPrice(poloSize) * poloQty) + (getPrice(tshirtSize) * tshirtQty);
+                    const gProps = getGenderProps(student?.Name || '');
 
-                return (
-                    <div className="min-h-screen flex flex-col relative z-10">
-                        <Navbar />
+                    return (
                         <div className="flex-grow flex flex-col items-center pt-8 p-4 pb-20">
                             <div className="luxury-card w-full max-w-2xl p-6 sm:p-12 border-t-4 border-t-orange-500">
                                 <div className="flex justify-between items-center mb-10 pb-6 border-b border-orange-100">
@@ -1155,16 +1137,11 @@
                                 </form>
                             </div>
                         </div>
-                        <Footer />
-                        <MobileTabBar />
-                    </div>
-                );
-            }
+                    );
+                }
 
-            if (view === 'history_search') {
-                return (
-                    <div className="min-h-screen flex flex-col relative z-10">
-                        <Navbar />
+                if (view === 'history_search') {
+                    return (
                         <div className="flex-grow flex flex-col items-center justify-center p-6">
                             <div className="luxury-card w-full max-w-md p-10 relative">
                                 <button onClick={goHome} className="absolute top-6 left-6 text-gray-400 hover:text-orange-500 transition-colors text-sm">
@@ -1185,16 +1162,11 @@
                                 </form>
                             </div>
                         </div>
-                        <Footer />
-                        <MobileTabBar />
-                    </div>
-                );
-            }
+                    );
+                }
 
-            if (view === 'history_result') {
-                return (
-                    <div className="min-h-screen flex flex-col relative z-10">
-                        <Navbar />
+                if (view === 'history_result') {
+                    return (
                         <div className="flex-grow flex flex-col items-center pt-8 p-6 pb-20">
                             <div className="luxury-card w-full max-w-2xl p-6 sm:p-10 border-t-4 border-t-orange-500">
                                 <div className="flex items-center justify-between mb-8 pb-4 border-b border-orange-100">
@@ -1229,129 +1201,124 @@
                                 </div>
                             </div>
                         </div>
-                        <Footer />
-                        <MobileTabBar />
-                    </div>
-                );
-            }
+                    );
+                }
 
-            if (view === 'receipt') {
-                const handleDownloadReceipt = () => {
-                    const receiptElement = document.getElementById('receipt-card');
-                    Swal.fire({ title: 'กำลังประมวลผล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-                    html2canvas(receiptElement, { scale: 2, backgroundColor: isDarkMode ? '#1e1e1e' : '#fffcf9' }).then(canvas => {
-                        const link = document.createElement('a');
-                        link.download = `Receipt_${receiptData.student.StudentID}.png`;
-                        link.href = canvas.toDataURL('image/png');
-                        link.click();
-                        Swal.close();
-                    }).catch(() => Swal.fire('Error', 'ไม่สามารถสร้างรูปภาพได้', 'error'));
-                };
+                if (view === 'receipt') {
+                    const handleDownloadReceipt = () => {
+                        const receiptElement = document.getElementById('receipt-card');
+                        Swal.fire({ title: 'กำลังประมวลผล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                        html2canvas(receiptElement, { scale: 2, backgroundColor: isDarkMode ? '#1e1e1e' : '#fffcf9' }).then(canvas => {
+                            const link = document.createElement('a');
+                            link.download = `Receipt_${receiptData.student.StudentID}.png`;
+                            link.href = canvas.toDataURL('image/png');
+                            link.click();
+                            Swal.close();
+                        }).catch(() => Swal.fire('Error', 'ไม่สามารถสร้างรูปภาพได้', 'error'));
+                    };
 
-                const ReceiptSlip = ({ title, data, config }) => (
-                    <div className="bg-white p-10 relative flex flex-col w-[48%]" style={{ minHeight: '100%' }}>
-                        <div className="border-b border-gray-800 pb-5 mb-6 flex justify-between items-start">
-                            <div className="max-w-[75%]">
-                                <h1 className="text-2xl font-bold text-charcoal-900 mb-1">ใบเสร็จรับเงิน</h1>
-                                <p className="text-[10px] text-gray-500 font-semibold tracking-widest uppercase mb-4">RECEIPT</p>
-                                <h2 className="text-sm font-semibold text-charcoal-900 leading-relaxed whitespace-pre-wrap">{config.header}</h2>
+                    const ReceiptSlip = ({ title, data, config }) => (
+                        <div className="bg-white p-10 relative flex flex-col w-[48%]" style={{ minHeight: '100%' }}>
+                            <div className="border-b border-gray-800 pb-5 mb-6 flex justify-between items-start">
+                                <div className="max-w-[75%]">
+                                    <h1 className="text-2xl font-bold text-charcoal-900 mb-1">ใบเสร็จรับเงิน</h1>
+                                    <p className="text-[10px] text-gray-500 font-semibold tracking-widest uppercase mb-4">RECEIPT</p>
+                                    <h2 className="text-sm font-semibold text-charcoal-900 leading-relaxed whitespace-pre-wrap">{config.header}</h2>
+                                </div>
+                                <div className="text-right">
+                                    <div className="inline-block bg-charcoal-900 text-white px-3 py-1 rounded text-[10px] font-bold tracking-widest uppercase mb-3">{title}</div>
+                                    <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-1">เลขที่ / No.</p>
+                                    <p className="text-base font-bold text-charcoal-900">{data.orderId}</p>
+                                </div>
                             </div>
-                            <div className="text-right">
-                                <div className="inline-block bg-charcoal-900 text-white px-3 py-1 rounded text-[10px] font-bold tracking-widest uppercase mb-3">{title}</div>
-                                <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-1">เลขที่ / No.</p>
-                                <p className="text-base font-bold text-charcoal-900">{data.orderId}</p>
+                            
+                            <div className="grid grid-cols-2 gap-6 mb-8 text-sm border-b border-gray-200 pb-6 p-4 bg-gray-50 rounded-lg">
+                                <div>
+                                    <p className="text-[10px] text-gray-500 font-semibold tracking-widest mb-1">ได้รับเงินจาก / Received From</p>
+                                    <p className="font-bold text-charcoal-900 text-base mb-1 break-words">{data.student.Name}</p>
+                                    <p className="text-gray-600 font-medium leading-normal break-words">{data.student.Major}</p>
+                                    <p className="text-gray-500 font-light mt-1 break-words">รหัสนักศึกษา: {data.student.StudentID}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] text-gray-500 font-semibold tracking-widest mb-1">วันที่ / Date</p>
+                                    <p className="font-bold text-charcoal-900 text-base">{data.date.split(' ')[0]}</p>
+                                    <p className="text-gray-500 font-light mt-1">{data.date.split(' ')[1]}</p>
+                                </div>
+                            </div>
+                            
+                            <div className="flex-grow mb-6">
+                                <table className="w-full text-sm text-left border-collapse">
+                                    <thead className="text-[10px] text-gray-500 font-semibold tracking-widest border-b-2 border-gray-800">
+                                        <tr>
+                                            <th className="pb-3 pt-2 px-2">รายการ<br/><span className="text-[8px] font-light">Description</span></th>
+                                            <th className="pb-3 pt-2 px-2 text-center w-20">จำนวน<br/><span className="text-[8px] font-light">Qty</span></th>
+                                            <th className="pb-3 pt-2 px-2 text-right w-28">จำนวนเงิน<br/><span className="text-[8px] font-light">Amount</span></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr className="border-b border-gray-100">
+                                            <td className="py-4 px-2">
+                                                <p className="font-bold text-charcoal-900">เสื้อคอปกโปโล (Polo Shirt)</p>
+                                                <p className="text-xs text-gray-500 font-medium mt-1">ทรง: {data.poloGender} | ไซส์: <span className="font-bold text-charcoal-900">{data.poloSize}</span></p>
+                                            </td>
+                                            <td className="py-4 px-2 text-center font-bold text-charcoal-900">{data.poloQty}</td>
+                                            <td className="py-4 px-2 text-right font-medium text-charcoal-900">฿{(['XL', '2XL', '3XL'].includes(data.poloSize) ? shirtPrice.oversize : shirtPrice.normal) * data.poloQty}</td>
+                                        </tr>
+                                        <tr className="border-b border-gray-100">
+                                            <td className="py-4 px-2">
+                                                <p className="font-bold text-charcoal-900">เสื้อยืดกิจกรรม (T-Shirt)</p>
+                                                <p className="text-xs text-gray-500 font-medium mt-1">ทรง: {data.tshirtGender} | ไซส์: <span className="font-bold text-charcoal-900">{data.tshirtSize}</span></p>
+                                            </td>
+                                            <td className="py-4 px-2 text-center font-bold text-charcoal-900">{data.tshirtQty}</td>
+                                            <td className="py-4 px-2 text-right font-medium text-charcoal-900">฿{(['XL', '2XL', '3XL'].includes(data.tshirtSize) ? shirtPrice.oversize : shirtPrice.normal) * data.tshirtQty}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div className="flex justify-between items-end border-t-2 border-gray-800 pt-4 mb-10 px-2">
+                                <div>
+                                    <span className="text-sm font-bold text-charcoal-900">รวมเงินทั้งสิ้น</span><br/>
+                                    <span className="text-[10px] text-gray-500 font-medium uppercase tracking-widest">Grand Total</span>
+                                    
+                                    {data.grandTotal > 0 && (
+                                        <div className="mt-3 flex flex-col gap-1.5">
+                                            {data.paymentMethod === 'cash' ? (
+                                                <>
+                                                    <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wide w-fit">
+                                                        <i className="fa-solid fa-money-bill-wave"></i> ชำระด้วยเงินสด
+                                                    </span>
+                                                    <span className="text-[9px] text-gray-500 font-medium ml-1">กรุณาชำระเงินที่จุดรับเสื้อ</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wide w-fit">
+                                                        <i className="fa-solid fa-money-bill-transfer"></i> ชำระผ่าน PromptPay
+                                                    </span>
+                                                    <span className="text-[9px] text-gray-500 font-medium ml-1">แนบสลิปเมื่อ: {data.date}</span>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                                <span className="text-2xl font-bold text-charcoal-900">฿ {data.grandTotal.toLocaleString()}</span>
+                            </div>
+                            
+                            <div className="mt-auto flex justify-between items-end gap-4">
+                                <div className="text-[10px] text-gray-500 font-medium w-[60%] bg-gray-50 p-3 rounded border border-gray-200">
+                                    <span className="font-bold text-charcoal-900">หมายเหตุ (Note):</span><br/>
+                                    <span className="whitespace-pre-wrap leading-relaxed">{config.note}</span>
+                                </div>
+                                <div className="text-center w-[40%] pb-2">
+                                    <div className="border-b border-charcoal-900 mb-2 h-8"></div>
+                                    <p className="text-xs font-bold text-charcoal-900 mb-0.5">เจ้าหน้าที่ผู้รับเงิน</p>
+                                    <p className="text-[9px] text-gray-500 font-medium uppercase tracking-widest">Authorized Receiver</p>
+                                </div>
                             </div>
                         </div>
-                        
-                        <div className="grid grid-cols-2 gap-6 mb-8 text-sm border-b border-gray-200 pb-6 p-4 bg-gray-50 rounded-lg">
-                            <div>
-                                <p className="text-[10px] text-gray-500 font-semibold tracking-widest mb-1">ได้รับเงินจาก / Received From</p>
-                                <p className="font-bold text-charcoal-900 text-base mb-1 break-words">{data.student.Name}</p>
-                                <p className="text-gray-600 font-medium leading-normal break-words">{data.student.Major}</p>
-                                <p className="text-gray-500 font-light mt-1 break-words">รหัสนักศึกษา: {data.student.StudentID}</p>
-                            </div>
-                            <div>
-                                <p className="text-[10px] text-gray-500 font-semibold tracking-widest mb-1">วันที่ / Date</p>
-                                <p className="font-bold text-charcoal-900 text-base">{data.date.split(' ')[0]}</p>
-                                <p className="text-gray-500 font-light mt-1">{data.date.split(' ')[1]}</p>
-                            </div>
-                        </div>
-                        
-                        <div className="flex-grow mb-6">
-                            <table className="w-full text-sm text-left border-collapse">
-                                <thead className="text-[10px] text-gray-500 font-semibold tracking-widest border-b-2 border-gray-800">
-                                    <tr>
-                                        <th className="pb-3 pt-2 px-2">รายการ<br/><span className="text-[8px] font-light">Description</span></th>
-                                        <th className="pb-3 pt-2 px-2 text-center w-20">จำนวน<br/><span className="text-[8px] font-light">Qty</span></th>
-                                        <th className="pb-3 pt-2 px-2 text-right w-28">จำนวนเงิน<br/><span className="text-[8px] font-light">Amount</span></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr className="border-b border-gray-100">
-                                        <td className="py-4 px-2">
-                                            <p className="font-bold text-charcoal-900">เสื้อคอปกโปโล (Polo Shirt)</p>
-                                            <p className="text-xs text-gray-500 font-medium mt-1">ทรง: {data.poloGender} | ไซส์: <span className="font-bold text-charcoal-900">{data.poloSize}</span></p>
-                                        </td>
-                                        <td className="py-4 px-2 text-center font-bold text-charcoal-900">{data.poloQty}</td>
-                                        <td className="py-4 px-2 text-right font-medium text-charcoal-900">฿{(['XL', '2XL', '3XL'].includes(data.poloSize) ? shirtPrice.oversize : shirtPrice.normal) * data.poloQty}</td>
-                                    </tr>
-                                    <tr className="border-b border-gray-100">
-                                        <td className="py-4 px-2">
-                                            <p className="font-bold text-charcoal-900">เสื้อยืดกิจกรรม (T-Shirt)</p>
-                                            <p className="text-xs text-gray-500 font-medium mt-1">ทรง: {data.tshirtGender} | ไซส์: <span className="font-bold text-charcoal-900">{data.tshirtSize}</span></p>
-                                        </td>
-                                        <td className="py-4 px-2 text-center font-bold text-charcoal-900">{data.tshirtQty}</td>
-                                        <td className="py-4 px-2 text-right font-medium text-charcoal-900">฿{(['XL', '2XL', '3XL'].includes(data.tshirtSize) ? shirtPrice.oversize : shirtPrice.normal) * data.tshirtQty}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <div className="flex justify-between items-end border-t-2 border-gray-800 pt-4 mb-10 px-2">
-                            <div>
-                                <span className="text-sm font-bold text-charcoal-900">รวมเงินทั้งสิ้น</span><br/>
-                                <span className="text-[10px] text-gray-500 font-medium uppercase tracking-widest">Grand Total</span>
-                                
-                                {data.grandTotal > 0 && (
-                                    <div className="mt-3 flex flex-col gap-1.5">
-                                        {data.paymentMethod === 'cash' ? (
-                                            <>
-                                                <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wide w-fit">
-                                                    <i className="fa-solid fa-money-bill-wave"></i> ชำระด้วยเงินสด
-                                                </span>
-                                                <span className="text-[9px] text-gray-500 font-medium ml-1">กรุณาชำระเงินที่จุดรับเสื้อ</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wide w-fit">
-                                                    <i className="fa-solid fa-money-bill-transfer"></i> ชำระผ่าน PromptPay
-                                                </span>
-                                                <span className="text-[9px] text-gray-500 font-medium ml-1">แนบสลิปเมื่อ: {data.date}</span>
-                                            </>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                            <span className="text-2xl font-bold text-charcoal-900">฿ {data.grandTotal.toLocaleString()}</span>
-                        </div>
-                        
-                        <div className="mt-auto flex justify-between items-end gap-4">
-                            <div className="text-[10px] text-gray-500 font-medium w-[60%] bg-gray-50 p-3 rounded border border-gray-200">
-                                <span className="font-bold text-charcoal-900">หมายเหตุ (Note):</span><br/>
-                                <span className="whitespace-pre-wrap leading-relaxed">{config.note}</span>
-                            </div>
-                            <div className="text-center w-[40%] pb-2">
-                                <div className="border-b border-charcoal-900 mb-2 h-8"></div>
-                                <p className="text-xs font-bold text-charcoal-900 mb-0.5">เจ้าหน้าที่ผู้รับเงิน</p>
-                                <p className="text-[9px] text-gray-500 font-medium uppercase tracking-widest">Authorized Receiver</p>
-                            </div>
-                        </div>
-                    </div>
-                );
+                    );
 
-                return (
-                    <div className="min-h-screen flex flex-col relative z-10">
-                        <Navbar />
+                    return (
                         <div className="flex-grow flex flex-col items-center pt-8 p-4 pb-20">
                             <div className="w-full max-w-[1200px]">
                                 <div className="flex justify-between items-end mb-6 px-2">
@@ -1378,32 +1345,27 @@
                                 </div>
                             </div>
                         </div>
-                        <Footer />
-                        <MobileTabBar />
-                    </div>
-                );
-            }
+                    );
+                }
 
-            if (view === 'admin_login') {
-                const handleAdminLogin = (e) => {
-                    e.preventDefault();
-                    if(e.target.username.value === 'admin' && e.target.password.value === '9999') {
-                        localStorage.setItem('admin_logged_in', 'true'); loadAdminData();
-                    } else { 
-                        Swal.fire({
-                            title: 'ข้อมูลไม่ถูกต้อง', 
-                            text: 'รหัสผ่านหรือชื่อผู้ใช้ผิด กรุณาลองใหม่', 
-                            icon: 'error',
-                            confirmButtonColor: '#ea580c'
-                        }).then(() => {
-                            goHome();
-                        }); 
-                    }
-                };
+                if (view === 'admin_login') {
+                    const handleAdminLogin = (e) => {
+                        e.preventDefault();
+                        if(e.target.username.value === 'admin' && e.target.password.value === '9999') {
+                            localStorage.setItem('admin_logged_in', 'true'); loadAdminData();
+                        } else { 
+                            Swal.fire({
+                                title: 'ข้อมูลไม่ถูกต้อง', 
+                                text: 'รหัสผ่านหรือชื่อผู้ใช้ผิด กรุณาลองใหม่', 
+                                icon: 'error',
+                                confirmButtonColor: '#ea580c'
+                            }).then(() => {
+                                goHome();
+                            }); 
+                        }
+                    };
 
-                return (
-                    <div className="min-h-screen flex flex-col bg-charcoal-900 relative">
-                        <Navbar />
+                    return (
                         <div className="flex-grow flex items-center justify-center p-6 relative z-10">
                             <div className="bg-[#1f1f1f] w-full max-w-md p-10 rounded-2xl border border-[#333] shadow-2xl shadow-orange-500/5">
                                 <div className="text-center mb-10">
@@ -1420,17 +1382,24 @@
                                 <button onClick={goHome} className="w-full text-gray-500 hover:text-white mt-6 text-xs transition-colors font-light uppercase tracking-widest">กลับหน้าแรก</button>
                             </div>
                         </div>
-                        <div className="absolute bottom-6 w-full text-center z-10">
-                            <p className="text-[10px] text-gray-600 font-medium tracking-wider mb-1">Copyright &copy; 2026 DIGIT Good Deed System PRO.</p>
-                            <p className="text-[9px] text-gray-700 font-light">ฝ่ายกิจการนักศึกษา คณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย</p>
-                        </div>
-                    </div>
-                );
+                    );
+                }
+
+                return null;
+            };
+
+            if (view === 'admin_dashboard') {
+                return <AdminDashboard data={adminData} reloadData={loadAdminData} goHome={goHome} setAdminData={setAdminData} />;
             }
 
-            if (view === 'admin_dashboard') return <AdminDashboard data={adminData} reloadData={loadAdminData} goHome={goHome} setAdminData={setAdminData} />;
-
-            return null;
+            return (
+                <div className="min-h-screen flex flex-col relative z-10">
+                    <Navbar />
+                    {renderView()}
+                    {view !== 'admin_login' && view !== 'admin_dashboard' && <Footer />}
+                    <MobileTabBar />
+                </div>
+            );
         }
 
         function AdminDashboard({ data, reloadData, goHome, setAdminData }) {
@@ -1614,7 +1583,61 @@
 
             const handleCreateRecruit = async (e) => {
                 e.preventDefault(); Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-                try { await runGAS('createRecruit', { name: e.target.name.value, date: e.target.date.value, location: e.target.location.value }); Swal.fire('สำเร็จ', 'สร้างประกาศรับสมัครเรียบร้อยแล้ว', 'success'); e.target.reset(); reloadData(); } catch(err) { Swal.fire('Error', err.message || 'เกิดข้อผิดพลาด', 'error'); }
+                try { await runGAS('createRecruit', { name: e.target.name.value, date: e.target.date.value, location: e.target.location.value, attachment: e.target.attachment.value }); Swal.fire('สำเร็จ', 'สร้างประกาศรับสมัครเรียบร้อยแล้ว', 'success'); e.target.reset(); reloadData(); } catch(err) { Swal.fire('Error', err.message || 'เกิดข้อผิดพลาด', 'error'); }
+            };
+
+            const handleEditRecruit = async (recruit) => {
+                const { value: formValues } = await Swal.fire({
+                    title: 'แก้ไขประกาศรับสมัคร',
+                    html: `
+                        <div class="space-y-4 text-left mt-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 mb-1">ชื่อโครงการ</label>
+                                <input id="swal-edit-rec-name" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all" value="${recruit.Name}" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 mb-1">วันที่</label>
+                                <input id="swal-edit-rec-date" type="date" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all" value="${recruit.Date}" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 mb-1">สถานที่</label>
+                                <input id="swal-edit-rec-location" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all" value="${recruit.Location}" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 mb-1">ลิงก์ไฟล์แนบ (ถ้ามี)</label>
+                                <input id="swal-edit-rec-attachment" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all" value="${getVal(recruit, ['attachment', 'แนบไฟล์'], 'Attachment')}" />
+                            </div>
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: 'บันทึกการแก้ไข',
+                    cancelButtonText: 'ยกเลิก',
+                    confirmButtonColor: '#a855f7',
+                    preConfirm: () => {
+                        return {
+                            id: recruit.RecruitID,
+                            name: document.getElementById('swal-edit-rec-name').value,
+                            date: document.getElementById('swal-edit-rec-date').value,
+                            location: document.getElementById('swal-edit-rec-location').value,
+                            attachment: document.getElementById('swal-edit-rec-attachment').value
+                        }
+                    }
+                });
+
+                if (formValues) {
+                    Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                    try { 
+                        await runGAS('updateRecruit', formValues); 
+                        setAdminData(prev => ({ 
+                            ...prev, 
+                            recruitments: prev.recruitments.map(r => r.RecruitID === formValues.id ? { ...r, Name: formValues.name, Date: formValues.date, Location: formValues.location, Attachment: formValues.attachment } : r) 
+                        })); 
+                        Swal.close(); 
+                        Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: 'อัปเดตข้อมูลสำเร็จ' }); 
+                    } catch(err) { 
+                        Swal.fire('ข้อผิดพลาด', err.message || 'เกิดข้อผิดพลาด', 'error'); 
+                    }
+                }
             };
 
             const toggleRecruitStatus = async (id, currentStatus) => {
@@ -2053,7 +2076,7 @@
                                                                     <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1">ยอดผู้เข้าร่วม</p>
                                                                     <div className="flex items-baseline gap-1.5 md:justify-end">
                                                                         <span className="text-3xl md:text-4xl font-black text-slate-800 group-hover:text-orange-600 transition-colors tracking-tight leading-none">{checkinCount}</span>
-                                                                        <span className="text-xs font-medium text-slate-500">คน</span>
+                                                                        <span className="text-xs font-medium text-slate-500"></span>
                                                                     </div>
                                                                 </div>
                                                                 <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-orange-500 group-hover:border-orange-500 group-hover:text-white group-hover:shadow-md group-hover:shadow-orange-500/30 transition-all duration-300 flex-shrink-0">
@@ -2172,6 +2195,10 @@
                                                 <i className="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-purple-300"></i>
                                                 <input disabled={data.recruitStatus === 'closed'} name="location" placeholder="สถานที่" required className="w-full bg-gray-50/50 border border-gray-200 rounded-xl pl-11 pr-4 py-3.5 text-sm focus:border-purple-500 focus:bg-white focus:ring-4 focus:ring-purple-500/10 outline-none transition-all text-charcoal-900 placeholder-gray-400 font-medium disabled:opacity-50 disabled:bg-gray-100 disabled:cursor-not-allowed" />
                                             </div>
+                                            <div className="relative">
+                                                <i className="fa-solid fa-link absolute left-4 top-1/2 -translate-y-1/2 text-purple-300"></i>
+                                                <input disabled={data.recruitStatus === 'closed'} name="attachment" placeholder="ลิงก์ไฟล์แนบ (ถ้ามี)" className="w-full bg-gray-50/50 border border-gray-200 rounded-xl pl-11 pr-4 py-3.5 text-sm focus:border-purple-500 focus:bg-white focus:ring-4 focus:ring-purple-500/10 outline-none transition-all text-charcoal-900 placeholder-gray-400 font-medium disabled:opacity-50 disabled:bg-gray-100 disabled:cursor-not-allowed" />
+                                            </div>
                                             <button disabled={data.recruitStatus === 'closed'} className={`w-full py-4 rounded-xl text-sm font-bold tracking-widest uppercase transition-all ${data.recruitStatus !== 'closed' ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-[0_8px_20px_-6px_rgba(168,85,247,0.4)] hover:shadow-[0_12px_25px_-6px_rgba(168,85,247,0.5)] transform hover:-translate-y-0.5' : 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300'}`}>
                                                 {data.recruitStatus !== 'closed' ? 'บันทึกข้อมูล' : 'ระบบปิดรับสมัคร'}
                                             </button>
@@ -2205,13 +2232,18 @@
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto border-t sm:border-t-0 pt-4 sm:pt-0 border-gray-100 mt-2 sm:mt-0">
+                                                        <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto border-t sm:border-t-0 pt-4 sm:pt-0 border-gray-100 mt-2 sm:mt-0">
                                                             <span className={`inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide border shadow-sm ${r.Status==='open' ? 'text-purple-600 bg-purple-50 border-purple-200' : 'text-gray-400 bg-gray-50 border-gray-200'}`}>
                                                                 {r.Status==='open' ? 'เปิดรับสมัคร' : 'ปิดรับแล้ว'}
                                                             </span>
-                                                            <button disabled={data.recruitStatus === 'closed'} onClick={async()=>{Swal.fire({title:'อัปเดต...',didOpen:()=>Swal.showLoading()});try{await runGAS('toggleRecruitStatus',r.RecruitID,r.Status);setAdminData(p=>({...p,recruitments:p.recruitments.map(x=>x.RecruitID===r.RecruitID?{...x,Status:r.Status==='open'?'closed':'open'}:x)}));Swal.close();}catch(e){Swal.fire('Error',e.message,'error');}}} className={`text-[40px] leading-none transition-all transform focus:outline-none ${data.recruitStatus === 'closed' ? 'opacity-50 cursor-not-allowed grayscale' : 'hover:scale-110 drop-shadow-sm'} ${r.Status==='open' ? 'text-purple-500 hover:text-purple-600' : 'text-gray-300 hover:text-gray-400'}`}>
-                                                                <i className={`fa-solid ${r.Status==='open' ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i>
-                                                            </button>
+                                                            <div className="flex items-center gap-2">
+                                                                <button disabled={data.recruitStatus === 'closed'} onClick={() => handleEditRecruit(r)} className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all border shadow-sm focus:outline-none ${data.recruitStatus === 'closed' ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed grayscale' : 'bg-amber-50 text-amber-500 border-amber-200 hover:bg-amber-500 hover:text-white hover:shadow-amber-500/30 hover:scale-110'}`} title="แก้ไขข้อมูล">
+                                                                    <i className="fa-solid fa-pen"></i>
+                                                                </button>
+                                                                <button disabled={data.recruitStatus === 'closed'} onClick={async()=>{Swal.fire({title:'อัปเดต...',didOpen:()=>Swal.showLoading()});try{await runGAS('toggleRecruitStatus',r.RecruitID,r.Status);setAdminData(p=>({...p,recruitments:p.recruitments.map(x=>x.RecruitID===r.RecruitID?{...x,Status:r.Status==='open'?'closed':'open'}:x)}));Swal.close();}catch(e){Swal.fire('Error',e.message,'error');}}} className={`text-[36px] leading-none transition-all transform focus:outline-none ${data.recruitStatus === 'closed' ? 'opacity-50 cursor-not-allowed grayscale' : 'hover:scale-110 drop-shadow-sm'} ${r.Status==='open' ? 'text-purple-500 hover:text-purple-600' : 'text-gray-300 hover:text-gray-400'}`} title="เปิด/ปิดสถานะ">
+                                                                    <i className={`fa-solid ${r.Status==='open' ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i>
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 ))
@@ -2256,11 +2288,16 @@
                                         {currentCheckins.length === 0 && <tr><td colSpan="5" className="text-center py-10 text-gray-400 font-light">ไม่พบข้อมูลที่ค้นหา</td></tr>}
                                     </tbody></table>
                                 </div>
-                                {totalPages > 1 && (
-                                    <div className="flex justify-between items-center text-sm bg-white px-4 py-2 rounded-xl border border-orange-100">
-                                        <button disabled={currentPage===1} onClick={()=>setCurrentPage(prev=>Math.max(1,prev-1))} className={`text-xs uppercase tracking-widest font-medium ${currentPage===1?'text-gray-300':'text-orange-500 hover:text-orange-600'}`}>ก่อนหน้า</button>
-                                        <span className="text-gray-400 font-light text-xs">หน้าที่ {currentPage} จาก {totalPages}</span>
-                                        <button disabled={currentPage===totalPages} onClick={()=>setCurrentPage(prev=>Math.min(totalPages,prev+1))} className={`text-xs uppercase tracking-widest font-medium ${currentPage===totalPages?'text-gray-300':'text-orange-500 hover:text-orange-600'}`}>ถัดไป</button>
+                                {sortedCheckins.length > 0 && (
+                                    <div className="flex flex-col sm:flex-row justify-between items-center px-6 py-4 border-t border-gray-100 bg-gray-50/50 gap-4 rounded-b-2xl">
+                                        <span className="text-[10px] font-bold text-gray-500 tracking-widest">
+                                            แสดง {Math.min(sortedCheckins.length, (currentPage - 1) * itemsPerPage + 1)} - {Math.min(sortedCheckins.length, currentPage * itemsPerPage)} จากทั้งหมด {sortedCheckins.length} รายการ
+                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <button disabled={currentPage===1} onClick={()=>setCurrentPage(prev=>Math.max(1,prev-1))} className="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-orange-600 px-3 py-1.5 transition-colors disabled:opacity-30 bg-white border border-gray-200 rounded-lg shadow-sm">ก่อนหน้า</button>
+                                            <span className="text-orange-600 font-bold text-[10px] uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg border border-orange-200 shadow-sm">หน้า {currentPage} / {totalPages}</span>
+                                            <button disabled={currentPage===totalPages} onClick={()=>setCurrentPage(prev=>Math.min(totalPages,prev+1))} className="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-orange-600 px-3 py-1.5 transition-colors disabled:opacity-30 bg-white border border-gray-200 rounded-lg shadow-sm">ถัดไป</button>
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -2297,11 +2334,16 @@
                                         {currentRegistrations.length === 0 && <tr><td colSpan="5" className="text-center py-10 text-gray-400 font-light">ไม่พบข้อมูลผู้สมัคร</td></tr>}
                                     </tbody></table>
                                 </div>
-                                {totalRegisPages > 1 && (
-                                    <div className="flex justify-between items-center text-sm bg-white px-4 py-2 rounded-xl border border-orange-100">
-                                        <button disabled={regisPage===1} onClick={()=>setRegisPage(prev=>Math.max(1,prev-1))} className={`text-xs uppercase tracking-widest font-medium ${regisPage===1?'text-gray-300':'text-purple-500 hover:text-purple-600'}`}>ก่อนหน้า</button>
-                                        <span className="text-gray-400 font-light text-xs">หน้าที่ {regisPage} จาก {totalRegisPages}</span>
-                                        <button disabled={regisPage===totalRegisPages} onClick={()=>setRegisPage(prev=>Math.min(totalRegisPages,prev+1))} className={`text-xs uppercase tracking-widest font-medium ${regisPage===totalRegisPages?'text-gray-300':'text-purple-500 hover:text-purple-600'}`}>ถัดไป</button>
+                                {sortedRegistrationsList.length > 0 && (
+                                    <div className="flex flex-col sm:flex-row justify-between items-center px-6 py-4 border-t border-gray-100 bg-gray-50/50 gap-4 rounded-b-2xl">
+                                        <span className="text-[10px] font-bold text-gray-500 tracking-widest">
+                                            แสดง {Math.min(sortedRegistrationsList.length, (regisPage - 1) * regisItemsPerPage + 1)} - {Math.min(sortedRegistrationsList.length, regisPage * regisItemsPerPage)} จากทั้งหมด {sortedRegistrationsList.length} รายการ
+                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <button disabled={regisPage===1} onClick={()=>setRegisPage(prev=>Math.max(1,prev-1))} className="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-purple-600 px-3 py-1.5 transition-colors disabled:opacity-30 bg-white border border-gray-200 rounded-lg shadow-sm">ก่อนหน้า</button>
+                                            <span className="text-purple-600 font-bold text-[10px] uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg border border-purple-200 shadow-sm">หน้า {regisPage} / {totalRegisPages}</span>
+                                            <button disabled={regisPage===totalRegisPages} onClick={()=>setRegisPage(prev=>Math.min(totalRegisPages,prev+1))} className="text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:text-purple-600 px-3 py-1.5 transition-colors disabled:opacity-30 bg-white border border-gray-200 rounded-lg shadow-sm">ถัดไป</button>
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -2466,7 +2508,7 @@
                                                             )}
                                                         </td>
                                                         <td className="px-6 py-4 text-center">
-                                                            <button onClick={() => toggleShirtOrderStatus(stdId, status)} className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest border transition-all shadow-sm w-full max-w-[100px] mx-auto block ${status === 'received' ? 'text-rose-600 border-rose-200 bg-rose-50 hover:bg-rose-500 hover:text-white hover:border-rose-500' : 'text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-500 hover:text-white hover:border-emerald-500'}`}>
+                                                            <button onClick={async () => { Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => Swal.showLoading() }); try { const newStatus = status === 'received' ? 'paid' : 'received'; await runGAS('updateShirtOrderStatus', stdId, newStatus); setAdminData(prev => ({ ...prev, shirtOrders: prev.shirtOrders.map(so => getVal(so, ['studentid', 'รหัส'], 'StudentID') === stdId ? { ...so, Status: newStatus } : so) })); Swal.close(); Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตสถานะสำเร็จ` }); } catch(err) { Swal.fire('ข้อผิดพลาด', err.message, 'error'); } }} className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest border transition-all shadow-sm w-full max-w-[100px] mx-auto block ${status === 'received' ? 'text-rose-600 border-rose-200 bg-rose-50 hover:bg-rose-500 hover:text-white hover:border-rose-500' : 'text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-500 hover:text-white hover:border-emerald-500'}`}>
                                                                 <i className={`fa-solid ${status === 'received' ? 'fa-spinner' : 'fa-check'} mr-1`}></i> {status === 'received' ? 'รอยืนยัน' : 'ชำระแล้ว'}
                                                             </button>
                                                         </td>
