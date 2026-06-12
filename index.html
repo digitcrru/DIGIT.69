@@ -1727,13 +1727,31 @@
             };
 
             const renderSpssContent = () => {
-                if(!selectedActivityForSpss) return <div id="spss-ex" className="text-center py-10 text-gray-400 font-light border border-gray-100 rounded-xl bg-white">กรุณาเลือกกิจกรรมเพื่อดูรายงาน</div>;
+                if(!selectedActivityForSpss) return (
+                    <div className="text-center py-16 text-gray-400 font-light border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50/50 mt-8">
+                        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-gray-100">
+                            <i className="fa-solid fa-chart-pie text-4xl text-orange-300"></i>
+                        </div>
+                        <h3 className="text-lg font-bold text-gray-600 mb-1">ยังไม่ได้เลือกกิจกรรม</h3>
+                        <p className="text-sm">กรุณาเลือกกิจกรรมจากเมนูดรอปดาวน์ด้านบนเพื่อดูรายงานวิเคราะห์ผล</p>
+                    </div>
+                );
+
                 const selectedActivityName = (data?.activities || []).find(a=>String(a.ActivityID)===String(selectedActivityForSpss))?.Name;
                 const evals = (data?.evaluations || []).filter(e => {
                     const actNameKey = getVal(e, ['activityname', 'ชื่อกิจกรรม'], 'ActivityName');
                     return actNameKey && String(actNameKey).trim() === String(selectedActivityName).trim();
                 });
-                if(evals.length === 0) return <div id="spss-ex" className="text-center py-10 text-gray-400 font-light border border-gray-100 rounded-xl bg-white">ไม่พบข้อมูลการประเมิน</div>;
+                
+                if(evals.length === 0) return (
+                    <div className="text-center py-16 text-gray-400 font-light border-2 border-dashed border-gray-200 rounded-2xl bg-white mt-8 shadow-sm">
+                        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
+                            <i className="fa-solid fa-file-circle-xmark text-4xl text-gray-300"></i>
+                        </div>
+                        <h3 className="text-lg font-bold text-gray-600 mb-1">ไม่พบข้อมูลการประเมิน</h3>
+                        <p className="text-sm">กิจกรรมนี้ยังไม่มีผู้ส่งแบบประเมินความพึงพอใจ</p>
+                    </div>
+                );
 
                 const actCheckins = (data?.checkins || []).filter(c => {
                     const actIdKey = getVal(c, ['activityid', 'รหัสกิจกรรม'], 'ActivityID');
@@ -1758,7 +1776,33 @@
                 const minorityCount = mCount >= fCount ? fCount : mCount;
                 const minorityPct = mCount >= fCount ? fPct : mPct;
 
-                const getMeaning = (m) => m >= 4.5 ? 'มากที่สุด' : m >= 3.5 ? 'มาก' : m >= 2.5 ? 'ปานกลาง' : m >= 1.5 ? 'น้อย' : 'น้อยที่สุด';
+                const getMeaning = (m) => {
+                    const r = Number(m.toFixed(2));
+                    if (r >= 4.51) return 'มากที่สุด';
+                    if (r >= 3.51) return 'มาก';
+                    if (r >= 2.51) return 'ปานกลาง';
+                    if (r >= 1.51) return 'น้อย';
+                    return 'น้อยที่สุด';
+                };
+
+                const getBadgeColor = (m) => {
+                    const r = Number(m.toFixed(2));
+                    if (r >= 4.51) return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                    if (r >= 3.51) return 'bg-blue-50 text-blue-700 border-blue-200';
+                    if (r >= 2.51) return 'bg-amber-50 text-amber-700 border-amber-200';
+                    if (r >= 1.51) return 'bg-orange-50 text-orange-700 border-orange-200';
+                    return 'bg-rose-50 text-rose-700 border-rose-200';
+                };
+
+                const getIconByMeaning = (m) => {
+                    const r = Number(m.toFixed(2));
+                    if (r >= 4.51) return 'fa-face-laugh-beam text-emerald-500';
+                    if (r >= 3.51) return 'fa-face-smile text-blue-500';
+                    if (r >= 2.51) return 'fa-face-meh text-amber-500';
+                    if (r >= 1.51) return 'fa-face-frown text-orange-500';
+                    return 'fa-face-angry text-rose-500';
+                };
+
                 const qStats = []; let overallIdx = 1;
                 let allScoresForGrand = [];
                 
@@ -1800,113 +1844,251 @@
                     .filter(text => text !== '' && text !== '-' && text !== '.' && text !== 'ไม่มี' && text !== 'ไม่มีครับ' && text !== 'ไม่มีค่ะ' && text !== 'ไม่มีข้อเสนอแนะ');
 
                 return (
-                    <div id="spss-ex" className="overflow-x-auto border border-gray-100 bg-white rounded-xl p-6 transition-colors shadow-sm mt-6">
-                        <div style={{ display: 'none' }} className="word-export-title">
-                            <h3 style={{ textAlign: 'center', fontSize: '18pt', fontWeight: 'bold' }}>รายงานผลการประเมินความพึงพอใจ</h3>
-                            <p style={{ textAlign: 'center', marginBottom: '20pt' }}>กิจกรรม: {selectedActivityName}</p>
-                        </div>
+                    <div className="mt-8">
+                        {/* ========================================= */}
+                        {/* 1. ส่วนซ่อนสำหรับสร้างตารางดิบเพื่อโหลดไฟล์ Word */}
+                        {/* ========================================= */}
+                        <div id="spss-ex" style={{ display: 'none' }}>
+                            <div className="word-export-title">
+                                <h3 style={{ textAlign: 'center', fontSize: '18pt', fontWeight: 'bold' }}>รายงานผลการประเมินความพึงพอใจ</h3>
+                                <p style={{ textAlign: 'center', marginBottom: '20pt' }}>กิจกรรม: {selectedActivityName}</p>
+                            </div>
 
-                        <div className="mb-10 min-w-[600px]">
-                            <h4 className="font-semibold text-charcoal-900 mb-3 text-sm border-l-4 border-orange-500 pl-2">ตารางที่ 1 ข้อมูลทั่วไปของผู้ตอบแบบสอบถาม (Demographic Data)</h4>
-                            <table className="w-full text-sm text-left border-collapse mb-4 border border-gray-300">
-                                <thead className="bg-orange-50 border-b border-gray-300 text-charcoal-900">
-                                    <tr>
-                                        <th className="p-3 font-medium text-center border-r border-gray-300 w-1/3">ข้อมูลทั่วไป</th>
-                                        <th className="p-3 font-medium text-center border-r border-gray-300 w-1/3">จำนวน (คน)</th>
-                                        <th className="p-3 font-medium text-center w-1/3">ร้อยละ (%)</th>
-                                    </tr>
+                            <h4>ตารางที่ 1 ข้อมูลทั่วไปของผู้ตอบแบบสอบถาม (Demographic Data)</h4>
+                            <table>
+                                <thead>
+                                    <tr><th>ข้อมูลทั่วไป</th><th>จำนวน (คน)</th><th>ร้อยละ (%)</th></tr>
                                 </thead>
-                                <tbody className="text-charcoal-900">
-                                    <tr className="border-b border-gray-300">
-                                        <td className="p-3 font-semibold bg-gray-50" colSpan="3">เพศ</td>
-                                    </tr>
-                                    <tr className="border-b border-gray-200 hover:bg-orange-50/50">
-                                        <td className="p-3 pl-8 border-r border-gray-300">ชาย</td>
-                                        <td className="p-3 text-center border-r border-gray-300">{mCount}</td>
-                                        <td className="p-3 text-center">{mPct}</td>
-                                    </tr>
-                                    <tr className="border-b border-gray-200 hover:bg-orange-50/50">
-                                        <td className="p-3 pl-8 border-r border-gray-300">หญิง</td>
-                                        <td className="p-3 text-center border-r border-gray-300">{fCount}</td>
-                                        <td className="p-3 text-center">{fPct}</td>
-                                    </tr>
-                                    <tr className="bg-orange-50/50 font-medium">
-                                        <td className="p-3 text-right border-r border-gray-300">รวม</td>
-                                        <td className="p-3 text-center border-r border-gray-300 text-orange-600">{mCount + fCount}</td>
-                                        <td className="p-3 text-center text-orange-600">100.00</td>
-                                    </tr>
+                                <tbody>
+                                    <tr><td colSpan="3"><b>เพศ</b></td></tr>
+                                    <tr><td>ชาย</td><td style={{textAlign:'center'}}>{mCount}</td><td style={{textAlign:'center'}}>{mPct}</td></tr>
+                                    <tr><td>หญิง</td><td style={{textAlign:'center'}}>{fCount}</td><td style={{textAlign:'center'}}>{fPct}</td></tr>
+                                    <tr><td style={{textAlign:'right'}}><b>รวม</b></td><td style={{textAlign:'center'}}><b>{mCount + fCount}</b></td><td style={{textAlign:'center'}}><b>100.00</b></td></tr>
                                 </tbody>
                             </table>
-                            <p className="text-gray-700 text-sm leading-relaxed indent-8">
-                                <span className="font-semibold text-orange-600">สรุปผล:</span> จากตารางที่ 1 พบว่า ผู้ตอบแบบสอบถามส่วนใหญ่เป็นเพศ{majorityGender} จำนวน {majorityCount} คน คิดเป็นร้อยละ {majorityPct} และเพศ{minorityGender} จำนวน {minorityCount} คน คิดเป็นร้อยละ {minorityPct}
-                            </p>
-                        </div>
+                            <p><b>สรุปผล:</b> จากตารางที่ 1 พบว่า ผู้ตอบแบบสอบถามส่วนใหญ่เป็นเพศ{majorityGender} จำนวน {majorityCount} คน คิดเป็นร้อยละ {majorityPct} และเพศ{minorityGender} จำนวน {minorityCount} คน คิดเป็นร้อยละ {minorityPct}</p>
 
-                        <div className="mb-8 min-w-[800px]">
-                            <h4 className="font-semibold text-charcoal-900 mb-3 text-sm border-l-4 border-orange-500 pl-2">ตารางที่ 2 ค่าสถิติเชิงพรรณนา (Descriptive Statistics)</h4>
-                            <table className="w-full text-sm text-left border-collapse mb-4 border border-gray-300">
-                                <thead className="bg-orange-50 border-b border-gray-300 text-charcoal-900">
-                                    <tr>
-                                        <th className="p-3 text-center font-medium border-r border-gray-300 w-12">ข้อ</th>
-                                        <th className="p-3 font-medium border-r border-gray-300">รายการประเมิน</th>
-                                        <th className="p-3 text-center font-medium border-r border-gray-300 w-20">x̄</th>
-                                        <th className="p-3 text-center font-medium border-r border-gray-300 w-20">S.D.</th>
-                                        <th className="p-3 text-center font-medium w-24">ระดับ</th>
-                                    </tr>
+                            <h4>ตารางที่ 2 ค่าสถิติเชิงพรรณนา (Descriptive Statistics)</h4>
+                            <table>
+                                <thead>
+                                    <tr><th>ข้อ</th><th>รายการประเมิน</th><th>x̄</th><th>S.D.</th><th>ระดับ</th></tr>
                                 </thead>
-                                <tbody className="text-charcoal-900">
+                                <tbody>
                                     {qStats.map(q => (
-                                        <tr key={q.no} className="border-b border-gray-200 hover:bg-orange-50/50 transition-colors">
-                                            <td className="p-3 text-center border-r border-gray-300">{q.no}</td>
-                                            <td className="p-3 border-r border-gray-300">{q.text}</td>
-                                            <td className="p-3 text-center text-orange-600 font-medium border-r border-gray-300">{q.mean.toFixed(2)}</td>
-                                            <td className="p-3 text-center border-r border-gray-300">{q.sd.toFixed(2)}</td>
-                                            <td className="p-3 text-center">{getMeaning(q.mean)}</td>
+                                        <tr key={q.no}>
+                                            <td style={{textAlign:'center'}}>{q.no}</td>
+                                            <td>{q.text}</td>
+                                            <td style={{textAlign:'center'}}>{q.mean.toFixed(2)}</td>
+                                            <td style={{textAlign:'center'}}>{q.sd.toFixed(2)}</td>
+                                            <td style={{textAlign:'center'}}>{getMeaning(q.mean)}</td>
                                         </tr>
                                     ))}
-                                    <tr className="bg-orange-50/80 font-medium border-t border-gray-300">
-                                        <td className="p-3 text-right border-r border-gray-300" colSpan="2">รวมเฉลี่ย</td>
-                                        <td className="p-3 text-center text-orange-700 border-r border-gray-300 text-lg">{grandMean.toFixed(2)}</td>
-                                        <td className="p-3 text-center border-r border-gray-300">{grandSd.toFixed(2)}</td>
-                                        <td className="p-3 text-center text-orange-700">{getMeaning(grandMean)}</td>
+                                    <tr>
+                                        <td colSpan="2" style={{textAlign:'right'}}><b>รวมเฉลี่ย</b></td>
+                                        <td style={{textAlign:'center'}}><b>{grandMean.toFixed(2)}</b></td>
+                                        <td style={{textAlign:'center'}}><b>{grandSd.toFixed(2)}</b></td>
+                                        <td style={{textAlign:'center'}}><b>{getMeaning(grandMean)}</b></td>
                                     </tr>
                                 </tbody>
                             </table>
-                            <p className="text-gray-700 text-sm leading-relaxed indent-8">
-                                <span className="font-semibold text-orange-600">สรุปผล:</span> ผลการสำรวจความพึงพอใจในการจัดกิจกรรม พบว่า ผู้ตอบแบบสอบถามส่วนใหญ่มีความพึงพอใจในระดับ{getMeaning(grandMean)} โดยมีค่าเฉลี่ยเท่ากับ <span className="font-semibold text-charcoal-900">{grandMean.toFixed(2)}</span> ซึ่งเมื่อพิจารณาเป็นรายข้อ พบว่า {top1.text} (ค่าเฉลี่ย {top1.mean.toFixed(2)}) รองลงมาคือ {top2.text} (ค่าเฉลี่ย {top2.mean.toFixed(2)}) อันดับที่ 3 คือ {top3.text} (ค่าเฉลี่ย {top3.mean.toFixed(2)})
-                            </p>
+                            <p><b>สรุปผล:</b> ผลการสำรวจความพึงพอใจในการจัดกิจกรรม พบว่า ผู้ตอบแบบสอบถามส่วนใหญ่มีความพึงพอใจในระดับ{getMeaning(grandMean)} โดยมีค่าเฉลี่ยเท่ากับ {grandMean.toFixed(2)} ซึ่งเมื่อพิจารณาเป็นรายข้อ พบว่า {top1.text} (ค่าเฉลี่ย {top1.mean.toFixed(2)}) รองลงมาคือ {top2.text} (ค่าเฉลี่ย {top2.mean.toFixed(2)}) อันดับที่ 3 คือ {top3.text} (ค่าเฉลี่ย {top3.mean.toFixed(2)})</p>
+
+                            <h4>สรุปข้อเสนอแนะเพิ่มเติม (Qualitative Feedback)</h4>
+                            <ul>
+                                {validComments.map((c, i) => <li key={i}>{c}</li>)}
+                            </ul>
                         </div>
 
-                        <div className="mt-8 pt-6 border-t border-gray-100">
-                            <h4 className="font-semibold text-charcoal-900 mb-4 text-sm border-l-4 border-orange-500 pl-2">สรุปข้อเสนอแนะเพิ่มเติมและแนวทางในการพัฒนา (Qualitative Feedback)</h4>
-                            <div className="bg-orange-50/30 p-6 rounded-xl border border-orange-100 text-sm text-gray-800 leading-relaxed shadow-sm">
+                        {/* ========================================= */}
+                        {/* 2. ส่วนแสดงผล UI บนหน้าจอแบบ Modern Dashboard */}
+                        {/* ========================================= */}
+                        <div className="space-y-8 animate-fade-in">
+                            
+                            {/* Top Summary Cards */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-[2rem] p-8 text-white shadow-lg shadow-orange-500/30 relative overflow-hidden group">
+                                    <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                                    <i className="fa-solid fa-users absolute -right-2 -bottom-2 text-8xl opacity-10 transform -rotate-12 group-hover:rotate-0 transition-transform duration-500"></i>
+                                    <div className="relative z-10 flex flex-col h-full justify-between">
+                                        <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-white backdrop-blur-sm mb-6 border border-white/20">
+                                            <i className="fa-solid fa-file-signature text-xl"></i>
+                                        </div>
+                                        <div>
+                                            <p className="text-orange-100 text-xs font-bold uppercase tracking-widest mb-1">ผู้ตอบแบบสอบถามทั้งหมด</p>
+                                            <h3 className="text-5xl font-black tracking-tight">{evals.length} <span className="text-base font-medium opacity-80">คน</span></h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="md:col-span-2 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-[2rem] p-8 text-white shadow-lg shadow-indigo-500/30 relative overflow-hidden group">
+                                    <div className="absolute right-0 top-0 w-64 h-full bg-white/5 skew-x-12 transform translate-x-20 group-hover:translate-x-0 transition-transform duration-700"></div>
+                                    <i className="fa-solid fa-ranking-star absolute -right-4 top-4 text-9xl opacity-10"></i>
+                                    <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between h-full gap-6">
+                                        <div>
+                                            <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-white backdrop-blur-sm mb-6 border border-white/20">
+                                                <i className="fa-solid fa-chart-line text-xl"></i>
+                                            </div>
+                                            <p className="text-indigo-100 text-xs font-bold uppercase tracking-widest mb-1">คะแนนความพึงพอใจภาพรวม (Grand Mean)</p>
+                                            <div className="flex items-end gap-3">
+                                                <h3 className="text-5xl font-black tracking-tight">{grandMean.toFixed(2)}</h3>
+                                                <p className="text-indigo-200 text-lg font-medium mb-1.5">/ 5.00</p>
+                                            </div>
+                                        </div>
+                                        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 flex items-center gap-4 w-fit">
+                                            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-inner shrink-0">
+                                                <i className={`fa-regular ${getIconByMeaning(grandMean)} text-3xl`}></i>
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-widest mb-0.5">แปลผลระดับ</p>
+                                                <p className="text-lg font-bold text-white">{getMeaning(grandMean)}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Section 1: Demographics */}
+                            <div>
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center"><i className="fa-solid fa-venus-mars"></i></div>
+                                    <h3 className="text-lg font-bold text-charcoal-900">ส่วนที่ 1: ข้อมูลทั่วไปของผู้ตอบแบบสอบถาม</h3>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <div className="bg-white p-6 rounded-[1.5rem] border border-gray-100 shadow-sm flex items-center gap-6 hover:border-blue-200 hover:shadow-md transition-all group">
+                                        <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center text-3xl shrink-0 group-hover:scale-110 group-hover:bg-blue-500 group-hover:text-white transition-all"><i className="fa-solid fa-person"></i></div>
+                                        <div className="flex-grow">
+                                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">เพศชาย</p>
+                                            <div className="flex justify-between items-end mb-2">
+                                                <span className="text-3xl font-black text-charcoal-900 leading-none">{mCount} <span className="text-xs text-gray-500 font-medium ml-1">คน</span></span>
+                                                <span className="text-sm font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">{mPct}%</span>
+                                            </div>
+                                            <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden"><div className="bg-gradient-to-r from-blue-400 to-blue-600 h-full rounded-full transition-all duration-1000" style={{width: `${mPct}%`}}></div></div>
+                                        </div>
+                                    </div>
+                                    <div className="bg-white p-6 rounded-[1.5rem] border border-gray-100 shadow-sm flex items-center gap-6 hover:border-pink-200 hover:shadow-md transition-all group">
+                                        <div className="w-16 h-16 bg-pink-50 text-pink-500 rounded-2xl flex items-center justify-center text-3xl shrink-0 group-hover:scale-110 group-hover:bg-pink-500 group-hover:text-white transition-all"><i className="fa-solid fa-person-dress"></i></div>
+                                        <div className="flex-grow">
+                                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">เพศหญิง</p>
+                                            <div className="flex justify-between items-end mb-2">
+                                                <span className="text-3xl font-black text-charcoal-900 leading-none">{fCount} <span className="text-xs text-gray-500 font-medium ml-1">คน</span></span>
+                                                <span className="text-sm font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-md">{fPct}%</span>
+                                            </div>
+                                            <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden"><div className="bg-gradient-to-r from-pink-400 to-pink-600 h-full rounded-full transition-all duration-1000" style={{width: `${fPct}%`}}></div></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Section 2: Interpretation Criteria */}
+                            <div>
+                                <div className="flex items-center gap-3 mb-6 mt-10">
+                                    <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center"><i className="fa-solid fa-scale-balanced"></i></div>
+                                    <h3 className="text-lg font-bold text-charcoal-900">เกณฑ์การแปลความหมายคะแนนเฉลี่ย</h3>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                                    {[
+                                        { range: '4.51 - 5.00', label: 'มากที่สุด', border: 'border-emerald-200', text: 'text-emerald-700', badge: 'bg-emerald-50 text-emerald-500', icon: 'fa-face-laugh-beam' },
+                                        { range: '3.51 - 4.50', label: 'มาก', border: 'border-blue-200', text: 'text-blue-700', badge: 'bg-blue-50 text-blue-500', icon: 'fa-face-smile' },
+                                        { range: '2.51 - 3.50', label: 'ปานกลาง', border: 'border-amber-200', text: 'text-amber-700', badge: 'bg-amber-50 text-amber-500', icon: 'fa-face-meh' },
+                                        { range: '1.51 - 2.50', label: 'น้อย', border: 'border-orange-200', text: 'text-orange-700', badge: 'bg-orange-50 text-orange-500', icon: 'fa-face-frown' },
+                                        { range: '1.00 - 1.50', label: 'น้อยที่สุด', border: 'border-rose-200', text: 'text-rose-700', badge: 'bg-rose-50 text-rose-500', icon: 'fa-face-angry' }
+                                    ].map((item, idx) => (
+                                        <div key={idx} className={`bg-white p-5 rounded-2xl border hover:shadow-md transition-all duration-300 hover:-translate-y-1 ${item.border}`}>
+                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 text-2xl ${item.badge}`}>
+                                                <i className={`fa-regular ${item.icon}`}></i>
+                                            </div>
+                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">คะแนนเฉลี่ย</p>
+                                            <p className={`text-xl font-black tracking-tight mb-2 ${item.text}`}>{item.range}</p>
+                                            <p className={`text-xs font-bold px-2 py-1 rounded w-fit ${item.badge}`}>{item.label}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Section 3: Descriptive Statistics Table */}
+                            <div>
+                                <div className="flex items-center gap-3 mb-6 mt-10">
+                                    <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center"><i className="fa-solid fa-list-ol"></i></div>
+                                    <h3 className="text-lg font-bold text-charcoal-900">ส่วนที่ 2: ผลการประเมินความพึงพอใจรายข้อ</h3>
+                                </div>
+                                <div className="bg-white rounded-[1.5rem] border border-gray-100 shadow-sm overflow-hidden">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left whitespace-nowrap">
+                                            <thead className="bg-gray-50 border-b border-gray-100">
+                                                <tr>
+                                                    <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest w-16 text-center">ข้อ</th>
+                                                    <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">รายการประเมิน</th>
+                                                    <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest w-32 text-center">คะแนนเฉลี่ย (x̄)</th>
+                                                    <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest w-24 text-center">S.D.</th>
+                                                    <th className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest w-32 text-center">ระดับ</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-50 text-sm">
+                                                {qStats.map(q => (
+                                                    <tr key={q.no} className="hover:bg-orange-50/30 transition-colors group">
+                                                        <td className="px-6 py-4 text-center font-bold text-gray-400 group-hover:text-orange-500">{q.no}.</td>
+                                                        <td className="px-6 py-4 whitespace-normal min-w-[300px]">
+                                                            <p className="font-medium text-charcoal-900 leading-relaxed">{q.text}</p>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-center">
+                                                            <span className="text-base font-bold text-charcoal-900">{q.mean.toFixed(2)}</span>
+                                                            <div className="w-full bg-gray-100 rounded-full h-1 mt-1.5 overflow-hidden"><div className="bg-orange-400 h-full rounded-full" style={{width: `${(q.mean/5)*100}%`}}></div></div>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-center font-light text-gray-500">{q.sd.toFixed(2)}</td>
+                                                        <td className="px-6 py-4 text-center">
+                                                            <span className={`inline-block px-3 py-1 rounded-md text-[10px] font-bold border ${getBadgeColor(q.mean)}`}>
+                                                                {getMeaning(q.mean)}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                                <tr className="bg-orange-50/50 border-t-2 border-orange-200">
+                                                    <td colSpan="2" className="px-6 py-5 text-right font-bold text-charcoal-900 uppercase tracking-widest text-xs">รวมเฉลี่ยภาพรวมทั้งหมด</td>
+                                                    <td className="px-6 py-5 text-center">
+                                                        <span className="text-xl font-black text-orange-600">{grandMean.toFixed(2)}</span>
+                                                    </td>
+                                                    <td className="px-6 py-5 text-center font-bold text-orange-500">{grandSd.toFixed(2)}</td>
+                                                    <td className="px-6 py-5 text-center">
+                                                        <span className={`inline-block px-3 py-1.5 rounded-lg text-xs font-black shadow-sm border ${getBadgeColor(grandMean)}`}>
+                                                            {getMeaning(grandMean)}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Section 4: Qualitative Feedback */}
+                            <div>
+                                <div className="flex items-center gap-3 mb-6 mt-10">
+                                    <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center"><i className="fa-solid fa-comments"></i></div>
+                                    <h3 className="text-lg font-bold text-charcoal-900">ส่วนที่ 3: ข้อเสนอแนะเพิ่มเติมจากผู้เข้าร่วม</h3>
+                                </div>
+                                
                                 {validComments.length > 0 ? (
-                                    <>
-                                        <p className="indent-8 mb-4">
-                                            จากการเก็บรวบรวมข้อมูลเชิงคุณภาพ (Qualitative Data) ในส่วนของข้อเสนอแนะเพิ่มเติมจากผู้เข้าร่วมกิจกรรม 
-                                            พบว่ามีผู้แสดงความคิดเห็นและให้ข้อเสนอแนะเพื่อการพัฒนาปรับปรุงจำนวนทั้งสิ้น <span className="font-semibold text-orange-600">{validComments.length}</span> รายการ 
-                                            โดยสามารถรวบรวมและสรุปประเด็นข้อคิดเห็นได้ดังนี้:
-                                        </p>
-                                        <ul className="list-decimal pl-10 space-y-3 mb-6 font-medium text-charcoal-900">
-                                            {validComments.map((comment, idx) => (
-                                                <li key={idx} className="leading-relaxed pl-2 bg-white px-4 py-2 rounded-lg border border-gray-100 shadow-sm">{comment}</li>
-                                            ))}
-                                        </ul>
-                                        <p className="indent-8">
-                                            <span className="font-semibold text-orange-600">แนวทางการนำไปใช้ประโยชน์:</span> ข้อเสนอแนะดังกล่าวสะท้อนให้เห็นถึงความต้องการและมุมมองของผู้เข้าร่วมกิจกรรม 
-                                            ซึ่งเป็นข้อมูลที่เป็นประโยชน์อย่างยิ่งต่อคณะผู้จัดทำโครงการ ในการนำไปใช้วิเคราะห์และเป็นแนวทางสำหรับการวางแผน ปรับปรุง 
-                                            และพัฒนารูปแบบการจัดกิจกรรมในครั้งต่อไปให้มีประสิทธิภาพ และตอบสนองต่อความมุ่งหวังของผู้เข้าร่วมโครงการได้อย่างดียิ่งขึ้น
-                                        </p>
-                                    </>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {validComments.map((comment, idx) => (
+                                            <div key={idx} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-orange-200 transition-all group relative">
+                                                <i className="fa-solid fa-quote-left absolute top-4 right-5 text-4xl text-gray-50 group-hover:text-orange-50 transition-colors"></i>
+                                                <div className="flex gap-3 mb-3">
+                                                    <div className="w-8 h-8 rounded-full bg-orange-100 text-orange-500 flex items-center justify-center shrink-0 font-bold text-xs"><i className="fa-solid fa-user-astronaut"></i></div>
+                                                    <div><p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">ความคิดเห็นที่ {idx+1}</p></div>
+                                                </div>
+                                                <p className="text-sm font-medium text-gray-700 leading-relaxed relative z-10 break-words">{comment}</p>
+                                            </div>
+                                        ))}
+                                    </div>
                                 ) : (
-                                    <p className="indent-8 text-gray-500">
-                                        จากการเก็บรวบรวมข้อมูลเชิงคุณภาพในส่วนของข้อเสนอแนะเพิ่มเติม พบว่า <span className="font-semibold">ไม่มีผู้เข้าร่วมกิจกรรมท่านใดให้ข้อเสนอแนะเพิ่มเติม</span> 
-                                        แต่อย่างไรก็ตาม คณะผู้จัดทำโครงการจะนำผลการประเมินเชิงปริมาณจากตารางข้างต้น ไปวิเคราะห์และใช้เป็นแนวทางในการวางแผนและพัฒนาการจัดกิจกรรมในลำดับต่อไป
-                                    </p>
+                                    <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl p-10 text-center">
+                                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-gray-100">
+                                            <i className="fa-regular fa-comment-dots text-3xl text-gray-300"></i>
+                                        </div>
+                                        <p className="text-gray-500 font-medium">ยังไม่มีผู้ให้ข้อเสนอแนะเพิ่มเติมสำหรับกิจกรรมนี้</p>
+                                    </div>
                                 )}
                             </div>
                         </div>
-
                     </div>
                 );
             };
@@ -2083,7 +2265,7 @@
                                                                     <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1">ยอดผู้เข้าร่วม</p>
                                                                     <div className="flex items-baseline gap-1.5 md:justify-end">
                                                                         <span className="text-3xl md:text-4xl font-black text-slate-800 group-hover:text-orange-600 transition-colors tracking-tight leading-none">{checkinCount}</span>
-                                                                        <span className="text-xs font-medium text-slate-500"></span>
+                                                                        <span className="text-xs font-medium text-slate-500">คน</span>
                                                                     </div>
                                                                 </div>
                                                                 <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-orange-500 group-hover:border-orange-500 group-hover:text-white group-hover:shadow-md group-hover:shadow-orange-500/30 transition-all duration-300 flex-shrink-0">
