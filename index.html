@@ -273,6 +273,15 @@
             return { date: strParts[0] || '-', time: strParts.slice(1).join(' ') || '', full: String(ts) };
         };
 
+        // ตัวช่วยสำหรับแปลงลิงก์ Google Drive ให้แสดงผลเป็นรูปภาพได้โดยตรง
+        const getDirectImageUrl = (url) => {
+            if(!url) return '';
+            const strUrl = String(url).trim();
+            const gdMatch = strUrl.match(/drive\.google\.com\/file\/d\/([^\/]+)/) || strUrl.match(/drive\.google\.com\/open\?id=([^&]+)/);
+            if (gdMatch && gdMatch[1]) return `https://lh3.googleusercontent.com/d/${gdMatch[1]}`;
+            return strUrl;
+        };
+
         // ==========================================
         // 2. SHARED UI COMPONENTS
         // ==========================================
@@ -609,7 +618,7 @@
 
             const handleToggleRecruitSystem = async (currentStatus) => {
                 Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-                try { const newStatus = currentStatus === 'open' ? 'closed' : 'open'; await runGAS('toggleRecruitSystemStatus', newStatus); setAdminData(prev => ({ ...prev, recruitStatus: newStatus })); Swal.close(); Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตสำเร็จ` }); } catch(err) { Swal.fire('Error', err.message, 'error'); }
+                try { const newStatus = currentStatus === 'open' ? 'closed' : 'open'; await runGAS('toggleRecruitSystemStatus', currentStatus); setAdminData(prev => ({ ...prev, recruitStatus: newStatus })); Swal.close(); Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตสำเร็จ` }); } catch(err) { Swal.fire('Error', err.message, 'error'); }
             };
 
             const setupImageUpload = (inputId, imgId) => {
@@ -619,10 +628,11 @@
                     reader.onload = function(event) {
                         const img = new Image();
                         img.onload = function() {
-                            const canvas = document.createElement('canvas'); let width = img.width; let height = img.height; const MAX_WIDTH = 800;
+                            const canvas = document.createElement('canvas'); let width = img.width; let height = img.height; 
+                            const MAX_WIDTH = 500; // บีบอัดขนาดลงเพื่อไม่ให้ Google Sheets Error (Limit 50,000 characters)
                             if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
                             canvas.width = width; canvas.height = height; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
-                            document.getElementById(imgId).value = canvas.toDataURL('image/jpeg', 0.6);
+                            document.getElementById(imgId).value = canvas.toDataURL('image/jpeg', 0.5); // บีบอัด Quality เหลือ 50%
                         }
                         img.src = event.target.result;
                     }
@@ -1315,7 +1325,7 @@
             useEffect(() => {
                 if (view === 'home' && homePopupConfig.status === 'open' && homePopupConfig.image && !sessionStorage.getItem('home_popup_shown')) {
                     Swal.fire({ 
-                        imageUrl: homePopupConfig.image, 
+                        imageUrl: getDirectImageUrl(homePopupConfig.image), 
                         imageAlt: 'Announcement', 
                         showCloseButton: true, 
                         showConfirmButton: false, 
@@ -1689,7 +1699,7 @@
                         <div className="flex-grow flex flex-col items-center pt-8 p-4 pb-20">
                             <div className="luxury-card w-full max-w-2xl p-6 sm:p-12 border-t-4 border-t-orange-500">
                                 <div className="flex justify-between items-center mb-10 pb-6 border-b border-orange-100"><div className="flex items-center gap-4"><div className={`w-14 h-14 rounded-full flex items-center justify-center text-xl ${gProps.bg} ${gProps.text}`}><i className={`fa-solid ${gProps.icon}`}></i></div><div><p className="text-xs text-orange-400 font-medium uppercase tracking-widest">ข้อมูลการจองของ</p><h2 className="text-xl font-semibold text-charcoal-900">{student?.Name || ''}</h2></div></div><button onClick={() => setView('search')} className="text-xs text-orange-500 hover:text-orange-700 bg-orange-50 px-3 py-1.5 rounded-lg font-medium transition-colors">เปลี่ยนรหัส</button></div>
-                                {(shirtPrice.popupText || shirtPrice.popupImage) && ( <div className="mb-8 bg-indigo-50 border border-indigo-100 p-4 rounded-2xl flex items-center justify-between shadow-sm"><div className="flex items-center gap-3"><div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-lg shrink-0"><i className="fa-solid fa-bullhorn"></i></div><div><h4 className="text-sm font-bold text-indigo-900">ประกาศ / ตารางไซส์</h4><p className="text-xs text-indigo-700/80 line-clamp-1">โปรดตรวจสอบรายละเอียดก่อนสั่งจอง</p></div></div><button type="button" onClick={() => Swal.fire({ title: 'ประกาศ', text: shirtPrice.popupText || '', imageUrl: shirtPrice.popupImage || undefined, imageAlt: 'Popup', confirmButtonColor: '#ea580c' })} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors whitespace-nowrap">เปิดดู</button></div> )}
+                                {(shirtPrice.popupText || shirtPrice.popupImage) && ( <div className="mb-8 bg-indigo-50 border border-indigo-100 p-4 rounded-2xl flex items-center justify-between shadow-sm"><div className="flex items-center gap-3"><div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-lg shrink-0"><i className="fa-solid fa-bullhorn"></i></div><div><h4 className="text-sm font-bold text-indigo-900">ประกาศ / ตารางไซส์</h4><p className="text-xs text-indigo-700/80 line-clamp-1">โปรดตรวจสอบรายละเอียดก่อนสั่งจอง</p></div></div><button type="button" onClick={() => Swal.fire({ title: 'ประกาศ', text: shirtPrice.popupText || '', imageUrl: shirtPrice.popupImage ? getDirectImageUrl(shirtPrice.popupImage) : undefined, imageAlt: 'Popup', confirmButtonColor: '#ea580c' })} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors whitespace-nowrap">เปิดดู</button></div> )}
                                 <form onSubmit={handleSubmitShirtOrder}>
                                     <h2 className="text-2xl font-semibold text-charcoal-900 text-center mb-8">{isEditingOrder ? 'แก้ไขข้อมูลการจอง' : 'แบบฟอร์มสั่งจองเสื้อคณะ'}</h2>
                                     
