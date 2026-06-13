@@ -39,21 +39,19 @@
 
         .luxury-card { background-color: #ffffff; border: 1px solid rgba(255, 237, 213, 0.6); box-shadow: 0 10px 40px -10px rgba(249, 115, 22, 0.08), 0 1px 3px rgba(0,0,0,0.02); border-radius: 1.5rem; transition: all 0.4s ease; }
         .luxury-card:hover { border-color: rgba(249, 115, 22, 0.3); box-shadow: 0 20px 40px -10px rgba(249, 115, 22, 0.15); transform: translateY(-4px); }
-        
         .luxury-input { background-color: #fdfdfd; border: 1px solid #fce7d2; border-radius: 1rem; padding: 1rem 1.25rem; color: #111827; transition: all 0.3s ease; width: 100%; outline: none; }
         .luxury-input:focus { border-color: #f97316; box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15); }
-        .btn-primary { background-color: #111827; color: #ffffff; border: 1px solid #111827; transition: all 0.3s ease; }
+        .btn-primary { background-color: #111827; color: #ffffff; border: 1px solid #111827; transition: all 0.3s ease; cursor: pointer; }
         .btn-primary:hover { background-color: #374151; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
         .btn-gradient { background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%); color: #ffffff; transition: all 0.3s ease; border: none; cursor: pointer; }
         .btn-gradient:hover { box-shadow: 0 8px 20px rgba(234, 88, 12, 0.3); filter: brightness(1.05); }
+        .btn-gradient:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
         .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
         #app-loader { position: fixed; inset: 0; background-color: #fffcf9; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.3s ease, visibility 0.3s ease; }
         .loader-spinner { width: 40px; height: 40px; border: 3px solid #ffedd5; border-top-color: #f97316; border-radius: 50%; animation: loader-spin 0.8s linear infinite; margin-bottom: 20px; }
@@ -66,23 +64,17 @@
         html.dark .text-charcoal-900 { color: #f5f5f5 !important; }
         html.dark .text-gray-800 { color: #e5e5e5 !important; }
         html.dark .text-gray-500 { color: #a3a3a3 !important; }
-        html.dark .text-gray-400 { color: #737373 !important; }
-        html.dark .border-gray-100, html.dark .border-gray-200, html.dark .border-gray-300 { border-color: #333 !important; }
+        html.dark .border-gray-100, html.dark .border-gray-200 { border-color: #333 !important; }
         html.dark .bg-gray-50, html.dark .bg-charcoal-50 { background-color: #262626 !important; }
-        html.dark .bg-charcoal-900 { background-color: #0a0a0a !important; }
         html.dark .luxury-card { background-color: #1e1e1e; border-color: #333; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); }
-        html.dark .luxury-card:hover { border-color: rgba(249, 115, 22, 0.4); box-shadow: 0 20px 40px -10px rgba(249, 115, 22, 0.1); }
         html.dark .luxury-input { background-color: #121212; border-color: #333; color: #f5f5f5; }
-        html.dark .luxury-input:focus { border-color: #f97316; box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.2); }
-        html.dark .btn-primary { background-color: #f5f5f5; color: #121212; border-color: #f5f5f5; }
         html.dark table thead { background-color: #262626 !important; color: #d4d4d8 !important; }
         html.dark tr, html.dark td, html.dark th { border-color: #333 !important; }
-        html.dark tr:hover { background-color: #262626 !important; }
-        html.dark select { background-color: #121212 !important; color: #fff !important; }
 
-        .modern-table th { background-color: #f1f5f9; color: #475569; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.75rem; padding: 1rem 1.5rem; border-bottom: 2px solid #e2e8f0; }
+        .modern-table th { background-color: #f1f5f9; color: #475569; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; padding: 1rem 1.5rem; border-bottom: 2px solid #e2e8f0; }
         .modern-table td { padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9; color: #334155; }
-        .modern-table tr:hover td { background-color: #f8fafc; }
+        
+        #spss-ex { display: none; }
     </style>
 </head>
 <body class="selection:bg-orange-500 selection:text-white">
@@ -91,12 +83,28 @@
     <div id="app-loader">
         <div class="loader-spinner"></div>
         <h2 style="font-family: 'Prompt', sans-serif; font-size: 20px; font-weight: 700; color: #f97316; letter-spacing: 1px;">DIGIT.CRRU</h2>
-        <p id="loader-text" style="color: #6b7280; font-size: 12px; margin-top: 10px;">กำลังประมวลผลระบบ...</p>
+        <p id="loader-text" style="color: #6b7280; font-size: 12px; margin-top: 10px;">กำลังตรวจสอบระบบ...</p>
     </div>
 
-    <!-- Global Scripts (Outside Babel) -->
+    <!-- Global Error Handler ป้องกันหน้าจอขาว -->
     <script>
-        // แก้ไขปัญหาระบบหา hideMainLoader ไม่เจอ โดยตั้งเป็น Global Function
+        window.addEventListener('error', function(event) {
+            console.error("Global Error Caught:", event.error);
+            const loader = document.getElementById('app-loader');
+            if(loader) loader.style.display = 'none';
+            document.getElementById('root').innerHTML = `
+                <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size: 4rem; color: #ef4444; margin-bottom: 20px;"></i>
+                    <h1 style="font-family: 'Prompt', sans-serif; font-size: 1.5rem; font-weight: bold; color: #111827; margin-bottom: 10px;">ระบบขัดข้องชั่วคราว</h1>
+                    <p style="font-family: 'Prompt', sans-serif; color: #6b7280; max-width: 400px; margin-bottom: 20px;">พบข้อผิดพลาดในการโหลดองค์ประกอบของหน้าเว็บ กรุณารีเฟรชหน้าต่างใหม่อีกครั้ง</p>
+                    <button onclick="window.location.reload()" style="background: #f97316; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-family: 'Prompt', sans-serif; cursor: pointer; font-weight: bold;">รีเฟรชหน้าเว็บ</button>
+                    <div style="margin-top: 20px; padding: 10px; background: #fee2e2; border-radius: 8px; color: #b91c1c; font-size: 12px; max-width: 90%; word-break: break-word; text-align: left;">
+                        <code>${event.message || 'Unknown Parsing Error'}</code>
+                    </div>
+                </div>
+            `;
+        });
+
         window.hideMainLoader = function() {
             const loader = document.getElementById('app-loader');
             if (loader && loader.style.display !== 'none') {
@@ -104,19 +112,31 @@
                 setTimeout(() => { loader.style.display = 'none'; }, 300);
             }
         };
-        // Fallback: ซ่อน Loader อัตโนมัติหากโหลดนานเกิน
         setTimeout(window.hideMainLoader, 8000); 
     </script>
 
-    <!-- React App Root -->
     <div id="root"></div>
+    
+    <!-- ส่วนของ SPSS ซ่อนไว้สำหรับ Export -->
+    <div id="spss-ex">
+        <div class="word-export-title"><h3 style="text-align: center; font-size: 18pt; font-weight: bold;">รายงานผลการประเมินความพึงพอใจ</h3><p id="spss-act-name" style="text-align: center; margin-bottom: 20pt;"></p></div>
+        <h4>ตารางที่ 1 ข้อมูลทั่วไปของผู้ตอบแบบสอบถาม (Demographic Data)</h4>
+        <table><thead><tr><th>ข้อมูลทั่วไป</th><th>จำนวน (คน)</th><th>ร้อยละ (%)</th></tr></thead><tbody id="spss-table-1"></tbody></table>
+        <p id="spss-summary-1"></p>
+        <h4>ตารางที่ 2 ค่าสถิติเชิงพรรณนา (Descriptive Statistics)</h4>
+        <table><thead><tr><th>ข้อ</th><th>รายการประเมิน</th><th>x̄</th><th>S.D.</th><th>ระดับ</th></tr></thead><tbody id="spss-table-2"></tbody></table>
+        <p id="spss-summary-2"></p>
+        <h4>สรุปข้อเสนอแนะเพิ่มเติม (Qualitative Feedback)</h4><ul id="spss-comments"></ul>
+    </div>
 
+    <!-- React App Script -->
     <script type="text/babel" data-presets="react">
         const { useState, useEffect, useMemo, useCallback } = React;
 
         // ==========================================
         // 1. CONFIGURATION & CORE HELPERS
         // ==========================================
+        // ⚠️ สำคัญ: กรุณาตรวจสอบ SHEET_ID และ WEB_APP_URL ให้ถูกต้อง ⚠️
         const API_CONFIG = {
             USE_FAST_CSV: true,
             SHEET_ID: "1KLJNWUUIj1r6eqCZnaF-F6nA2FQg7pvOHMk0PyDCyAc", 
@@ -131,8 +151,19 @@
         const fetchFastCSV = (sheetName) => {
             return new Promise((resolve, reject) => {
                 if(!isFastCSVReady()) return reject(new Error("CSV Mode Disabled"));
+                
+                const cacheKey = `digit_crru_cache_${sheetName}`;
+                if (sessionStorage.getItem(cacheKey)) {
+                    try { 
+                        const parsed = JSON.parse(sessionStorage.getItem(cacheKey)); 
+                        if (Date.now() - parsed.timestamp < 3 * 60 * 1000) return resolve(parsed.data); 
+                    } catch(e) { console.warn("Cache parse error", e); }
+                }
+
                 Papa.parse(API_CONFIG.getCSVUrl(sheetName), {
-                    download: true, header: true, skipEmptyLines: true,
+                    download: true, 
+                    header: true, 
+                    skipEmptyLines: true,
                     complete: (results) => {
                         if (results.data && results.data.length > 0) {
                             const firstKey = Object.keys(results.data[0])[0] || '';
@@ -140,9 +171,10 @@
                                 return reject(new Error("Permission Denied: ไม่สามารถโหลดข้อมูลได้ กรุณาตั้งค่าแชร์ไฟล์ Google Sheets เป็น 'ทุกคนที่มีลิงก์ (Anyone with the link)'"));
                             }
                         }
+                        sessionStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: results.data })); 
                         resolve(results.data);
                     },
-                    error: (error) => reject(error)
+                    error: () => reject(new Error("Network Error"))
                 });
             });
         };
@@ -155,38 +187,23 @@
             } else if (API_CONFIG.WEB_APP_URL && API_CONFIG.WEB_APP_URL.startsWith("https://script.google.com")) {
                 try {
                     const response = await fetch(API_CONFIG.WEB_APP_URL, {
-                        method: 'POST', redirect: 'follow',
+                        method: 'POST', 
+                        redirect: 'follow',
                         body: JSON.stringify({ action: functionName, params: args }),
                         headers: { 'Content-Type': 'text/plain;charset=utf-8' } 
                     });
                     const result = await response.json();
                     if (result.success === false) {
-                        if (result.error && (result.error.includes("Unknown action") || result.error.includes("ไม่พบคำสั่ง"))) {
-                            throw new Error(`ระบบหลังบ้านยังไม่รองรับคำสั่ง "${functionName}" \nกรุณาอัปเดตไฟล์ Code.gs และกด Deploy เป็นเวอร์ชันใหม่ (New Version)`);
-                        }
                         throw new Error(result.error || "เกิดข้อผิดพลาดจากเซิร์ฟเวอร์");
                     }
                     return result.data !== undefined ? result.data : result;
                 } catch (error) { 
-                    if (error.name === 'TypeError' || error.message.includes('Failed to fetch') || error.message.includes('Unexpected token')) {
-                        throw new Error('ไม่สามารถเชื่อมต่อฐานข้อมูลได้ \nกรุณาตรวจสอบว่าลิงก์ Web App ถูกต้อง และตั้งค่าการแชร์เป็น "ทุกคน (Anyone)" แล้ว');
-                    }
-                    throw error; 
+                    throw new Error(error.message || 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาตรวจสอบลิงก์ Web App');
                 }
             } else {
-                Swal.fire({ title: 'ตั้งค่าระบบยังไม่สมบูรณ์', text: 'กรุณานำลิงก์ Web App และ Sheet ID มาวาง', icon: 'warning', confirmButtonColor: '#ea580c' });
+                Swal.fire({ title: 'ตั้งค่าระบบยังไม่สมบูรณ์', text: 'กรุณานำลิงก์ Web App มาวางในโค้ด', icon: 'warning' });
                 return new Promise((resolve, reject) => setTimeout(() => reject(new Error('Missing WEB_APP_URL')), 500));
             }
-        };
-
-        const exportCSV = (arr, fn, fields) => {
-            if(!arr||arr.length===0) return Swal.fire('แจ้งเตือน','ไม่มีข้อมูล','warning');
-            const dataToExport = arr.map(r => fields.map(f => getVal(r, [f.toLowerCase()], f)));
-            const csv = Papa.unparse({fields, data:dataToExport});
-            const link = document.createElement("a"); 
-            link.href = URL.createObjectURL(new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'})); 
-            link.download = fn; 
-            link.click();
         };
 
         const surveyData = [
@@ -203,6 +220,7 @@
         };
 
         const findKey = (keys, kws) => keys.find(k => kws.some(kw => String(k).toLowerCase().replace(/\s+/g, '').includes(kw)));
+        
         const getVal = (obj, kws, fallback) => {
             if(!obj) return '';
             const keys = Object.keys(obj);
@@ -214,19 +232,33 @@
             if (!dateStr) return { month: '-', date: '-' };
             const d = new Date(dateStr);
             if (!isNaN(d.getTime())) return { month: d.toLocaleDateString('en-US',{month:'short'}).toUpperCase(), date: d.getDate() };
-            const parts = String(dateStr).split(/[/-]/);
-            if (parts.length >= 3) {
-                const day = parts[0].length === 4 ? parseInt(parts[2], 10) : parseInt(parts[0], 10);
-                const mNum = parts[0].length === 4 ? parseInt(parts[1], 10) : parseInt(parts[1], 10);
-                const mNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-                return { month: mNames[mNum-1] || '-', date: day || '-' };
-            }
             return { month: '-', date: '-' };
         };
 
-        // ==========================================
-        // 2. SHARED UI COMPONENTS
-        // ==========================================
+        const safeFormatDateTime = (ts) => {
+            if (!ts || ts === '-' || String(ts).trim() === '') return { date: '-', time: '' };
+            const strTs = String(ts);
+            const d = new Date(strTs);
+            if (isNaN(d.getTime())) {
+                const parts = strTs.split(/[ T]/);
+                return { date: parts[0] || '-', time: parts[1] ? parts[1].split('.')[0] : '' };
+            }
+            return {
+                date: d.toLocaleDateString('th-TH'),
+                time: d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
+            };
+        };
+
+        const exportCSV = (arr, fn, fields) => {
+            if(!arr||arr.length===0) return Swal.fire('แจ้งเตือน','ไม่มีข้อมูล','warning');
+            const dataToExport = arr.map(r => fields.map(f => getVal(r, [f.toLowerCase()], f)));
+            const csv = Papa.unparse({fields, data:dataToExport});
+            const link = document.createElement("a"); 
+            link.href = URL.createObjectURL(new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'})); 
+            link.download = fn; 
+            link.click();
+        };
+
         const RenderPagination = ({ currentPage, totalPages, setCurrentPage, totalItems, itemsPerPage }) => {
             if (totalPages <= 1 && totalItems === 0) return null;
             const cMin = Math.min(totalItems, (currentPage - 1) * itemsPerPage + 1); 
@@ -342,47 +374,6 @@
             </div>
         );
 
-        const ShirtSection = ({ num, title, genderState, setGenderState, sizeState, setSizeState, qtyState, setQtyState, getPrice }) => (
-            <div className="mb-8">
-                <h3 className="font-semibold text-charcoal-900 mb-4 flex items-center"><span className="text-orange-500 mr-2">{num}.</span> {title}</h3>
-                <div className="border border-orange-50/80 rounded-2xl p-5 sm:p-6 bg-white shadow-sm">
-                    <div className="mb-5">
-                        <label className="block text-xs font-medium text-gray-400 uppercase tracking-widest mb-3">ทรงเสื้อ</label>
-                        <div className="flex gap-4">
-                            {['ชาย', 'หญิง'].map(g => ( 
-                                <label key={`${num}-${g}`} className={`flex-1 py-3 rounded-xl border text-center cursor-pointer text-sm font-medium transition-all ${genderState === g ? 'border-orange-500 bg-orange-500 text-white shadow-md' : 'border-gray-200 text-gray-500 hover:border-orange-300'}`}>
-                                    <input type="radio" className="hidden" checked={genderState === g} onChange={() => setGenderState(g)} /> ทรง{g}
-                                </label> 
-                            ))}
-                        </div>
-                    </div>
-                    <div className="mb-5">
-                        <label className="block text-xs font-medium text-gray-400 uppercase tracking-widest mb-3">ขนาด (Size)</label>
-                        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
-                            {['S', 'M', 'L', 'XL', '2XL', '3XL'].map(size => ( 
-                                <label key={`${num}-${size}`} className={`relative flex flex-col items-center py-3 rounded-xl border cursor-pointer transition-all ${sizeState === size ? 'border-orange-500 bg-orange-50 text-orange-600 shadow-sm' : 'border-gray-200 text-gray-500 hover:border-orange-300'}`}>
-                                    <input type="radio" className="hidden" checked={sizeState === size} onChange={() => setSizeState(size)} />
-                                    <span className="text-sm font-semibold">{size}</span>
-                                    <span className="text-[9px] opacity-70 mt-1">฿{getPrice(size)}</span>
-                                </label> 
-                            ))}
-                        </div>
-                    </div>
-                    <div className="flex justify-between items-center bg-orange-50/50 p-4 rounded-xl border border-orange-100">
-                        <label className="text-xs font-medium text-gray-500 uppercase tracking-widest">จำนวน</label>
-                        <div className="flex items-center gap-3">
-                            <button type="button" onClick={() => setQtyState(Math.max(1, qtyState - 1))} className="w-8 h-8 rounded border border-orange-200 bg-white text-orange-500 hover:bg-orange-100"><i className="fa-solid fa-minus text-xs"></i></button>
-                            <span className="font-semibold text-charcoal-900 w-6 text-center text-sm">{qtyState}</span>
-                            <button type="button" onClick={() => setQtyState(qtyState + 1)} className="w-8 h-8 rounded border border-orange-200 bg-white text-orange-500 hover:bg-orange-100"><i className="fa-solid fa-plus text-xs"></i></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-
-        // ==========================================
-        // 3. ADMIN DASHBOARD COMPONENT
-        // ==========================================
         const AdminDashboard = ({ data, reloadData, goHome, setAdminData }) => {
             const [activeTab, setActiveTab] = useState('overview');
             const [selectedActivityForSummary, setSelectedActivityForSummary] = useState('');
@@ -397,9 +388,7 @@
             const [searchRegisTerm, setSearchRegisTerm] = useState('');
             const [regisPage, setRegisPage] = useState(1);
             
-            const itemsPerPage = 10; 
-            const shirtItemsPerPage = 10; 
-            const regisItemsPerPage = 10;
+            const itemsPerPage = 10; const shirtItemsPerPage = 10; const regisItemsPerPage = 10;
             const systemOpen = data?.shirtPrice?.systemStatus !== 'maintenance';
 
             const overviewStats = useMemo(() => {
@@ -698,6 +687,12 @@
                     });
                 });
                 let grandMean = 0, grandSd = 0; if (allScores.length > 0) { grandMean = allScores.reduce((a,b)=>a+b, 0) / allScores.length; if (allScores.length > 1) grandSd = Math.sqrt(allScores.reduce((a,b)=>a+Math.pow(b-grandMean, 2), 0) / (allScores.length - 1)); }
+                const sortedQStats = [...qStats].sort((a,b) => b.mean - a.mean);
+                
+                const top1 = sortedQStats[0] || {text: '-', mean: 0};
+                const top2 = sortedQStats[1] || {text: '-', mean: 0};
+                const top3 = sortedQStats[2] || {text: '-', mean: 0};
+
                 const comments = evals.map(e => String(getVal(e, ['comment', 'ข้อเสนอแนะ'], 'Comment')).trim()).filter(t => t && t !== '-' && t !== '.' && !t.includes('ไม่มี'));
 
                 return (
@@ -710,6 +705,8 @@
                             <h4>ตารางที่ 2 ค่าสถิติเชิงพรรณนา (Descriptive Statistics)</h4>
                             <table><thead><tr><th>ข้อ</th><th>รายการประเมิน</th><th>x̄</th><th>S.D.</th><th>ระดับ</th></tr></thead><tbody>{qStats.map(q => (<tr key={q.no}><td style={{textAlign:'center'}}>{q.no}</td><td>{q.text}</td><td style={{textAlign:'center'}}>{q.mean.toFixed(2)}</td><td style={{textAlign:'center'}}>{q.sd.toFixed(2)}</td><td style={{textAlign:'center'}}>{getMeaning(q.mean)}</td></tr>))}<tr><td colSpan="2" style={{textAlign:'right'}}><b>รวมเฉลี่ย</b></td><td style={{textAlign:'center'}}><b>{grandMean.toFixed(2)}</b></td><td style={{textAlign:'center'}}><b>{grandSd.toFixed(2)}</b></td><td style={{textAlign:'center'}}><b>{getMeaning(grandMean)}</b></td></tr></tbody></table>
                             
+                            <p><b>สรุปผล:</b> ผลการสำรวจความพึงพอใจในการจัดกิจกรรม พบว่า ผู้ตอบแบบสอบถามส่วนใหญ่มีความพึงพอใจในระดับ{getMeaning(grandMean)} โดยมีค่าเฉลี่ยเท่ากับ {grandMean.toFixed(2)} ซึ่งเมื่อพิจารณาเป็นรายข้อ พบว่า {top1.text} (ค่าเฉลี่ย {top1.mean.toFixed(2)}) รองลงมาคือ {top2.text} (ค่าเฉลี่ย {top2.mean.toFixed(2)}) อันดับที่ 3 คือ {top3.text} (ค่าเฉลี่ย {top3.mean.toFixed(2)})</p>
+
                             <h4>สรุปข้อเสนอแนะเพิ่มเติม (Qualitative Feedback)</h4><ul>{comments.map((c, i) => <li key={i}>{c}</li>)}</ul>
                         </div>
 
@@ -721,7 +718,8 @@
                             <div className="md:col-span-2 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-[2rem] p-8 text-white shadow-lg relative overflow-hidden">
                                 <i className="fa-solid fa-ranking-star absolute -right-4 top-4 text-9xl opacity-10"></i>
                                 <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between h-full gap-6">
-                                    <div><div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-white mb-6 border border-white/20"><i className="fa-solid fa-chart-line text-xl"></i></div><p className="text-indigo-100 text-xs font-bold uppercase tracking-widest mb-1">ความพึงพอใจภาพรวม</p><div className="flex items-end gap-3"><h3 className="text-5xl font-black">{grandMean.toFixed(2)}</h3><p className="text-indigo-200 text-lg font-medium mb-1.5">/ 5.00 ({getMeaning(grandMean)})</p></div></div>
+                                    <div><div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-white mb-6 border border-white/20"><i className="fa-solid fa-chart-line text-xl"></i></div><p className="text-indigo-100 text-xs font-bold uppercase tracking-widest mb-1">ความพึงพอใจภาพรวม</p><div className="flex items-end gap-3"><h3 className="text-5xl font-black">{grandMean.toFixed(2)}</h3><p className="text-indigo-200 text-lg font-medium mb-1.5">/ 5.00</p></div></div>
+                                    <div className="bg-white/10 border border-white/20 rounded-2xl p-4 flex items-center gap-4 w-fit"><div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-inner text-3xl">{getMeaning(grandMean) === 'มากที่สุด' ? '😁' : getMeaning(grandMean) === 'มาก' ? '🙂' : getMeaning(grandMean) === 'ปานกลาง' ? '😐' : getMeaning(grandMean) === 'น้อย' ? '🙁' : '😠'}</div><div><p className="text-[10px] text-indigo-200 font-bold uppercase tracking-widest mb-0.5">แปลผลระดับ</p><p className="text-lg font-bold text-white">{getMeaning(grandMean)}</p></div></div>
                                 </div>
                             </div>
                         </div>
@@ -733,6 +731,12 @@
                                     {qStats.map(q => ( <tr key={q.no} className="hover:bg-orange-50/30"><td className="px-6 py-4 text-center font-bold text-gray-400">{q.no}.</td><td className="px-6 py-4 font-medium">{q.text}</td><td className="px-6 py-4 text-center font-bold">{q.mean.toFixed(2)}</td><td className="px-6 py-4 text-center"><span className={`inline-block px-3 py-1 rounded-md text-[10px] font-bold ${getBadgeColor(q.mean)}`}>{getMeaning(q.mean)}</span></td></tr> ))}
                                 </tbody></table>
                             </div>
+                        </div>
+
+                        <div className="mt-4 bg-orange-50/50 p-5 rounded-xl border border-orange-100 shadow-sm mb-8">
+                            <p className="text-gray-700 text-sm leading-relaxed indent-8">
+                                <span className="font-semibold text-orange-600">สรุปผลภาพรวม:</span> ผลการสำรวจความพึงพอใจในการจัดกิจกรรม พบว่า ผู้ตอบแบบสอบถามส่วนใหญ่มีความพึงพอใจในระดับ<span className="font-bold text-charcoal-900">{getMeaning(grandMean)}</span> โดยมีค่าเฉลี่ยเท่ากับ <span className="font-bold text-charcoal-900">{grandMean.toFixed(2)}</span> ซึ่งเมื่อพิจารณาเป็นรายข้อ พบว่า {top1.text} (ค่าเฉลี่ย {top1.mean.toFixed(2)}) รองลงมาคือ {top2.text} (ค่าเฉลี่ย {top2.mean.toFixed(2)}) อันดับที่ 3 คือ {top3.text} (ค่าเฉลี่ย {top3.mean.toFixed(2)})
+                            </p>
                         </div>
                     </div>
                 );
@@ -1052,6 +1056,7 @@
                             }
                             data = { activities: acts, checkins: chks, evaluations: evals, shirtOrders: shirts, recruitments: recs, registrations: regis, shirtPrice: priceInfo, recruitStatus: recruitInfo.status, homePopup: homePopupInfo };
                         } catch(csvErr) {
+                            console.warn("CSV Fetch failed, falling back to Apps Script");
                             csvFailed = true;
                         }
                     } 
@@ -1661,11 +1666,14 @@
             console.error("React Failed to Initialize:", err);
             document.getElementById('root').innerHTML = `
                 <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; font-family:sans-serif; text-align:center; padding:20px;">
-                    <h1 style="color:#e63946;">ระบบขัดข้อง (System Error)</h1>
-                    <p style="color:#4b5563; max-width:500px;">เกิดข้อผิดพลาดในการโหลดระบบ กรุณารีเฟรชหน้าเว็บใหม่อีกครั้ง</p>
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size: 3rem; color: #ef4444; margin-bottom: 20px;"></i>
+                    <h1 style="color:#111827; font-size: 1.25rem;">ระบบขัดข้อง (System Error)</h1>
+                    <p style="color:#6b7280; max-width:500px; font-size: 0.875rem;">เกิดข้อผิดพลาดในการโหลดระบบ กรุณารีเฟรชหน้าเว็บใหม่อีกครั้ง</p>
                     <code style="background:#fee2e2; color:#b91c1c; padding:10px; border-radius:5px; margin-top:15px; font-size:12px;">${err.message}</code>
+                    <button onclick="window.location.reload()" style="margin-top: 20px; background: #f97316; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">รีเฟรช</button>
                 </div>
             `;
+            if (window.hideMainLoader) window.hideMainLoader();
         }
     </script>
 </body>
