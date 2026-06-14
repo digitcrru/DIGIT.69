@@ -83,6 +83,8 @@
         .modern-table th { background-color: #f1f5f9; color: #475569; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.75rem; padding: 1rem 1.5rem; border-bottom: 2px solid #e2e8f0; }
         .modern-table td { padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9; color: #334155; }
         .modern-table tr:hover td { background-color: #f8fafc; }
+        
+        .perspective-1000 { perspective: 1000px; }
     </style>
 </head>
 <body class="selection:bg-orange-500 selection:text-white">
@@ -94,7 +96,6 @@
         <p id="loader-text" style="color: #6b7280; font-size: 12px; margin-top: 10px;">กำลังประมวลผลระบบ...</p>
     </div>
 
-    <!-- Global Scripts (Outside Babel) -->
     <script>
         window.hideMainLoader = function() {
             const loader = document.getElementById('app-loader');
@@ -126,9 +127,6 @@
     <script type="text/babel" data-presets="react">
         const { useState, useEffect, useMemo, useCallback } = React;
 
-        // ==========================================
-        // 1. CONFIGURATION & CORE HELPERS
-        // ==========================================
         const API_CONFIG = {
             USE_FAST_CSV: true,
             SHEET_ID: "1KLJNWUUIj1r6eqCZnaF-F6nA2FQg7pvOHMk0PyDCyAc", 
@@ -138,13 +136,10 @@
             }
         };
 
-        // ==========================================
-        // การตั้งค่าปิดระบบถาวร (FORCE CLOSE SETTINGS)
-        // ==========================================
         const SYSTEM_OVERRIDES = {
-            FORCE_CLOSE_MAIN: false,     // เปลี่ยนเป็น true เพื่อปิดการเข้าถึงหน้าแรกทั้งหมดถาวร
-            FORCE_CLOSE_RECRUIT: false,  // เปลี่ยนเป็น true เพื่อปิดระบบรับสมัครกิจกรรมถาวร
-            FORCE_CLOSE_SHIRT: false     // ปลดล็อคเป็น false เพื่อให้ปุ่มเปิด-ปิด ในแอดมินทำงานได้ตามปกติ
+            FORCE_CLOSE_MAIN: false,
+            FORCE_CLOSE_RECRUIT: false,
+            FORCE_CLOSE_SHIRT: false
         };
 
         const isFastCSVReady = () => API_CONFIG.USE_FAST_CSV && API_CONFIG.SHEET_ID && !API_CONFIG.SHEET_ID.includes('ใส่_SHEET_ID');
@@ -231,21 +226,6 @@
             return found ? obj[found] : (obj[fallback] || '');
         };
 
-        const formatDisplayDate = (dateStr) => {
-            if (!dateStr) return { month: '-', date: '-' };
-            const d = new Date(dateStr);
-            if (!isNaN(d.getTime())) return { month: d.toLocaleDateString('en-US',{month:'short'}).toUpperCase(), date: d.getDate() };
-            const parts = String(dateStr).split(/[/-]/);
-            if (parts.length >= 3) {
-                const day = parts[0].length === 4 ? parseInt(parts[2], 10) : parseInt(parts[0], 10);
-                const mNum = parts[0].length === 4 ? parseInt(parts[1], 10) : parseInt(parts[1], 10);
-                const mNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-                return { month: mNames[mNum-1] || '-', date: day || '-' };
-            }
-            return { month: '-', date: '-' };
-        };
-
-        // ตัวช่วยสำหรับแปลงรูปแบบเวลา
         const formatDateTimeTH = (ts) => {
             if (!ts) return { date: '-', time: '', full: '-' };
             let d = new Date(ts);
@@ -278,9 +258,20 @@
             return { date: strParts[0] || '-', time: strParts.slice(1).join(' ') || '', full: String(ts) };
         };
 
-        // ==========================================
-        // 2. SHARED UI COMPONENTS
-        // ==========================================
+        const formatDisplayDate = (dateStr) => {
+            if (!dateStr) return { month: '-', date: '-' };
+            const d = new Date(dateStr);
+            if (!isNaN(d.getTime())) return { month: d.toLocaleDateString('en-US',{month:'short'}).toUpperCase(), date: d.getDate() };
+            const parts = String(dateStr).split(/[/-]/);
+            if (parts.length >= 3) {
+                const day = parts[0].length === 4 ? parseInt(parts[2], 10) : parseInt(parts[0], 10);
+                const mNum = parts[0].length === 4 ? parseInt(parts[1], 10) : parseInt(parts[1], 10);
+                const mNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+                return { month: mNames[mNum-1] || '-', date: day || '-' };
+            }
+            return { month: '-', date: '-' };
+        };
+
         const RenderPagination = ({ currentPage, totalPages, setCurrentPage, totalItems, itemsPerPage }) => {
             if (totalPages <= 1 && totalItems === 0) return null;
             const cMin = Math.min(totalItems, (currentPage - 1) * itemsPerPage + 1); 
@@ -561,15 +552,12 @@
             const currentRegistrationsList = sortedRegistrationsList.slice((regisPage - 1) * regisItemsPerPage, regisPage * regisItemsPerPage);
             const totalRegisPagesList = Math.ceil(sortedRegistrationsList.length / regisItemsPerPage) || 1;
 
-            // ==========================================
             // โหมด BYPASS: ส่งข้อมูลเข้า updateSetting โดยตรง
             // เพื่อหลีกเลี่ยงปัญหา "Unknown action" จากการเปลี่ยนเวอร์ชัน
-            // ==========================================
             const toggleSystem = async () => {
                 const newStatus = systemOpen ? 'closed' : 'open'; 
                 Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                 try { 
-                    // Bypass calling a specific fast API if available, otherwise just use standard
                     try { await runGAS('toggleMasterSystemStatus', newStatus); } 
                     catch(e) { await runGAS('updateSetting', 'SystemStatus', newStatus); }
                     setSystemOpen(newStatus === 'open');
@@ -844,7 +832,6 @@
                 }
                 const comments = evals.map(e => String(getVal(e, ['comment', 'ข้อเสนอแนะ'], 'Comment')).trim()).filter(t => t && t !== '-' && t !== '.' && !t.includes('ไม่มี'));
 
-                // รวมคำถามทุกข้อเพื่อจัด 3 อันดับที่มีค่าเฉลี่ยสูงสุด
                 let allQuestionsStats = [];
                 categoryStats.forEach(cat => {
                     allQuestionsStats.push(...cat.questions);
@@ -1355,8 +1342,8 @@
                         if (isFastCSVReady()) {
                             try {
                                 const [allActs, allRecs] = await Promise.all([ fetchFastCSV('Activities').catch(() => []), fetchFastCSV('Recruitments').catch(() => []) ]);
-                                acts = allActs.filter(a => String(a.Status).toLowerCase() === 'open'); 
-                                recs = allRecs.filter(r => String(r.Status).toLowerCase() === 'open');
+                                acts = allActs; 
+                                recs = allRecs;
                             } catch(e) { csvFailed = true; }
                         } 
                         
@@ -1364,8 +1351,8 @@
                             try {
                                 const data = await runGAS('getAdminDashboardData').catch(()=>null);
                                 if(data) {
-                                    acts = (data.activities || []).filter(a => String(a.Status).toLowerCase() === 'open');
-                                    recs = (data.recruitments || []).filter(r => String(r.Status).toLowerCase() === 'open');
+                                    acts = (data.activities || []);
+                                    recs = (data.recruitments || []);
                                     if (!priceInfo) {
                                         priceInfo = data.shirtPrice; sysStatus = data.shirtPrice.systemStatus;
                                         recStatus = data.recruitStatus; hpInfo = data.homePopup;
@@ -1377,7 +1364,7 @@
                         setActivities(acts || []); setRecruitments(recs || []); 
                         setRecruitSystemOpen(SYSTEM_OVERRIDES.FORCE_CLOSE_RECRUIT ? false : String(recStatus).toLowerCase() !== 'closed'); 
                         setSystemOpen(SYSTEM_OVERRIDES.FORCE_CLOSE_MAIN ? false : String(sysStatus).toLowerCase() !== 'closed' && String(sysStatus).toLowerCase() !== 'maintenance'); 
-                        setHomePopupConfig({ image: String(hpInfo.image || '').trim(), status: String(hpInfo.status || 'closed').trim().toLowerCase() });
+                        setHomePopupConfig({ image: String(hpInfo?.image || '').trim(), status: String(hpInfo?.status || 'closed').trim().toLowerCase() });
                         
                         if (priceInfo) { 
                             setShirtPrice(priceInfo); setShirtSystemOpen(SYSTEM_OVERRIDES.FORCE_CLOSE_SHIRT ? false : String(priceInfo.status).toLowerCase() !== 'closed'); setReceiptSettings({ header: priceInfo.receiptHeader, note: priceInfo.receiptNote }); 
@@ -1419,7 +1406,6 @@
                 try {
                     let found = null; const cId = studentId.replace(/\s+/g, '').toLowerCase(); let csvFailed = false;
 
-                    // โหมดทดสอบ (Developer Bypass)
                     if (cId === 'test' || cId === '12345') {
                         found = { StudentID: studentId, Name: 'นักศึกษา ทดสอบระบบ', Major: 'สาขาทดสอบ', IDCard: '1111111111111' };
                     } else {
@@ -1673,6 +1659,7 @@
 
                 if (view === 'select_recruit') {
                     if(!student) return null;
+                    const openRecruitments = recruitments.filter(r => String(r.Status).toLowerCase() === 'open');
                     return (
                         <div className="flex-grow p-4 md:p-10 max-w-4xl w-full mx-auto">
                             <div className="luxury-card p-6 md:p-8 flex justify-between items-center mb-8">
@@ -1681,10 +1668,10 @@
                             </div>
                             <h3 className="font-bold text-lg mb-6 dark:text-white flex items-center gap-3"><i className="fa-solid fa-bullhorn text-purple-500"></i> ประกาศรับสมัครนักศึกษาเข้าร่วมกิจกรรม <span className="bg-purple-100 text-purple-600 text-[9px] px-2 py-0.5 rounded-full uppercase animate-pulse">Open</span></h3>
                             <div className="grid gap-4">
-                                {recruitments.length === 0 ? (
+                                {openRecruitments.length === 0 ? (
                                     <div className="text-center py-20 bg-white/50 dark:bg-slate-800/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700"><i className="fa-solid fa-folder-open text-4xl text-slate-300 mb-4 block"></i><span className="text-slate-500 font-bold text-sm">ไม่มีประกาศรับสมัครในขณะนี้</span></div>
                                 ) : (
-                                    recruitments.map(a=>(
+                                    openRecruitments.map(a=>(
                                         <div key={a.RecruitID} className="luxury-card p-5 md:p-6 group flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:shadow-lg hover:shadow-purple-500/10 hover:-translate-y-1 border border-transparent hover:border-purple-200">
                                             <div className="flex items-start gap-4 flex-1 cursor-pointer" onClick={()=>handleRegisterRecruit(a)}>
                                                 <div className="w-14 h-14 bg-purple-50 text-purple-500 rounded-xl flex flex-col items-center justify-center border border-purple-100 group-hover:bg-purple-500 group-hover:text-white transition-colors shrink-0"><span className="text-[9px] font-black uppercase">{formatDisplayDate(a.Date).month}</span><span className="text-xl font-black leading-none">{formatDisplayDate(a.Date).date}</span></div>
@@ -1704,6 +1691,7 @@
 
                 if (view === 'select') {
                     if(!student) return null; const gProps = getGenderProps(student.Name);
+                    const openActivities = activities.filter(act => String(act.Status).toLowerCase() === 'open');
                     return (
                         <div className="flex-grow flex flex-col items-center pt-10 p-6">
                             <div className="w-full max-w-2xl mb-8 flex justify-between items-end bg-white/50 p-6 rounded-2xl border border-orange-100/50 backdrop-blur-sm">
@@ -1713,165 +1701,13 @@
                             <div className="w-full max-w-2xl">
                                 <h3 className="font-medium text-gray-400 text-sm mb-4 uppercase tracking-widest pl-2">กิจกรรมที่เปิดรับลงทะเบียน</h3>
                                 <div className="space-y-4">
-                                    {activities.length === 0 ? (<div className="text-center py-12 luxury-card"><p className="text-gray-400 font-light">ไม่มีกิจกรรมที่เปิดให้ลงทะเบียนในขณะนี้</p></div>) : (
-                                        activities.map(act => (
+                                    {openActivities.length === 0 ? (<div className="text-center py-12 luxury-card"><p className="text-gray-400 font-light">ไม่มีกิจกรรมที่เปิดให้ลงทะเบียนในขณะนี้</p></div>) : (
+                                        openActivities.map(act => (
                                             <div key={act.ActivityID} onClick={() => handleSelectActivity(act)} className="luxury-card p-6 cursor-pointer group hover:border-orange-300 hover:shadow-orange-500/10">
                                                 <div className="flex justify-between items-center"><div><h4 className="font-semibold text-lg text-charcoal-900 group-hover:text-orange-600 transition-colors">{act.Name}</h4><div className="flex items-center gap-4 mt-2 text-sm text-gray-500 font-light"><span><i className="fa-regular fa-calendar mr-1 opacity-70 text-orange-400"></i> {act.Date}</span><span><i className="fa-solid fa-location-dot mr-1 opacity-70 text-orange-400"></i> {act.Location}</span></div></div><i className="fa-solid fa-arrow-right text-gray-300 group-hover:text-orange-500 transition-transform transform group-hover:translate-x-1 text-xl"></i></div>
                                             </div>
                                         ))
                                     )}
-                                </div>
-                            </div>
-                        </div>
-                    );
-                }
-
-                if (view === 'survey') {
-                    return (
-                        <div className="flex-grow flex flex-col items-center pt-6 p-4 pb-20">
-                            <div className="luxury-card w-full max-w-4xl p-6 sm:p-12 border-t-4 border-t-orange-500">
-                                <div className="mb-10 relative"><button onClick={() => setView('select')} className="text-gray-400 hover:text-orange-600 transition-colors text-sm mb-6 flex items-center"><i className="fa-solid fa-arrow-left mr-2"></i> กลับหน้ารายการ</button><h2 className="text-2xl sm:text-3xl font-semibold text-charcoal-900 leading-tight">{selectedActivity.Name}</h2><p className="text-gray-500 mt-2 font-light">แบบประเมินความพึงพอใจ</p></div>
-                                <form onSubmit={handleSubmitSurvey}>
-                                    <div className="hidden md:flex flex-row items-center justify-between px-4 mb-3 border-b border-gray-100 pb-2"><div className="md:w-3/5 font-semibold text-gray-400 text-[10px] tracking-widest uppercase">หัวข้อการประเมิน</div><div className="flex justify-end gap-2 w-auto pr-1">{[5,4,3,2,1].map(n => <div key={n} className="w-10 text-center text-[10px] font-medium text-gray-400 uppercase tracking-widest leading-tight">{n}<br/>{['ยอดเยี่ยม','ดีมาก','ดี','พอใช้','ปรับปรุง'][5-n]}</div>)}</div></div>
-                                    <div className="md:hidden flex flex-wrap items-center gap-4 text-xs font-light text-gray-500 mb-10 pb-6 border-b border-orange-100"><span className="font-medium text-charcoal-900">เกณฑ์คะแนน:</span>{[5,4,3,2,1].map(n => <div key={n} className="flex items-center gap-1.5"><div className={`w-5 h-5 rounded ${n===5 ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-white' : 'border border-gray-200 text-gray-500'} flex justify-center items-center`}>{n}</div> {['ยอดเยี่ยม','ดีมาก','ดี','พอใช้','ปรับปรุง'][5-n]}</div>)}</div>
-                                    {surveyData.map((category, catIdx) => (
-                                        <div key={catIdx} className="mb-12">
-                                            <h3 className="text-lg font-semibold text-charcoal-900 mb-6 border-l-4 border-orange-500 pl-3">{category.title.split(' ').slice(1).join(' ')}</h3>
-                                            <div className="space-y-4">
-                                                {category.questions.map((q) => (
-                                                    <div key={q.id} className="p-4 sm:p-5 border border-orange-50/80 rounded-xl hover:border-orange-200 hover:bg-orange-50/30 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                                        <div className="text-gray-800 font-light text-sm md:w-3/5">{q.text}</div>
-                                                        <div className="flex justify-between gap-2 w-full md:w-auto">
-                                                            {[5, 4, 3, 2, 1].map(score => (
-                                                                <label key={score} className={`relative w-10 h-10 sm:w-12 h-12 flex items-center justify-center rounded-lg cursor-pointer text-sm font-medium transition-all ${surveyAnswers[q.id] === score ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-md' : 'bg-white text-gray-400 border border-gray-200 hover:border-orange-300'}`}><input type="radio" className="hidden" name={q.id} value={score} required onChange={() => setSurveyAnswers({...surveyAnswers, [q.id]: score})} />{score}</label>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    ))}
-                                    <div className="mb-12"><h3 className="text-lg font-semibold text-charcoal-900 mb-4 border-l-4 border-orange-500 pl-3">ข้อเสนอแนะเพิ่มเติม</h3><textarea rows="3" value={suggestion} onChange={(e) => setSuggestion(e.target.value)} className="w-full luxury-input resize-none text-sm font-light" placeholder="ความคิดเห็นเพื่อการพัฒนา (ไม่บังคับ)"></textarea></div>
-                                    <div className="flex gap-4 pt-6 border-t border-orange-100"><button type="submit" className="w-full btn-gradient py-4 rounded-xl font-semibold tracking-wider text-sm shadow-lg shadow-orange-500/20">ส่งแบบประเมิน</button></div>
-                                </form>
-                            </div>
-                        </div>
-                    );
-                }
-
-                if (view === 'shirt_form') {
-                    if(!student) return null;
-                    const getPrice = (size) => ['XL', '2XL', '3XL'].includes(size) ? shirtPrice.oversize : shirtPrice.normal;
-                    const grandTotal = (getPrice(poloSize) * poloQty) + (getPrice(tshirtSize) * tshirtQty);
-                    const gProps = getGenderProps(student?.Name || '');
-
-                    return (
-                        <div className="flex-grow flex flex-col items-center pt-8 p-4 pb-20">
-                            <div className="luxury-card w-full max-w-2xl p-6 sm:p-12 border-t-4 border-t-orange-500">
-                                <div className="flex justify-between items-center mb-10 pb-6 border-b border-orange-100"><div className="flex items-center gap-4"><div className={`w-14 h-14 rounded-full flex items-center justify-center text-xl ${gProps.bg} ${gProps.text}`}><i className={`fa-solid ${gProps.icon}`}></i></div><div><p className="text-xs text-orange-400 font-medium uppercase tracking-widest">ข้อมูลการจองของ</p><h2 className="text-xl font-semibold text-charcoal-900">{student?.Name || ''}</h2></div></div><button onClick={() => setView('search')} className="text-xs text-orange-500 hover:text-orange-700 bg-orange-50 px-3 py-1.5 rounded-lg font-medium transition-colors">เปลี่ยนรหัส</button></div>
-                                {(shirtPrice.popupText || shirtPrice.popupImage) && ( <div className="mb-8 bg-indigo-50 border border-indigo-100 p-4 rounded-2xl flex items-center justify-between shadow-sm"><div className="flex items-center gap-3"><div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-lg shrink-0"><i className="fa-solid fa-bullhorn"></i></div><div><h4 className="text-sm font-bold text-indigo-900">ประกาศ / ตารางไซส์</h4><p className="text-xs text-indigo-700/80 line-clamp-1">โปรดตรวจสอบรายละเอียดก่อนสั่งจอง</p></div></div><button type="button" onClick={() => Swal.fire({ title: 'ประกาศ', text: shirtPrice.popupText || '', imageUrl: shirtPrice.popupImage || undefined, imageAlt: 'Popup', confirmButtonColor: '#ea580c' })} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors whitespace-nowrap">เปิดดู</button></div> )}
-                                <form onSubmit={handleSubmitShirtOrder}>
-                                    <h2 className="text-2xl font-semibold text-charcoal-900 text-center mb-8">{isEditingOrder ? 'แก้ไขข้อมูลการจอง' : 'แบบฟอร์มสั่งจองเสื้อคณะ'}</h2>
-                                    
-                                    <ShirtSection num="01" title="เสื้อคอปกโปโล" genderState={poloGender} setGenderState={setPoloGender} sizeState={poloSize} setSizeState={setPoloSize} qtyState={poloQty} setQtyState={setPoloQty} getPrice={getPrice} />
-                                    <ShirtSection num="02" title="เสื้อยืดกิจกรรม" genderState={tshirtGender} setGenderState={setTshirtGender} sizeState={tshirtSize} setSizeState={setTshirtSize} qtyState={tshirtQty} setQtyState={setTshirtQty} getPrice={getPrice} />
-                                    
-                                    <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-6 rounded-2xl mb-6 flex justify-between items-center border border-orange-200/50"><div><p className="text-xs font-medium text-orange-600/70 uppercase tracking-widest mb-1">Grand Total</p><p className="text-sm font-semibold text-charcoal-900">ยอดชำระสุทธิ</p></div><div className="text-3xl font-bold text-orange-600">฿{grandTotal.toLocaleString()}</div></div>
-
-                                    {grandTotal > 0 && (
-                                        <div className="mb-8">
-                                            <h3 className="font-semibold text-charcoal-900 mb-4 flex items-center"><span className="text-orange-500 mr-2">03.</span> วิธีการชำระเงิน</h3>
-                                            <div className="flex gap-4 mb-6">
-                                                <label className={`flex-1 py-4 rounded-xl border text-center cursor-pointer text-sm font-medium transition-all flex flex-col items-center justify-center gap-2 ${paymentMethod === 'promptpay' ? 'border-orange-500 bg-orange-50 text-orange-600 shadow-sm' : 'border-gray-200 text-gray-500 hover:border-orange-300'}`}><input type="radio" className="hidden" checked={paymentMethod === 'promptpay'} onChange={() => setPaymentMethod('promptpay')} /><i className="fa-solid fa-qrcode text-2xl mb-1"></i>ชำระผ่าน PromptPay</label>
-                                                <label className={`flex-1 py-4 rounded-xl border text-center cursor-pointer text-sm font-medium transition-all flex flex-col items-center justify-center gap-2 ${paymentMethod === 'cash' ? 'border-orange-500 bg-orange-50 text-orange-600 shadow-sm' : 'border-gray-200 text-gray-500 hover:border-orange-300'}`}><input type="radio" className="hidden" checked={paymentMethod === 'cash'} onChange={() => setPaymentMethod('cash')} /><i className="fa-solid fa-money-bill-wave text-2xl mb-1"></i>ชำระด้วยเงินสด</label>
-                                            </div>
-
-                                            {paymentMethod === 'promptpay' ? (
-                                                <div className="bg-white border border-blue-100 p-6 rounded-2xl mb-8 flex flex-col gap-6 shadow-sm">
-                                                    <div className="flex flex-col sm:flex-row items-center justify-center gap-6"><div className="bg-white p-2 rounded-xl border border-gray-200 shadow-sm relative"><img src={`https://promptpay.io/0812345678/${grandTotal}.png`} alt="PromptPay QR" className="w-32 h-32 object-contain" /></div><div className="text-center sm:text-left"><h4 className="font-bold text-[#113566] mb-1 flex items-center justify-center sm:justify-start gap-2 text-lg">PromptPay</h4><p className="text-sm text-gray-600 font-medium mb-0.5">เบอร์พร้อมเพย์: 081-234-5678</p><p className="text-xs text-gray-500 mb-2">ชื่อบัญชี: สโมสรนักศึกษา คณะเทคโนโลยีดิจิทัล</p><div className="inline-block bg-orange-50 text-orange-600 px-3 py-1.5 rounded-lg text-[10px] font-semibold border border-orange-100">* โอนเงินยอด ฿{grandTotal.toLocaleString()} แล้วแนบสลิปด้านล่าง</div></div></div>
-                                                    <div className="border-t border-dashed border-gray-200 pt-6">
-                                                        <label className="block text-sm font-semibold text-charcoal-900 mb-3 text-center sm:text-left"><i className="fa-solid fa-file-invoice-dollar text-orange-500 mr-2"></i>แนบสลิปโอนเงิน (บังคับ)</label>
-                                                        <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-orange-200 border-dashed rounded-xl cursor-pointer bg-orange-50/30 hover:bg-orange-50 transition-colors relative overflow-hidden group">
-                                                            {slipImage ? ( <div className="flex flex-col items-center justify-center relative w-full h-full"><img src={slipImage} className="absolute inset-0 w-full h-full object-cover opacity-30 blur-sm" alt="slip-bg" /><img src={slipImage} className="z-10 h-32 object-contain shadow-md rounded border border-white/50" alt="slip-preview" /><div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"><span className="text-white text-xs font-medium px-4 py-2 bg-black/60 rounded-lg backdrop-blur-md flex items-center gap-2"><i className="fa-solid fa-pen"></i> เปลี่ยนรูปสลิป</span></div></div> ) : ( <div className="flex flex-col items-center justify-center pt-5 pb-6"><div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm border border-orange-100 mb-3 text-orange-400 group-hover:scale-110 transition-transform"><i className="fa-solid fa-cloud-arrow-up text-xl"></i></div><p className="mb-1 text-sm text-gray-600 font-medium"><span className="text-orange-600">คลิกเพื่ออัปโหลด</span> หรือลากไฟล์มาวาง</p><p className="text-xs text-gray-400">รองรับไฟล์ PNG, JPG ขนาดไม่เกิน 5MB</p></div> )}
-                                                            <input type="file" className="hidden" accept="image/png, image/jpeg, image/jpg" onChange={(e) => { const file = e.target.files[0]; if (file) { if (file.size > 5 * 1024 * 1024) { Swal.fire('ไฟล์ใหญ่เกินไป', 'กรุณาอัปโหลดรูปขนาดไม่เกิน 5MB', 'warning'); e.target.value = ''; return; } const reader = new FileReader(); reader.onloadend = () => setSlipImage(reader.result); reader.readAsDataURL(file); } }} />
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div className="bg-white border border-amber-100 p-6 rounded-2xl mb-8 flex flex-col sm:flex-row items-center justify-center gap-5 shadow-sm bg-amber-50/30"><div className="w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center text-3xl shadow-sm border border-amber-200 shrink-0"><i className="fa-solid fa-money-bill-wave"></i></div><div className="text-center sm:text-left"><h4 className="font-bold text-amber-700 text-lg mb-1">ชำระด้วยเงินสด</h4><p className="text-sm text-amber-600/80 leading-relaxed">กรุณาเตรียมเงินสด <b className="text-amber-800 text-base">฿{grandTotal.toLocaleString()}</b> <br/>เพื่อนำมาชำระกับเจ้าหน้าที่ในภายหลัง</p></div></div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    <div className="flex gap-4">
-                                        {isEditingOrder && <button type="button" onClick={() => setView('receipt')} className="w-1/3 py-4 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-colors">ยกเลิก</button>}
-                                        {shirtSystemOpen ? ( <button type="submit" className={`${isEditingOrder ? 'w-2/3' : 'w-full'} btn-gradient py-4 rounded-xl font-semibold tracking-wider text-sm shadow-lg shadow-orange-500/20`}>ยืนยันการสั่งจอง</button> ) : ( <button type="button" disabled className={`${isEditingOrder ? 'w-2/3' : 'w-full'} bg-gray-200 text-gray-500 py-4 rounded-xl font-bold tracking-wider text-sm cursor-not-allowed`}>ระบบปิดรับจองแล้ว</button> )}
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    );
-                }
-
-                if (view === 'history_search') {
-                    return (
-                        <div className="flex-grow flex flex-col items-center justify-center p-6">
-                            <div className="luxury-card w-full max-w-md p-10 relative">
-                                <button onClick={goHome} className="absolute top-6 left-6 text-gray-400 hover:text-orange-500 transition-colors text-sm"><i className="fa-solid fa-arrow-left mr-1"></i> กลับหน้าหลัก</button>
-                                <div className="text-center mt-10 mb-8"><h2 className="text-2xl font-semibold text-charcoal-900 tracking-tight">ตรวจสอบประวัติ</h2><p className="text-gray-500 mt-2 text-sm font-light">ตรวจสอบประวัติการเข้าร่วมกิจกรรมของคุณ</p></div>
-                                <form onSubmit={(e) => { e.preventDefault(); handleSearchHistory(e.target.studentId.value); }}>
-                                    <div className="mb-8"><input type="text" name="studentId" required placeholder="รหัสนักศึกษา หรือ เลข ปชช." defaultValue={localStorage.getItem('last_student_id')||''} className="w-full luxury-input text-center tracking-widest text-lg font-medium" /></div>
-                                    <button type="submit" className="w-full btn-gradient py-4 rounded-xl font-semibold tracking-wider text-sm shadow-lg shadow-orange-500/20">ค้นหาประวัติ <i className="fa-solid fa-search ml-2"></i></button>
-                                </form>
-                            </div>
-                        </div>
-                    );
-                }
-
-                if (view === 'history_result') {
-                    return (
-                        <div className="flex-grow flex flex-col items-center pt-8 p-6 pb-20">
-                            <div className="luxury-card w-full max-w-2xl p-6 sm:p-10 border-t-4 border-t-orange-500">
-                                <div className="flex items-center justify-between mb-8 pb-4 border-b border-orange-100"><div><h2 className="text-xl font-semibold text-charcoal-900">ประวัติการเข้าร่วมกิจกรรม</h2><p className="text-gray-500 text-sm font-light mt-1">พบข้อมูลทั้งหมด {historyData.length} รายการ</p></div><button onClick={() => setView('history_search')} className="text-xs text-orange-500 hover:text-orange-700 bg-orange-50 px-3 py-1.5 rounded-lg transition-colors font-medium">ค้นหาใหม่</button></div>
-                                <div className="space-y-4">
-                                    {historyData.length === 0 ? ( <div className="text-center py-16"><p className="text-gray-400 font-light">ไม่พบประวัติการเข้าร่วมกิจกรรม</p></div> ) : (
-                                        <div className="relative border-l border-orange-200 ml-4 sm:ml-6 pl-6 sm:pl-8 space-y-8 py-2">
-                                            {historyData.map((h, i) => (
-                                                <div key={i} className="relative group">
-                                                    <div className="absolute -left-[30px] sm:-left-[38px] top-1.5 w-3 h-3 bg-white border-2 border-orange-500 rounded-full transition-transform group-hover:scale-125 group-hover:bg-orange-100"></div>
-                                                    <div className="bg-white p-5 rounded-xl border border-orange-50/80 shadow-[0_2px_10px_rgba(249,115,22,0.03)] transition-all hover:shadow-[0_4px_15px_rgba(249,115,22,0.08)] hover:border-orange-200">
-                                                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4"><div><p className="text-[10px] text-orange-400 font-medium uppercase tracking-widest mb-1">เข้าร่วมแล้ว</p><h4 className="font-semibold text-charcoal-900 text-lg mb-1">{h.ActivityName}</h4><p className="text-sm text-gray-500 font-light">{h.Name} ({h.StudentID})</p></div><div className="text-xs text-gray-500 font-light whitespace-nowrap bg-orange-50/80 text-orange-700 px-3 py-1.5 rounded-md border border-orange-100">{h.Timestamp ? new Date(h.Timestamp).toLocaleString('th-TH') : '-'}</div></div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    );
-                }
-
-                if (view === 'receipt') {
-                    const handleDownloadReceipt = () => {
-                        const receiptElement = document.getElementById('receipt-card'); Swal.fire({ title: 'กำลังประมวลผล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-                        html2canvas(receiptElement, { scale: 2, backgroundColor: isDarkMode ? '#1e1e1e' : '#fffcf9' }).then(canvas => { const link = document.createElement('a'); link.download = `Receipt_${receiptData.student.StudentID}.png`; link.href = canvas.toDataURL('image/png'); link.click(); Swal.close(); }).catch(() => Swal.fire('Error', 'ไม่สามารถสร้างรูปภาพได้', 'error'));
-                    };
-                    return (
-                        <div className="flex-grow flex flex-col items-center pt-8 p-4 pb-20">
-                            <div className="w-full max-w-[1200px]">
-                                <div className="flex justify-between items-end mb-6 px-2"><div><h2 className="text-2xl font-semibold text-charcoal-900">เอกสารยืนยันการจอง</h2><p className="text-gray-500 text-sm font-light mt-1">โปรดดาวน์โหลดใบเสร็จนี้เก็บไว้เป็นหลักฐาน</p></div><p className="text-xs text-orange-500 font-medium xl:hidden"><i className="fa-solid fa-arrows-left-right"></i> เลื่อนซ้ายขวาเพื่อดูฉบับเต็ม</p></div>
-                                <div className="w-full overflow-x-auto pb-6 custom-scrollbar">
-                                    <div id="receipt-card" className="bg-white flex flex-row justify-between items-stretch shadow-sm border border-orange-100/50" style={{ width: '1123px', minHeight: '794px', margin: '0 auto' }}>
-                                        <ReceiptSlipComponent title="ORIGINAL" data={receiptData} config={receiptSettings} shirtPrice={shirtPrice} />
-                                        <div className="flex flex-col items-center justify-center gap-4 text-gray-300 bg-orange-50/30 px-1 border-x border-dashed border-orange-200/50"><i className="fa-solid fa-scissors text-orange-300 text-xs transform -rotate-90"></i><span className="text-[9px] font-medium uppercase tracking-[0.2em] whitespace-nowrap opacity-50 text-orange-400" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>Cut Here</span><i className="fa-solid fa-scissors text-orange-300 text-xs transform rotate-90"></i></div>
-                                        <ReceiptSlipComponent title="COPY" data={receiptData} config={receiptSettings} shirtPrice={shirtPrice} />
-                                    </div>
-                                </div>
-                                <div className="flex flex-col sm:flex-row justify-center gap-4 mt-4 max-w-[800px] w-full mx-auto">
-                                    <button onClick={goHome} className="w-full sm:w-1/4 bg-white text-charcoal-900 font-semibold py-4 rounded-xl border border-gray-200 hover:bg-orange-50 transition-colors text-sm tracking-wider">กลับหน้าแรก</button>
-                                    {shirtSystemOpen && <button onClick={() => { setIsEditingOrder(true); setView('shirt_form'); }} className="w-full sm:w-1/4 btn-primary py-4 rounded-xl font-semibold text-sm tracking-wider hover:bg-gray-800">แก้ไขข้อมูล</button>}
-                                    <button onClick={handleDownloadReceipt} className="w-full sm:w-2/4 btn-gradient py-4 rounded-xl font-semibold flex justify-center items-center gap-2 text-sm tracking-wider shadow-lg shadow-orange-500/20"><i className="fa-solid fa-download"></i> โหลดใบเสร็จ</button>
                                 </div>
                             </div>
                         </div>
@@ -1896,21 +1732,89 @@
                     };
 
                     return (
-                        <div className="flex-grow flex items-center justify-center p-6 relative z-10">
-                            <div className="bg-[#1f1f1f] w-full max-w-md p-10 rounded-2xl border border-[#333] shadow-2xl shadow-orange-500/5">
-                                <div className="text-center mb-10">
-                                    <h2 className="text-2xl font-light text-white tracking-widest uppercase">Workspace</h2>
-                                    <p className="text-gray-500 mt-2 text-sm font-light">สำหรับเจ้าหน้าที่เท่านั้น</p>
+                        <div className="flex-grow flex flex-col md:flex-row max-w-6xl mx-auto w-full p-6 md:p-10 gap-10 lg:gap-16 items-center justify-center relative z-10">
+                            
+                            {/* ฝั่งซ้าย: แสดงกิจกรรมทั้งหมด */}
+                            <div className="w-full md:w-1/2 flex flex-col h-full justify-center order-2 md:order-1">
+                                <div className="mb-6 text-center md:text-left">
+                                    <h2 className="text-3xl font-light text-charcoal-900 dark:text-white tracking-tight">รายการกิจกรรม<span className="font-semibold text-orange-600">ทั้งหมด</span></h2>
+                                    <p className="text-gray-500 mt-2 text-sm font-light">รายการกิจกรรมในระบบ</p>
                                 </div>
-                                <form onSubmit={handleAdminLogin} className="space-y-6">
-                                    <input type="text" name="username" placeholder="Username" required
-                                           className="w-full border-b border-gray-700 bg-transparent text-white px-0 py-3 focus:border-orange-500 outline-none transition-colors font-light text-sm" />
-                                    <input type="password" name="password" placeholder="Password" required
-                                           className="w-full border-b border-gray-700 bg-transparent text-white px-0 py-3 focus:border-orange-500 outline-none transition-colors font-light text-sm" />
-                                    <button type="submit" className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold py-4 rounded-lg hover:from-orange-400 hover:to-orange-500 transition-colors mt-8 text-sm tracking-wider shadow-lg">LOGIN</button>
-                                </form>
-                                <button onClick={goHome} className="w-full text-gray-500 hover:text-white mt-6 text-xs transition-colors font-light uppercase tracking-widest">กลับหน้าแรก</button>
+                                <div className="bg-white/80 dark:bg-[#1e1e1e]/80 backdrop-blur-md p-6 rounded-[2rem] border border-orange-100/50 dark:border-gray-800 shadow-sm overflow-y-auto custom-scrollbar max-h-[450px]">
+                                    <div className="space-y-4">
+                                        {activities.length === 0 ? (
+                                            <div className="text-center py-12"><p className="text-gray-400 font-light">ไม่มีกิจกรรมในขณะนี้</p></div>
+                                        ) : (
+                                            <>
+                                                {activities.map(act => (
+                                                    <div key={`act-${act.ActivityID}`} className="bg-white dark:bg-[#262626] p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm flex gap-4 items-center hover:border-orange-300 transition-colors">
+                                                        <div className="w-12 h-12 bg-orange-50 dark:bg-orange-500/10 text-orange-500 rounded-xl flex items-center justify-center shrink-0 text-xl">
+                                                            <i className="fa-solid fa-qrcode"></i>
+                                                        </div>
+                                                        <div className="flex-grow">
+                                                            <span className="text-[9px] font-bold text-orange-500 uppercase tracking-widest bg-orange-50 dark:bg-orange-500/20 px-2 py-0.5 rounded border border-orange-100 dark:border-orange-500/30 mb-1 inline-block">กิจกรรม</span>
+                                                            <h4 className="font-bold text-charcoal-900 dark:text-white text-sm mb-1 leading-tight line-clamp-1">{act.Name}</h4>
+                                                            <div className="flex gap-3 text-[10px] text-gray-500 font-medium">
+                                                                <span><i className="fa-regular fa-calendar text-orange-400 mr-1"></i> {act.Date}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="shrink-0">
+                                                            <span className={`text-[10px] font-bold px-2 py-1 rounded ${String(act.Status).toLowerCase() === 'open' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                                                                {String(act.Status).toLowerCase() === 'open' ? 'เปิด' : 'ปิด'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
+
+                            {/* ฝั่งขวา: ฟอร์มล็อคอินแบบ Modern */}
+                            <div className="w-full md:w-1/2 flex items-center justify-center order-1 md:order-2 perspective-1000">
+                                <div className="bg-charcoal-900/90 backdrop-blur-xl w-full max-w-md p-8 sm:p-10 rounded-[2.5rem] border border-gray-700/50 shadow-[0_20px_60px_-15px_rgba(249,115,22,0.2)] relative overflow-hidden transform transition-all duration-500 hover:shadow-[0_20px_60px_-15px_rgba(249,115,22,0.3)]">
+                                    
+                                    {/* Decorative background glow */}
+                                    <div className="absolute -top-20 -right-20 w-40 h-40 bg-orange-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                                    <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                                    <div className="text-center mb-10 relative z-10">
+                                        <div className="relative w-20 h-20 mx-auto mb-6">
+                                            <div className="absolute inset-0 bg-orange-500/20 rounded-full animate-ping"></div>
+                                            <div className="relative w-full h-full bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/40 transform rotate-3 hover:rotate-0 transition-transform duration-300">
+                                                <i className="fa-solid fa-fingerprint text-white text-3xl transform -rotate-3 hover:rotate-0 transition-transform duration-300"></i>
+                                            </div>
+                                        </div>
+                                        <h2 className="text-3xl font-bold text-white tracking-tight">Staff Portal</h2>
+                                        <p className="text-gray-400 mt-2 text-xs font-medium tracking-widest uppercase">Authorized Access Only</p>
+                                    </div>
+                                    
+                                    <form onSubmit={handleAdminLogin} className="space-y-5 relative z-10">
+                                        <div className="relative bg-[#262626] border border-gray-700/50 focus-within:border-orange-500 focus-within:bg-[#2a2a2a] rounded-2xl px-5 py-4 transition-all duration-300 flex items-center gap-4 shadow-inner group">
+                                            <i className="fa-solid fa-user text-gray-500 group-focus-within:text-orange-500 transition-colors text-lg"></i>
+                                            <input type="text" name="username" placeholder="Username" required
+                                                   className="w-full bg-transparent text-white outline-none font-light text-sm placeholder-gray-500" />
+                                        </div>
+                                        
+                                        <div className="relative bg-[#262626] border border-gray-700/50 focus-within:border-orange-500 focus-within:bg-[#2a2a2a] rounded-2xl px-5 py-4 transition-all duration-300 flex items-center gap-4 shadow-inner group">
+                                            <i className="fa-solid fa-lock text-gray-500 group-focus-within:text-orange-500 transition-colors text-lg"></i>
+                                            <input type="password" name="password" placeholder="Password" required
+                                                   className="w-full bg-transparent text-white outline-none font-light text-sm placeholder-gray-500" />
+                                        </div>
+
+                                        <button type="submit" className="w-full relative group overflow-hidden bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-4 rounded-2xl transition-all mt-8 shadow-[0_8px_20px_rgba(249,115,22,0.3)] hover:shadow-[0_12px_25px_rgba(249,115,22,0.4)] hover:-translate-y-1 flex items-center justify-center">
+                                            <span className="relative z-10 tracking-[0.2em] uppercase text-sm">Sign In</span>
+                                            <div className="absolute inset-0 h-full w-full bg-gradient-to-r from-orange-400 to-orange-500 scale-x-0 group-hover:scale-x-100 transform origin-left transition-transform duration-300"></div>
+                                        </button>
+                                    </form>
+                                    
+                                    <button onClick={goHome} className="w-full group text-gray-500 hover:text-white mt-8 text-xs transition-colors font-medium uppercase tracking-widest flex items-center justify-center gap-2 relative z-10">
+                                        <i className="fa-solid fa-arrow-left group-hover:-translate-x-1 transition-transform"></i> Return to Home
+                                    </button>
+                                </div>
+                            </div>
+
                         </div>
                     );
                 }
