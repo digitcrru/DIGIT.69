@@ -138,6 +138,15 @@
             }
         };
 
+        // ==========================================
+        // การตั้งค่าปิดระบบถาวร (FORCE CLOSE SETTINGS)
+        // ==========================================
+        const SYSTEM_OVERRIDES = {
+            FORCE_CLOSE_MAIN: false,     // เปลี่ยนเป็น true เพื่อปิดการเข้าถึงหน้าแรกทั้งหมดถาวร
+            FORCE_CLOSE_RECRUIT: false,  // เปลี่ยนเป็น true เพื่อปิดระบบรับสมัครกิจกรรมถาวร
+            FORCE_CLOSE_SHIRT: false     // ปลดล็อคเป็น false เพื่อให้ปุ่มเปิด-ปิด ในแอดมินทำงานได้ตามปกติ
+        };
+
         const isFastCSVReady = () => API_CONFIG.USE_FAST_CSV && API_CONFIG.SHEET_ID && !API_CONFIG.SHEET_ID.includes('ใส่_SHEET_ID');
 
         const fetchFastCSV = (sheetName) => {
@@ -560,7 +569,9 @@
                 const newStatus = systemOpen ? 'closed' : 'open'; 
                 Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                 try { 
-                    await runGAS('updateSetting', 'SystemStatus', newStatus); 
+                    // Bypass calling a specific fast API if available, otherwise just use standard
+                    try { await runGAS('toggleMasterSystemStatus', newStatus); } 
+                    catch(e) { await runGAS('updateSetting', 'SystemStatus', newStatus); }
                     setSystemOpen(newStatus === 'open');
                     Swal.close(); reloadData(true); 
                 } catch(err) { Swal.fire('Error', err.message, 'error'); }
@@ -570,9 +581,10 @@
                 Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                 try { 
                     const newStatus = String(currentStatus).toLowerCase() === 'open' ? 'closed' : 'open'; 
-                    await runGAS('updateSetting', 'ShirtStatus', newStatus); 
+                    try { await runGAS('toggleShirtStatus', newStatus); }
+                    catch(e) { await runGAS('updateSetting', 'ShirtStatus', newStatus); }
                     setAdminData(prev => ({ ...prev, shirtPrice: { ...(prev?.shirtPrice || {}), status: newStatus } })); 
-                    setShirtSystemOpen(newStatus === 'open'); // <--- อัปเดต state ของผู้ใช้งานทันที
+                    setShirtSystemOpen(newStatus === 'open'); 
                     Swal.close(); 
                     Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตสำเร็จ` }); 
                 } catch(err) { Swal.fire('Error', err.message, 'error'); }
@@ -582,9 +594,10 @@
                 Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                 try { 
                     const newStatus = String(currentStatus).toLowerCase() === 'open' ? 'closed' : 'open'; 
-                    await runGAS('updateSetting', 'RecruitStatus', newStatus); 
+                    try { await runGAS('toggleRecruitSystemStatus', newStatus); }
+                    catch(e) { await runGAS('updateSetting', 'RecruitStatus', newStatus); }
                     setAdminData(prev => ({ ...prev, recruitStatus: newStatus })); 
-                    setRecruitSystemOpen(newStatus === 'open'); // <--- อัปเดต state ของผู้ใช้งานทันที
+                    setRecruitSystemOpen(newStatus === 'open'); 
                     Swal.close(); 
                     Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตสำเร็จ` }); 
                 } catch(err) { Swal.fire('Error', err.message, 'error'); }
@@ -613,7 +626,8 @@
                 if (formValues) {
                     Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                     try { 
-                        await runGAS('updateSetting', 'HomePopup', formValues.image, formValues.status); 
+                        try { await runGAS('updateHomePopup', formValues); }
+                        catch(e) { await runGAS('updateSetting', 'HomePopup', formValues.image, formValues.status); }
                         sessionStorage.removeItem('home_popup_shown'); 
                         setAdminData(prev => ({ ...prev, homePopup: formValues })); 
                         reloadData(true); 
@@ -632,7 +646,8 @@
                 if (formValues) { 
                     Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } }); 
                     try { 
-                        await runGAS('updateSetting', 'ShirtPrice', formValues.normal, formValues.oversize); 
+                        try { await runGAS('updateShirtPrice', formValues); }
+                        catch(e) { await runGAS('updateSetting', 'ShirtPrice', formValues.normal, formValues.oversize); }
                         setAdminData(prev => ({ ...prev, shirtPrice: { ...(prev?.shirtPrice || {}), normal: formValues.normal, oversize: formValues.oversize } })); 
                         Swal.close(); 
                         Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตราคาสำเร็จ` }); 
@@ -649,7 +664,8 @@
                 if (formValues) { 
                     Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } }); 
                     try { 
-                        await runGAS('updateSetting', 'ReceiptConfig', formValues.header, formValues.note); 
+                        try { await runGAS('updateReceiptConfig', formValues); }
+                        catch(e) { await runGAS('updateSetting', 'ReceiptConfig', formValues.header, formValues.note); }
                         setAdminData(prev => ({ ...prev, shirtPrice: { ...(prev?.shirtPrice || {}), receiptHeader: formValues.header, receiptNote: formValues.note } })); 
                         Swal.close(); 
                         Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตใบเสร็จสำเร็จ` }); 
@@ -678,7 +694,8 @@
                 if (formValues) { 
                     Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } }); 
                     try { 
-                        await runGAS('updateSetting', 'ShirtPopup', formValues.text, formValues.image); 
+                        try { await runGAS('updateShirtPopup', formValues); }
+                        catch(e) { await runGAS('updateSetting', 'ShirtPopup', formValues.text, formValues.image); }
                         setAdminData(prev => ({ ...prev, shirtPrice: { ...(prev?.shirtPrice || {}), popupText: formValues.text, popupImage: formValues.image } })); 
                         Swal.close(); 
                         Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `ตั้งค่าสำเร็จ` }); 
@@ -985,7 +1002,7 @@
                         </nav>
                         <div className="p-6 bg-charcoal-900 border-t border-gray-800 hidden md:block">
                             <p className="text-[9px] text-gray-500 font-medium mb-3 px-4 uppercase tracking-widest">สถานะแพลตฟอร์ม</p>
-                            <button onClick={toggleSystem} className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm transition-all mb-3 ${systemOpen ? 'text-white bg-green-900/30 border border-green-800' : 'text-gray-400 bg-black/30 border border-gray-800'}`}><span className="font-light flex items-center"><i className={`fa-solid ${systemOpen ? 'fa-toggle-on text-green-500' : 'fa-toggle-off text-gray-500'} text-2xl mr-3`}></i> ระบบหลัก</span></button>
+                            <button disabled={SYSTEM_OVERRIDES.FORCE_CLOSE_MAIN} onClick={toggleSystem} className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm transition-all mb-3 ${SYSTEM_OVERRIDES.FORCE_CLOSE_MAIN ? 'text-gray-500 bg-black/50 border border-gray-700 cursor-not-allowed' : (systemOpen ? 'text-white bg-green-900/30 border border-green-800' : 'text-gray-400 bg-black/30 border border-gray-800')}`}><span className="font-light flex items-center"><i className={`fa-solid ${SYSTEM_OVERRIDES.FORCE_CLOSE_MAIN ? 'fa-lock text-gray-500' : (systemOpen ? 'fa-toggle-on text-green-500' : 'fa-toggle-off text-gray-500')} text-2xl mr-3`}></i> ระบบหลัก</span></button>
                             <button onClick={goHome} className="w-full py-3 text-xs text-gray-400 hover:text-white font-light uppercase transition-colors"><i className="fa-solid fa-arrow-left mr-2"></i> ออกจากระบบ</button>
                         </div>
                     </aside>
@@ -1061,7 +1078,7 @@
                             <div className="grid lg:grid-cols-3 gap-8">
                                 <div className="lg:col-span-1">
                                     <div className="bg-white/90 backdrop-blur p-6 rounded-[1.5rem] border border-orange-100/50 shadow-sm mb-6 flex flex-col items-start gap-4">
-                                        <div className="w-full"><div className="flex items-center gap-2 mb-3"><i className="fa-solid fa-gear text-orange-400 text-sm"></i><h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Master Control</h3></div><button onClick={async()=>{Swal.fire({title:'อัปเดต...',didOpen:()=>Swal.showLoading()});try{await runGAS('updateSetting', 'RecruitStatus', String(data.recruitStatus).toLowerCase() === 'open'?'closed':'open');setAdminData(p=>({...p,recruitStatus:String(data.recruitStatus).toLowerCase() === 'open'?'closed':'open'}));Swal.close();}catch(e){Swal.fire('Error',e.message,'error');}}} className={`w-full flex items-center justify-between text-xs font-bold uppercase tracking-widest px-5 py-4 rounded-xl border-2 transition-all shadow-sm ${String(data.recruitStatus).toLowerCase() !== 'closed' ? 'text-purple-700 border-purple-200 bg-purple-50' : 'text-gray-600 border-gray-200 bg-gray-50'}`}><span>{String(data.recruitStatus).toLowerCase() !== 'closed' ? 'เปิดระบบรับสมัคร' : 'ปิดระบบรับสมัคร'}</span> <i className={`fa-solid ${String(data.recruitStatus).toLowerCase() !== 'closed' ? 'fa-toggle-on text-purple-500' : 'fa-toggle-off text-gray-400'} text-2xl`}></i></button></div>
+                                        <div className="w-full"><div className="flex items-center gap-2 mb-3"><i className="fa-solid fa-gear text-orange-400 text-sm"></i><h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Master Control</h3></div><button disabled={SYSTEM_OVERRIDES.FORCE_CLOSE_RECRUIT} onClick={async()=>{Swal.fire({title:'อัปเดต...',didOpen:()=>Swal.showLoading()});try{await runGAS('updateSetting', 'RecruitStatus', String(data.recruitStatus).toLowerCase() === 'open'?'closed':'open');setAdminData(p=>({...p,recruitStatus:String(data.recruitStatus).toLowerCase() === 'open'?'closed':'open'}));setRecruitSystemOpen(String(data.recruitStatus).toLowerCase() !== 'open');Swal.close();}catch(e){Swal.fire('Error',e.message,'error');}}} className={`w-full flex items-center justify-between text-xs font-bold uppercase tracking-widest px-5 py-4 rounded-xl border-2 transition-all shadow-sm ${SYSTEM_OVERRIDES.FORCE_CLOSE_RECRUIT ? 'text-gray-400 bg-gray-200 border-gray-300 cursor-not-allowed' : (String(data.recruitStatus).toLowerCase() !== 'closed' ? 'text-purple-700 border-purple-200 bg-purple-50' : 'text-gray-600 border-gray-200 bg-gray-50')}`}><span>{SYSTEM_OVERRIDES.FORCE_CLOSE_RECRUIT ? 'ปิดระบบถาวร (จากโค้ด)' : (String(data.recruitStatus).toLowerCase() !== 'closed' ? 'เปิดระบบรับสมัคร' : 'ปิดระบบรับสมัคร')}</span> <i className={`fa-solid ${SYSTEM_OVERRIDES.FORCE_CLOSE_RECRUIT ? 'fa-lock' : (String(data.recruitStatus).toLowerCase() !== 'closed' ? 'fa-toggle-on text-purple-500' : 'fa-toggle-off text-gray-400')} text-2xl`}></i></button></div>
                                     </div>
                                     <div className="bg-white/90 backdrop-blur p-8 border border-orange-100/50 rounded-2xl h-fit shadow-sm relative overflow-hidden">
                                         <h3 className="text-sm font-bold text-charcoal-900 mb-6 uppercase tracking-widest border-l-2 border-purple-500 pl-3">สร้างประกาศรับสมัคร</h3>
@@ -1132,7 +1149,7 @@
                         {activeTab === 'shirt_summary' && (
                             <div className="flex flex-col gap-8">
                                 <div className="grid lg:grid-cols-3 gap-8">
-                                    <div className="lg:col-span-1"><div className="bg-white/90 backdrop-blur p-6 rounded-[1.5rem] border border-orange-100/50 shadow-sm flex flex-col gap-4"><div className="w-full"><div className="flex items-center gap-2 mb-3"><i className="fa-solid fa-gear text-orange-400 text-sm"></i><h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Master Control</h3></div><button onClick={() => handleToggleShirtSystem(data?.shirtPrice?.status || 'open')} className={`w-full flex items-center justify-between text-xs font-bold uppercase tracking-widest px-5 py-4 rounded-xl border-2 transition-all shadow-sm ${String(data?.shirtPrice?.status).toLowerCase() !== 'closed' ? 'text-rose-700 border-rose-200 bg-rose-50' : 'text-gray-600 border-gray-200 bg-gray-50'}`}><span>{String(data?.shirtPrice?.status).toLowerCase() !== 'closed' ? 'เปิดระบบจองเสื้อ' : 'ปิดระบบจองเสื้อ'}</span> <i className={`fa-solid ${String(data?.shirtPrice?.status).toLowerCase() !== 'closed' ? 'fa-toggle-on text-rose-500' : 'fa-toggle-off text-gray-400'} text-2xl`}></i></button></div></div></div>
+                                    <div className="lg:col-span-1"><div className="bg-white/90 backdrop-blur p-6 rounded-[1.5rem] border border-orange-100/50 shadow-sm flex flex-col gap-4"><div className="w-full"><div className="flex items-center gap-2 mb-3"><i className="fa-solid fa-gear text-orange-400 text-sm"></i><h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Master Control</h3></div><button disabled={SYSTEM_OVERRIDES.FORCE_CLOSE_SHIRT} onClick={() => handleToggleShirtSystem(data?.shirtPrice?.status || 'open')} className={`w-full flex items-center justify-between text-xs font-bold uppercase tracking-widest px-5 py-4 rounded-xl border-2 transition-all shadow-sm ${SYSTEM_OVERRIDES.FORCE_CLOSE_SHIRT ? 'text-gray-400 bg-gray-200 border-gray-300 cursor-not-allowed' : (String(data?.shirtPrice?.status).toLowerCase() !== 'closed' ? 'text-rose-700 border-rose-200 bg-rose-50' : 'text-gray-600 border-gray-200 bg-gray-50')}`}><span>{SYSTEM_OVERRIDES.FORCE_CLOSE_SHIRT ? 'ปิดระบบถาวร (จากโค้ด)' : (String(data?.shirtPrice?.status).toLowerCase() !== 'closed' ? 'เปิดระบบจองเสื้อ' : 'ปิดระบบจองเสื้อ')}</span> <i className={`fa-solid ${SYSTEM_OVERRIDES.FORCE_CLOSE_SHIRT ? 'fa-lock' : (String(data?.shirtPrice?.status).toLowerCase() !== 'closed' ? 'fa-toggle-on text-rose-500' : 'fa-toggle-off text-gray-400')} text-2xl`}></i></button></div></div></div>
                                     <div className="lg:col-span-2"><div className="bg-white/90 backdrop-blur p-6 rounded-[1.5rem] border border-orange-100/50 shadow-sm h-full flex flex-col justify-center"><div className="flex items-center gap-2 mb-3"><i className="fa-solid fa-sliders text-orange-400 text-sm"></i><h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">System Configuration</h3></div><div className="flex flex-wrap gap-3">
                                         {[ { i:'fa-tag', t:'ตั้งราคา', c:handleUpdateShirtPrice }, { i:'fa-receipt', t:'ใบเสร็จ', c:handleUpdateReceiptConfig }, { i:'fa-bullhorn', t:'ป๊อปอัป', c:handleUpdateShirtPopup }, { i:'fa-file-export', t:'Export CSV', c:() => exportCSV(data.shirtOrders || [], 'ShirtOrders.csv', ['Timestamp', 'StudentID', 'Name', 'Major', 'PoloGender', 'PoloSize', 'PoloQty', 'TshirtGender', 'TshirtSize', 'TshirtQty', 'TotalPrice', 'PaymentMethod', 'Status']) } ].map((btn, idx) => (<button key={idx} onClick={btn.c} className={`flex-1 min-w-[100px] text-[10px] font-bold uppercase tracking-widest ${btn.i === 'fa-file-export' ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white border-none' : 'text-charcoal-900 bg-white hover:bg-orange-50 border border-orange-200'} px-4 py-3 rounded-xl shadow-sm text-center flex flex-col gap-1.5 items-center`}><i className={`fa-solid ${btn.i} ${btn.i === 'fa-file-export' ? 'text-white' : 'text-rose-500'} text-lg`}></i> {btn.t}</button>))}
                                     </div></div></div>
@@ -1242,9 +1259,18 @@
                 try {
                     let data = null; let csvFailed = false;
 
-                    if (isFastCSVReady()) {
+                    let realtimeSettings = null;
+                    try {
+                        realtimeSettings = await runGAS('getSystemSettings');
+                    } catch(e) {
+                        data = await runGAS('getAdminDashboardData').catch(()=>null);
+                        if (data) {
+                            realtimeSettings = { shirtPrice: data.shirtPrice, recruitStatus: data.recruitStatus, homePopup: data.homePopup };
+                        }
+                    }
+
+                    if (isFastCSVReady() && !data) {
                         try {
-                            const settings = await fetchFastCSV('Settings', forceRefresh); 
                             const [acts, chks, evals, shirts, recs, regis] = await Promise.all([
                                 fetchFastCSV('Activities', forceRefresh).catch(() => []), 
                                 fetchFastCSV('CheckIns', forceRefresh).catch(() => []), 
@@ -1288,10 +1314,10 @@
                     setAdminData(data); 
                     if (data.shirtPrice) { 
                         setShirtPrice(data.shirtPrice); 
-                        setShirtSystemOpen(String(data.shirtPrice.status).toLowerCase() !== 'closed'); 
-                        setSystemOpen(String(data.shirtPrice.systemStatus).toLowerCase() !== 'maintenance' && String(data.shirtPrice.systemStatus).toLowerCase() !== 'closed'); 
+                        setShirtSystemOpen(SYSTEM_OVERRIDES.FORCE_CLOSE_SHIRT ? false : String(data.shirtPrice.status).toLowerCase() !== 'closed'); 
+                        setSystemOpen(SYSTEM_OVERRIDES.FORCE_CLOSE_MAIN ? false : String(data.shirtPrice.systemStatus).toLowerCase() !== 'maintenance' && String(data.shirtPrice.systemStatus).toLowerCase() !== 'closed'); 
                     }
-                    if (data.recruitStatus) setRecruitSystemOpen(String(data.recruitStatus).toLowerCase() !== 'closed');
+                    if (data.recruitStatus) setRecruitSystemOpen(SYSTEM_OVERRIDES.FORCE_CLOSE_RECRUIT ? false : String(data.recruitStatus).toLowerCase() !== 'closed');
                     if (data.homePopup) setHomePopupConfig({ image: String(data.homePopup.image || '').trim(), status: String(data.homePopup.status || 'closed').trim().toLowerCase() });
                     
                     Swal.close(); setView('admin_dashboard');
@@ -1309,28 +1335,28 @@
                         let acts = [], recs = [], priceInfo = null, recStatus = 'open', sysStatus = 'open', hpInfo = { image: '', status: 'closed' };
                         let csvFailed = false;
 
+                        let realtimeSettings = null;
+                        try {
+                            realtimeSettings = await runGAS('getSystemSettings'); 
+                        } catch(e) {
+                            const fullData = await runGAS('getAdminDashboardData').catch(()=>null);
+                            if (fullData) {
+                                realtimeSettings = { shirtPrice: fullData.shirtPrice, recruitStatus: fullData.recruitStatus, homePopup: fullData.homePopup };
+                            }
+                        }
+
+                        if (realtimeSettings) {
+                            priceInfo = realtimeSettings.shirtPrice;
+                            sysStatus = realtimeSettings.shirtPrice.systemStatus;
+                            recStatus = realtimeSettings.recruitStatus;
+                            hpInfo = realtimeSettings.homePopup;
+                        }
+
                         if (isFastCSVReady()) {
                             try {
-                                const settings = await fetchFastCSV('Settings').catch(() => []);
                                 const [allActs, allRecs] = await Promise.all([ fetchFastCSV('Activities').catch(() => []), fetchFastCSV('Recruitments').catch(() => []) ]);
                                 acts = allActs.filter(a => String(a.Status).toLowerCase() === 'open'); 
                                 recs = allRecs.filter(r => String(r.Status).toLowerCase() === 'open');
-                                
-                                if (settings && settings.length > 0) {
-                                    const getSet = (k, f1, f2) => { 
-                                        const row = settings.find(r => String(Object.values(r)[0]).trim().toLowerCase() === k.toLowerCase()); 
-                                        if(!row) return { v1: f1, v2: f2 };
-                                        const vals = Object.values(row);
-                                        return { v1: vals[1] || f1, v2: vals[2] || f2 }; 
-                                    };
-                                    const pSet = getSet('ShirtPrice', 250, 380); priceInfo = { normal: Number(pSet.v1), oversize: Number(pSet.v2) };
-                                    priceInfo.status = getSet('ShirtStatus', 'open', '').v1; 
-                                    sysStatus = getSet('SystemStatus', 'open', '').v1;
-                                    const rSet = getSet('ReceiptConfig', '', ''); priceInfo.receiptHeader = rSet.v1; priceInfo.receiptNote = rSet.v2;
-                                    const popSet = getSet('ShirtPopup', '', ''); priceInfo.popupText = popSet.v1; priceInfo.popupImage = popSet.v2;
-                                    recStatus = getSet('RecruitStatus', 'open', '').v1;
-                                    const hpSet = getSet('HomePopup', '', 'closed'); hpInfo = { image: String(hpSet.v1).trim(), status: String(hpSet.v2).trim().toLowerCase() };
-                                }
                             } catch(e) { csvFailed = true; }
                         } 
                         
@@ -1340,20 +1366,21 @@
                                 if(data) {
                                     acts = (data.activities || []).filter(a => String(a.Status).toLowerCase() === 'open');
                                     recs = (data.recruitments || []).filter(r => String(r.Status).toLowerCase() === 'open');
-                                    if(data.shirtPrice) { priceInfo = data.shirtPrice; sysStatus = data.shirtPrice.systemStatus; }
-                                    if(data.recruitStatus) recStatus = data.recruitStatus;
-                                    if(data.homePopup) hpInfo = { image: String(data.homePopup.image || '').trim(), status: String(data.homePopup.status || 'closed').trim().toLowerCase() };
+                                    if (!priceInfo) {
+                                        priceInfo = data.shirtPrice; sysStatus = data.shirtPrice.systemStatus;
+                                        recStatus = data.recruitStatus; hpInfo = data.homePopup;
+                                    }
                                 }
                             } catch(e) {}
                         }
 
                         setActivities(acts || []); setRecruitments(recs || []); 
-                        setRecruitSystemOpen(String(recStatus).toLowerCase() !== 'closed'); 
-                        setSystemOpen(String(sysStatus).toLowerCase() !== 'closed' && String(sysStatus).toLowerCase() !== 'maintenance'); 
-                        setHomePopupConfig(hpInfo);
+                        setRecruitSystemOpen(SYSTEM_OVERRIDES.FORCE_CLOSE_RECRUIT ? false : String(recStatus).toLowerCase() !== 'closed'); 
+                        setSystemOpen(SYSTEM_OVERRIDES.FORCE_CLOSE_MAIN ? false : String(sysStatus).toLowerCase() !== 'closed' && String(sysStatus).toLowerCase() !== 'maintenance'); 
+                        setHomePopupConfig({ image: String(hpInfo.image || '').trim(), status: String(hpInfo.status || 'closed').trim().toLowerCase() });
                         
                         if (priceInfo) { 
-                            setShirtPrice(priceInfo); setShirtSystemOpen(String(priceInfo.status).toLowerCase() !== 'closed'); setReceiptSettings({ header: priceInfo.receiptHeader, note: priceInfo.receiptNote }); 
+                            setShirtPrice(priceInfo); setShirtSystemOpen(SYSTEM_OVERRIDES.FORCE_CLOSE_SHIRT ? false : String(priceInfo.status).toLowerCase() !== 'closed'); setReceiptSettings({ header: priceInfo.receiptHeader, note: priceInfo.receiptNote }); 
                         }
                     } catch (e) { console.error("Initial load failed", e); } finally { if(window.hideMainLoader) window.hideMainLoader(); }
                 };
