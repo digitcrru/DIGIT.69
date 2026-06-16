@@ -28,7 +28,6 @@
     
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- เพิ่ม SheetJS สำหรับ Export Excel (.xlsx) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -91,7 +90,6 @@
 </head>
 <body class="selection:bg-orange-500 selection:text-white">
 
-    <!-- Loader Structure -->
     <div id="app-loader">
         <div class="loader-spinner"></div>
         <h2 style="font-family: 'Prompt', sans-serif; font-size: 20px; font-weight: 700; color: #f97316; letter-spacing: 1px;">DIGIT.CRRU</h2>
@@ -123,15 +121,11 @@
         };
     </script>
 
-    <!-- React App Root -->
     <div id="root"></div>
 
     <script type="text/babel" data-presets="react">
         const { useState, useEffect, useMemo, useCallback } = React;
 
-        // ==========================================
-        // 1. CONFIGURATION & CORE HELPERS
-        // ==========================================
         const API_CONFIG = {
             USE_FAST_CSV: true,
             SHEET_ID: "1KLJNWUUIj1r6eqCZnaF-F6nA2FQg7pvOHMk0PyDCyAc", 
@@ -149,10 +143,10 @@
 
         const isFastCSVReady = () => API_CONFIG.USE_FAST_CSV && API_CONFIG.SHEET_ID && !API_CONFIG.SHEET_ID.includes('ใส่_SHEET_ID');
 
-        const fetchFastCSV = (sheetName) => {
+        const fetchFastCSV = (sheetName, forceRefresh = false) => {
             return new Promise((resolve, reject) => {
                 if(!isFastCSVReady()) return reject(new Error("CSV Mode Disabled"));
-                Papa.parse(API_CONFIG.getCSVUrl(sheetName), {
+                Papa.parse(API_CONFIG.getCSVUrl(sheetName) + (forceRefresh ? "&refresh=true" : ""), {
                     download: true, header: true, skipEmptyLines: true,
                     complete: (results) => {
                         if (results.data && results.data.length > 0) {
@@ -189,10 +183,7 @@
                     }
                     return result.data !== undefined ? result.data : result;
                 } catch (error) { 
-                    if (error.name === 'TypeError' || error.message.includes('Failed to fetch') || error.message.includes('Unexpected token')) {
-                        throw new Error('ไม่สามารถเชื่อมต่อฐานข้อมูลได้ \nกรุณาตรวจสอบว่าลิงก์ Web App ถูกต้อง และตั้งค่าการแชร์เป็น "ทุกคน (Anyone)" แล้ว');
-                    }
-                    throw error; 
+                    throw new Error('ไม่สามารถเชื่อมต่อฐานข้อมูลได้ \nกรุณาตรวจสอบว่าลิงก์ Web App ถูกต้อง และตั้งค่าการแชร์เป็น "ทุกคน (Anyone)" แล้ว');
                 }
             } else {
                 Swal.fire({ title: 'ตั้งค่าระบบยังไม่สมบูรณ์', text: 'กรุณานำลิงก์ Web App และ Sheet ID มาวาง', icon: 'warning', confirmButtonColor: '#ea580c' });
@@ -210,19 +201,17 @@
             link.click();
         };
 
-        // ฟังก์ชัน Export เป็นไฟล์ Excel (.xlsx) อย่างครบถ้วน
         const exportXLSX = (arr, fn, fields, headers) => {
             if(!arr || arr.length === 0) return Swal.fire('แจ้งเตือน', 'ไม่มีข้อมูลให้ส่งออก', 'warning');
-            
             const dataToExport = arr.map(r => {
                 let row = {};
                 fields.forEach((f, idx) => {
                     const headerName = headers ? headers[idx] : f;
-                    row[headerName] = getVal(r, [f.toLowerCase()], f);
+                    let val = getVal(r, [f.toLowerCase()], f);
+                    row[headerName] = val !== null && val !== undefined ? String(val) : '';
                 });
                 return row;
             });
-            
             const ws = XLSX.utils.json_to_sheet(dataToExport);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Data");
@@ -452,7 +441,7 @@
         // ==========================================
         // 3. ADMIN DASHBOARD COMPONENT
         // ==========================================
-        const AdminDashboard = ({ data, reloadData, goHome, setAdminData, setShirtSystemOpen, setRecruitSystemOpen, setSystemOpen }) => {
+        const AdminDashboard = ({ data, reloadData, goHome, setAdminData, setShirtSystemOpen, setRecruitSystemOpen, setSystemOpen, setShirtPrice, setHomePopupConfig, setActivities, setRecruitments }) => {
             const [activeTab, setActiveTab] = useState('overview');
             const [selectedActivityForSummary, setSelectedActivityForSummary] = useState('');
             const [searchCheckinTerm, setSearchCheckinTerm] = useState('');
@@ -576,16 +565,24 @@
             const currentRegistrationsList = sortedRegistrationsList.slice((regisPage - 1) * regisItemsPerPage, regisPage * regisItemsPerPage);
             const totalRegisPagesList = Math.ceil(sortedRegistrationsList.length / regisItemsPerPage) || 1;
 
-            // โหมด BYPASS: ส่งข้อมูลเข้า updateSetting โดยตรง
-            // เพื่อหลีกเลี่ยงปัญหา "Unknown action" จากการเปลี่ยนเวอร์ชัน
             const toggleSystem = async () => {
                 const newStatus = systemOpen ? 'closed' : 'open'; 
                 Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                 try { 
                     try { await runGAS('toggleMasterSystemStatus', newStatus); } 
                     catch(e) { await runGAS('updateSetting', 'SystemStatus', newStatus); }
+                    
+                    try {
+                        const ovr = JSON.parse(localStorage.getItem('digit_sys_overrides') || '{}');
+                        ovr['SYS_MAIN'] = { status: newStatus, time: Date.now() };
+                        localStorage.setItem('digit_sys_overrides', JSON.stringify(ovr));
+                    } catch(e){}
+
                     setSystemOpen(newStatus === 'open');
-                    Swal.close(); reloadData(true); 
+                    setAdminData(prev => ({ ...prev, shirtPrice: { ...(prev?.shirtPrice || {}), systemStatus: newStatus } }));
+                    
+                    Swal.close();
+                    Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตสถานะระบบหลักเป็น ${newStatus === 'open' ? 'เปิด' : 'ปิด'} แล้ว` }); 
                 } catch(err) { Swal.fire('Error', err.message, 'error'); }
             };
 
@@ -595,10 +592,19 @@
                     const newStatus = String(currentStatus).toLowerCase() === 'open' ? 'closed' : 'open'; 
                     try { await runGAS('toggleShirtStatus', newStatus); }
                     catch(e) { await runGAS('updateSetting', 'ShirtStatus', newStatus); }
+                    
+                    try {
+                        const ovr = JSON.parse(localStorage.getItem('digit_sys_overrides') || '{}');
+                        ovr['SYS_SHIRT'] = { status: newStatus, time: Date.now() };
+                        localStorage.setItem('digit_sys_overrides', JSON.stringify(ovr));
+                    } catch(e){}
+
                     setAdminData(prev => ({ ...prev, shirtPrice: { ...(prev?.shirtPrice || {}), status: newStatus } })); 
                     setShirtSystemOpen(newStatus === 'open'); 
+                    if(setShirtPrice) setShirtPrice(prev => ({ ...prev, status: newStatus }));
+
                     Swal.close(); 
-                    Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตสำเร็จ` }); 
+                    Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตสถานะจองเสื้อแล้ว` }); 
                 } catch(err) { Swal.fire('Error', err.message, 'error'); }
             };
 
@@ -608,10 +614,58 @@
                     const newStatus = String(currentStatus).toLowerCase() === 'open' ? 'closed' : 'open'; 
                     try { await runGAS('toggleRecruitSystemStatus', newStatus); }
                     catch(e) { await runGAS('updateSetting', 'RecruitStatus', newStatus); }
+                    
+                    try {
+                        const ovr = JSON.parse(localStorage.getItem('digit_sys_overrides') || '{}');
+                        ovr['SYS_RECRUIT'] = { status: newStatus, time: Date.now() };
+                        localStorage.setItem('digit_sys_overrides', JSON.stringify(ovr));
+                    } catch(e){}
+
                     setAdminData(prev => ({ ...prev, recruitStatus: newStatus })); 
                     setRecruitSystemOpen(newStatus === 'open'); 
+
+                    Swal.close(); 
+                    Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตสถานะรับสมัครแล้ว` }); 
+                } catch(err) { Swal.fire('Error', err.message, 'error'); }
+            };
+
+            const toggleActivityStatus = async (id, currentStatus) => {
+                Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                try { 
+                    const newStatus = String(currentStatus).toLowerCase() === 'open' ? 'closed' : 'open'; 
+                    await runGAS('toggleActivityStatus', id, newStatus); 
+                    
+                    try {
+                        const ovr = JSON.parse(localStorage.getItem('digit_sys_overrides') || '{}');
+                        ovr[`ACT_${id}`] = { status: newStatus, time: Date.now() };
+                        localStorage.setItem('digit_sys_overrides', JSON.stringify(ovr));
+                    } catch(e){}
+
+                    setAdminData(prev => ({...prev, activities: (prev?.activities || []).map(a => a.ActivityID === id ? { ...a, Status: newStatus } : a)})); 
+                    if(setActivities) setActivities(prev => prev.map(a => a.ActivityID === id ? { ...a, Status: newStatus } : a));
+
                     Swal.close(); 
                     Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตสำเร็จ` }); 
+                } catch(err) { Swal.fire('Error', err.message, 'error'); }
+            };
+
+            const toggleRecruitStatus = async (id, currentStatus) => {
+                Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                try { 
+                    const newStatus = String(currentStatus).toLowerCase() === 'open' ? 'closed' : 'open'; 
+                    await runGAS('toggleRecruitStatus', id, newStatus); 
+                    
+                    try {
+                        const ovr = JSON.parse(localStorage.getItem('digit_sys_overrides') || '{}');
+                        ovr[`REC_${id}`] = { status: newStatus, time: Date.now() };
+                        localStorage.setItem('digit_sys_overrides', JSON.stringify(ovr));
+                    } catch(e){}
+
+                    setAdminData(prev => ({ ...prev, recruitments: (prev?.recruitments || []).map(r => r.RecruitID === id ? { ...r, Status: newStatus } : r) })); 
+                    if(setRecruitments) setRecruitments(prev => prev.map(r => r.RecruitID === id ? { ...r, Status: newStatus } : r));
+
+                    Swal.close(); 
+                    Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตสถานะแล้ว` }); 
                 } catch(err) { Swal.fire('Error', err.message, 'error'); }
             };
 
@@ -640,9 +694,11 @@
                     try { 
                         try { await runGAS('updateHomePopup', formValues); }
                         catch(e) { await runGAS('updateSetting', 'HomePopup', formValues.image, formValues.status); }
+                        
                         sessionStorage.removeItem('home_popup_shown'); 
                         setAdminData(prev => ({ ...prev, homePopup: formValues })); 
-                        reloadData(true); 
+                        if(setHomePopupConfig) setHomePopupConfig(formValues);
+                        
                         Swal.close(); 
                         Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `ตั้งค่าสำเร็จ` }); 
                     } catch (err) { Swal.fire('Error', err.message, 'error'); }
@@ -660,7 +716,10 @@
                     try { 
                         try { await runGAS('updateShirtPrice', formValues); }
                         catch(e) { await runGAS('updateSetting', 'ShirtPrice', formValues.normal, formValues.oversize); }
+                        
                         setAdminData(prev => ({ ...prev, shirtPrice: { ...(prev?.shirtPrice || {}), normal: formValues.normal, oversize: formValues.oversize } })); 
+                        if(setShirtPrice) setShirtPrice(prev => ({ ...prev, normal: formValues.normal, oversize: formValues.oversize }));
+                        
                         Swal.close(); 
                         Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตราคาสำเร็จ` }); 
                     } catch (err) { Swal.fire('Error', err.message, 'error'); } 
@@ -678,7 +737,10 @@
                     try { 
                         try { await runGAS('updateReceiptConfig', formValues); }
                         catch(e) { await runGAS('updateSetting', 'ReceiptConfig', formValues.header, formValues.note); }
+                        
                         setAdminData(prev => ({ ...prev, shirtPrice: { ...(prev?.shirtPrice || {}), receiptHeader: formValues.header, receiptNote: formValues.note } })); 
+                        if(setShirtPrice) setShirtPrice(prev => ({ ...prev, receiptHeader: formValues.header, receiptNote: formValues.note }));
+                        
                         Swal.close(); 
                         Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตใบเสร็จสำเร็จ` }); 
                     } catch (err) { Swal.fire('Error', err.message, 'error'); } 
@@ -708,7 +770,10 @@
                     try { 
                         try { await runGAS('updateShirtPopup', formValues); }
                         catch(e) { await runGAS('updateSetting', 'ShirtPopup', formValues.text, formValues.image); }
+                        
                         setAdminData(prev => ({ ...prev, shirtPrice: { ...(prev?.shirtPrice || {}), popupText: formValues.text, popupImage: formValues.image } })); 
+                        if(setShirtPrice) setShirtPrice(prev => ({ ...prev, popupText: formValues.text, popupImage: formValues.image }));
+                        
                         Swal.close(); 
                         Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `ตั้งค่าสำเร็จ` }); 
                     } catch (err) { Swal.fire('Error', err.message, 'error'); } 
@@ -718,17 +783,6 @@
             const handleCreateActivity = async (e) => {
                 e.preventDefault(); Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                 try { await runGAS('createActivity', { name: e.target.name.value, date: e.target.date.value, location: e.target.location.value }); Swal.fire('สำเร็จ', 'สร้างกิจกรรมเรียบร้อย', 'success'); e.target.reset(); reloadData(true); } catch(err) { Swal.fire('Error', err.message, 'error'); }
-            };
-
-            const toggleActivityStatus = async (id, currentStatus) => {
-                Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-                try { 
-                    const newStatus = String(currentStatus).toLowerCase() === 'open' ? 'closed' : 'open'; 
-                    await runGAS('toggleActivityStatus', id, newStatus); 
-                    setAdminData(prev => ({...prev, activities: (prev?.activities || []).map(a => a.ActivityID === id ? { ...a, Status: newStatus } : a)})); 
-                    Swal.close(); 
-                    Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตสำเร็จ` }); 
-                } catch(err) { Swal.fire('Error', err.message, 'error'); }
             };
 
             const handleCreateRecruit = async (e) => {
@@ -755,17 +809,6 @@
                     Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                     try { await runGAS('updateRecruit', formValues); setAdminData(prev => ({ ...prev, recruitments: (prev?.recruitments || []).map(r => r.RecruitID === formValues.id ? { ...r, Name: formValues.name, Date: formValues.date, Location: formValues.location, Attachment: formValues.attachment } : r) })); Swal.close(); Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: 'อัปเดตข้อมูลสำเร็จ' }); } catch(err) { Swal.fire('ข้อผิดพลาด', err.message, 'error'); }
                 }
-            };
-
-            const toggleRecruitStatus = async (id, currentStatus) => {
-                Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-                try { 
-                    const newStatus = String(currentStatus).toLowerCase() === 'open' ? 'closed' : 'open'; 
-                    await runGAS('toggleRecruitStatus', id, newStatus); 
-                    setAdminData(prev => ({ ...prev, recruitments: (prev?.recruitments || []).map(r => r.RecruitID === id ? { ...r, Status: newStatus } : r) })); 
-                    Swal.close(); 
-                    Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: `อัปเดตสถานะแล้ว` }); 
-                } catch(err) { Swal.fire('Error', err.message, 'error'); }
             };
 
             const setupImageUpload = (inputId, imgId) => {
@@ -1089,7 +1132,13 @@
                             <div className="grid lg:grid-cols-3 gap-8">
                                 <div className="lg:col-span-1">
                                     <div className="bg-white/90 backdrop-blur p-6 rounded-[1.5rem] border border-orange-100/50 shadow-sm mb-6 flex flex-col items-start gap-4">
-                                        <div className="w-full"><div className="flex items-center gap-2 mb-3"><i className="fa-solid fa-gear text-orange-400 text-sm"></i><h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Master Control</h3></div><button disabled={SYSTEM_OVERRIDES.FORCE_CLOSE_RECRUIT} onClick={async()=>{Swal.fire({title:'อัปเดต...',didOpen:()=>Swal.showLoading()});try{await runGAS('updateSetting', 'RecruitStatus', String(data.recruitStatus).toLowerCase() === 'open'?'closed':'open');setAdminData(p=>({...p,recruitStatus:String(data.recruitStatus).toLowerCase() === 'open'?'closed':'open'}));setRecruitSystemOpen(String(data.recruitStatus).toLowerCase() !== 'open');Swal.close();}catch(e){Swal.fire('Error',e.message,'error');}}} className={`w-full flex items-center justify-between text-xs font-bold uppercase tracking-widest px-5 py-4 rounded-xl border-2 transition-all shadow-sm ${SYSTEM_OVERRIDES.FORCE_CLOSE_RECRUIT ? 'text-gray-400 bg-gray-200 border-gray-300 cursor-not-allowed' : (String(data.recruitStatus).toLowerCase() !== 'closed' ? 'text-purple-700 border-purple-200 bg-purple-50' : 'text-gray-600 border-gray-200 bg-gray-50')}`}><span>{SYSTEM_OVERRIDES.FORCE_CLOSE_RECRUIT ? 'ปิดระบบถาวร (จากโค้ด)' : (String(data.recruitStatus).toLowerCase() !== 'closed' ? 'เปิดระบบรับสมัคร' : 'ปิดระบบรับสมัคร')}</span> <i className={`fa-solid ${SYSTEM_OVERRIDES.FORCE_CLOSE_RECRUIT ? 'fa-lock' : (String(data.recruitStatus).toLowerCase() !== 'closed' ? 'fa-toggle-on text-purple-500' : 'fa-toggle-off text-gray-400')} text-2xl`}></i></button></div>
+                                        <div className="w-full">
+                                            <div className="flex items-center gap-2 mb-3"><i className="fa-solid fa-gear text-orange-400 text-sm"></i><h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Master Control</h3></div>
+                                            <button disabled={SYSTEM_OVERRIDES.FORCE_CLOSE_RECRUIT} onClick={() => handleToggleRecruitSystem(data?.recruitStatus || 'open')} className={`w-full flex items-center justify-between text-xs font-bold uppercase tracking-widest px-5 py-4 rounded-xl border-2 transition-all shadow-sm ${SYSTEM_OVERRIDES.FORCE_CLOSE_RECRUIT ? 'text-gray-400 bg-gray-200 border-gray-300 cursor-not-allowed' : (String(data.recruitStatus).toLowerCase() !== 'closed' ? 'text-purple-700 border-purple-200 bg-purple-50' : 'text-gray-600 border-gray-200 bg-gray-50')}`}>
+                                                <span>{SYSTEM_OVERRIDES.FORCE_CLOSE_RECRUIT ? 'ปิดระบบถาวร (จากโค้ด)' : (String(data.recruitStatus).toLowerCase() !== 'closed' ? 'เปิดระบบรับสมัคร' : 'ปิดระบบรับสมัคร')}</span> 
+                                                <i className={`fa-solid ${SYSTEM_OVERRIDES.FORCE_CLOSE_RECRUIT ? 'fa-lock' : (String(data.recruitStatus).toLowerCase() !== 'closed' ? 'fa-toggle-on text-purple-500' : 'fa-toggle-off text-gray-400')} text-2xl`}></i>
+                                            </button>
+                                        </div>
                                     </div>
                                     <div className="bg-white/90 backdrop-blur p-8 border border-orange-100/50 rounded-2xl h-fit shadow-sm relative overflow-hidden">
                                         <h3 className="text-sm font-bold text-charcoal-900 mb-6 uppercase tracking-widest border-l-2 border-purple-500 pl-3">สร้างประกาศรับสมัคร</h3>
@@ -1109,7 +1158,13 @@
                                                 (data?.recruitments || []).map(r=>(
                                                     <div key={r.RecruitID} className="p-5 hover:bg-purple-50/30 group flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                                         <div className="flex items-start gap-4"><div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${String(r.Status).toLowerCase() === 'open' ? 'bg-gradient-to-br from-purple-400 to-purple-600 text-white' : 'bg-gray-100 text-gray-400'}`}><i className="fa-solid fa-clipboard-user text-xl"></i></div><div><h4 className="font-bold text-charcoal-900 text-base mb-2 leading-tight">{r.Name}</h4><div className="flex flex-wrap gap-2 text-xs text-gray-500 font-medium"><span className="bg-white border px-2.5 py-1 rounded-md"><i className="fa-regular fa-clock text-purple-400"></i> {formatDisplayDate(r.Date).date} {formatDisplayDate(r.Date).month}</span><span className="bg-white border px-2.5 py-1 rounded-md"><i className="fa-solid fa-location-dot text-purple-400"></i> {r.Location}</span>{getVal(r, ['attachment', 'แนบไฟล์'], 'Attachment') && <span onClick={() => window.open(getVal(r, ['attachment', 'แนบไฟล์'], 'Attachment'), '_blank')} className="bg-purple-50 text-purple-600 border border-purple-200 px-2.5 py-1 rounded-md cursor-pointer hover:bg-purple-500 hover:text-white"><i className="fa-solid fa-paperclip"></i> มีไฟล์แนบ</span>}</div></div></div>
-                                                        <div className="flex items-center gap-3 border-t sm:border-t-0 pt-4 sm:pt-0"><span className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase border ${String(r.Status).toLowerCase() === 'open' ? 'text-purple-600 bg-purple-50 border-purple-200' : 'text-gray-400 bg-gray-50 border-gray-200'}`}>{String(r.Status).toLowerCase() === 'open' ? 'เปิดรับ' : 'ปิดแล้ว'}</span><div className="flex gap-2"><button disabled={String(data.recruitStatus).toLowerCase() === 'closed'} onClick={() => handleEditRecruit(r)} className={`w-9 h-9 rounded-xl flex items-center justify-center border ${String(data.recruitStatus).toLowerCase() === 'closed' ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-amber-50 text-amber-500 border-amber-200 hover:bg-amber-500 hover:text-white'}`}><i className="fa-solid fa-pen"></i></button><button disabled={String(data.recruitStatus).toLowerCase() === 'closed'} onClick={async()=>{Swal.fire({title:'อัปเดต...',didOpen:()=>Swal.showLoading()});try{await runGAS('toggleRecruitStatus',r.RecruitID,r.Status);setAdminData(p=>({...p,recruitments:p.recruitments.map(x=>x.RecruitID===r.RecruitID?{...x,Status:String(r.Status).toLowerCase() === 'open'?'closed':'open'}:x)}));Swal.close();}catch(e){Swal.fire('Error',e.message,'error');}}} className={`text-[36px] leading-none transition-transform ${String(data.recruitStatus).toLowerCase() === 'closed' ? 'opacity-50 cursor-not-allowed grayscale' : 'hover:scale-110'} ${String(r.Status).toLowerCase() === 'open' ? 'text-purple-500' : 'text-gray-300'}`}><i className={`fa-solid ${String(r.Status).toLowerCase() === 'open' ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i></button></div></div>
+                                                        <div className="flex items-center gap-3 border-t sm:border-t-0 pt-4 sm:pt-0">
+                                                            <span className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase border ${String(r.Status).toLowerCase() === 'open' ? 'text-purple-600 bg-purple-50 border-purple-200' : 'text-gray-400 bg-gray-50 border-gray-200'}`}>{String(r.Status).toLowerCase() === 'open' ? 'เปิดรับ' : 'ปิดแล้ว'}</span>
+                                                            <div className="flex gap-2">
+                                                                <button disabled={String(data.recruitStatus).toLowerCase() === 'closed'} onClick={() => handleEditRecruit(r)} className={`w-9 h-9 rounded-xl flex items-center justify-center border ${String(data.recruitStatus).toLowerCase() === 'closed' ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-amber-50 text-amber-500 border-amber-200 hover:bg-amber-500 hover:text-white'}`}><i className="fa-solid fa-pen"></i></button>
+                                                                <button disabled={String(data.recruitStatus).toLowerCase() === 'closed'} onClick={() => toggleRecruitStatus(r.RecruitID, r.Status)} className={`text-[36px] leading-none transition-transform ${String(data.recruitStatus).toLowerCase() === 'closed' ? 'opacity-50 cursor-not-allowed grayscale' : 'hover:scale-110'} ${String(r.Status).toLowerCase() === 'open' ? 'text-purple-500' : 'text-gray-300'}`}><i className={`fa-solid ${String(r.Status).toLowerCase() === 'open' ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i></button>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 ))
                                             }
@@ -1233,6 +1288,7 @@
             const [surveyAnswers, setSurveyAnswers] = useState({});
             const [suggestion, setSuggestion] = useState('');
             const [historyData, setHistoryData] = useState([]);
+            const [shirtHistoryData, setShirtHistoryData] = useState([]); // เพิ่มตัวแปรสำหรับเก็บประวัติจองเสื้อ
 
             const [systemOpen, setSystemOpen] = useState(true);
             const [recruitSystemOpen, setRecruitSystemOpen] = useState(true);
@@ -1295,28 +1351,29 @@
                             let recruitInfo = { status: 'open' }; 
                             let homePopupInfo = { image: '', status: 'closed' };
 
-                            if (settings && settings.length > 0) {
-                                const getSet = (k, def) => { const r = settings.find(x => String(Object.values(x)[0]).toLowerCase() === k.toLowerCase()); return r ? Object.values(r)[1] : def; };
-                                priceInfo = { 
-                                    normal: Number(getSet('ShirtPrice', 250)), 
-                                    oversize: Number((settings.find(x => String(Object.values(x)[0]).toLowerCase() === 'shirtprice') || {val:380})[2] || 380), 
-                                    status: getSet('ShirtStatus', 'open'), 
-                                    receiptHeader: getSet('ReceiptConfig', priceInfo.receiptHeader), 
-                                    receiptNote: (settings.find(x => String(Object.values(x)[0]).toLowerCase() === 'receiptconfig') || {val:priceInfo.receiptNote})[2] || priceInfo.receiptNote, 
-                                    systemStatus: getSet('SystemStatus', 'open'), 
-                                    popupText: getSet('ShirtPopup', ''), 
-                                    popupImage: (settings.find(x => String(Object.values(x)[0]).toLowerCase() === 'shirtpopup') || {val:''})[2] || '' 
-                                };
-                                recruitInfo.status = getSet('RecruitStatus', 'open');
-                                homePopupInfo = { image: String(getSet('HomePopup', '')).trim(), status: String(getSet('HomePopup', '', 'closed')).trim().toLowerCase() };
+                            if (realtimeSettings) {
+                                priceInfo = realtimeSettings.shirtPrice;
+                                recruitInfo.status = realtimeSettings.recruitStatus;
+                                homePopupInfo = realtimeSettings.homePopup;
                             }
+
+                            try {
+                                const ovr = JSON.parse(localStorage.getItem('digit_sys_overrides') || '{}');
+                                if(ovr['SYS_MAIN'] && Date.now() - ovr['SYS_MAIN'].time < 300000) priceInfo.systemStatus = ovr['SYS_MAIN'].status;
+                                if(ovr['SYS_RECRUIT'] && Date.now() - ovr['SYS_RECRUIT'].time < 300000) recruitInfo.status = ovr['SYS_RECRUIT'].status;
+                                if(ovr['SYS_SHIRT'] && Date.now() - ovr['SYS_SHIRT'].time < 300000) priceInfo.status = ovr['SYS_SHIRT'].status;
+                                
+                                for(let i=0; i<acts.length; i++){ const o = ovr[`ACT_${acts[i].ActivityID}`]; if(o && Date.now() - o.time < 300000) acts[i].Status = o.status; }
+                                for(let i=0; i<recs.length; i++){ const o = ovr[`REC_${recs[i].RecruitID}`]; if(o && Date.now() - o.time < 300000) recs[i].Status = o.status; }
+                            } catch(e) {}
+
                             data = { activities: acts, checkins: chks, evaluations: evals, shirtOrders: shirts, recruitments: recs, registrations: regis, shirtPrice: priceInfo, recruitStatus: recruitInfo.status, homePopup: homePopupInfo };
                         } catch(csvErr) {
                             csvFailed = true;
                         }
                     } 
                     
-                    if (!isFastCSVReady() || csvFailed) { 
+                    if (!data || csvFailed) { 
                         data = await runGAS('getAdminDashboardData'); 
                     }
                     
@@ -1384,6 +1441,19 @@
                                 }
                             } catch(e) {}
                         }
+
+                        try {
+                            const ovr = JSON.parse(localStorage.getItem('digit_sys_overrides') || '{}');
+                            if(ovr['SYS_MAIN'] && Date.now() - ovr['SYS_MAIN'].time < 300000) sysStatus = ovr['SYS_MAIN'].status;
+                            if(ovr['SYS_RECRUIT'] && Date.now() - ovr['SYS_RECRUIT'].time < 300000) recStatus = ovr['SYS_RECRUIT'].status;
+                            if(ovr['SYS_SHIRT'] && Date.now() - ovr['SYS_SHIRT'].time < 300000) { if(priceInfo) priceInfo.status = ovr['SYS_SHIRT'].status; }
+                            
+                            acts = acts.map(a => { const o = ovr[`ACT_${a.ActivityID}`]; return o && (Date.now() - o.time < 300000) ? { ...a, Status: o.status } : a; });
+                            recs = recs.map(r => { const o = ovr[`REC_${r.RecruitID}`]; return o && (Date.now() - o.time < 300000) ? { ...r, Status: o.status } : r; });
+                        } catch(e) {}
+
+                        acts = acts.filter(a => String(a.Status).toLowerCase() === 'open');
+                        recs = recs.filter(r => String(r.Status).toLowerCase() === 'open');
 
                         setActivities(acts || []); setRecruitments(recs || []); 
                         setRecruitSystemOpen(SYSTEM_OVERRIDES.FORCE_CLOSE_RECRUIT ? false : String(recStatus).toLowerCase() !== 'closed'); 
@@ -1578,16 +1648,53 @@
                 const studentId = String(rawStudentId).trim(); if(!studentId) return Swal.fire('แจ้งเตือน', 'กรอกรหัสนักศึกษา', 'warning');
                 Swal.fire({ title: 'ค้นหาประวัติ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                 try {
-                    let data = []; let csvFailed = false;
+                    let activityData = []; let shirtData = []; let csvFailed = false;
+                    
                     if (isFastCSVReady()) {
                         try {
-                            const allChks = await fetchFastCSV('CheckIns');
-                            data = allChks.filter(c => String(getVal(c, ['studentid', 'รหัส'], 'StudentID')).trim() === studentId || String(getVal(c, ['idcard', 'บัตร'], 'IDCard')).trim() === studentId)
+                            const [allChks, allShirts] = await Promise.all([
+                                fetchFastCSV('CheckIns').catch(() => []),
+                                fetchFastCSV('ShirtOrders').catch(() => [])
+                            ]);
+                            
+                            activityData = allChks.filter(c => String(getVal(c, ['studentid', 'รหัส'], 'StudentID')).trim() === studentId || String(getVal(c, ['idcard', 'บัตร'], 'IDCard')).trim() === studentId)
                                           .map(c => ({ ActivityName: getVal(c, ['activityname', 'ชื่อกิจกรรม'], 'ActivityName') || 'กิจกรรม (ไม่ระบุชื่อ)', Timestamp: getVal(c, ['timestamp', 'เวลา'], 'Timestamp') || '', StudentID: getVal(c, ['studentid', 'รหัส'], 'StudentID') || '', Name: getVal(c, ['name', 'ชื่อ'], 'Name') || '' })).reverse();
+                                          
+                            // ดึงข้อมูลจาก ShirtOrders มาแสดงในประวัติ
+                            shirtData = allShirts.filter(o => String(getVal(o, ['studentid', 'รหัส'], 'StudentID')).trim() === studentId)
+                                         .map(o => ({ 
+                                             Timestamp: getVal(o, ['timestamp', 'เวลา', 'ประทับเวลา'], 'Timestamp'), 
+                                             Status: getVal(o, ['status', 'สถานะ'], 'Status'), 
+                                             TotalPrice: getVal(o, ['totalprice', 'ยอดรวม', 'ยอดสุทธิ'], 'TotalPrice'), 
+                                             PoloQty: Number(getVal(o, ['poloqty', 'จำนวนโปโล', 'จำนวน(โปโล)'], 'PoloQty')) || 0, 
+                                             PoloSize: getVal(o, ['polosize', 'ไซส์โปโล', 'ไซส์(โปโล)'], 'PoloSize') || '-',
+                                             TshirtQty: Number(getVal(o, ['tshirtqty', 'จำนวนเสื้อยืด', 'จำนวน(เสื้อยืด)'], 'TshirtQty')) || 0,
+                                             TshirtSize: getVal(o, ['tshirtsize', 'ไซส์เสื้อยืด', 'ไซส์(เสื้อยืด)'], 'TshirtSize') || '-'
+                                         })).reverse();
                         } catch (csvErr) { csvFailed = true; }
                     } 
-                    if (!isFastCSVReady() || csvFailed) data = await runGAS('getStudentHistory', studentId); 
-                    Swal.close(); setHistoryData(data || []); setView('history_result');
+                    
+                    if (!isFastCSVReady() || csvFailed) {
+                        activityData = await runGAS('getStudentHistory', studentId);
+                        const shirtCheck = await runGAS('checkShirtOrder', studentId);
+                        if (shirtCheck.hasOrdered && shirtCheck.data) {
+                            const p = shirtCheck.data;
+                            shirtData = [{
+                                Timestamp: getVal(p, ['timestamp', 'เวลา'], 'Timestamp'), 
+                                Status: getVal(p, ['status', 'สถานะ'], 'Status'), 
+                                TotalPrice: getVal(p, ['totalprice', 'ยอดรวม'], 'TotalPrice'), 
+                                PoloQty: Number(getVal(p, ['poloqty', 'จำนวนโปโล'], 'PoloQty')) || 0, 
+                                PoloSize: getVal(p, ['polosize', 'ไซส์โปโล'], 'PoloSize') || '-',
+                                TshirtQty: Number(getVal(p, ['tshirtqty', 'จำนวนเสื้อยืด'], 'TshirtQty')) || 0,
+                                TshirtSize: getVal(p, ['tshirtsize', 'ไซส์เสื้อยืด'], 'TshirtSize') || '-'
+                            }];
+                        }
+                    }
+                    
+                    Swal.close(); 
+                    setHistoryData(activityData || []); 
+                    setShirtHistoryData(shirtData || []);
+                    setView('history_result');
                 } catch(e) { Swal.fire('ข้อผิดพลาด', e.message || String(e), 'error'); }
             };
 
@@ -1844,20 +1951,71 @@
                     return (
                         <div className="flex-grow flex flex-col items-center pt-8 p-6 pb-20">
                             <div className="luxury-card w-full max-w-2xl p-6 sm:p-10 border-t-4 border-t-orange-500">
-                                <div className="flex items-center justify-between mb-8 pb-4 border-b border-orange-100"><div><h2 className="text-xl font-semibold text-charcoal-900">ประวัติการเข้าร่วมกิจกรรม</h2><p className="text-gray-500 text-sm font-light mt-1">พบข้อมูลทั้งหมด {historyData.length} รายการ</p></div><button onClick={() => setView('history_search')} className="text-xs text-orange-500 hover:text-orange-700 bg-orange-50 px-3 py-1.5 rounded-lg transition-colors font-medium">ค้นหาใหม่</button></div>
-                                <div className="space-y-4">
-                                    {historyData.length === 0 ? ( <div className="text-center py-16"><p className="text-gray-400 font-light">ไม่พบประวัติการเข้าร่วมกิจกรรม</p></div> ) : (
-                                        <div className="relative border-l border-orange-200 ml-4 sm:ml-6 pl-6 sm:pl-8 space-y-8 py-2">
-                                            {historyData.map((h, i) => (
-                                                <div key={i} className="relative group">
-                                                    <div className="absolute -left-[30px] sm:-left-[38px] top-1.5 w-3 h-3 bg-white border-2 border-orange-500 rounded-full transition-transform group-hover:scale-125 group-hover:bg-orange-100"></div>
-                                                    <div className="bg-white p-5 rounded-xl border border-orange-50/80 shadow-[0_2px_10px_rgba(249,115,22,0.03)] transition-all hover:shadow-[0_4px_15px_rgba(249,115,22,0.08)] hover:border-orange-200">
-                                                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4"><div><p className="text-[10px] text-orange-400 font-medium uppercase tracking-widest mb-1">เข้าร่วมแล้ว</p><h4 className="font-semibold text-charcoal-900 text-lg mb-1">{h.ActivityName}</h4><p className="text-sm text-gray-500 font-light">{h.Name} ({h.StudentID})</p></div><div className="text-xs text-gray-500 font-light whitespace-nowrap bg-orange-50/80 text-orange-700 px-3 py-1.5 rounded-md border border-orange-100">{h.Timestamp ? new Date(h.Timestamp).toLocaleString('th-TH') : '-'}</div></div>
+                                <div className="flex items-center justify-between mb-8 pb-4 border-b border-orange-100">
+                                    <div><h2 className="text-xl font-semibold text-charcoal-900">ประวัติกิจกรรมและการจอง</h2><p className="text-gray-500 text-sm font-light mt-1">รหัส: {localStorage.getItem('last_student_id')}</p></div>
+                                    <button onClick={() => setView('history_search')} className="text-xs text-orange-500 hover:text-orange-700 bg-orange-50 px-3 py-1.5 rounded-lg transition-colors font-medium">ค้นหาใหม่</button>
+                                </div>
+                                
+                                {shirtHistoryData.length > 0 && (
+                                    <div className="mb-10">
+                                        <h3 className="text-sm font-bold text-rose-600 mb-4 flex items-center gap-2 border-l-4 border-rose-500 pl-3"><i className="fa-solid fa-shirt"></i> ประวัติการจองเสื้อ</h3>
+                                        <div className="space-y-4">
+                                            {shirtHistoryData.map((s, i) => (
+                                                <div key={i} className="bg-white p-5 rounded-xl border border-rose-100 shadow-sm flex flex-col sm:flex-row justify-between gap-4 hover:border-rose-300 transition-colors">
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center gap-2 mb-3">
+                                                            <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md border uppercase tracking-widest ${String(s.Status).toLowerCase() === 'received' ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}`}>
+                                                                {String(s.Status).toLowerCase() === 'received' ? 'รอยืนยัน/รอชำระ' : 'ชำระเงินแล้ว'}
+                                                            </span>
+                                                            <span className="text-xs text-gray-500 font-light"><i className="fa-regular fa-clock mr-1"></i> {s.Timestamp ? formatDateTimeTH(s.Timestamp).full : '-'}</span>
+                                                        </div>
+                                                        
+                                                        <div className="bg-rose-50/50 p-3 rounded-lg border border-rose-100/50 mb-3">
+                                                            {s.PoloQty > 0 && <p className="text-xs text-gray-700 mb-1"><span className="font-semibold text-charcoal-900">เสื้อคอปกโปโล:</span> ไซส์ <span className="font-bold">{s.PoloSize}</span> <span className="text-[10px] text-gray-500">x{s.PoloQty} ตัว</span></p>}
+                                                            {s.TshirtQty > 0 && <p className="text-xs text-gray-700"><span className="font-semibold text-charcoal-900">เสื้อยืดกิจกรรม:</span> ไซส์ <span className="font-bold">{s.TshirtSize}</span> <span className="text-[10px] text-gray-500">x{s.TshirtQty} ตัว</span></p>}
+                                                            {(s.PoloQty === 0 && s.TshirtQty === 0) && <p className="text-xs text-gray-500">ไม่มีรายละเอียดไซส์</p>}
+                                                        </div>
+
+                                                        <p className="text-sm text-charcoal-900 font-bold flex items-center">
+                                                            ยอดรวมทั้งสิ้น: <span className="text-rose-600 text-lg ml-2">฿{Number(s.TotalPrice).toLocaleString()}</span>
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-end sm:items-center">
+                                                        <button onClick={() => { setSearchPurpose('shirt'); handleSearchStudent(localStorage.getItem('last_student_id')); }} className="text-xs bg-rose-50 hover:bg-rose-500 text-rose-600 hover:text-white px-4 py-3 rounded-lg font-bold transition-all w-full sm:w-auto text-center border border-rose-200 shadow-sm">
+                                                            ดูใบเสร็จ <i className="fa-solid fa-arrow-right ml-1"></i>
+                                                        </button>
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
-                                    )}
+                                    </div>
+                                )}
+
+                                <div>
+                                    <h3 className="text-sm font-bold text-orange-600 mb-4 flex items-center gap-2 border-l-4 border-orange-500 pl-3"><i className="fa-solid fa-list-check"></i> ประวัติการเข้าร่วมกิจกรรม ({historyData.length})</h3>
+                                    <div className="space-y-4">
+                                        {historyData.length === 0 ? ( <div className="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200"><p className="text-gray-400 font-light text-sm">ไม่พบประวัติการเข้าร่วมกิจกรรม</p></div> ) : (
+                                            <div className="relative border-l border-orange-200 ml-4 sm:ml-6 pl-6 sm:pl-8 space-y-6 py-2">
+                                                {historyData.map((h, i) => (
+                                                    <div key={i} className="relative group">
+                                                        <div className="absolute -left-[30px] sm:-left-[38px] top-1.5 w-3 h-3 bg-white border-2 border-orange-500 rounded-full transition-transform group-hover:scale-125 group-hover:bg-orange-100"></div>
+                                                        <div className="bg-white p-4 sm:p-5 rounded-xl border border-orange-50/80 shadow-[0_2px_10px_rgba(249,115,22,0.03)] transition-all hover:shadow-[0_4px_15px_rgba(249,115,22,0.08)] hover:border-orange-200">
+                                                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                                                                <div>
+                                                                    <p className="text-[10px] text-orange-400 font-medium uppercase tracking-widest mb-1">เข้าร่วมแล้ว</p>
+                                                                    <h4 className="font-semibold text-charcoal-900 text-base mb-1">{h.ActivityName}</h4>
+                                                                    <p className="text-xs text-gray-500 font-light">{h.Name}</p>
+                                                                </div>
+                                                                <div className="text-xs text-gray-500 font-light whitespace-nowrap bg-orange-50/80 text-orange-700 px-3 py-1.5 rounded-md border border-orange-100 w-fit">
+                                                                    <i className="fa-regular fa-clock mr-1"></i> {h.Timestamp ? formatDateTimeTH(h.Timestamp).full : '-'}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1910,9 +2068,7 @@
                     return (
                         <div className="flex-grow flex flex-col md:flex-row max-w-6xl mx-auto w-full p-6 md:p-10 gap-10 lg:gap-16 items-center justify-center relative z-10">
                             
-                            {/* ฝั่งซ้าย: แสดงกิจกรรมที่เปิด (พื้นหลังสีแสด) */}
                             <div className="w-full md:w-1/2 flex flex-col h-full justify-center order-2 md:order-1 bg-orange-500 rounded-[2.5rem] p-8 md:p-10 shadow-xl shadow-orange-500/30 relative overflow-hidden">
-                                {/* Decorative elements */}
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
                                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4 pointer-events-none"></div>
                                 
@@ -1951,7 +2107,6 @@
                                 </div>
                             </div>
 
-                            {/* ฝั่งขวา: ฟอร์มล็อคอิน (พื้นหลังสีขาว) */}
                             <div className="w-full md:w-1/2 flex items-center justify-center order-1 md:order-2 perspective-1000">
                                 <div className="bg-white w-full max-w-md p-8 sm:p-10 rounded-[2.5rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] relative overflow-hidden transform transition-all duration-500 hover:shadow-[0_20px_60px_-15px_rgba(249,115,22,0.1)]">
                                     
@@ -1999,7 +2154,7 @@
             };
 
             if (view === 'admin_dashboard') {
-                return <AdminDashboard data={adminData} reloadData={loadAdminData} goHome={goHome} setAdminData={setAdminData} setShirtSystemOpen={setShirtSystemOpen} setRecruitSystemOpen={setRecruitSystemOpen} setSystemOpen={setSystemOpen} />;
+                return <AdminDashboard data={adminData} reloadData={loadAdminData} goHome={goHome} setAdminData={setAdminData} setShirtSystemOpen={setShirtSystemOpen} setRecruitSystemOpen={setRecruitSystemOpen} setSystemOpen={setSystemOpen} setActivities={setActivities} setRecruitments={setRecruitments} />;
             }
 
             return (
@@ -2012,9 +2167,6 @@
             );
         };
 
-        // ==========================================
-        // INITIALIZATION
-        // ==========================================
         try {
             const root = ReactDOM.createRoot(document.getElementById('root'));
             root.render(<App />);
