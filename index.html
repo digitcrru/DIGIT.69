@@ -92,9 +92,7 @@
         // ตั้งค่าให้ Babel ใช้ Classic Runtime ป้องกันปัญหา Cannot use import statement
         if (window.Babel && Babel.availablePresets && Babel.availablePresets['react']) {
             Babel.registerPreset('react-classic', {
-                presets: [
-                    [Babel.availablePresets['react'], { runtime: 'classic' }]
-                ]
+                presets: [ [Babel.availablePresets['react'], { runtime: 'classic' }] ]
             });
         }
     </script>
@@ -102,14 +100,8 @@
     <div id="root"></div>
 
     <script type="text/babel" data-presets="react-classic,env">
-        /** @jsx React.createElement */
-        /** @jsxFrag React.Fragment */
-
         const { useState, useEffect, useMemo, useCallback } = React;
 
-        // ==========================================
-        // 1. CORE API & UTILITIES
-        // ==========================================
         const API_CONFIG = {
             SHEET_ID: "1KLJNWUUIj1r6eqCZnaF-F6nA2FQg7pvOHMk0PyDCyAc",
             WEB_APP_URL: "https://script.google.com/macros/s/AKfycby0iQpbOXqr82EvrX_qhwOtrBc3YN5oBFFLrzipXYoWJ3m1fwxMUAyxspLneeNQrmImnw/exec",
@@ -162,7 +154,6 @@
             const exportData = data.map(r => {
                 let row = {};
                 fields.forEach((f, i) => { 
-                    // Force IDCard to be a string in Excel to prevent 1.11E+12
                     let val = String(getVal(r, [f.toLowerCase()], f));
                     if (f.toLowerCase().includes('idcard') || f.toLowerCase().includes('บัตร')) val = "'" + val; 
                     row[headers[i] || f] = val; 
@@ -181,9 +172,6 @@
             { title: "3. คุณภาพการให้บริการ", questions: [ { id: "q9", text: "3.1 ท่านได้รับความรู้ แนวคิด ทักษะและประสบการณ์ใหม่ ๆ จากโครงการ" }, { id: "q10", text: "3.2 ท่านสามารถนำสิ่งที่ได้รับจากโครงการ/กิจกรรมนี้ไปใช้ในการปฏิบัติงาน" }, { id: "q11", text: "3.3 สิ่งที่ท่านได้รับจากโครงการ/กิจกรรมครั้งนี้ตรงตามความคาดหวังของท่านหรือไม่" }, { id: "q12", text: "3.4 โครงการ/กิจกรรมนี้เอื้ออำนวยต่อการเรียนรู้และพัฒนาความสามารถของท่าน" }, { id: "q13", text: "3.5 ประโยชน์ที่ท่านได้รับจากโครงการ/กิจกรรม" } ] }
         ];
 
-        // ==========================================
-        // 2. REUSABLE UI COMPONENTS
-        // ==========================================
         function StatusBadge({ status, openLabel='เปิด', closedLabel='ปิด' }) {
             const isOpen = String(status).toLowerCase() === 'open' || String(status).toLowerCase() === 'true';
             return (
@@ -380,49 +368,6 @@
             );
         }
 
-        function ShirtSection({ num, title, genderState, setGenderState, sizeState, setSizeState, qtyState, setQtyState, getPrice }) {
-            return (
-                <div className="mb-8">
-                    <h3 className="font-semibold text-charcoal-900 mb-4 flex items-center"><span className="text-orange-500 mr-2">{num}.</span> {title}</h3>
-                    <div className="border border-orange-50/80 rounded-2xl p-5 sm:p-6 bg-white shadow-sm">
-                        <div className="mb-5">
-                            <label className="block text-xs font-medium text-gray-400 uppercase tracking-widest mb-3">ทรงเสื้อ</label>
-                            <div className="flex gap-4">
-                                {['ชาย', 'หญิง'].map(g => ( 
-                                    <label key={`${num}-${g}`} className={`flex-1 py-3 rounded-xl border text-center cursor-pointer text-sm font-medium transition-all ${genderState === g ? 'border-orange-500 bg-orange-500 text-white shadow-md' : 'border-gray-200 text-gray-500 hover:border-orange-300'}`}>
-                                        <input type="radio" className="hidden" checked={genderState === g} onChange={() => setGenderState(g)} /> ทรง{g}
-                                    </label> 
-                                ))}
-                            </div>
-                        </div>
-                        <div className="mb-5">
-                            <label className="block text-xs font-medium text-gray-400 uppercase tracking-widest mb-3">ขนาด (Size)</label>
-                            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
-                                {['S', 'M', 'L', 'XL', '2XL', '3XL'].map(size => ( 
-                                    <label key={`${num}-${size}`} className={`relative flex flex-col items-center py-3 rounded-xl border cursor-pointer transition-all ${sizeState === size ? 'border-orange-500 bg-orange-50 text-orange-600 shadow-sm' : 'border-gray-200 text-gray-500 hover:border-orange-300'}`}>
-                                        <input type="radio" className="hidden" checked={sizeState === size} onChange={() => setSizeState(size)} />
-                                        <span className="text-sm font-semibold">{size}</span>
-                                        <span className="text-[9px] opacity-70 mt-1">฿{getPrice(size)}</span>
-                                    </label> 
-                                ))}
-                            </div>
-                        </div>
-                        <div className="flex justify-between items-center bg-orange-50/50 p-4 rounded-xl border border-orange-100">
-                            <label className="text-xs font-medium text-gray-500 uppercase tracking-widest">จำนวน</label>
-                            <div className="flex items-center gap-3">
-                                <button type="button" onClick={() => setQtyState(Math.max(1, qtyState - 1))} className="w-8 h-8 rounded border border-orange-200 bg-white text-orange-500 hover:bg-orange-100"><i className="fa-solid fa-minus text-xs"></i></button>
-                                <span className="font-semibold text-charcoal-900 w-6 text-center text-sm">{qtyState}</span>
-                                <button type="button" onClick={() => setQtyState(qtyState + 1)} className="w-8 h-8 rounded border border-orange-200 bg-white text-orange-500 hover:bg-orange-100"><i className="fa-solid fa-plus text-xs"></i></button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
-        // ==========================================
-        // 3. ADMIN DASHBOARD
-        // ==========================================
         function AdminDashboard({ db, setDb, sysConfig, setSysConfig, toggleCache, goHome, reloadData }) {
             const [tab, setTab] = useState('overview');
             const [spssActId, setSpssActId] = useState('');
@@ -639,7 +584,7 @@
         }
 
         // ==========================================
-        // 4. MAIN APP INITIALIZATION
+        // 4. MAIN APP COMPONENT
         // ==========================================
         function App() {
             const [view, setView] = useState(() => sessionStorage.getItem('app_view') || 'home');
@@ -761,38 +706,71 @@
 
             const handleSearch = async (e) => {
                 e.preventDefault();
-                const sid = e.target.studentId.value.trim().toLowerCase();
-                if(!sid) return;
+                const searchId = e.target.studentId.value.trim().toLowerCase();
+                if(!searchId) return;
                 Swal.fire({ title:'ตรวจสอบข้อมูล...', didOpen:()=>Swal.showLoading()});
                 try {
                     let st = null;
-                    if(sid === 'test' || sid === '12345') st = { StudentID: sid, Name: 'นศ.ทดสอบ', Major: 'สาขาทดสอบ', IDCard: '1111' };
-                    else {
-                        const stds = await fetchCSV('Students').catch(()=>[]);
-                        st = stds.find(s => String(getVal(s,['studentid','รหัส'])).toLowerCase()===sid || String(getVal(s,['idcard','บัตร'])).toLowerCase()===sid);
-                        if(!st) st = await runGAS('verifyStudent', sid).catch(()=>null);
+                    
+                    if(searchId === 'test' || searchId === '12345') {
+                        st = { StudentID: searchId, Name: 'นศ.ทดสอบ', Major: 'สาขาทดสอบ', IDCard: '1111' };
+                    } else {
+                        if (purpose === 'history') {
+                            // 1. โหมดประวัติ: ค้นหาจาก CheckIns โดยตรง (ไม่ต้องหาใน Students)
+                            const [chks, ords] = await Promise.all([ fetchCSV('CheckIns').catch(()=>[]), fetchCSV('ShirtOrders').catch(()=>[]) ]);
+                            
+                            // หาประวัติจาก CheckIns
+                            let foundInChk = chks.find(c => String(getVal(c, ['studentid', 'รหัส'])).toLowerCase() === searchId || String(getVal(c, ['idcard', 'บัตร'])).toLowerCase() === searchId);
+                            
+                            if (foundInChk) {
+                                st = { StudentID: getVal(foundInChk, ['studentid', 'รหัส'], 'StudentID'), Name: getVal(foundInChk, ['name', 'ชื่อ'], 'Name'), Major: getVal(foundInChk, ['major', 'สาขา'], 'Major'), IDCard: getVal(foundInChk, ['idcard', 'บัตร'], 'IDCard') };
+                            } else {
+                                // ถ้าไม่เจอใน CheckIns ลองหาจาก ShirtOrders เผื่อว่าเคยจองเสื้ออย่างเดียว
+                                let foundInOrd = ords.find(o => String(getVal(o, ['studentid', 'รหัส'])).toLowerCase() === searchId);
+                                if (foundInOrd) {
+                                    st = { StudentID: getVal(foundInOrd, ['studentid', 'รหัส'], 'StudentID'), Name: getVal(foundInOrd, ['name', 'ชื่อ'], 'Name'), Major: getVal(foundInOrd, ['major', 'สาขา'], 'Major'), IDCard: '' };
+                                }
+                            }
+                        } else {
+                            // 2. โหมดอื่น (จองเสื้อ, กิจกรรม, รับสมัคร): ค้นหายืนยันจากชีต Students เสมอ
+                            const stds = await fetchCSV('Students').catch(()=>[]);
+                            st = stds.find(s => String(getVal(s, ['studentid', 'รหัส'])).toLowerCase() === searchId || String(getVal(s, ['idcard', 'บัตร'])).toLowerCase() === searchId);
+                            
+                            // Fallback ไปหลังบ้านเผื่อพึ่งเพิ่มชื่อ
+                            if (!st) {
+                                st = await runGAS('verifyStudent', searchId).catch(()=>null);
+                            }
+                            
+                            if (st) {
+                                 st = { StudentID: getVal(st, ['studentid', 'รหัส'], 'StudentID') || searchId, Name: getVal(st, ['name', 'ชื่อ'], 'Name'), Major: getVal(st, ['major', 'สาขา'], 'Major'), IDCard: getVal(st, ['idcard', 'บัตร'], 'IDCard') };
+                            }
+                        }
                     }
 
-                    if(st && (st.Name || getVal(st,['name','ชื่อ']))) {
-                        const cSt = { StudentID: getVal(st,['studentid','รหัส'], 'StudentID')||sid, Name: getVal(st,['name','ชื่อ'],'Name'), Major: getVal(st,['major','สาขา'],'Major'), IDCard: getVal(st,['idcard','บัตร'],'IDCard') };
-                        setStudent(cSt);
-                        localStorage.setItem('last_sid', sid);
+                    if(st && (st.Name || getVal(st, ['name', 'ชื่อ']))) {
+                        setStudent(st);
+                        localStorage.setItem('last_sid', st.StudentID);
 
                         if(purpose === 'history') {
                             const chks = await fetchCSV('CheckIns').catch(()=>[]);
                             const ords = await fetchCSV('ShirtOrders').catch(()=>[]);
-                            setHistActs(chks.filter(c => String(getVal(c,['studentid','รหัส'])).toLowerCase()===sid).reverse());
-                            setHistShirts(ords.filter(o => String(getVal(o,['studentid','รหัส'])).toLowerCase()===sid).reverse());
+                            
+                            // กรองประวัติที่ตรงกับรหัสนักศึกษา หรือ บัตรประชาชนที่ผู้ใช้กรอกเข้ามา
+                            setHistActs(chks.filter(c => String(getVal(c,['studentid','รหัส'])).toLowerCase()===String(st.StudentID).toLowerCase() || String(getVal(c,['idcard','บัตร'])).toLowerCase()===String(searchId).toLowerCase()).reverse());
+                            
+                            // ประวัติเสื้อปกติใช้แค่รหัสนักศึกษา
+                            setHistShirts(ords.filter(o => String(getVal(o,['studentid','รหัส'])).toLowerCase()===String(st.StudentID).toLowerCase()).reverse());
+                            
                             Swal.close(); setView('history_result');
                         } 
                         else if(purpose === 'shirt') {
                             const ords = await fetchCSV('ShirtOrders').catch(()=>[]);
-                            const existing = ords.find(o => String(getVal(o,['studentid','รหัส'])).toLowerCase()===sid);
+                            const existing = ords.find(o => String(getVal(o,['studentid','รหัส'])).toLowerCase()===String(st.StudentID).toLowerCase());
                             Swal.close();
                             if(existing) { 
                                 const tsRaw = getVal(existing, ['timestamp', 'เวลา']);
                                 setReceiptData({ 
-                                    student: cSt, 
+                                    student: st, 
                                     poloGender: getVal(existing, ['pologender', 'ทรงโปโล'], 'PoloGender') || 'ชาย', 
                                     poloSize: getVal(existing, ['polosize', 'ไซส์โปโล'], 'PoloSize'), 
                                     poloQty: Number(getVal(existing, ['poloqty', 'จำนวนโปโล'], 'PoloQty') || 1), 
@@ -814,7 +792,12 @@
                             setView(purpose === 'recruit' ? 'select_recruit' : 'select_activity');
                         }
                     } else {
-                        Swal.fire('ไม่พบข้อมูล', 'โปรดตรวจสอบรหัสนักศึกษา/บัตรประชาชนอีกครั้ง', 'error');
+                        // ปรับข้อความแจ้งเตือนให้ตรงกับบริบท
+                        const errorMsg = purpose === 'history' 
+                            ? 'ไม่พบประวัติการเข้าร่วมกิจกรรม หรือการสั่งจองเสื้อของคุณในระบบ' 
+                            : 'ไม่พบข้อมูลในระบบลงทะเบียน กรุณาตรวจสอบรหัสนักศึกษา/บัตรประชาชนอีกครั้ง';
+                            
+                        Swal.fire('ไม่พบข้อมูล', errorMsg, 'error');
                     }
                 } catch(e) { Swal.fire('Error', e.message, 'error'); }
             };
@@ -849,7 +832,7 @@
                     <div className="md:hidden fixed bottom-0 left-0 w-full z-50 bg-white/90 backdrop-blur-md border-t border-gray-100 pb-safe shadow-lg">
                         <div className="flex justify-around items-center h-16">
                             {tabs.map((t, i) => (
-                                <button key={i} onClick={t.onClick} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${t.activeCond ? 'text-' + t.color + '-500' : 'text-gray-400'}`}>
+                                <button key={i} onClick={t.onClick} className={`relative flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${t.activeCond ? `text-${t.color}-500` : 'text-gray-400'}`}>
                                     {t.activeCond && <div className={`absolute top-0 w-8 h-1 bg-${t.color}-500 rounded-b-full`}></div>}
                                     <i className={`fa-solid ${t.icon} text-lg ${t.activeCond ? 'mb-0.5 scale-110' : ''}`}></i>
                                     <span className="text-[9px] font-bold">{t.label}</span>
