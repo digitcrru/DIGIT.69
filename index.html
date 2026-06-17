@@ -89,7 +89,6 @@
             document.body.removeChild(fileDownload);
         };
 
-        // ตั้งค่าให้ Babel ใช้ Classic Runtime ป้องกันปัญหา Cannot use import statement
         if (window.Babel && Babel.availablePresets && Babel.availablePresets['react']) {
             Babel.registerPreset('react-classic', {
                 presets: [ [Babel.availablePresets['react'], { runtime: 'classic' }] ]
@@ -102,6 +101,9 @@
     <script type="text/babel" data-presets="react-classic,env">
         const { useState, useEffect, useMemo, useCallback } = React;
 
+        // ==========================================
+        // 1. CORE API & UTILITIES
+        // ==========================================
         const API_CONFIG = {
             SHEET_ID: "1KLJNWUUIj1r6eqCZnaF-F6nA2FQg7pvOHMk0PyDCyAc",
             WEB_APP_URL: "https://script.google.com/macros/s/AKfycby0iQpbOXqr82EvrX_qhwOtrBc3YN5oBFFLrzipXYoWJ3m1fwxMUAyxspLneeNQrmImnw/exec",
@@ -166,14 +168,19 @@
             XLSX.writeFile(wb, filename);
         };
 
+        const checkIsOpen = (status) => ['open', 'true', '1', 'yes'].includes(String(status).trim().toLowerCase());
+
         const surveyData = [
             { title: "1. กระบวนการ ขั้นตอนการให้บริการ", questions: [ { id: "q1", text: "1.1 การประชาสัมพันธ์โครงการ ฯ" }, { id: "q2", text: "1.2 ความเหมาะสมของสถานที่" }, { id: "q3", text: "1.3 ความเหมาะสมของระยะเวลา" }, { id: "q4", text: "1.4 การจัดลำดับขั้นตอนของกิจกรรม" } ] },
             { title: "2. การอำนวยความสะดวก", questions: [ { id: "q5", text: "2.1 เอกสาร" }, { id: "q6", text: "2.2 โสตทัศนูปกรณ์" }, { id: "q7", text: "2.3 เจ้าหน้าที่สนับสนุน" }, { id: "q8", text: "2.4 อาหาร,เครื่องดื่มและสถานที่" } ] },
             { title: "3. คุณภาพการให้บริการ", questions: [ { id: "q9", text: "3.1 ท่านได้รับความรู้ แนวคิด ทักษะและประสบการณ์ใหม่ ๆ จากโครงการ" }, { id: "q10", text: "3.2 ท่านสามารถนำสิ่งที่ได้รับจากโครงการ/กิจกรรมนี้ไปใช้ในการปฏิบัติงาน" }, { id: "q11", text: "3.3 สิ่งที่ท่านได้รับจากโครงการ/กิจกรรมครั้งนี้ตรงตามความคาดหวังของท่านหรือไม่" }, { id: "q12", text: "3.4 โครงการ/กิจกรรมนี้เอื้ออำนวยต่อการเรียนรู้และพัฒนาความสามารถของท่าน" }, { id: "q13", text: "3.5 ประโยชน์ที่ท่านได้รับจากโครงการ/กิจกรรม" } ] }
         ];
 
+        // ==========================================
+        // 2. REUSABLE UI COMPONENTS
+        // ==========================================
         function StatusBadge({ status, openLabel='เปิด', closedLabel='ปิด' }) {
-            const isOpen = String(status).toLowerCase() === 'open' || String(status).toLowerCase() === 'true';
+            const isOpen = checkIsOpen(status);
             return (
                 <span className={`px-3 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-widest ${isOpen ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-gray-50 text-gray-500 border-gray-200'}`}>
                     {isOpen ? openLabel : closedLabel}
@@ -368,6 +375,49 @@
             );
         }
 
+        function ShirtSection({ num, title, genderState, setGenderState, sizeState, setSizeState, qtyState, setQtyState, getPrice }) {
+            return (
+                <div className="mb-8">
+                    <h3 className="font-semibold text-charcoal-900 mb-4 flex items-center"><span className="text-orange-500 mr-2">{num}.</span> {title}</h3>
+                    <div className="border border-orange-50/80 rounded-2xl p-5 sm:p-6 bg-white shadow-sm">
+                        <div className="mb-5">
+                            <label className="block text-xs font-medium text-gray-400 uppercase tracking-widest mb-3">ทรงเสื้อ</label>
+                            <div className="flex gap-4">
+                                {['ชาย', 'หญิง'].map(g => ( 
+                                    <label key={`${num}-${g}`} className={`flex-1 py-3 rounded-xl border text-center cursor-pointer text-sm font-medium transition-all ${genderState === g ? 'border-orange-500 bg-orange-500 text-white shadow-md' : 'border-gray-200 text-gray-500 hover:border-orange-300'}`}>
+                                        <input type="radio" className="hidden" checked={genderState === g} onChange={() => setGenderState(g)} /> ทรง{g}
+                                    </label> 
+                                ))}
+                            </div>
+                        </div>
+                        <div className="mb-5">
+                            <label className="block text-xs font-medium text-gray-400 uppercase tracking-widest mb-3">ขนาด (Size)</label>
+                            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
+                                {['S', 'M', 'L', 'XL', '2XL', '3XL'].map(size => ( 
+                                    <label key={`${num}-${size}`} className={`relative flex flex-col items-center py-3 rounded-xl border cursor-pointer transition-all ${sizeState === size ? 'border-orange-500 bg-orange-50 text-orange-600 shadow-sm' : 'border-gray-200 text-gray-500 hover:border-orange-300'}`}>
+                                        <input type="radio" className="hidden" checked={sizeState === size} onChange={() => setSizeState(size)} />
+                                        <span className="text-sm font-semibold">{size}</span>
+                                        <span className="text-[9px] opacity-70 mt-1">฿{getPrice(size)}</span>
+                                    </label> 
+                                ))}
+                            </div>
+                        </div>
+                        <div className="flex justify-between items-center bg-orange-50/50 p-4 rounded-xl border border-orange-100">
+                            <label className="text-xs font-medium text-gray-500 uppercase tracking-widest">จำนวน</label>
+                            <div className="flex items-center gap-3">
+                                <button type="button" onClick={() => setQtyState(Math.max(1, qtyState - 1))} className="w-8 h-8 rounded border border-orange-200 bg-white text-orange-500 hover:bg-orange-100"><i className="fa-solid fa-minus text-xs"></i></button>
+                                <span className="font-semibold text-charcoal-900 w-6 text-center text-sm">{qtyState}</span>
+                                <button type="button" onClick={() => setQtyState(qtyState + 1)} className="w-8 h-8 rounded border border-orange-200 bg-white text-orange-500 hover:bg-orange-100"><i className="fa-solid fa-plus text-xs"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==========================================
+        // 3. ADMIN DASHBOARD
+        // ==========================================
         function AdminDashboard({ db, setDb, sysConfig, setSysConfig, toggleCache, goHome, reloadData }) {
             const [tab, setTab] = useState('overview');
             const [spssActId, setSpssActId] = useState('');
@@ -414,7 +464,7 @@
                         </nav>
                         <div className="p-4 border-t border-gray-800 space-y-3">
                             <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest px-2">System Status</p>
-                            <button onClick={()=>toggleStatus('sys_main', null, sysConfig.main)} className={`w-full px-4 py-3 rounded-xl text-sm font-medium border flex justify-between items-center transition-colors ${sysConfig.main==='open' ? 'bg-emerald-900/30 text-emerald-500 border-emerald-800/50 hover:bg-emerald-900/50' : 'bg-black/50 text-gray-500 border-gray-800 hover:bg-gray-800'}`}>ระบบหลัก <i className={`fa-solid ${sysConfig.main==='open'?'fa-toggle-on':'fa-toggle-off'} text-xl`}></i></button>
+                            <button onClick={()=>toggleStatus('sys_main', null, sysConfig.main)} className={`w-full px-4 py-3 rounded-xl text-sm font-medium border flex justify-between items-center transition-colors ${checkIsOpen(sysConfig.main) ? 'bg-emerald-900/30 text-emerald-500 border-emerald-800/50 hover:bg-emerald-900/50' : 'bg-black/50 text-gray-500 border-gray-800 hover:bg-gray-800'}`}>ระบบหลัก <i className={`fa-solid ${checkIsOpen(sysConfig.main)?'fa-toggle-on':'fa-toggle-off'} text-xl`}></i></button>
                             <button onClick={goHome} className="w-full text-center py-2 text-xs font-bold text-gray-400 hover:text-white uppercase tracking-widest transition-colors mt-2"><i className="fa-solid fa-arrow-left mr-2"></i> ออกระบบ</button>
                         </div>
                     </aside>
@@ -462,7 +512,7 @@
                                             <td className="px-6 py-4 text-gray-500 text-xs"><i className="fa-regular fa-calendar text-orange-400 mr-1"></i>{row.Date}</td>
                                             <td className="px-6 py-4 text-gray-500 text-xs"><i className="fa-solid fa-location-dot text-orange-400 mr-1"></i>{row.Location}</td>
                                             <td className="px-6 py-4 text-center"><StatusBadge status={row.Status} /></td>
-                                            <td className="px-6 py-4 text-center"><button onClick={()=>toggleStatus('act', row.ActivityID, row.Status)} className={`text-3xl transition-transform hover:scale-110 ${String(row.Status).toLowerCase()==='open'?'text-emerald-500':'text-gray-300'}`}><i className={`fa-solid ${String(row.Status).toLowerCase()==='open'?'fa-toggle-on':'fa-toggle-off'}`}></i></button></td>
+                                            <td className="px-6 py-4 text-center"><button onClick={()=>toggleStatus('act', row.ActivityID, row.Status)} className={`text-3xl transition-transform hover:scale-110 ${checkIsOpen(row.Status)?'text-emerald-500':'text-gray-300'}`}><i className={`fa-solid ${checkIsOpen(row.Status)?'fa-toggle-on':'fa-toggle-off'}`}></i></button></td>
                                         </tr>
                                     )}
                                 />
@@ -503,7 +553,7 @@
                             <div className="space-y-6">
                                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                                     <div><h3 className="font-bold text-charcoal-900"><i className="fa-solid fa-gear text-purple-500 mr-2"></i>ระบบรับสมัคร (Master)</h3><p className="text-xs text-gray-500 mt-1">เปิด/ปิด การเข้าถึงแท็บรับสมัครทั้งหมด</p></div>
-                                    <button onClick={()=>toggleStatus('sys_recruit', null, sysConfig.recruit)} className={`px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-widest border transition-colors ${sysConfig.recruit==='open'?'bg-purple-50 text-purple-600 border-purple-200':'bg-gray-50 text-gray-500 border-gray-200'}`}>{sysConfig.recruit==='open'?'เปิดใช้งาน':'ปิดระบบแล้ว'} <i className={`fa-solid ${sysConfig.recruit==='open'?'fa-toggle-on':'fa-toggle-off'} ml-2 text-lg align-middle`}></i></button>
+                                    <button onClick={()=>toggleStatus('sys_recruit', null, sysConfig.recruit)} className={`px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-widest border transition-colors ${checkIsOpen(sysConfig.recruit)?'bg-purple-50 text-purple-600 border-purple-200':'bg-gray-50 text-gray-500 border-gray-200'}`}>{checkIsOpen(sysConfig.recruit)?'เปิดใช้งาน':'ปิดระบบแล้ว'} <i className={`fa-solid ${checkIsOpen(sysConfig.recruit)?'fa-toggle-on':'fa-toggle-off'} ml-2 text-lg align-middle`}></i></button>
                                 </div>
                                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                                     <form className="flex flex-1 gap-3 w-full" onSubmit={e=>{ e.preventDefault(); Swal.fire({title:'บันทึก...', didOpen:()=>Swal.showLoading()}); runGAS('createRecruit', {name:e.target.n.value, date:e.target.d.value, location:e.target.l.value, attachment:e.target.a.value}).then(()=>{Swal.fire('สำเร็จ','','success'); e.target.reset(); reloadData(true);}).catch(err=>Swal.fire('Error',err.message,'error')); }}>
@@ -524,7 +574,7 @@
                                             <td className="px-6 py-4 text-gray-500 text-xs">{row.Date}</td>
                                             <td className="px-6 py-4 text-gray-500 text-xs">{row.Location}</td>
                                             <td className="px-6 py-4 text-center"><StatusBadge status={row.Status} openLabel="เปิด" closedLabel="ปิด" /></td>
-                                            <td className="px-6 py-4 text-center"><button onClick={()=>toggleStatus('rec', row.RecruitID, row.Status)} className={`text-3xl transition-transform hover:scale-110 ${String(row.Status).toLowerCase()==='open'?'text-purple-500':'text-gray-300'}`}><i className={`fa-solid ${String(row.Status).toLowerCase()==='open'?'fa-toggle-on':'fa-toggle-off'}`}></i></button></td>
+                                            <td className="px-6 py-4 text-center"><button onClick={()=>toggleStatus('rec', row.RecruitID, row.Status)} className={`text-3xl transition-transform hover:scale-110 ${checkIsOpen(row.Status)?'text-purple-500':'text-gray-300'}`}><i className={`fa-solid ${checkIsOpen(row.Status)?'fa-toggle-on':'fa-toggle-off'}`}></i></button></td>
                                         </tr>
                                     )}
                                 />
@@ -551,7 +601,7 @@
                             <div className="space-y-6">
                                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                                     <div><h3 className="font-bold text-charcoal-900"><i className="fa-solid fa-gear text-rose-500 mr-2"></i>ระบบจองเสื้อ (Master)</h3><p className="text-xs text-gray-500 mt-1">เปิด/ปิด การเข้าถึงฟอร์มจองเสื้อ</p></div>
-                                    <button onClick={()=>toggleStatus('sys_shirt', null, sysConfig.shirt)} className={`px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-widest border transition-colors ${sysConfig.shirt==='open'?'bg-rose-50 text-rose-600 border-rose-200':'bg-gray-50 text-gray-500 border-gray-200'}`}>{sysConfig.shirt==='open'?'เปิดใช้งาน':'ปิดระบบแล้ว'} <i className={`fa-solid ${sysConfig.shirt==='open'?'fa-toggle-on':'fa-toggle-off'} ml-2 text-lg align-middle`}></i></button>
+                                    <button onClick={()=>toggleStatus('sys_shirt', null, sysConfig.shirt)} className={`px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-widest border transition-colors ${checkIsOpen(sysConfig.shirt)?'bg-rose-50 text-rose-600 border-rose-200':'bg-gray-50 text-gray-500 border-gray-200'}`}>{checkIsOpen(sysConfig.shirt)?'เปิดใช้งาน':'ปิดระบบแล้ว'} <i className={`fa-solid ${checkIsOpen(sysConfig.shirt)?'fa-toggle-on':'fa-toggle-off'} ml-2 text-lg align-middle`}></i></button>
                                 </div>
                                 <div className="grid grid-cols-3 gap-4">
                                     <div className="bg-white p-5 rounded-2xl border shadow-sm flex items-center justify-between"><span className="text-xs font-bold text-gray-500">ยอดบิลทั้งหมด</span><span className="text-2xl font-black text-rose-600">{db.orders.length}</span></div>
@@ -584,7 +634,7 @@
         }
 
         // ==========================================
-        // 4. MAIN APP COMPONENT
+        // 4. MAIN APP INITIALIZATION
         // ==========================================
         function App() {
             const [view, setView] = useState(() => sessionStorage.getItem('app_view') || 'home');
@@ -651,27 +701,49 @@
                 if(!isAdmin && window.hideLoader) Swal.fire({ title:'กำลังโหลด...', didOpen:()=>Swal.showLoading()});
                 try {
                     let dActs = [], dRecs = [], dSets = [];
+                    let fallbackData = null;
+
                     if (API_CONFIG.USE_FAST_CSV) {
                         try {
                             [dActs, dRecs, dSets] = await Promise.all([fetchCSV('Activities').catch(()=>[]), fetchCSV('Recruitments').catch(()=>[]), fetchCSV('Settings').catch(()=>[])]);
                         } catch(e) { console.warn("CSV Fallback"); }
                     }
+                    
                     if (dActs.length===0 && dSets.length===0) {
-                        const bd = await runGAS('getAdminDashboardData').catch(()=>null);
-                        if(bd) { dActs=bd.activities||[]; dRecs=bd.recruitments||[]; }
+                        fallbackData = await runGAS('getAdminDashboardData').catch(()=>null);
+                        if(fallbackData) { 
+                            dActs = fallbackData.activities || []; 
+                            dRecs = fallbackData.recruitments || []; 
+                        }
                     }
 
                     let sConf = { main: 'open', recruit: 'open', shirt: 'open' };
                     let pConf = { normal: 250, oversize: 380, header: 'สโมสรนักศึกษา', note: '', popupText: '', popupImg: '' };
                     let hp = { img: '', status: 'closed' };
 
-                    const getS = (k, def) => { const r = dSets.find(x => String(Object.values(x)[0]).toLowerCase()===k.toLowerCase()); return r ? Object.values(r)[1] : def; };
-                    const getS2 = (k, def) => { const r = dSets.find(x => String(Object.values(x)[0]).toLowerCase()===k.toLowerCase()); return r ? Object.values(r)[2] : def; };
-
                     if(dSets.length > 0) {
+                        const getS = (k, def) => { const r = dSets.find(x => String(Object.values(x)[0]).toLowerCase()===k.toLowerCase()); return r ? String(Object.values(r)[1]).trim() : def; };
+                        const getS2 = (k, def) => { const r = dSets.find(x => String(Object.values(x)[0]).toLowerCase()===k.toLowerCase()); return r ? String(Object.values(r)[2]).trim() : def; };
+
                         sConf = { main: getS('SystemStatus','open'), recruit: getS('RecruitStatus','open'), shirt: getS('ShirtStatus','open') };
                         pConf = { normal: Number(getS('ShirtPrice',250)), oversize: Number(getS2('ShirtPrice',380)), header: getS('ReceiptConfig',pConf.header), note: getS2('ReceiptConfig',pConf.note), popupText: getS('ShirtPopup',''), popupImg: getS2('ShirtPopup','') };
                         hp = { img: getS('HomePopup',''), status: getS2('HomePopup','closed') };
+                    } else if (fallbackData) {
+                        if (fallbackData.shirtPrice) {
+                            sConf.main = fallbackData.shirtPrice.systemStatus || 'open';
+                            sConf.shirt = fallbackData.shirtPrice.status || 'open';
+                            pConf.normal = Number(fallbackData.shirtPrice.normal || 250);
+                            pConf.oversize = Number(fallbackData.shirtPrice.oversize || 380);
+                            pConf.header = fallbackData.shirtPrice.receiptHeader || 'สโมสรนักศึกษา';
+                            pConf.note = fallbackData.shirtPrice.receiptNote || '';
+                            pConf.popupText = fallbackData.shirtPrice.popupText || '';
+                            pConf.popupImg = fallbackData.shirtPrice.popupImage || '';
+                        }
+                        if (fallbackData.recruitStatus) sConf.recruit = fallbackData.recruitStatus || 'open';
+                        if (fallbackData.homePopup) {
+                            hp.img = fallbackData.homePopup.image || '';
+                            hp.status = fallbackData.homePopup.status || 'closed';
+                        }
                     }
 
                     const synced = syncWithLocalCache(dActs, dRecs, sConf);
@@ -716,27 +788,21 @@
                         st = { StudentID: searchId, Name: 'นศ.ทดสอบ', Major: 'สาขาทดสอบ', IDCard: '1111' };
                     } else {
                         if (purpose === 'history') {
-                            // 1. โหมดประวัติ: ค้นหาจาก CheckIns โดยตรง (ไม่ต้องหาใน Students)
                             const [chks, ords] = await Promise.all([ fetchCSV('CheckIns').catch(()=>[]), fetchCSV('ShirtOrders').catch(()=>[]) ]);
-                            
-                            // หาประวัติจาก CheckIns
                             let foundInChk = chks.find(c => String(getVal(c, ['studentid', 'รหัส'])).toLowerCase() === searchId || String(getVal(c, ['idcard', 'บัตร'])).toLowerCase() === searchId);
                             
                             if (foundInChk) {
                                 st = { StudentID: getVal(foundInChk, ['studentid', 'รหัส'], 'StudentID'), Name: getVal(foundInChk, ['name', 'ชื่อ'], 'Name'), Major: getVal(foundInChk, ['major', 'สาขา'], 'Major'), IDCard: getVal(foundInChk, ['idcard', 'บัตร'], 'IDCard') };
                             } else {
-                                // ถ้าไม่เจอใน CheckIns ลองหาจาก ShirtOrders เผื่อว่าเคยจองเสื้ออย่างเดียว
                                 let foundInOrd = ords.find(o => String(getVal(o, ['studentid', 'รหัส'])).toLowerCase() === searchId);
                                 if (foundInOrd) {
                                     st = { StudentID: getVal(foundInOrd, ['studentid', 'รหัส'], 'StudentID'), Name: getVal(foundInOrd, ['name', 'ชื่อ'], 'Name'), Major: getVal(foundInOrd, ['major', 'สาขา'], 'Major'), IDCard: '' };
                                 }
                             }
                         } else {
-                            // 2. โหมดอื่น (จองเสื้อ, กิจกรรม, รับสมัคร): ค้นหายืนยันจากชีต Students เสมอ
                             const stds = await fetchCSV('Students').catch(()=>[]);
                             st = stds.find(s => String(getVal(s, ['studentid', 'รหัส'])).toLowerCase() === searchId || String(getVal(s, ['idcard', 'บัตร'])).toLowerCase() === searchId);
                             
-                            // Fallback ไปหลังบ้านเผื่อพึ่งเพิ่มชื่อ
                             if (!st) {
                                 st = await runGAS('verifyStudent', searchId).catch(()=>null);
                             }
@@ -755,17 +821,25 @@
                             const chks = await fetchCSV('CheckIns').catch(()=>[]);
                             const ords = await fetchCSV('ShirtOrders').catch(()=>[]);
                             
-                            // กรองประวัติที่ตรงกับรหัสนักศึกษา หรือ บัตรประชาชนที่ผู้ใช้กรอกเข้ามา
                             setHistActs(chks.filter(c => String(getVal(c,['studentid','รหัส'])).toLowerCase()===String(st.StudentID).toLowerCase() || String(getVal(c,['idcard','บัตร'])).toLowerCase()===String(searchId).toLowerCase()).reverse());
                             
-                            // ประวัติเสื้อปกติใช้แค่รหัสนักศึกษา
-                            setHistShirts(ords.filter(o => String(getVal(o,['studentid','รหัส'])).toLowerCase()===String(st.StudentID).toLowerCase()).reverse());
+                            const myOrders = ords.filter(o => String(getVal(o,['studentid','รหัส'])).toLowerCase()===String(st.StudentID).toLowerCase()).reverse();
+                            setHistShirts(myOrders.length > 0 ? [myOrders[0]] : []);
                             
                             Swal.close(); setView('history_result');
                         } 
                         else if(purpose === 'shirt') {
-                            const ords = await fetchCSV('ShirtOrders').catch(()=>[]);
-                            const existing = ords.find(o => String(getVal(o,['studentid','รหัส'])).toLowerCase()===String(st.StudentID).toLowerCase());
+                            let ords = [];
+                            if (API_CONFIG.USE_FAST_CSV) {
+                                ords = await fetchCSV('ShirtOrders').catch(()=>[]);
+                            }
+                            let existing = [...ords].reverse().find(o => String(getVal(o,['studentid','รหัส'])).toLowerCase()===String(st.StudentID).toLowerCase());
+                            
+                            if (!existing) {
+                                const shirtCheck = await runGAS('checkShirtOrder', st.StudentID).catch(()=>({hasOrdered: false}));
+                                if (shirtCheck.hasOrdered) existing = shirtCheck.data;
+                            }
+                            
                             Swal.close();
                             if(existing) { 
                                 const tsRaw = getVal(existing, ['timestamp', 'เวลา']);
@@ -785,18 +859,14 @@
                                 });
                                 setView('receipt'); 
                             }
-                            else { sysConfig.shirt === 'open' ? setView('shirt_form') : Swal.fire('ปิดจอง','ระบบปิดจองเสื้อแล้ว','warning').then(goHome); }
+                            else { checkIsOpen(sysConfig.shirt) ? setView('shirt_form') : Swal.fire('ปิดจอง','ระบบปิดจองเสื้อแล้ว','warning').then(goHome); }
                         }
                         else {
                             Swal.close();
                             setView(purpose === 'recruit' ? 'select_recruit' : 'select_activity');
                         }
                     } else {
-                        // ปรับข้อความแจ้งเตือนให้ตรงกับบริบท
-                        const errorMsg = purpose === 'history' 
-                            ? 'ไม่พบประวัติการเข้าร่วมกิจกรรม หรือการสั่งจองเสื้อของคุณในระบบ' 
-                            : 'ไม่พบข้อมูลในระบบลงทะเบียน กรุณาตรวจสอบรหัสนักศึกษา/บัตรประชาชนอีกครั้ง';
-                            
+                        const errorMsg = purpose === 'history' ? 'ไม่พบประวัติการเข้าร่วมกิจกรรม หรือการสั่งจองเสื้อ' : 'ไม่พบข้อมูลในระบบลงทะเบียน กรุณาตรวจสอบรหัสนักศึกษา/บัตรประชาชนอีกครั้ง';
                         Swal.fire('ไม่พบข้อมูล', errorMsg, 'error');
                     }
                 } catch(e) { Swal.fire('Error', e.message, 'error'); }
@@ -823,9 +893,9 @@
                 if(view.startsWith('admin')) return null;
                 const tabs = [
                     { id: 'home', icon: 'fa-house', label: 'หน้าแรก', onClick: goHome, activeCond: view === 'home', color: 'orange' },
-                    { id: 'recruit', icon: 'fa-bullhorn', label: 'รับสมัคร', onClick: () => { if(sysConfig.main !== 'open') return Swal.fire({title:'ระบบปิด', icon:'info', confirmButtonColor: '#1a1a1a'}); setPurpose('recruit'); setView('search'); }, activeCond: view === 'select_recruit' || (view === 'search' && purpose === 'recruit'), color: 'purple' },
-                    { id: 'activity', icon: 'fa-qrcode', label: 'เช็คชื่อ', onClick: () => { if(sysConfig.main !== 'open') return Swal.fire({title:'ระบบปิด', icon:'info', confirmButtonColor: '#1a1a1a'}); setPurpose('activity'); setView('search'); }, activeCond: view === 'select_activity' || view === 'survey' || (view === 'search' && purpose === 'activity'), color: 'orange' },
-                    { id: 'shirt', icon: 'fa-shirt', label: 'จองเสื้อ', onClick: () => { setPurpose('shirt'); setView('search'); }, activeCond: view === 'shirt_form' || view === 'receipt' || (view === 'search' && purpose === 'shirt'), color: 'rose' },
+                    { id: 'recruit', icon: 'fa-bullhorn', label: 'รับสมัคร', onClick: () => { if(!checkIsOpen(sysConfig.main)) return Swal.fire({title:'ระบบปิด', icon:'info', confirmButtonColor: '#1a1a1a'}); setPurpose('recruit'); setView('search'); }, activeCond: view === 'select_recruit' || (view === 'search' && purpose === 'recruit'), color: 'purple' },
+                    { id: 'activity', icon: 'fa-qrcode', label: 'เช็คชื่อ', onClick: () => { if(!checkIsOpen(sysConfig.main)) return Swal.fire({title:'ระบบปิด', icon:'info', confirmButtonColor: '#1a1a1a'}); setPurpose('activity'); setView('search'); }, activeCond: view === 'select_activity' || view === 'survey' || (view === 'search' && purpose === 'activity'), color: 'orange' },
+                    { id: 'shirt', icon: 'fa-shirt', label: 'จองเสื้อ', onClick: () => { if(!checkIsOpen(sysConfig.main)) return Swal.fire({title:'ระบบปิด', icon:'info', confirmButtonColor: '#1a1a1a'}); setPurpose('shirt'); setView('search'); }, activeCond: view === 'shirt_form' || view === 'receipt' || (view === 'search' && purpose === 'shirt'), color: 'rose' },
                     { id: 'history', icon: 'fa-clock-rotate-left', label: 'ประวัติ', onClick: () => { setPurpose('history'); setView('history_search'); }, activeCond: view === 'history_search' || view === 'history_result' || (view === 'search' && purpose === 'history'), color: 'blue' }
                 ];
                 return (
@@ -858,12 +928,16 @@
                                     { p: 'activity', i: 'fa-qrcode', c: 'orange', t: 'ลงทะเบียนกิจกรรม', d: 'เช็คชื่อและประเมิน', sys: sysConfig.main, spec: 'open' },
                                     { p: 'history', i: 'fa-clock-rotate-left', c: 'blue', t: 'ประวัติการเข้าร่วม', d: 'ดูประวัติกิจกรรม/จองเสื้อ', sys: 'open', spec: 'open' },
                                     { p: 'shirt', i: 'fa-shirt', c: 'rose', t: 'สั่งจองเสื้อคณะ', d: 'สั่งจองและพิมพ์ใบเสร็จ', sys: sysConfig.main, spec: sysConfig.shirt }
-                                ].map((m, idx) => (
-                                    <div key={idx} onClick={() => { if(m.sys !== 'open' || m.spec !== 'open') return Swal.fire('ระบบปิด','ฟังก์ชันนี้ปิดให้บริการชั่วคราว','info'); setPurpose(m.p); setView(m.p === 'history' ? 'history_search' : 'search'); }} className={`luxury-card p-6 flex flex-col cursor-pointer transition-all ${m.sys==='open'&&m.spec==='open' ? 'hover:-translate-y-1' : 'opacity-50 grayscale'}`}>
-                                        <div className={`w-12 h-12 bg-${m.c}-50 text-${m.c}-500 rounded-xl flex items-center justify-center text-xl mb-4`}><i className={`fa-solid ${m.i}`}></i></div>
-                                        <h3 className="font-bold text-gray-800 mb-1">{m.t}</h3><p className="text-xs text-gray-500">{m.d}</p>
-                                    </div>
-                                ))}
+                                ].map((m, idx) => {
+                                    const isSys = checkIsOpen(m.sys);
+                                    const isSpec = checkIsOpen(m.spec);
+                                    return (
+                                        <div key={idx} onClick={() => { if(!isSys || !isSpec) return Swal.fire('ระบบปิด','ฟังก์ชันนี้ปิดให้บริการชั่วคราว','info'); setPurpose(m.p); setView(m.p === 'history' ? 'history_search' : 'search'); }} className={`luxury-card p-6 flex flex-col cursor-pointer transition-all ${isSys&&isSpec ? 'hover:-translate-y-1' : 'opacity-50 grayscale'}`}>
+                                            <div className={`w-12 h-12 bg-${m.c}-50 text-${m.c}-500 rounded-xl flex items-center justify-center text-xl mb-4`}><i className={`fa-solid ${m.i}`}></i></div>
+                                            <h3 className="font-bold text-gray-800 mb-1">{m.t}</h3><p className="text-xs text-gray-500">{m.d}</p>
+                                        </div>
+                                    )
+                                })}
                             </div>
                         </div>
                     )}
@@ -891,8 +965,8 @@
                                 <button onClick={()=>setView('search')} className="text-xs px-3 py-1.5 bg-gray-100 rounded-md font-bold text-gray-600 hover:bg-gray-200">เปลี่ยนรหัส</button>
                             </div>
                             <div className="grid gap-4">
-                                {db.acts.filter(a=>String(a.Status).toLowerCase()==='open').length === 0 ? <p className="text-center py-10 text-gray-400 bg-white rounded-2xl border">ไม่มีกิจกรรมเปิดรับ</p> : 
-                                db.acts.filter(a=>String(a.Status).toLowerCase()==='open').map(a => (
+                                {db.acts.filter(a=>checkIsOpen(a.Status)).length === 0 ? <p className="text-center py-10 text-gray-400 bg-white rounded-2xl border">ไม่มีกิจกรรมเปิดรับ</p> : 
+                                db.acts.filter(a=>checkIsOpen(a.Status)).map(a => (
                                     <div key={a.ActivityID} onClick={()=>{setSelectedItem(a); setView('survey');}} className="luxury-card p-5 flex justify-between items-center cursor-pointer hover:border-orange-300">
                                         <div><h3 className="font-bold text-gray-800">{a.Name}</h3><p className="text-xs text-gray-500 mt-1"><i className="fa-regular fa-clock text-orange-400 mr-1"></i> {a.Date} <span className="mx-2">|</span> <i className="fa-solid fa-location-dot text-orange-400 mr-1"></i> {a.Location}</p></div>
                                         <i className="fa-solid fa-chevron-right text-gray-300"></i>
@@ -939,8 +1013,8 @@
                                 <button onClick={()=>setView('search')} className="text-xs px-3 py-1.5 bg-gray-100 rounded-md font-bold text-gray-600 hover:bg-gray-200">เปลี่ยนรหัส</button>
                             </div>
                             <div className="grid gap-4">
-                                {db.recs.filter(r=>String(r.Status).toLowerCase()==='open').length === 0 ? <p className="text-center py-10 text-gray-400 bg-white rounded-2xl border">ไม่มีประกาศเปิดรับ</p> : 
-                                db.recs.filter(r=>String(r.Status).toLowerCase()==='open').map(r => (
+                                {db.recs.filter(r=>checkIsOpen(r.Status)).length === 0 ? <p className="text-center py-10 text-gray-400 bg-white rounded-2xl border">ไม่มีประกาศเปิดรับ</p> : 
+                                db.recs.filter(r=>checkIsOpen(r.Status)).map(r => (
                                     <div key={r.RecruitID} className="luxury-card p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-4 border border-transparent hover:border-purple-200">
                                         <div><h3 className="font-bold text-gray-800">{r.Name}</h3><p className="text-xs text-gray-500 mt-1"><i className="fa-regular fa-clock text-purple-400 mr-1"></i> {r.Date} <span className="mx-2">|</span> <i className="fa-solid fa-location-dot text-purple-400 mr-1"></i> {r.Location}</p></div>
                                         <div className="flex gap-2">
@@ -978,7 +1052,7 @@
                             
                             {histShirts.length > 0 && (
                                 <div className="mb-8">
-                                    <h3 className="text-sm font-bold text-rose-600 mb-4 pl-3 border-l-4 border-rose-500"><i className="fa-solid fa-shirt mr-2"></i>ประวัติจองเสื้อ</h3>
+                                    <h3 className="text-sm font-bold text-rose-600 mb-4 pl-3 border-l-4 border-rose-500"><i className="fa-solid fa-shirt mr-2"></i>ประวัติจองเสื้อ (ล่าสุด)</h3>
                                     {histShirts.map((s,i) => (
                                         <div key={i} className="bg-white p-5 rounded-xl shadow-sm border border-rose-100 mb-3 flex flex-col sm:flex-row justify-between gap-4 items-start sm:items-center">
                                             <div><StatusBadge status={String(getVal(s,['status','สถานะ'])).toLowerCase()==='received' ? 'closed' : 'open'} openLabel="ชำระแล้ว" closedLabel="รอตรวจสอบ/รอชำระ" /><p className="text-sm font-bold text-gray-800 mt-2">ยอดรวม ฿{Number(getVal(s,['totalprice','ยอด'])||0).toLocaleString()}</p><p className="text-xs text-gray-400 mt-0.5"><i className="fa-regular fa-clock mr-1"></i>{formatTHDate(getVal(s,['timestamp','เวลา'])).full}</p></div>
