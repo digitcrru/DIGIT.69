@@ -39,7 +39,7 @@
     <nav class="bg-white shadow-sm sticky top-0 z-50 border-b border-slate-100" id="main-nav">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
-                <!-- Brand -->
+                <!-- Brand (Clickable to home) -->
                 <div class="flex items-center cursor-pointer hover:opacity-80 transition-opacity" onclick="navigate(currentRole === 'student' ? 'events' : 'admin-dash')">
                     <i class="ph-fill ph-student text-primary text-2xl sm:text-3xl mr-2" id="brand-icon"></i>
                     <span class="font-bold text-lg sm:text-xl text-slate-800 tracking-tight" id="brand-text">DIGIT.<span class="text-primary">CRRU</span></span>
@@ -202,27 +202,6 @@
             activities: [], checkIns: [], orders: [], evaluations: [], students: {} 
         };
         
-        // ฟังก์ชันสร้าง Loader รูปโงกุนปล่อยพลังคลื่นเต่า
-        function getGokuLoader(mainText = 'กำลังรวบรวมพลัง...', subText = 'Activity Digit 69') {
-            return `
-                <div class="fade-in py-20 flex flex-col items-center justify-center min-h-[50vh]">
-                    <div class="relative w-32 h-32 sm:w-40 sm:h-40 mb-6 flex items-center justify-center">
-                        <!-- ออร่าพลังงานด้านหลัง -->
-                        <div class="absolute inset-0 bg-blue-500/20 rounded-full animate-ping blur-xl"></div>
-                        <div class="absolute inset-4 bg-cyan-400/40 rounded-full animate-pulse blur-lg"></div>
-                        <!-- ภาพโงกุน -->
-                        <img src="https://media.tenor.com/1-fVnZ_536MAAAAj/goku-kamehameha.gif" 
-                             alt="Loading" 
-                             class="w-full h-full object-contain relative z-10 drop-shadow-xl" 
-                             style="mix-blend-mode: multiply;" 
-                             onerror="this.src='https://media.giphy.com/media/oR2wXyR7zR2tW/giphy.gif'; this.style.mixBlendMode='normal';">
-                    </div>
-                    <p class="text-blue-600 font-bold text-lg sm:text-xl tracking-wide animate-pulse">${mainText}</p>
-                    <p class="text-xs sm:text-sm text-slate-400 mt-2 font-medium">${subText}</p>
-                </div>
-            `;
-        }
-
         // 📌 บังคับตั้งค่าเริ่มต้นเป็น "ปิด (false)" เสมอ เพื่อป้องกันการกดปุ่มเข้าก่อนโหลดข้อมูล
         let isShirtShopOpen = localStorage.getItem('CRRU_ShopOpen') === 'true'; 
         
@@ -238,6 +217,25 @@
             accountNumber: '012-3-45678-9',
             bankName: 'ธ.กรุงไทย (สาขามร.ชร.)'
         };
+
+        // ฟังก์ชันโหลดข้อมูลแบบใหม่ (Goku Animation)
+        function getGokuLoader(title = 'กำลังโหลด...', subtitle = 'โปรดรอสักครู่') {
+            return `
+                <div class="fade-in py-16 sm:py-24 flex flex-col items-center justify-center text-center">
+                    <div class="relative w-32 h-32 sm:w-40 sm:h-40 mb-6 flex items-center justify-center">
+                        <!-- ออร่าพลังด้านหลัง -->
+                        <div class="absolute inset-0 bg-blue-500/20 rounded-full animate-ping" style="animation-duration: 1.5s;"></div>
+                        <div class="absolute inset-4 bg-cyan-400/30 rounded-full animate-pulse"></div>
+                        
+                        <!-- รูปโงกุนปล่อยพลัง -->
+                        <img src="https://media1.tenor.com/m/aK2Ysg1E0QYAAAAd/goku-dragon-ball.gif" 
+                             class="relative z-10 w-full h-full object-contain rounded-full shadow-xl border-4 border-white mix-blend-multiply" 
+                             alt="Goku Loading">
+                    </div>
+                    <h3 class="text-lg sm:text-xl font-bold text-slate-800 tracking-wide mb-1">${title}</h3>
+                    <p class="text-xs sm:text-sm text-slate-500 font-medium">${subtitle}</p>
+                </div>`;
+        }
 
         function formatThaiDate(dateString, includeTime = false) {
             if (!dateString || String(dateString).trim() === '-' || String(dateString).trim() === '') return dateString;
@@ -473,7 +471,7 @@
         // ==========================================
         function renderEvents(container) {
             if (!appCache.activities || appCache.activities.length === 0) {
-                container.innerHTML = getGokuLoader('กำลังโหลดกิจกรรม...', 'Activity Digit 69');
+                container.innerHTML = getGokuLoader('กำลังดึงข้อมูลกิจกรรม...', 'ระบบกำลังเชื่อมต่อฐานข้อมูล');
             }
 
             fetchActivitiesData().then(activities => {
@@ -631,7 +629,7 @@
             
             if (errorMsgEl) errorMsgEl.classList.add('hidden'); // รีเซ็ตข้อความแจ้งเตือนสีแดง
 
-            // ฟังก์ชันช่วยเช็คข้อมูลซ้ำซ้อนในชีต CheckIns (ตำแหน่งข้อมูล: [0=Timestamp, 1=Event, 2=StudentID, 3=CitizenID])
+            // ฟังก์ชันช่วยเช็คข้อมูลซ้ำซ้อนในชีต CheckIns
             const isDuplicate = (checkInsData) => {
                 if (!Array.isArray(checkInsData)) return false;
                 
@@ -646,21 +644,15 @@
                     const rowSid = String(row[2] || '').trim();
                     const rowCid = String(row[3] || '').trim();
                     
-                    // 1. ตรวจสอบว่าตรงกับชื่อกิจกรรมนี้หรือไม่
                     if (rowEvent !== targetEvent) return false;
-
-                    // 2. ตรวจสอบรหัสนักศึกษา (ข้ามถ้าเป็นค่าว่างหรือขีด)
                     const isSidMatch = targetSid !== '' && targetSid !== '-' && rowSid === targetSid;
-                    
-                    // 3. ตรวจสอบเลขบัตรประชาชน (ข้ามถ้าเป็นค่าว่างหรือขีด)
                     const isCidMatch = targetCid !== '' && targetCid !== '-' && rowCid === targetCid;
                     
-                    // หากกิจกรรมตรงกัน และพบว่ารหัสใดรหัสหนึ่งตรงกัน ถือว่าลงทะเบียนซ้ำ
                     return isSidMatch || isCidMatch;
                 });
             };
 
-            // 1. เช็คจากแคชในเครื่อง (Double Check Layer 1 - ดักจับการกดรัวๆ เบื้องต้น)
+            // 1. เช็คจากแคชในเครื่อง (Double Check Layer 1)
             if (isDuplicate(appCache.checkIns)) {
                 if (errorMsgEl) {
                     errorMsgEl.innerHTML = '<i class="ph-fill ph-warning-circle text-lg inline-block align-middle mr-1"></i> ระบบตรวจพบว่าคุณลงทะเบียนกิจกรรมนี้ไปแล้ว!';
@@ -676,12 +668,12 @@
             submitBtn.disabled = true;
 
             try {
-                // 2. เช็คจากเซิร์ฟเวอร์แบบ Real-time (Double Check Layer 2 - ป้องกันทำรายการพร้อมกันหลายเครื่อง)
+                // 2. เช็คจากเซิร์ฟเวอร์แบบ Real-time (Double Check Layer 2)
                 const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAllCheckIns&_nocache=${new Date().getTime()}`);
                 const result = await res.json();
                 
                 if (result.success && result.data) {
-                    appCache.checkIns = result.data; // อัปเดต Cache ของระบบ
+                    appCache.checkIns = result.data;
 
                     if (isDuplicate(result.data)) {
                         if (errorMsgEl) {
@@ -803,7 +795,7 @@
         function clearHistorySearch() { sessionStorage.removeItem('historySearchTerm'); sessionStorage.removeItem('historyData'); renderHistory(document.getElementById('app-content')); }
 
         async function renderShirtShop(container) {
-            container.innerHTML = getGokuLoader('กำลังโหลดข้อมูลร้านค้า...', 'ตรวจสอบสถานะระบบ...');
+            container.innerHTML = getGokuLoader('กำลังตรวจสอบสถานะร้านค้า...', 'Activity Digit 69');
             
             try {
                 const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getSettings&_nocache=${new Date().getTime()}`, { cache: 'no-store' });
@@ -1165,7 +1157,7 @@
         function verifyOrderFromModal() { if(currentModalOrderId){ updateOrderStatus(currentModalOrderId, 2); closeModal(); } }
 
         async function renderAdminEvents(container) {
-            if (!appCache.activities || appCache.activities.length === 0) container.innerHTML = getGokuLoader('กำลังโหลดข้อมูลกิจกรรม...', 'ดึงข้อมูลจากเซิร์ฟเวอร์');
+            if (!appCache.activities || appCache.activities.length === 0) container.innerHTML = getGokuLoader('กำลังโหลดข้อมูลกิจกรรม...', 'ระบบสำหรับผู้ดูแล');
             const activities = await fetchActivitiesData();
             let html = `
                 <div class="fade-in">
@@ -1278,7 +1270,7 @@
             
             Promise.all([fetchEvaluationsData(), fetchAllCheckInsData(), fetchActivitiesData()]).then(([evaluations, checkIns, activities]) => {
                 let eventOptions = '<option value="">-- เลือกกิจกรรมเพื่อดูรายงาน --</option>';
-                const uniqueEvents = [...new Set(evaluations.map(e => e[3]))].filter(Boolean);
+                const uniqueEvents = [...new Set(evaluations.map(e => String(e[3]).trim()))].filter(Boolean);
                 uniqueEvents.forEach(ev => { eventOptions += `<option value="${ev}">${ev}</option>`; });
 
                 container.innerHTML = `
@@ -1306,7 +1298,8 @@
             const contentDiv = document.getElementById('spss-report-content');
             if (!eventName) { contentDiv.classList.add('hidden'); return; }
 
-            const evals = appCache.evaluations.filter(e => String(e[3]).trim() === eventName);
+            const targetEvent = String(eventName).trim();
+            const evals = appCache.evaluations.filter(e => String(e[3]).trim() === targetEvent);
             if (evals.length === 0) { contentDiv.innerHTML = '<div class="text-center py-10 bg-white rounded-3xl border border-slate-100 text-slate-500">ไม่มีข้อมูลแบบประเมินสำหรับกิจกรรมนี้</div>'; contentDiv.classList.remove('hidden'); return; }
 
             // 1. ประมวลผลเพศ (หาจากคำนำหน้าชื่อใน CheckIns)
@@ -1454,31 +1447,26 @@
             html += `<tr class="bg-indigo-50 font-bold border-t-2 border-indigo-200 print:bg-transparent print:border-black"><td colspan="2" class="p-3 text-right text-indigo-900">รวมเฉลี่ย</td><td class="p-3 text-center text-primary text-base">${overallMean}</td><td class="p-3 text-center text-slate-700 text-base">${overallSd}</td><td class="p-3 text-center text-indigo-700">${getMeaning(overallMean).replace('มีความพึงพอใจ','')}</td></tr>`;
             html += `</tbody></table></div></div>`;
             
+            // ตอนที่ 3 ข้อเสนอแนะเชิงพรรณนา (แบบที่ 1: เน้นภาพรวม)
             if (comments.length > 0) {
-                let essayText = "";
-                if (comments.length === 1) {
-                    essayText = comments[0];
-                } else {
-                    const connectors = [
-                        " นอกจากนี้ยังมีข้อคิดเห็นเพิ่มเติมว่า ", 
-                        " อีกทั้งมีข้อเสนอแนะว่า ", 
-                        " รวมถึงมีการระบุให้ ", 
-                        " ตลอดจนมีความคาดหวังว่า ",
-                        " และมีข้อเสนอแนะเพิ่มเติมว่า "
-                    ];
-                    essayText = comments[0];
-                    for (let i = 1; i < comments.length; i++) {
-                        let connector = connectors[(i - 1) % connectors.length];
-                        essayText += connector + comments[i];
-                    }
-                }
+                let commentsListHtml = '<ul class="list-disc pl-6 sm:pl-10 space-y-2 mt-4 mb-4 text-slate-700 font-medium text-sm sm:text-base">';
+                // กรองข้อความซ้ำกันออก เพื่อให้ภาพรวมดูไม่เยิ่นเย้อ
+                const uniqueComments = [...new Set(comments)]; 
+                uniqueComments.forEach((c) => {
+                    commentsListHtml += `<li class="pl-1">${c}</li>`;
+                });
+                commentsListHtml += '</ul>';
                 
                 html += `
                 <div class="print:break-inside-avoid mt-8">
                     <h3 class="font-bold text-lg text-slate-800 border-l-4 border-primary pl-3 mb-4">ตอนที่ 3 ข้อเสนอแนะเชิงพรรณนา</h3>
-                    <div class="bg-slate-50 rounded-2xl p-6 border border-slate-100 print:border-none print:bg-transparent print:p-0">
+                    <div class="bg-slate-50 rounded-2xl p-6 sm:p-8 border border-slate-100 print:border-none print:bg-transparent print:p-0">
                         <p class="text-sm sm:text-base text-slate-700 leading-loose indent-8 text-justify">
-                            จากการรวบรวมข้อคิดเห็นและข้อเสนอแนะของผู้เข้าร่วมกิจกรรม สามารถสรุปประเด็นเชิงพรรณนาเพื่อนำไปพัฒนาและปรับปรุงการจัดกิจกรรมในครั้งต่อไปได้ดังนี้ <span class="text-primary font-medium">${essayText}</span>
+                            จากการประมวลผลข้อเสนอแนะในภาพรวม พบว่าผู้เข้าร่วมกิจกรรมได้ให้ข้อคิดเห็นและข้อเสนอแนะเพิ่มเติมที่เป็นประโยชน์อย่างยิ่งต่อการพัฒนากิจกรรม โดยสามารถสรุปประเด็นสำคัญเพื่อนำไปปรับปรุงการดำเนินงานในครั้งต่อไปได้ดังนี้
+                        </p>
+                        ${commentsListHtml}
+                        <p class="text-sm sm:text-base text-slate-700 leading-loose indent-8 text-justify">
+                            ทั้งนี้ ประเด็นข้อเสนอแนะในภาพรวมดังกล่าว ทางคณะผู้จัดกิจกรรมจะนำไปเป็นข้อมูลประกอบการพิจารณา เพื่อวางแผนและยกระดับคุณภาพการให้บริการในการจัดกิจกรรมครั้งต่อไป ให้มีความสมบูรณ์และตอบสนองต่อความต้องการของผู้เข้าร่วมมากยิ่งขึ้น
                         </p>
                     </div>
                 </div>`;
@@ -1489,7 +1477,7 @@
         };
 
         async function renderAdminDashboard(container) {
-            if (!appCache.activities || appCache.activities.length === 0) container.innerHTML = getGokuLoader('กำลังเตรียมภาพรวมระบบ...', 'ดึงข้อมูลสถิติทั้งหมด');
+            if (!appCache.activities || appCache.activities.length === 0) container.innerHTML = getGokuLoader('กำลังสรุปภาพรวมระบบ...', 'รวบรวมข้อมูลสถิติทั้งหมด');
             const activities = await fetchActivitiesData(); const allCheckIns = await fetchAllCheckInsData(); const ordersData = await fetchOrdersData();
             const totalJoined = activities.reduce((sum, ev) => sum + (parseInt(ev.joined) || 0), 0);
             const participationRate = totalJoined > 0 ? Math.round((allCheckIns.length / totalJoined) * 100) : 0;
@@ -1541,7 +1529,7 @@
         }
 
         async function renderAdminOrders(container) {
-            if (!appCache.orders || appCache.orders.length === 0) container.innerHTML = getGokuLoader('กำลังโหลดยอดสั่งจอง...', 'ซิงค์ข้อมูลกับฐานข้อมูล');
+            if (!appCache.orders || appCache.orders.length === 0) container.innerHTML = getGokuLoader('กำลังโหลดยอดสั่งจอง...', 'ระบบสำหรับผู้ดูแล');
             const ordersData = await fetchOrdersData();
             let summary = { polo: { S: 0, M: 0, L: 0, XL: 0, '2XL': 0 }, act: { S: 0, M: 0, L: 0, XL: 0, '2XL': 0 } };
             ordersData.forEach(order => {
