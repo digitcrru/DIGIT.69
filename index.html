@@ -202,6 +202,27 @@
             activities: [], checkIns: [], orders: [], evaluations: [], students: {} 
         };
         
+        // ฟังก์ชันสร้าง Loader รูปโงกุนปล่อยพลังคลื่นเต่า
+        function getGokuLoader(mainText = 'กำลังรวบรวมพลัง...', subText = 'Activity Digit 69') {
+            return `
+                <div class="fade-in py-20 flex flex-col items-center justify-center min-h-[50vh]">
+                    <div class="relative w-32 h-32 sm:w-40 sm:h-40 mb-6 flex items-center justify-center">
+                        <!-- ออร่าพลังงานด้านหลัง -->
+                        <div class="absolute inset-0 bg-blue-500/20 rounded-full animate-ping blur-xl"></div>
+                        <div class="absolute inset-4 bg-cyan-400/40 rounded-full animate-pulse blur-lg"></div>
+                        <!-- ภาพโงกุน -->
+                        <img src="https://media.tenor.com/1-fVnZ_536MAAAAj/goku-kamehameha.gif" 
+                             alt="Loading" 
+                             class="w-full h-full object-contain relative z-10 drop-shadow-xl" 
+                             style="mix-blend-mode: multiply;" 
+                             onerror="this.src='https://media.giphy.com/media/oR2wXyR7zR2tW/giphy.gif'; this.style.mixBlendMode='normal';">
+                    </div>
+                    <p class="text-blue-600 font-bold text-lg sm:text-xl tracking-wide animate-pulse">${mainText}</p>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-2 font-medium">${subText}</p>
+                </div>
+            `;
+        }
+
         // 📌 บังคับตั้งค่าเริ่มต้นเป็น "ปิด (false)" เสมอ เพื่อป้องกันการกดปุ่มเข้าก่อนโหลดข้อมูล
         let isShirtShopOpen = localStorage.getItem('CRRU_ShopOpen') === 'true'; 
         
@@ -426,7 +447,7 @@
 
             if (appCache.activities && appCache.activities.length > 0) return appCache.activities;
             const data = await fetchPromise;
-            return data || MOCK_EVENTS; 
+            return data || []; 
         }
 
         async function fetchAllCheckInsData() { 
@@ -452,7 +473,7 @@
         // ==========================================
         function renderEvents(container) {
             if (!appCache.activities || appCache.activities.length === 0) {
-                container.innerHTML = `<div class="fade-in py-20 text-center"><i class="ph ph-spinner animate-spin text-4xl text-primary mb-4"></i><p class="text-slate-500 font-medium text-lg tracking-wide">Activity Digit 69</p></div>`;
+                container.innerHTML = getGokuLoader('กำลังโหลดกิจกรรม...', 'Activity Digit 69');
             }
 
             fetchActivitiesData().then(activities => {
@@ -519,7 +540,7 @@
                                     <div><label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1">ชื่อ-นามสกุล *</label><input type="text" id="reg-name" required class="w-full px-4 py-2.5 sm:py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white font-medium text-sm"></div>
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5">
                                         <div><label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1">คณะ *</label><input type="text" id="reg-faculty" required class="w-full px-4 py-2.5 sm:py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white font-medium text-sm"></div>
-                                        <div><label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1">เลขบัตรประชาชน *</label><input type="text" id="reg-citizen-id" required pattern="[0-9]{13}" class="w-full px-4 py-2.5 sm:py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white font-medium placeholder:text-slate-300 text-sm" placeholder="13 หลัก"></div>
+                                        <div><label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1">เลขบัตรประชาชน *</label><input type="text" id="reg-citizen-id" required class="w-full px-4 py-2.5 sm:py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white font-medium placeholder:text-slate-300 text-sm" placeholder="กรอกเลขบัตรประชาชน"></div>
                                     </div>
                                 </div>
                                 <p id="reg-error-message" class="text-sm font-bold text-red-600 text-center mt-4 hidden bg-red-50 p-3 rounded-xl border border-red-200 shadow-sm"></p>
@@ -545,18 +566,38 @@
         }
 
         function fillStudentForm(data, searchId) {
-            document.getElementById('reg-student-id').value = data.studentId || searchId; document.getElementById('reg-citizen-id').value = data.citizenId || data.year || '';
-            document.getElementById('reg-hidden-student-id').value = data.studentId || ''; document.getElementById('reg-hidden-citizen-id').value = data.citizenId || data.year || '';
-            document.getElementById('reg-name').value = data.name || ''; document.getElementById('reg-faculty').value = data.faculty || '';
-            ['reg-name', 'reg-faculty', 'reg-student-id', 'reg-citizen-id'].forEach(id => { const f = document.getElementById(id); if (f.value) { f.readOnly = true; f.classList.replace('bg-white/70', 'bg-slate-50'); f.classList.add('text-slate-500', 'shadow-inner'); } });
-            document.getElementById('step-search').classList.add('hidden'); document.getElementById('step-form').classList.remove('hidden'); showToast('ดึงข้อมูลสำเร็จ', 'success');
+            document.getElementById('reg-student-id').value = data.studentId || searchId; 
+            document.getElementById('reg-citizen-id').value = data.citizenId || '';
+            document.getElementById('reg-hidden-student-id').value = data.studentId || ''; 
+            document.getElementById('reg-hidden-citizen-id').value = data.citizenId || ''; 
+            document.getElementById('reg-name').value = data.name || ''; 
+            document.getElementById('reg-faculty').value = data.faculty || '';
+            
+            ['reg-name', 'reg-faculty', 'reg-student-id', 'reg-citizen-id'].forEach(id => { 
+                const f = document.getElementById(id); 
+                if (f && f.value && f.value !== '-') { 
+                    f.readOnly = true; 
+                    f.classList.remove('bg-white');
+                    f.classList.add('bg-slate-100', 'text-slate-500', 'shadow-inner'); 
+                } 
+            });
+            document.getElementById('step-search').classList.add('hidden'); 
+            document.getElementById('step-form').classList.remove('hidden'); 
+            showToast('ดึงข้อมูลสำเร็จ', 'success');
         }
 
         function showManualForm(prefillId = '') {
             const searchInput = document.getElementById('search-student-id').value.trim() || prefillId;
             
             // ปลดล็อคฟิลด์ต่างๆ ให้สามารถแก้ไข/กรอกข้อมูลเองได้
-            ['reg-name', 'reg-faculty', 'reg-student-id', 'reg-citizen-id'].forEach(id => { const f = document.getElementById(id); if (f) { f.readOnly = false; f.classList.replace('bg-slate-50', 'bg-white/70'); f.classList.remove('text-slate-500', 'shadow-inner'); } });
+            ['reg-name', 'reg-faculty', 'reg-student-id', 'reg-citizen-id'].forEach(id => { 
+                const f = document.getElementById(id); 
+                if (f) { 
+                    f.readOnly = false; 
+                    f.classList.remove('bg-slate-100', 'text-slate-500', 'shadow-inner', 'cursor-not-allowed'); 
+                    f.classList.add('bg-white');
+                } 
+            });
             
             if (searchInput.length === 13 && !isNaN(searchInput)) document.getElementById('reg-citizen-id').value = searchInput; else document.getElementById('reg-student-id').value = searchInput;
             document.getElementById('step-search').classList.add('hidden'); document.getElementById('step-form').classList.remove('hidden'); document.getElementById('step-form').firstElementChild.classList.add('hidden'); 
@@ -566,7 +607,15 @@
             document.getElementById('step-form').classList.add('hidden'); document.getElementById('step-search').classList.remove('hidden'); document.getElementById('search-feedback').classList.add('hidden'); document.getElementById('step-form').reset();
             document.getElementById('reg-hidden-student-id').value = ''; document.getElementById('reg-hidden-citizen-id').value = ''; document.getElementById('step-form').firstElementChild.classList.remove('hidden');
             const errorMsgEl = document.getElementById('reg-error-message'); if (errorMsgEl) errorMsgEl.classList.add('hidden');
-            ['reg-name', 'reg-faculty', 'reg-student-id', 'reg-citizen-id'].forEach(id => { const f = document.getElementById(id); if (f) { f.readOnly = false; f.classList.replace('bg-slate-50', 'bg-white/70'); f.classList.remove('text-slate-500', 'shadow-inner'); } });
+            
+            ['reg-name', 'reg-faculty', 'reg-student-id', 'reg-citizen-id'].forEach(id => { 
+                const f = document.getElementById(id); 
+                if (f) { 
+                    f.readOnly = false; 
+                    f.classList.remove('bg-slate-100', 'text-slate-500', 'shadow-inner', 'cursor-not-allowed'); 
+                    f.classList.add('bg-white');
+                } 
+            });
         }
 
         async function handleRegistrationSubmit(e, eventId) {
@@ -584,18 +633,34 @@
 
             // ฟังก์ชันช่วยเช็คข้อมูลซ้ำซ้อนในชีต CheckIns (ตำแหน่งข้อมูล: [0=Timestamp, 1=Event, 2=StudentID, 3=CitizenID])
             const isDuplicate = (checkInsData) => {
+                if (!Array.isArray(checkInsData)) return false;
+                
+                const targetEvent = String(eventName).trim();
+                const targetSid = String(finalSid).trim();
+                const targetCid = String(finalCid).trim();
+
                 return checkInsData.some(row => {
                     if (!row || row.length < 4) return false;
-                    const rowEvent = String(row[1]).trim();
-                    const rowSid = String(row[2]).trim();
-                    const rowCid = String(row[3]).trim();
                     
-                    // บล็อกทันทีถ้า "ชื่อกิจกรรมตรงกัน" และ ("รหัสนักศึกษาตรงกัน" หรือ "เลขบัตรประชาชนตรงกัน")
-                    return rowEvent === eventName && ((finalSid && rowSid === finalSid) || (finalCid && rowCid === finalCid));
+                    const rowEvent = String(row[1] || '').trim();
+                    const rowSid = String(row[2] || '').trim();
+                    const rowCid = String(row[3] || '').trim();
+                    
+                    // 1. ตรวจสอบว่าตรงกับชื่อกิจกรรมนี้หรือไม่
+                    if (rowEvent !== targetEvent) return false;
+
+                    // 2. ตรวจสอบรหัสนักศึกษา (ข้ามถ้าเป็นค่าว่างหรือขีด)
+                    const isSidMatch = targetSid !== '' && targetSid !== '-' && rowSid === targetSid;
+                    
+                    // 3. ตรวจสอบเลขบัตรประชาชน (ข้ามถ้าเป็นค่าว่างหรือขีด)
+                    const isCidMatch = targetCid !== '' && targetCid !== '-' && rowCid === targetCid;
+                    
+                    // หากกิจกรรมตรงกัน และพบว่ารหัสใดรหัสหนึ่งตรงกัน ถือว่าลงทะเบียนซ้ำ
+                    return isSidMatch || isCidMatch;
                 });
             };
 
-            // 1. เช็คจากแคชในเครื่อง (ดักจับการกดรัวๆ เบื้องต้น)
+            // 1. เช็คจากแคชในเครื่อง (Double Check Layer 1 - ดักจับการกดรัวๆ เบื้องต้น)
             if (isDuplicate(appCache.checkIns)) {
                 if (errorMsgEl) {
                     errorMsgEl.innerHTML = '<i class="ph-fill ph-warning-circle text-lg inline-block align-middle mr-1"></i> ระบบตรวจพบว่าคุณลงทะเบียนกิจกรรมนี้ไปแล้ว!';
@@ -607,11 +672,11 @@
 
             const submitBtn = e.target.querySelector('button[type="submit"]');
             const originalBtnText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<i class="ph ph-spinner animate-spin text-xl"></i> กำลังตรวจสอบ...';
+            submitBtn.innerHTML = '<i class="ph ph-spinner animate-spin text-xl"></i> กำลังตรวจสอบข้อมูลล่าสุด...';
             submitBtn.disabled = true;
 
             try {
-                // 2. เช็คจากเซิร์ฟเวอร์แบบ Real-time เพื่อความแม่นยำ 100% ป้องกันทำรายการพร้อมกันหลายเครื่อง
+                // 2. เช็คจากเซิร์ฟเวอร์แบบ Real-time (Double Check Layer 2 - ป้องกันทำรายการพร้อมกันหลายเครื่อง)
                 const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAllCheckIns&_nocache=${new Date().getTime()}`);
                 const result = await res.json();
                 
@@ -738,7 +803,7 @@
         function clearHistorySearch() { sessionStorage.removeItem('historySearchTerm'); sessionStorage.removeItem('historyData'); renderHistory(document.getElementById('app-content')); }
 
         async function renderShirtShop(container) {
-            container.innerHTML = `<div class="fade-in py-20 text-center"><i class="ph ph-spinner animate-spin text-4xl text-primary mb-4"></i><p class="text-slate-500 font-bold text-lg tracking-wide">Activity Digit 69</p></div>`;
+            container.innerHTML = getGokuLoader('กำลังโหลดข้อมูลร้านค้า...', 'ตรวจสอบสถานะระบบ...');
             
             try {
                 const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getSettings&_nocache=${new Date().getTime()}`, { cache: 'no-store' });
@@ -996,7 +1061,7 @@
         }
 
         async function renderTracking(container) {
-            container.innerHTML = `<div class="fade-in py-20 text-center"><i class="ph ph-spinner animate-spin text-4xl text-primary mb-4"></i><p class="text-slate-500 font-bold">กำลังตรวจสอบสถานะระบบสดๆ...</p><p class="text-xs text-slate-400 mt-2">โปรดรอสักครู่ เพื่อเชื่อมต่อฐานข้อมูลส่วนกลาง</p></div>`;
+            container.innerHTML = getGokuLoader('กำลังตรวจสอบสถานะระบบสดๆ...', 'โปรดรอสักครู่ เพื่อเชื่อมต่อฐานข้อมูลส่วนกลาง');
             
             try {
                 const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getSettings&_nocache=${new Date().getTime()}`, { cache: 'no-store' });
@@ -1100,7 +1165,7 @@
         function verifyOrderFromModal() { if(currentModalOrderId){ updateOrderStatus(currentModalOrderId, 2); closeModal(); } }
 
         async function renderAdminEvents(container) {
-            if (!appCache.activities || appCache.activities.length === 0) container.innerHTML = `<div class="fade-in py-20 text-center"><i class="ph ph-spinner animate-spin text-4xl text-primary mb-4"></i><p class="text-slate-500 font-bold">กำลังโหลด...</p></div>`;
+            if (!appCache.activities || appCache.activities.length === 0) container.innerHTML = getGokuLoader('กำลังโหลดข้อมูลกิจกรรม...', 'ดึงข้อมูลจากเซิร์ฟเวอร์');
             const activities = await fetchActivitiesData();
             let html = `
                 <div class="fade-in">
@@ -1209,7 +1274,7 @@
         }
 
         function renderAdminSPSS(container) {
-            container.innerHTML = `<div class="fade-in py-20 text-center"><i class="ph ph-spinner animate-spin text-4xl text-primary mb-4"></i><p class="text-slate-500 font-bold">กำลังประมวลผลข้อมูล...</p></div>`;
+            container.innerHTML = getGokuLoader('กำลังประมวลผลข้อมูล SPSS...', 'อาจใช้เวลาสักครู่ในการคำนวณสถิติ');
             
             Promise.all([fetchEvaluationsData(), fetchAllCheckInsData(), fetchActivitiesData()]).then(([evaluations, checkIns, activities]) => {
                 let eventOptions = '<option value="">-- เลือกกิจกรรมเพื่อดูรายงาน --</option>';
@@ -1424,7 +1489,7 @@
         };
 
         async function renderAdminDashboard(container) {
-            if (!appCache.activities || appCache.activities.length === 0) container.innerHTML = `<div class="fade-in py-20 text-center"><i class="ph ph-spinner animate-spin text-4xl text-primary mb-4"></i><p class="text-slate-500 font-bold">กำลังโหลด...</p></div>`;
+            if (!appCache.activities || appCache.activities.length === 0) container.innerHTML = getGokuLoader('กำลังเตรียมภาพรวมระบบ...', 'ดึงข้อมูลสถิติทั้งหมด');
             const activities = await fetchActivitiesData(); const allCheckIns = await fetchAllCheckInsData(); const ordersData = await fetchOrdersData();
             const totalJoined = activities.reduce((sum, ev) => sum + (parseInt(ev.joined) || 0), 0);
             const participationRate = totalJoined > 0 ? Math.round((allCheckIns.length / totalJoined) * 100) : 0;
@@ -1476,7 +1541,7 @@
         }
 
         async function renderAdminOrders(container) {
-            if (!appCache.orders || appCache.orders.length === 0) container.innerHTML = `<div class="fade-in py-20 text-center"><i class="ph ph-spinner animate-spin text-4xl text-primary mb-4"></i><p class="text-slate-500 font-bold">กำลังโหลด...</p></div>`;
+            if (!appCache.orders || appCache.orders.length === 0) container.innerHTML = getGokuLoader('กำลังโหลดยอดสั่งจอง...', 'ซิงค์ข้อมูลกับฐานข้อมูล');
             const ordersData = await fetchOrdersData();
             let summary = { polo: { S: 0, M: 0, L: 0, XL: 0, '2XL': 0 }, act: { S: 0, M: 0, L: 0, XL: 0, '2XL': 0 } };
             ordersData.forEach(order => {
