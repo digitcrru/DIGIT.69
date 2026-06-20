@@ -193,7 +193,8 @@
 
     <script>
         // ==========================================
-        // URL ของ GOOGLE APPS SCRIPT
+        // URL ของ GOOGLE APPS SCRIPT (Web App)
+        // ⚠️ สำคัญมาก: โปรดนำ URL ที่ได้จากการ Deploy Code.gs มาวางที่ตัวแปรด้านล่างนี้ ⚠️
         // ==========================================
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6wkWGyyWSJBMQ90nd6DFqh8JKOWlJ_aWsxzNNSbSstIwX8UDVL47Nn6jtm0P0l3ViWw/exec';
         
@@ -325,7 +326,6 @@
         // DATA FETCHING (CACHE-FIRST APPROACH)
         // ==========================================
         async function fetchActivitiesData(forceRefresh = false) {
-            // หากมีแคชอยู่แล้วและไม่บังคับรีเฟรช ให้คืนค่าทันทีและแอบอัปเดตเบื้องหลัง
             if (!forceRefresh && appCache.activities && appCache.activities.length > 0) {
                 _backgroundFetchActivities();
                 return appCache.activities;
@@ -708,6 +708,7 @@
                 });
             };
 
+            // 1. Double Check Layer 1 (Local Cache)
             if (isDuplicate(appCache.checkIns)) {
                 if (errorMsgEl) {
                     errorMsgEl.innerHTML = '<i class="ph-fill ph-warning-circle text-lg inline-block align-middle mr-1"></i> ระบบตรวจพบว่าคุณลงทะเบียนกิจกรรมนี้ไปแล้ว!';
@@ -723,6 +724,7 @@
             submitBtn.disabled = true;
 
             try {
+                // 2. Double Check Layer 2 (Real-time Google Apps Script)
                 const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAllCheckIns&_nocache=${new Date().getTime()}`);
                 const result = await res.json();
                 
@@ -744,6 +746,7 @@
                 console.log("Offline mode: skipping server check");
             }
 
+            // 3. Store Data via POST
             const payload = { 
                 action: 'checkIn',
                 eventId: eventId, 
@@ -755,6 +758,7 @@
                 timestamp: new Date().toLocaleString('th-TH') 
             };
             
+            // แอบใส่ข้อมูลลงแคชชั่วคราว เพื่อกันการกดปุ่มย้อนกลับแล้วส่งข้อมูลซ้ำ
             appCache.checkIns.push([payload.timestamp, payload.eventName, payload.studentId, payload.citizenId, payload.name, payload.faculty, 3]);
 
             if (eventObj) eventObj.joined = (parseInt(eventObj.joined) || 0) + 1;
@@ -1246,8 +1250,9 @@
         function verifyOrderFromModal() { if(currentModalOrderId){ updateOrderStatus(currentModalOrderId, 2); closeModal(); } }
 
         async function renderAdminEvents(container) {
+            
             container.innerHTML = getGokuLoader('กำลังโหลดข้อมูลกิจกรรม...', 'ระบบสำหรับผู้ดูแล');
-            await fetchActivitiesData(); // ดึงข้อมูลมาก่อน
+            await fetchActivitiesData(); 
 
             let html = `
                 <div class="fade-in max-w-7xl mx-auto">
@@ -1285,14 +1290,12 @@
                 </div>`;
             container.innerHTML = html;
             
-            // คงค่าช่องค้นหาเมื่อมีการรีเฟรช (Re-render)
             const searchInput = document.getElementById('admin-event-search');
             if (searchInput) searchInput.value = adminEventsSearch;
             
             updateAdminEventsTable();
         }
 
-        // ฟังก์ชันอัปเดตข้อมูลในตาราง 5 แถวต่อหน้า
         function updateAdminEventsTable() {
             const tbody = document.getElementById('admin-events-tbody');
             const paginationContainer = document.getElementById('admin-events-pagination');
@@ -1300,7 +1303,6 @@
 
             let activities = appCache.activities || [];
             
-            // การค้นหา (Filter)
             if (adminEventsSearch) {
                 const s = adminEventsSearch.toLowerCase();
                 activities = activities.filter(e => 
@@ -1310,7 +1312,6 @@
                 );
             }
 
-            // การแบ่งหน้า (Pagination)
             const totalItems = activities.length;
             const totalPages = Math.ceil(totalItems / adminEventsPerPage) || 1;
             
@@ -1320,7 +1321,6 @@
             const startIndex = (adminEventsPage - 1) * adminEventsPerPage;
             const paginatedActivities = activities.slice(startIndex, startIndex + adminEventsPerPage);
 
-            // เรนเดอร์แถวข้อมูล
             let html = '';
             if (paginatedActivities.length === 0) {
                  html = `<tr><td colspan="5" class="p-8 text-center text-slate-400 font-medium">ไม่พบข้อมูลกิจกรรมที่ค้นหา</td></tr>`;
@@ -1352,7 +1352,6 @@
             }
             tbody.innerHTML = html;
 
-            // เรนเดอร์ปุ่มเปลี่ยนหน้า
             const startDisplay = totalItems === 0 ? 0 : startIndex + 1;
             const endDisplay = Math.min(startIndex + adminEventsPerPage, totalItems);
             
@@ -1366,22 +1365,21 @@
             paginationContainer.innerHTML = phtml;
         }
 
-        // Event Listeners สำหรับหน้าจัดการกิจกรรม
-        window.handleAdminEventSearch = function(e) {
+        function handleAdminEventSearch(e) {
             adminEventsSearch = e.target.value;
-            adminEventsPage = 1; // เมื่อค้นหาให้กลับไปหน้าแรกเสมอ
+            adminEventsPage = 1; 
             updateAdminEventsTable();
         }
 
-        window.changeAdminEventPage = function(newPage) {
+        function changeAdminEventPage(newPage) {
             adminEventsPage = newPage;
             updateAdminEventsTable();
         }
 
-        window.refreshAdminEvents = async function(btn) {
+        async function refreshAdminEvents(btn) {
             const icon = btn.querySelector('i');
-            if(icon) icon.classList.add('animate-spin'); // หมุนไอคอนรอ
-            await fetchActivitiesData(true); // เพิ่ม true เพื่อบังคับรีเฟรชข้อมูลล่าสุดจริงๆ
+            if(icon) icon.classList.add('animate-spin'); 
+            await fetchActivitiesData(true); 
             updateAdminEventsTable();
             if(icon) icon.classList.remove('animate-spin');
             showToast('อัปเดตข้อมูลกิจกรรมล่าสุดแล้ว', 'success');
@@ -1465,7 +1463,6 @@
             
             Promise.all([fetchEvaluationsData(), fetchAllCheckInsData(), fetchActivitiesData()]).then(([evaluations, checkIns, activities]) => {
                 let eventOptions = '<option value="">-- เลือกกิจกรรมเพื่อดูรายงาน --</option>';
-                // Index 3 is eventName in Evaluations
                 const uniqueEvents = [...new Set(evaluations.map(e => String(e[3]).trim()))].filter(Boolean);
                 uniqueEvents.forEach(ev => { eventOptions += `<option value="${ev}">${ev}</option>`; });
 
@@ -1509,28 +1506,25 @@
             btn.disabled = true;
 
             const opt = {
-                margin:       [15, 10, 15, 10], // ขอบกระดาษ บน ซ้าย ล่าง ขวา (mm)
+                margin:       [15, 10, 15, 10], 
                 filename:     `รายงานประเมิน_${eventName}.pdf`,
                 image:        { type: 'jpeg', quality: 1 },
                 html2canvas:  { 
                     scale: 2, 
                     useCORS: true,
-                    letterRendering: false, // ป้องกันตัวอักษรไทยซ้อนกัน
-                    windowWidth: 1024 // ล็อกความกว้างหน้าจอไว้ ป้องกัน Responsive บีบอัด
+                    letterRendering: false, 
+                    windowWidth: 1024 
                 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            // ก่อนแคปภาพ ให้บังคับความกว้างของคอนเทนเนอร์ให้พอดีกับสัดส่วน A4 ชั่วคราว
             const originalWidth = element.style.width;
             element.style.width = '800px'; 
             element.style.margin = '0 auto';
 
             html2pdf().set(opt).from(element).save().then(() => {
-                // คืนค่าเดิมหลังจากเซฟเสร็จ
                 element.style.width = originalWidth;
                 element.style.margin = '';
-                
                 btn.innerHTML = oldHtml;
                 btn.disabled = false;
                 showToast('ดาวน์โหลด PDF สำเร็จ!', 'success');
@@ -1557,12 +1551,10 @@
             btn.innerHTML = '<i class="ph ph-spinner animate-spin text-lg"></i> กำลังสร้าง...';
             btn.disabled = true;
 
-            // ห่อหุ้ม HTML ด้วยโครงสร้างพื้นฐานสำหรับอ่านเป็นไฟล์ Word
             const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Export HTML to Word</title></head><body>";
             const footer = "</body></html>";
             const htmlContent = header + element.innerHTML + footer;
             
-            // แปลงเป็น blob แล้วดาวน์โหลด
             const blob = new Blob(['\ufeff', htmlContent], {
                 type: 'application/msword'
             });
@@ -1606,7 +1598,6 @@
                 return; 
             }
 
-            // 1. ประมวลผลเพศ (หาจากคำนำหน้าชื่อใน CheckIns)
             let mCount = 0; let fCount = 0;
             evals.forEach(ev => {
                 const sid = String(ev[1]).trim();
@@ -1656,7 +1647,6 @@
                 totalScoreSum += mean; if(mean > 0) validEvalCount++;
             }
             
-            // คำนวณ x̄ และ S.D. รวม
             const overallCount = allValidScores.length;
             const overallSum = allValidScores.reduce((a,b)=>a+b, 0);
             const overallMeanNum = overallCount > 0 ? (overallSum / overallCount) : 0;
@@ -1672,7 +1662,6 @@
             const top2 = sortedMeans[1] || {qText: '-', mean: 0};
             const top3 = sortedMeans[2] || {qText: '-', mean: 0};
 
-            // Helper function for UX Badges
             const getBadgeUI = (meanValue) => {
                 const m = parseFloat(meanValue);
                 if (m >= 4.51) return `<span class="bg-green-100 text-green-700 px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold border border-green-200">มากที่สุด</span>`;
@@ -1690,11 +1679,9 @@
 
             const comments = evals.map(e => String(e[4 + numQuestions] || '').trim()).filter(c => c !== '');
 
-            // ================== Start Building UI ==================
             let html = `
                 <div class="bg-white rounded-[32px] p-6 sm:p-10 shadow-sm border border-slate-100 print:shadow-none print:border-none print:p-0 font-['Prompt']">
                     
-                    <!-- Header Section -->
                     <div class="relative bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 rounded-3xl p-6 sm:p-8 mb-8 overflow-hidden print:bg-transparent print:border-none print:p-0 print:mb-6">
                         <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-primary/5 rounded-full blur-3xl print:hidden"></div>
                         <div class="relative z-10 text-center">
@@ -1705,7 +1692,6 @@
                         </div>
                     </div>
                     
-                    <!-- Legend Grid -->
                     <div class="mb-8 border border-slate-200 rounded-2xl overflow-hidden text-xs sm:text-sm print:break-inside-avoid shadow-sm">
                         <div class="bg-slate-50/80 font-bold p-3.5 text-center border-b border-slate-200 text-slate-700 flex items-center justify-center gap-2">
                             <i class="ph-fill ph-info text-slate-400"></i> เกณฑ์ในการแปลความหมายของค่าคะแนนเฉลี่ย
@@ -1723,7 +1709,6 @@
                         </div>
                     </div>
 
-                    <!-- Table 1: Demographics -->
                     <div class="mb-10 print:break-inside-avoid">
                         <div class="flex items-center gap-2 mb-4">
                             <div class="w-1 h-6 bg-primary rounded-full print:bg-black"></div>
@@ -1767,7 +1752,6 @@
                         </div>
                     </div>
 
-                    <!-- Highlight Top 3 -->
                     <div class="mb-10 print:hidden">
                         <div class="flex items-center gap-2 mb-4">
                             <div class="w-1 h-6 bg-amber-500 rounded-full"></div>
@@ -1792,7 +1776,6 @@
                         </div>
                     </div>
 
-                    <!-- Table 2: Satisfaction Survey -->
                     <div class="mb-10 print:break-inside-avoid">
                         <div class="flex items-center gap-2 mb-4">
                             <div class="w-1 h-6 bg-primary rounded-full print:bg-black"></div>
@@ -1847,7 +1830,6 @@
                         </div>
                     </div>`;
             
-            // ตอนที่ 3 ข้อเสนอแนะเชิงพรรณนา (แบบที่ 1: เน้นภาพรวมแบบ UX/UI ใหม่)
             if (comments.length > 0) {
                 let commentsListHtml = '<div class="space-y-3 mt-4 mb-5">';
                 const uniqueComments = [...new Set(comments)]; 
@@ -1885,13 +1867,12 @@
             
             html += `</div>`;
             contentDiv.innerHTML = html; contentDiv.classList.remove('hidden');
-            if (pdfBtn) pdfBtn.classList.remove('hidden'); // แสดงปุ่มโหลด PDF เมื่อมีข้อมูลพร้อม
-            if (wordBtn) wordBtn.classList.remove('hidden'); // แสดงปุ่มโหลด Word เมื่อมีข้อมูลพร้อม
+            if (pdfBtn) pdfBtn.classList.remove('hidden'); 
+            if (wordBtn) wordBtn.classList.remove('hidden'); 
         };
 
         async function renderAdminDashboard(container) {
             
-            // บังคับโชว์ Loader เสมอก่อนดึงข้อมูล
             container.innerHTML = getGokuLoader('กำลังสรุปภาพรวมระบบ...', 'รวบรวมข้อมูลสถิติทั้งหมด');
             
             const activities = await fetchActivitiesData(); const allCheckIns = await fetchAllCheckInsData(); const ordersData = await fetchOrdersData();
