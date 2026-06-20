@@ -41,26 +41,21 @@
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col">
 
-    <!-- Navigation (Top Bar) -->
     <nav class="bg-white shadow-sm sticky top-0 z-50 border-b border-slate-100" id="main-nav">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
-                <!-- Brand (Clickable to home) -->
                 <div class="flex items-center cursor-pointer hover:opacity-80 transition-opacity" onclick="goToHome()">
                     <i class="ph-fill ph-student text-primary text-2xl sm:text-3xl mr-2" id="brand-icon"></i>
                     <span class="font-bold text-lg sm:text-xl text-slate-800 tracking-tight" id="brand-text">DIGIT.<span class="text-primary">CRRU</span></span>
                 </div>
                 
-                <!-- Desktop Menu -->
                 <div class="hidden md:flex space-x-1 items-center flex-grow justify-center" id="desktop-menu"></div>
 
-                <!-- Role Switcher -->
                 <div class="flex items-center">
                     <div class="bg-slate-100/80 p-1 rounded-xl mr-0 md:mr-4 hidden sm:inline-flex">
                         <button onclick="switchRole('student')" id="btn-role-student" class="px-5 py-1.5 text-sm font-bold rounded-lg bg-white text-primary shadow-sm transition-all duration-200">นักศึกษา</button>
                         <button onclick="switchRole('admin')" id="btn-role-admin" class="px-5 py-1.5 text-sm font-semibold rounded-lg text-slate-500 hover:text-slate-700 transition-all duration-200">แอดมิน</button>
                     </div>
-                    <!-- Mobile Hamburger -->
                     <button onclick="toggleMobileMenu()" class="sm:hidden text-slate-500 hover:text-primary focus:outline-none p-2 rounded-lg bg-slate-50 border border-slate-200 ml-2">
                         <i class="ph ph-user-switch text-xl"></i>
                     </button>
@@ -68,7 +63,6 @@
             </div>
         </div>
         
-        <!-- Mobile Menu (Role Switcher for Small Screens) -->
         <div id="mobile-menu" class="hidden sm:hidden bg-white border-t border-slate-100 px-4 py-4 shadow-lg absolute w-full z-40">
             <p class="text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider text-center">สลับบทบาท (Role)</p>
             <div class="flex bg-slate-100/80 p-1 rounded-xl">
@@ -78,21 +72,15 @@
         </div>
     </nav>
 
-    <!-- Main Content Area -->
     <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 pb-8 w-full" id="app-content"></main>
 
-    <!-- Footer Area -->
     <footer class="mt-auto py-6 sm:py-8 text-center text-slate-500 text-xs sm:text-sm px-4 border-t border-slate-200 bg-white pb-24 md:pb-6 print:hidden">
         <p class="font-bold text-slate-600">ฝ่ายกิจการนักศึกษา คณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย</p>
         <p class="mt-1 text-slate-400">ระบบจัดการกิจกรรมนักศึกษา (DIGIT.CRRU)</p>
     </footer>
 
-    <!-- Mobile Tab Bar (Bottom Navigation) -->
     <nav id="mobile-tab-bar" class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around items-center z-40 pt-1 shadow-[0_-4px_15px_rgba(0,0,0,0.05)] print:hidden" style="padding-bottom: env(safe-area-inset-bottom);"></nav>
 
-    <!-- ================= MODALS ================= -->
-
-    <!-- Admin Login Modal -->
     <div id="adminLoginModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4 transition-opacity fade-in">
         <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl transform transition-all relative">
             <button onclick="closeAdminLoginModal()" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 transition-colors"><i class="ph ph-x text-2xl"></i></button>
@@ -120,7 +108,6 @@
         </div>
     </div>
 
-    <!-- Modal for Slip Viewing -->
     <div id="slipModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 transition-opacity">
         <div class="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl transform transition-all">
             <div class="flex justify-between items-center mb-4">
@@ -139,7 +126,6 @@
         </div>
     </div>
 
-    <!-- Modal for Edit Event -->
     <div id="editEventModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 transition-opacity">
         <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl transform transition-all">
             <div class="flex justify-between items-center mb-6">
@@ -167,7 +153,6 @@
         </div>
     </div>
 
-    <!-- Home Announcement Popup -->
     <div id="homePopupModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[200] flex items-center justify-center p-4 transition-opacity">
         <div class="bg-white rounded-[32px] overflow-hidden max-w-md w-full shadow-2xl scale-in relative">
             <button onclick="closeHomePopup()" class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center bg-black/20 hover:bg-black/40 text-white rounded-full transition-colors z-20 backdrop-blur-md shadow-sm">
@@ -188,20 +173,17 @@
         </div>
     </div>
 
-    <!-- Toast Container -->
     <div id="toast-container" class="fixed bottom-20 md:bottom-5 right-4 md:right-5 z-[130] flex flex-col gap-2 w-auto max-w-[90%] pointer-events-none"></div>
 
     <script>
         // ==========================================
-        // URL ของ GOOGLE APPS SCRIPT (Web App)
-        // ⚠️ สำคัญมาก: โปรดนำ URL ที่ได้จากการ Deploy Code.gs มาวางที่ตัวแปรด้านล่างนี้ ⚠️
+        // 🚀 URL ใหม่ล่าสุดของคุณ (1sOKGMcaHGRKbeLgQ5g2CAGAGkHQyoBIas_fecarqZ-o)
         // ==========================================
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxhviiFEc3xbDitgF_RY1q0t8qkmNvJ5N6tamVyfSoFnPZi0s3xULj_wNnBtJJ01sat4w/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxcQ2hIzEMVPnjAOADEKSQ0Evq7uMbt-YQ1MCww7gjlxPGUHygyOiNmGSXu2cBF5AG1Fw/exec';
         
         let currentRole = 'student'; 
         let currentView = 'events';
         let currentModalOrderId = null;
-        let globalActivities = [];
         let currentCheckoutOrder = null;
         
         // --- ตัวแปรสำหรับ Pagination ---
@@ -226,11 +208,42 @@
         };
 
         let promptPaySettings = JSON.parse(localStorage.getItem('CRRU_PromptPaySettings')) || {
-            accountName: 'ฝ่ายกิจการนักศึกษา',
-            accountNumber: '012-3-45678-9',
-            bankName: 'ธ.กรุงไทย (สาขามร.ชร.)'
+            accountName: 'ฝ่ายกิจการนักศึกษา', accountNumber: '012-3-45678-9', bankName: 'ธ.กรุงไทย (สาขามร.ชร.)'
         };
 
+        // ==========================================
+        // 🚀 ROBUST API CALL WRAPPER (รื้อระบบเดิมทิ้ง)
+        // จัดการเรื่อง CORS อย่างเด็ดขาด และรองรับทั้ง GET/POST แบบไม่พึ่ง Firebase
+        // ==========================================
+        async function apiCall(method, payloadData = {}) {
+            try {
+                let url = GOOGLE_SCRIPT_URL;
+                let options = { redirect: 'follow' };
+
+                if (method.toUpperCase() === 'GET') {
+                    // ส่งแบบ GET (ป้องกัน Cache ด้วย _nocache)
+                    const params = new URLSearchParams(payloadData);
+                    params.append('_nocache', new Date().getTime());
+                    url += '?' + params.toString();
+                } else {
+                    // ส่งแบบ POST (ใช้ text/plain เลี่ยง CORS Preflight OPTIONS)
+                    options.method = 'POST';
+                    options.headers = { 'Content-Type': 'text/plain;charset=utf-8' };
+                    options.body = JSON.stringify(payloadData);
+                }
+
+                const response = await fetch(url, options);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        // ==========================================
+        // UI & HELPERS
+        // ==========================================
         function getGokuLoader(title = 'กำลังโหลด...', subtitle = 'โปรดรอสักครู่') {
             return `
                 <div class="fade-in py-20 flex flex-col items-center justify-center text-center w-full">
@@ -293,13 +306,14 @@
             fetchEvaluationsData();
         });
 
+        // ==========================================
+        // DATA FETCHING VIA apiCall
+        // ==========================================
         async function fetchSettingsData() {
             try {
-                const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getSettings&_nocache=${new Date().getTime()}`, { cache: 'no-store' });
-                const result = await res.json();
+                const result = await apiCall('GET', { action: 'getSettings' });
                 if (result.success && result.data) {
                     isShirtShopOpen = (result.data.isShirtShopOpen === true || String(result.data.isShirtShopOpen).toLowerCase() === 'true');
-                    
                     if(result.data.popupSettings) popupSettings = result.data.popupSettings;
                     if(result.data.promptPaySettings) promptPaySettings = result.data.promptPaySettings;
                     
@@ -322,9 +336,6 @@
             } catch(e) {}
         }
 
-        // ==========================================
-        // DATA FETCHING (CACHE-FIRST APPROACH)
-        // ==========================================
         async function fetchActivitiesData(forceRefresh = false) {
             if (!forceRefresh && appCache.activities && appCache.activities.length > 0) {
                 _backgroundFetchActivities();
@@ -335,11 +346,8 @@
 
         async function _backgroundFetchActivities() {
             try {
-                const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getActivities&t=${new Date().getTime()}`);
-                const actResult = await res.json();
-                
-                const chkRes = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAllCheckIns&t=${new Date().getTime()}`);
-                const chkResult = await chkRes.json();
+                const actResult = await apiCall('GET', { action: 'getActivities' });
+                const chkResult = await apiCall('GET', { action: 'getAllCheckIns' });
                 
                 const checkInCounts = {};
                 if (chkResult.success && chkResult.data) {
@@ -374,8 +382,7 @@
 
         async function _backgroundFetchCheckIns() {
             try {
-                const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAllCheckIns&t=${new Date().getTime()}`);
-                const r = await res.json();
+                const r = await apiCall('GET', { action: 'getAllCheckIns' });
                 if(r.success) appCache.checkIns = r.data;
                 return appCache.checkIns;
             } catch (e) { return appCache.checkIns || []; }
@@ -391,8 +398,7 @@
 
         async function _backgroundFetchOrders() {
             try {
-                const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getOrders&t=${new Date().getTime()}`);
-                const r = await res.json();
+                const r = await apiCall('GET', { action: 'getOrders' });
                 if(r.success) appCache.orders = r.data;
                 appCache.orders.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
                 return appCache.orders;
@@ -409,13 +415,15 @@
 
         async function _backgroundFetchEvaluations() {
             try {
-                const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getEvaluations&t=${new Date().getTime()}`);
-                const r = await res.json();
+                const r = await apiCall('GET', { action: 'getEvaluations' });
                 if(r.success) appCache.evaluations = r.data;
                 return appCache.evaluations;
             } catch (e) { return appCache.evaluations || []; }
         }
 
+        // ==========================================
+        // NAVIGATION & STATE
+        // ==========================================
         function goToHome() {
             navigate(currentRole === 'student' ? 'events' : 'admin-dash');
         }
@@ -516,6 +524,9 @@
             }
         }
 
+        // ==========================================
+        // STUDENT VIEWS
+        // ==========================================
         function renderEvents(container) {
             if (!appCache.activities || appCache.activities.length === 0) {
                 container.innerHTML = getGokuLoader('กำลังดึงข้อมูลกิจกรรม...', 'ระบบกำลังเชื่อมต่อฐานข้อมูล');
@@ -606,9 +617,7 @@
             
             const btn = document.getElementById('btn-fetch-student'); const originalBtnHtml = btn.innerHTML; btn.innerHTML = '<i class="ph ph-spinner animate-spin"></i>...'; btn.disabled = true; feedback.classList.add('hidden');
             try {
-                const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=search&id=${encodeURIComponent(searchId)}&_nocache=${new Date().getTime()}`);
-                const result = await res.json();
-                
+                const result = await apiCall('GET', { action: 'search', id: encodeURIComponent(searchId) });
                 if (result.success && result.data) { 
                     appCache.students[searchId] = result.data; 
                     fillStudentForm(result.data, searchId); 
@@ -708,7 +717,6 @@
                 });
             };
 
-            // 1. Double Check Layer 1 (Local Cache)
             if (isDuplicate(appCache.checkIns)) {
                 if (errorMsgEl) {
                     errorMsgEl.innerHTML = '<i class="ph-fill ph-warning-circle text-lg inline-block align-middle mr-1"></i> ระบบตรวจพบว่าคุณลงทะเบียนกิจกรรมนี้ไปแล้ว!';
@@ -724,13 +732,9 @@
             submitBtn.disabled = true;
 
             try {
-                // 2. Double Check Layer 2 (Real-time Google Apps Script)
-                const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAllCheckIns&_nocache=${new Date().getTime()}`);
-                const result = await res.json();
-                
+                const result = await apiCall('GET', { action: 'getAllCheckIns' });
                 if (result.success && result.data) {
                     appCache.checkIns = result.data;
-
                     if (isDuplicate(result.data)) {
                         if (errorMsgEl) {
                             errorMsgEl.innerHTML = '<i class="ph-fill ph-warning-circle text-lg inline-block align-middle mr-1"></i> ระบบตรวจพบว่าคุณลงทะเบียนกิจกรรมนี้ไปแล้ว!';
@@ -746,7 +750,6 @@
                 console.log("Offline mode: skipping server check");
             }
 
-            // 3. Store Data via POST
             const payload = { 
                 action: 'checkIn',
                 eventId: eventId, 
@@ -758,12 +761,10 @@
                 timestamp: new Date().toLocaleString('th-TH') 
             };
             
-            // แอบใส่ข้อมูลลงแคชชั่วคราว เพื่อกันการกดปุ่มย้อนกลับแล้วส่งข้อมูลซ้ำ
             appCache.checkIns.push([payload.timestamp, payload.eventName, payload.studentId, payload.citizenId, payload.name, payload.faculty, 3]);
-
             if (eventObj) eventObj.joined = (parseInt(eventObj.joined) || 0) + 1;
             
-            fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) }).catch(() => null);
+            apiCall('POST', payload).catch(() => null);
             
             submitBtn.innerHTML = '<i class="ph-fill ph-check-circle text-xl"></i> สำเร็จ!';
             showToast('ลงทะเบียนสำเร็จ! กรุณาทำแบบประเมิน...', 'success');
@@ -809,7 +810,7 @@
                 comment: surveyData.suggestions || '' 
             };
             
-            fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
+            apiCall('POST', payload)
             .then(() => { showToast('ขอบคุณที่ร่วมประเมินกิจกรรม!', 'success'); navigate('events'); })
             .catch(() => { showToast('บันทึกสำเร็จ (Offline Mode)', 'success'); navigate('events'); });
         }
@@ -858,9 +859,7 @@
             const searchId = document.getElementById('search-history-id').value.trim(); if(!searchId) { showToast('กรุณากรอกข้อมูล', 'error'); return; }
             const btn = document.getElementById('btn-fetch-history'); const txt = btn.innerHTML; btn.innerHTML = '<i class="ph ph-spinner animate-spin"></i>...'; btn.disabled = true;
             try {
-                const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getHistory&id=${encodeURIComponent(searchId)}&_nocache=${new Date().getTime()}`);
-                const r = await res.json();
-                
+                const r = await apiCall('GET', { action: 'getHistory', id: encodeURIComponent(searchId) });
                 if (r.success && r.data && r.data.length > 0) {
                     r.data.forEach(item => item.date = formatThaiDate(item.date));
                     sessionStorage.setItem('historySearchTerm', searchId); sessionStorage.setItem('historyData', JSON.stringify({ history: r.data })); showToast('ค้นหาสำเร็จ', 'success');
@@ -984,8 +983,7 @@
             }
             const btn = document.getElementById('btn-fetch-order'); const txt = btn.innerHTML; btn.innerHTML = '<i class="ph ph-spinner animate-spin"></i>'; btn.disabled = true; feedback.classList.add('hidden');
             try {
-                const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=searchStudentOrder&id=${encodeURIComponent(searchId)}&_nocache=${new Date().getTime()}`);
-                const r = await res.json();
+                const r = await apiCall('GET', { action: 'searchStudentOrder', id: encodeURIComponent(searchId) });
                 
                 if (r.success && r.data) {
                     appCache.students[searchId] = r.data; 
@@ -1132,7 +1130,7 @@
                 timestamp: new Date().toLocaleString('th-TH') 
             };
             
-            fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
+            apiCall('POST', payload)
             .then(() => showToast(method === 'qr' ? 'อัปโหลดสลิปเรียบร้อย!' : 'บันทึกแจ้งชำระเงินสดเรียบร้อย!', 'success'))
             .catch(() => showToast('เกิดปัญหาการบันทึก', 'warning'));
         }
@@ -1160,7 +1158,12 @@
                 return;
             }
 
-            const myOrder = appCache.orders[0] || { studentId: 'Mock', id: 'ORD-XXXX', status: 1, type: 'แพ็คเกจคู่', size: 'M', qty: 1, total: 560 };
+            const myOrder = appCache.orders.length > 0 ? appCache.orders[0] : null;
+            if (!myOrder) {
+                container.innerHTML = `<div class="fade-in max-w-3xl mx-auto"><div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-10 text-center"><i class="ph-fill ph-receipt text-6xl text-slate-300 mb-4"></i><h2 class="text-2xl font-bold text-slate-800 mb-2">ไม่พบประวัติการสั่งจอง</h2><p class="text-slate-500">คุณยังไม่มีรายการสั่งจองเสื้อในระบบ หรือระบบกำลังดึงข้อมูล</p><button onclick="navigate('shirt')" class="mt-6 px-6 py-3 bg-primary text-white font-bold rounded-xl shadow-md">ไปหน้าสั่งจองชุดเสื้อคณะ</button></div></div>`;
+                return;
+            }
+
             const currentStep = myOrder.status;
             let html = `
                 <div class="fade-in max-w-3xl mx-auto">
@@ -1226,6 +1229,9 @@
                 
                 order.size = newSize; order.qty = newQty; order.total = newTotal; order.hasEdited = true;
                 
+                const payload = { action: 'updateOrderStatus', orderId: String(orderId), status: order.status }; 
+                apiCall('POST', payload);
+
                 showToast('อัปเดตข้อมูลสำเร็จ!', 'success');
                 navigate('tracking');
             }
@@ -1238,7 +1244,7 @@
             showToast('กำลังบันทึก...', 'warning');
             
             const payload = { action: 'updateOrderStatus', orderId: String(orderId), status: parseInt(newStatus) };
-            fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
+            apiCall('POST', payload)
             .then(() => showToast(`อัปเดตสถานะสำเร็จ`, 'success'))
             .catch(() => showToast('อัปเดตสถานะจำลอง', 'warning'));
             
@@ -1280,11 +1286,9 @@
                             <table class="w-full text-left border-collapse min-w-[700px]">
                                 <thead><tr class="bg-slate-50 border-b border-slate-100 text-slate-500 text-[10px] sm:text-xs font-bold uppercase tracking-wider"><th class="p-3 sm:p-4">เวลาสร้าง</th><th class="p-3 sm:p-4">ชื่อกิจกรรม</th><th class="p-3 sm:p-4">วันที่จัด</th><th class="p-3 sm:p-4">สถานที่</th><th class="p-3 sm:p-4 text-center">จัดการ</th></tr></thead>
                                 <tbody id="admin-events-tbody" class="text-xs sm:text-sm text-slate-700">
-                                    <!-- ข้อมูลตารางจะถูกแทรกที่นี่ผ่าน JS -->
-                                </tbody>
+                                    </tbody>
                             </table>
                         </div>
-                        <!-- แถบ Pagination แบ่งหน้า -->
                         <div id="admin-events-pagination" class="p-4 border-t border-slate-100 flex justify-between items-center bg-slate-50/50"></div>
                     </div>
                 </div>`;
@@ -1405,7 +1409,7 @@
             renderAdminEvents(document.getElementById('app-content'));
             showToast('สร้างกิจกรรมใหม่สำเร็จ', 'success');
 
-            fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify(newEvent) }).catch(() => null);
+            apiCall('POST', newEvent).catch(() => null);
         }
 
         async function toggleEventStatus(id, currentStatus) {
@@ -1415,7 +1419,7 @@
             renderAdminEvents(document.getElementById('app-content'));
             showToast(`อัปเดตสถานะเรียบร้อย`, 'success');
             
-            fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'toggleActivity', id: String(id), status: newStatus }) }).catch(()=>null);
+            apiCall('POST', { action: 'toggleActivity', id: String(id), status: newStatus }).catch(()=>null);
         }
 
         function openEditEventModal(id) {
@@ -1443,7 +1447,7 @@
             submitBtn.innerHTML = txt; submitBtn.disabled = false;
 
             const payload = { action: 'editActivity', id: id, title: title, date: date, location: location };
-            fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) }).catch(()=>null);
+            apiCall('POST', payload).catch(()=>null);
         }
 
         async function exportEventParticipants(eventName) {
@@ -1484,7 +1488,6 @@
                             </select>
                         </div>
 
-                        <!-- พื้นที่สำหรับแสดงผลรายงาน -->
                         <div id="spss-report-content" class="hidden"></div>
                     </div>
                 `;
@@ -2126,24 +2129,21 @@
             
             showToast('กำลังซิงค์ข้อมูลกับเซิร์ฟเวอร์...', 'warning');
             
-            fetch(GOOGLE_SCRIPT_URL, { 
-                method: 'POST', 
-                body: JSON.stringify({ 
-                    action: 'saveSettings', 
-                    isShirtShopOpen: isShirtShopOpen, 
-                    popupSettings: popupSettings, 
-                    promptPaySettings: promptPaySettings 
-                }) 
-            }).then(res => res.json())
-              .then(data => {
-                  if(data.success) {
-                      showToast(`ระบบสั่งจองและติดตามสถานะ: ${isChecked ? 'เปิด' : 'ปิด'} เรียบร้อยแล้ว`, 'success');
-                  } else {
-                      showToast('เกิดข้อผิดพลาด โปรดรีเฟรชหน้าเว็บ', 'error');
-                  }
-              }).catch(() => {
-                  showToast('บันทึกสถานะได้เฉพาะในเครื่องนี้ (Offline Mode)', 'warning');
-              });
+            apiCall('POST', { 
+                action: 'saveSettings', 
+                isShirtShopOpen: isShirtShopOpen, 
+                popupSettings: popupSettings, 
+                promptPaySettings: promptPaySettings 
+            })
+            .then(data => {
+                if(data.success) {
+                    showToast(`ระบบสั่งจองและติดตามสถานะ: ${isChecked ? 'เปิด' : 'ปิด'} เรียบร้อยแล้ว`, 'success');
+                } else {
+                    showToast('เกิดข้อผิดพลาด โปรดรีเฟรชหน้าเว็บ', 'error');
+                }
+            }).catch(() => {
+                showToast('บันทึกสถานะได้เฉพาะในเครื่องนี้ (Offline Mode)', 'warning');
+            });
         }
 
         function renderAdminSettings(container) {
@@ -2165,7 +2165,6 @@
 
                     <form onsubmit="submitSettings(event)" class="space-y-5 sm:space-y-6">
                         
-                        <!-- PromptPay Settings -->
                         <div class="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-sm border border-slate-100">
                             <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-4 sm:mb-5 flex items-center gap-2"><i class="ph-fill ph-qr-code text-emerald-500"></i> ตั้งค่าบัญชีรับชำระเงิน (PromptPay)</h2>
                             <div class="space-y-4 sm:space-y-5">
@@ -2175,7 +2174,6 @@
                             </div>
                         </div>
 
-                        <!-- Popup Settings -->
                         <div class="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-sm border border-slate-100">
                             <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-4 sm:mb-5 flex items-center gap-2"><i class="ph-fill ph-app-window text-indigo-500"></i> ตั้งค่าประกาศหน้าแรก (Popup)</h2>
                             <div class="space-y-4 sm:space-y-5">
@@ -2230,14 +2228,11 @@
             localStorage.setItem('CRRU_PromptPaySettings', JSON.stringify(promptPaySettings));
             sessionStorage.removeItem('homePopupShown');
 
-            fetch(GOOGLE_SCRIPT_URL, { 
-                method: 'POST', 
-                body: JSON.stringify({ 
-                    action: 'saveSettings', 
-                    isShirtShopOpen: isShirtShopOpen, 
-                    popupSettings: popupSettings,
-                    promptPaySettings: promptPaySettings
-                }) 
+            apiCall('POST', { 
+                action: 'saveSettings', 
+                isShirtShopOpen: isShirtShopOpen, 
+                popupSettings: popupSettings,
+                promptPaySettings: promptPaySettings
             }).then(() => {
                 showToast('บันทึกการตั้งค่าเรียบร้อยแล้ว', 'success'); 
                 btn.innerHTML = txt; btn.disabled = false; 
