@@ -2177,23 +2177,6 @@
         }
 
         function renderAdminSettings(container) {
-            
-            let usersHtml = '';
-            adminUsers.forEach(u => {
-                usersHtml += `
-                    <div class="flex flex-col sm:flex-row items-center justify-between p-4 bg-white border border-slate-200 rounded-xl mb-3 shadow-sm group">
-                        <div class="flex items-center gap-4 w-full sm:w-auto mb-3 sm:mb-0">
-                            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-admin font-bold"><i class="ph-fill ph-user text-xl"></i></div>
-                            <div><p class="font-bold text-slate-800">${u.user}</p><p class="text-xs text-slate-500 mt-0.5">รหัสผ่าน: <span class="font-mono bg-slate-100 px-1 rounded">${u.pass}</span></p></div>
-                        </div>
-                        <div class="flex items-center gap-3 w-full sm:w-auto">
-                            <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg text-xs font-bold border border-blue-100 mr-auto sm:mr-0 whitespace-nowrap">${ROLE_MAP[u.role] || u.role}</span>
-                            ${u.role !== 'superadmin' || adminUsers.filter(x=>x.role==='superadmin').length > 1 ? `<button type="button" onclick="removeAdminUser('${u.id}')" class="w-8 h-8 rounded-full bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors"><i class="ph-fill ph-trash text-sm"></i></button>` : `<div class="w-8 h-8 flex items-center justify-center text-slate-300" title="ต้องมีผู้ดูแลสูงสุดอย่างน้อย 1 คน"><i class="ph-fill ph-lock-key"></i></div>`}
-                        </div>
-                    </div>
-                `;
-            });
-
             container.innerHTML = `
                 <div class="fade-in max-w-4xl mx-auto pb-10">
                     <div class="mb-6 sm:mb-8 text-center sm:text-left"><h1 class="text-2xl sm:text-3xl font-bold text-slate-800">ตั้งค่าระบบ</h1><p class="text-sm sm:text-base text-slate-500 mt-1">ปรับแต่งการทำงานและข้อมูลพื้นฐานของระบบ</p></div>
@@ -2215,7 +2198,7 @@
                         <div class="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-sm border border-slate-100">
                             <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-4 sm:mb-5 flex items-center gap-2"><i class="ph-fill ph-users-three text-admin"></i> สิทธิ์การเข้าถึง (Admin Access)</h2>
                             <div class="bg-slate-50 p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 mb-5">
-                                ${usersHtml}
+                                <div id="admin-users-list"></div>
                                 <div class="mt-4 pt-4 border-t border-slate-200">
                                     <p class="text-xs sm:text-sm font-bold text-slate-700 mb-3">เพิ่มบัญชีผู้ดูแลใหม่</p>
                                     <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
@@ -2270,26 +2253,71 @@
                         </div>
                     </form>
                 </div>`;
+
+            // เรียกใช้ฟังก์ชันให้ดึงบัญชีแอดมินมาแสดงทันที
+            updateAdminUsersList();
         }
 
+        window.updateAdminUsersList = function() {
+            const container = document.getElementById('admin-users-list');
+            if (!container) return;
+            
+            let usersHtml = '';
+            adminUsers.forEach(u => {
+                usersHtml += `
+                    <div class="flex flex-col sm:flex-row items-center justify-between p-4 bg-white border border-slate-200 rounded-xl mb-3 shadow-sm group">
+                        <div class="flex items-center gap-4 w-full sm:w-auto mb-3 sm:mb-0">
+                            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-admin font-bold"><i class="ph-fill ph-user text-xl"></i></div>
+                            <div><p class="font-bold text-slate-800">${u.user}</p><p class="text-xs text-slate-500 mt-0.5">รหัสผ่าน: <span class="font-mono bg-slate-100 px-1 rounded">${u.pass}</span></p></div>
+                        </div>
+                        <div class="flex items-center gap-3 w-full sm:w-auto">
+                            <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg text-xs font-bold border border-blue-100 mr-auto sm:mr-0 whitespace-nowrap">${ROLE_MAP[u.role] || u.role}</span>
+                            ${u.role !== 'superadmin' || adminUsers.filter(x=>x.role==='superadmin').length > 1 ? `<button type="button" onclick="removeAdminUser('${u.id}')" class="w-8 h-8 rounded-full bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors"><i class="ph-fill ph-trash text-sm"></i></button>` : `<div class="w-8 h-8 flex items-center justify-center text-slate-300" title="ต้องมีผู้ดูแลสูงสุดอย่างน้อย 1 คน"><i class="ph-fill ph-lock-key"></i></div>`}
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = usersHtml;
+        };
+
         window.addAdminUser = function() {
-            const u = document.getElementById('new-admin-user').value.trim();
-            const p = document.getElementById('new-admin-pass').value.trim();
-            const r = document.getElementById('new-admin-role').value;
+            const userEl = document.getElementById('new-admin-user');
+            const passEl = document.getElementById('new-admin-pass');
+            const roleEl = document.getElementById('new-admin-role');
+            
+            const u = userEl.value.trim();
+            const p = passEl.value.trim();
+            const r = roleEl.value;
             
             if(!u || !p) return showToast('กรุณากรอก Username และ Password ให้ครบ', 'warning');
             if(adminUsers.some(a => a.user === u)) return showToast('Username นี้มีอยู่ในระบบแล้ว', 'error');
 
             adminUsers.push({ id: Date.now().toString(), user: u, pass: p, role: r });
-            renderAdminSettings(document.getElementById('app-content'));
-            showToast('เพิ่มบัญชีผู้ดูแลสำเร็จ กรุณากดบันทึกการตั้งค่า', 'success');
+            
+            // เคลียร์ช่องพิมพ์ให้ว่าง
+            userEl.value = '';
+            passEl.value = '';
+            roleEl.value = 'activity';
+
+            // 1. อัปเดตตารางรายชื่อบนหน้าจอ (โดยไม่ทำให้ฟอร์มอื่นๆ หาย)
+            updateAdminUsersList();
+            
+            // 2. แอบกดบันทึกให้ทันที
+            submitSettings(null);
+            showToast('เพิ่มบัญชีผู้ดูแลและบันทึกสำเร็จ', 'success');
         };
 
         window.removeAdminUser = function(id) {
             const index = adminUsers.findIndex(u => u.id === id);
             if(index > -1) {
                 adminUsers.splice(index, 1);
-                renderAdminSettings(document.getElementById('app-content'));
+                
+                // 1. อัปเดตตารางรายชื่อบนหน้าจอ
+                updateAdminUsersList();
+                
+                // 2. แอบกดบันทึกให้ทันที
+                submitSettings(null);
+                showToast('ลบบัญชีผู้ดูแลสำเร็จ', 'success');
             }
         };
 
@@ -2301,7 +2329,19 @@
         }
 
         function submitSettings(e) {
-            e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); const txt = btn.innerHTML; btn.innerHTML = '<i class="ph ph-spinner animate-spin"></i> บันทึก...'; btn.disabled = true;
+            if(e) e.preventDefault(); 
+            
+            let btn = null;
+            let txt = '';
+            // ควบคุมปุ่ม Loading เฉพาะตอนผู้ใช้กดบันทึกปุ่มใหญ่
+            if(e && e.target) {
+                btn = e.target.querySelector('button[type="submit"]'); 
+                if(btn) {
+                    txt = btn.innerHTML; 
+                    btn.innerHTML = '<i class="ph ph-spinner animate-spin"></i> บันทึก...'; 
+                    btn.disabled = true;
+                }
+            }
             
             popupSettings.enabled = document.getElementById('setting-popup-toggle').checked; 
             popupSettings.title = document.getElementById('setting-popup-title').value; 
@@ -2324,11 +2364,11 @@
                 promptPaySettings: promptPaySettings,
                 adminUsers: adminUsers
             }).then(() => {
-                showToast('บันทึกการตั้งค่าเรียบร้อยแล้ว', 'success'); 
-                btn.innerHTML = txt; btn.disabled = false; 
+                if(e) showToast('บันทึกการตั้งค่าเรียบร้อยแล้ว', 'success'); 
+                if(btn) { btn.innerHTML = txt; btn.disabled = false; }
             }).catch(() => {
-                showToast('บันทึกสำเร็จ (Offline Mode)', 'warning');
-                btn.innerHTML = txt; btn.disabled = false; 
+                if(e) showToast('บันทึกสำเร็จ (Offline Mode)', 'warning');
+                if(btn) { btn.innerHTML = txt; btn.disabled = false; }
             });
         }
 
