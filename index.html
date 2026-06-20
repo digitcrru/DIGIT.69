@@ -770,9 +770,10 @@
         function renderSurvey(container, param) {
             const eventTitle = param?.eventTitle || 'กิจกรรมทั่วไป';
             const surveyQuestions = [
-                { category: '1. กระบวนการ ขั้นตอนการให้บริการ', items: [ { id: 'q1_1', text: '1.1 การประชาสัมพันธ์โครงการ ฯ' }, { id: 'q1_2', text: '1.2 ความเหมาะสมของสถานที่' }, { id: 'q1_3', text: '1.3 ความเหมาะสมของระยะเวลา' }, { id: 'q1_4', text: '1.4 การจัดลำดับขั้นตอนของกิจกรรม' } ]},
-                { category: '2. การอำนวยความสะดวก', items: [ { id: 'q2_1', text: '2.1 เอกสาร' }, { id: 'q2_2', text: '2.2 โสตทัศนูปกรณ์' }, { id: 'q2_3', text: '2.3 เจ้าหน้าที่สนับสนุน' }, { id: 'q2_4', text: '2.4 อาหาร, เครื่องดื่มและสถานที่' } ]},
-                { category: '3. คุณภาพการให้บริการ', items: [ { id: 'q3_1', text: '3.1 ท่านได้รับความรู้ แนวคิด ทักษะและประสบการณ์ใหม่ ๆ จากโครงการ' }, { id: 'q3_2', text: '3.2 ท่านสามารถนำสิ่งที่ได้รับจากโครงการ/กิจกรรมนี้ไปใช้ในการปฏิบัติงาน' }, { id: 'q3_3', text: '3.3 สิ่งที่ท่านได้รับจากโครงการ/กิจกรรมครั้งนี้ตรงตามความคาดหวังของท่านหรือไม่' }, { id: 'q3_4', text: '3.4 โครงการ/กิจกรรมนี้เอื้ออำนวยต่อการเรียนรู้และพัฒนาความสามารถของท่าน' }, { id: 'q3_5', text: '3.5 ประโยชน์ที่ท่านได้รับจากโครงการ/กิจกรรม' } ]}
+                { category: '1. ด้านวิทยากร', items: [ { id: 'q1_1', text: '1.1 การถ่ายทอดความรู้ของวิทยากรมีความชัดเจน' }, { id: 'q1_2', text: '1.2 ความสามารถในการอธิบายเนื้อหา' }, { id: 'q1_3', text: '1.3 การเชื่อมโยงเนื้อหาในการฝึกอบรม' }, { id: 'q1_4', text: '1.4 มีความครบถ้วนของเนื้อหาในการฝึกอบรม' }, { id: 'q1_5', text: '1.5 การใช้เวลาตามที่กำหนดไว้' }, { id: 'q1_6', text: '1.6 การตอบข้อซักถามในการฝึกอบรม' } ]},
+                { category: '2. ด้านสถานที่ / ระยะเวลา / อาหาร', items: [ { id: 'q2_1', text: '2.1 สถานที่สะอาดและมีความเหมาะสม' }, { id: 'q2_2', text: '2.2 ความพร้อมของอุปกรณ์โสตทัศนูปกรณ์' }, { id: 'q2_3', text: '2.3 ระยะเวลาในการอบรมมีความเหมาะสม' }, { id: 'q2_4', text: '2.4 อาหาร มีความเหมาะสม' } ]},
+                { category: '3. ด้านความรู้ความเข้าใจ', items: [ { id: 'q3_1', text: '3.1 ความรู้ ความเข้าใจในเรื่องนี้ ก่อน การอบรม' }, { id: 'q3_2', text: '3.2 ความรู้ ความเข้าใจในเรื่องนี้ หลัง การอบรม' } ]},
+                { category: '4. ด้านการนำความรู้ไปใช้', items: [ { id: 'q4_1', text: '4.1 สามารถนำความรู้ที่ได้รับไปประยุกต์ใช้ในการปฏิบัติงานได้' }, { id: 'q4_2', text: '4.2 มีความมั่นใจและสามารถนำความรู้ที่ได้รับไปใช้ได้' }, { id: 'q4_3', text: '4.3 สามารถนำความรู้ไปเผยแพร่/ถ่ายทอดได้' } ]}
             ];
 
             let html = `<div class="fade-in max-w-3xl mx-auto pb-10"><div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden"><div class="bg-primary/5 p-6 sm:p-8 border-b border-slate-100"><h2 class="text-2xl font-bold text-slate-800">แบบประเมินความพึงพอใจ</h2><p class="text-sm sm:text-base text-primary font-medium mt-1 leading-snug">${eventTitle}</p></div><div class="p-4 sm:p-8 bg-slate-50 border-b border-slate-100 flex flex-wrap gap-2 justify-center sm:justify-start"><p class="w-full text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide text-center sm:text-left">เกณฑ์การให้คะแนน</p><span class="text-xs bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm font-medium"><span class="font-bold text-primary">5</span> = มากที่สุด</span><span class="text-xs bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm font-medium"><span class="font-bold text-primary">4</span> = มาก</span><span class="text-xs bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm font-medium"><span class="font-bold text-primary">3</span> = ปานกลาง</span><span class="text-xs bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm font-medium"><span class="font-bold text-primary">2</span> = น้อย</span><span class="text-xs bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm font-medium"><span class="font-bold text-primary">1</span> = น้อยที่สุด</span></div><form onsubmit="submitSurvey(event)" class="p-6 sm:p-8"><input type="hidden" name="eventId" value="${param?.eventId || ''}"><input type="hidden" name="eventTitle" value="${param?.eventTitle || ''}"><input type="hidden" name="studentId" value="${param?.studentId || ''}">`;
@@ -797,9 +798,10 @@
                 studentId: surveyData.studentId || '', 
                 eventId: surveyData.eventId || '', 
                 eventName: surveyData.eventTitle || '', 
-                q1_1: surveyData.q1_1 || '', q1_2: surveyData.q1_2 || '', q1_3: surveyData.q1_3 || '', q1_4: surveyData.q1_4 || '', 
+                q1_1: surveyData.q1_1 || '', q1_2: surveyData.q1_2 || '', q1_3: surveyData.q1_3 || '', q1_4: surveyData.q1_4 || '', q1_5: surveyData.q1_5 || '', q1_6: surveyData.q1_6 || '',
                 q2_1: surveyData.q2_1 || '', q2_2: surveyData.q2_2 || '', q2_3: surveyData.q2_3 || '', q2_4: surveyData.q2_4 || '', 
-                q3_1: surveyData.q3_1 || '', q3_2: surveyData.q3_2 || '', q3_3: surveyData.q3_3 || '', q3_4: surveyData.q3_4 || '', q3_5: surveyData.q3_5 || '', 
+                q3_1: surveyData.q3_1 || '', q3_2: surveyData.q3_2 || '',
+                q4_1: surveyData.q4_1 || '', q4_2: surveyData.q4_2 || '', q4_3: surveyData.q4_3 || '',
                 comment: surveyData.suggestions || '' 
             };
             
@@ -1623,15 +1625,17 @@
             if (fCount > mCount) { majorityGender = 'หญิง'; majorityCount = fCount; majorityPct = fPct; minorityGender = 'ชาย'; minorityCount = mCount; minorityPct = mPct; }
 
             const surveyMap = {
-                'q1_1': 'การประชาสัมพันธ์โครงการ ฯ', 'q1_2': 'ความเหมาะสมของสถานที่', 'q1_3': 'ความเหมาะสมของระยะเวลา', 'q1_4': 'การจัดลำดับขั้นตอนของกิจกรรม',
-                'q2_1': 'เอกสาร', 'q2_2': 'โสตทัศนูปกรณ์', 'q2_3': 'เจ้าหน้าที่สนับสนุน', 'q2_4': 'อาหาร, เครื่องดื่มและสถานที่',
-                'q3_1': 'ท่านได้รับความรู้ แนวคิด ทักษะและประสบการณ์ใหม่ ๆ จากโครงการ', 'q3_2': 'ท่านสามารถนำสิ่งที่ได้รับจากโครงการ/กิจกรรมนี้ไปใช้ในการปฏิบัติงาน', 'q3_3': 'สิ่งที่ท่านได้รับจากโครงการ/กิจกรรมครั้งนี้ตรงตามความคาดหวังของท่านหรือไม่', 'q3_4': 'โครงการ/กิจกรรมนี้เอื้ออำนวยต่อการเรียนรู้และพัฒนาความสามารถของท่าน', 'q3_5': 'ประโยชน์ที่ท่านได้รับจากโครงการ/กิจกรรม'
+                'q1_1': 'การถ่ายทอดความรู้ของวิทยากรมีความชัดเจน', 'q1_2': 'ความสามารถในการอธิบายเนื้อหา', 'q1_3': 'การเชื่อมโยงเนื้อหาในการฝึกอบรม', 'q1_4': 'มีความครบถ้วนของเนื้อหาในการฝึกอบรม', 'q1_5': 'การใช้เวลาตามที่กำหนดไว้', 'q1_6': 'การตอบข้อซักถามในการฝึกอบรม',
+                'q2_1': 'สถานที่สะอาดและมีความเหมาะสม', 'q2_2': 'ความพร้อมของอุปกรณ์โสตทัศนูปกรณ์', 'q2_3': 'ระยะเวลาในการอบรมมีความเหมาะสม', 'q2_4': 'อาหาร มีความเหมาะสม',
+                'q3_1': 'ความรู้ ความเข้าใจในเรื่องนี้ ก่อน การอบรม', 'q3_2': 'ความรู้ ความเข้าใจในเรื่องนี้ หลัง การอบรม',
+                'q4_1': 'สามารถนำความรู้ที่ได้รับไปประยุกต์ใช้ในการปฏิบัติงานได้', 'q4_2': 'มีความมั่นใจและสามารถนำความรู้ที่ได้รับไปใช้ได้', 'q4_3': 'สามารถนำความรู้ไปเผยแพร่/ถ่ายทอดได้'
             };
 
             const qMeans = []; let totalScoreSum = 0; let validEvalCount = 0;
             let allValidScores = []; 
             
-            for (let col = 4; col <= 16; col++) {
+            const numQuestions = Object.keys(surveyMap).length;
+            for (let col = 4; col < 4 + numQuestions; col++) {
                 let sum = 0; let count = 0;
                 let scores = [];
                 evals.forEach(ev => { 
@@ -1684,7 +1688,7 @@
                 if (m >= 2.51) return 'ปานกลาง'; if (m >= 1.51) return 'น้อย'; return 'น้อยที่สุด';
             };
 
-            const comments = evals.map(e => String(e[17] || '').trim()).filter(c => c !== '');
+            const comments = evals.map(e => String(e[4 + numQuestions] || '').trim()).filter(c => c !== '');
 
             // ================== Start Building UI ==================
             let html = `
