@@ -193,8 +193,7 @@
 
     <script>
         // ==========================================
-        // URL ของ GOOGLE APPS SCRIPT (Web App)
-        // แทนที่ URL ด้านล่างด้วย URL ที่คุณได้จากการ Deploy Code.gs
+        // URL ของ GOOGLE APPS SCRIPT
         // ==========================================
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6wkWGyyWSJBMQ90nd6DFqh8JKOWlJ_aWsxzNNSbSstIwX8UDVL47Nn6jtm0P0l3ViWw/exec';
         
@@ -204,11 +203,19 @@
         let globalActivities = [];
         let currentCheckoutOrder = null;
         
+        // --- ตัวแปรสำหรับ Pagination ---
+        let adminEventsPage = 1;
+        let adminEventsSearch = '';
+        const adminEventsPerPage = 5;
+        
+        let dashEventsPage = 1;
+        const dashEventsPerPage = 5;
+
         const appCache = {
             activities: [], checkIns: [], orders: [], evaluations: [], students: {} 
         };
         
-        let isShirtShopOpen = localStorage.getItem('CRRU_ShopOpen') !== 'false'; 
+        let isShirtShopOpen = localStorage.getItem('CRRU_ShopOpen') === 'true'; 
         
         let popupSettings = JSON.parse(localStorage.getItem('CRRU_PopupSettings')) || {
             enabled: true, 
@@ -223,25 +230,6 @@
             bankName: 'ธ.กรุงไทย (สาขามร.ชร.)'
         };
 
-        document.addEventListener('DOMContentLoaded', () => {
-            proceedSwitchRole('student');
-            
-            fetchSettingsData().then(() => {
-                if (!sessionStorage.getItem('homePopupShown') && currentRole === 'student') {
-                    openHomePopup();
-                    sessionStorage.setItem('homePopupShown', 'true');
-                }
-            });
-
-            fetchActivitiesData();
-            fetchAllCheckInsData();
-            fetchOrdersData();
-            fetchEvaluationsData();
-        });
-
-        // ==========================================
-        // HELPERS & UI UTILS
-        // ==========================================
         function getGokuLoader(title = 'กำลังโหลด...', subtitle = 'โปรดรอสักครู่') {
             return `
                 <div class="fade-in py-20 flex flex-col items-center justify-center text-center w-full">
@@ -288,12 +276,25 @@
             4: { text: 'พร้อมรับ', color: 'bg-green-100 text-green-700 border-green-200', icon: 'ph-package' }
         };
 
-        // ==========================================
-        // GOOGLE APPS SCRIPT FETCHERS (API)
-        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            proceedSwitchRole('student');
+            
+            fetchSettingsData().then(() => {
+                if (!sessionStorage.getItem('homePopupShown') && currentRole === 'student') {
+                    openHomePopup();
+                    sessionStorage.setItem('homePopupShown', 'true');
+                }
+            });
+
+            fetchActivitiesData();
+            fetchAllCheckInsData();
+            fetchOrdersData();
+            fetchEvaluationsData();
+        });
+
         async function fetchSettingsData() {
             try {
-                const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getSettings&_nocache=${new Date().getTime()}`);
+                const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getSettings&_nocache=${new Date().getTime()}`, { cache: 'no-store' });
                 const result = await res.json();
                 if (result.success && result.data) {
                     isShirtShopOpen = (result.data.isShirtShopOpen === true || String(result.data.isShirtShopOpen).toLowerCase() === 'true');
@@ -317,10 +318,22 @@
                         if(currentRole === 'student') renderNav();
                     }
                 }
-            } catch(e) { console.error("Error fetching settings:", e); }
+            } catch(e) {}
         }
 
-        async function fetchActivitiesData() {
+        // ==========================================
+        // DATA FETCHING (CACHE-FIRST APPROACH)
+        // ==========================================
+        async function fetchActivitiesData(forceRefresh = false) {
+            // หากมีแคชอยู่แล้วและไม่บังคับรีเฟรช ให้คืนค่าทันทีและแอบอัปเดตเบื้องหลัง
+            if (!forceRefresh && appCache.activities && appCache.activities.length > 0) {
+                _backgroundFetchActivities();
+                return appCache.activities;
+            }
+            return await _backgroundFetchActivities();
+        }
+
+        async function _backgroundFetchActivities() {
             try {
                 const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getActivities&t=${new Date().getTime()}`);
                 const actResult = await res.json();
@@ -332,7 +345,7 @@
                 if (chkResult.success && chkResult.data) {
                     chkResult.data.forEach(row => {
                         if(row && row.length > 1) {
-                            const eventName = String(row[1]).trim(); // Index 1 is eventName in CheckIns
+                            const eventName = String(row[1]).trim(); 
                             if (eventName) checkInCounts[eventName] = (checkInCounts[eventName] || 0) + 1;
                         }
                     });
@@ -351,7 +364,15 @@
             } catch (e) { return appCache.activities || []; }
         }
 
-        async function fetchAllCheckInsData() { 
+        async function fetchAllCheckInsData(forceRefresh = false) { 
+            if (!forceRefresh && appCache.checkIns && appCache.checkIns.length > 0) {
+                _backgroundFetchCheckIns();
+                return appCache.checkIns;
+            }
+            return await _backgroundFetchCheckIns();
+        }
+
+        async function _backgroundFetchCheckIns() {
             try {
                 const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAllCheckIns&t=${new Date().getTime()}`);
                 const r = await res.json();
@@ -360,7 +381,15 @@
             } catch (e) { return appCache.checkIns || []; }
         }
 
-        async function fetchOrdersData() { 
+        async function fetchOrdersData(forceRefresh = false) { 
+            if (!forceRefresh && appCache.orders && appCache.orders.length > 0) {
+                _backgroundFetchOrders();
+                return appCache.orders;
+            }
+            return await _backgroundFetchOrders();
+        }
+
+        async function _backgroundFetchOrders() {
             try {
                 const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getOrders&t=${new Date().getTime()}`);
                 const r = await res.json();
@@ -370,7 +399,15 @@
             } catch (e) { return appCache.orders || []; }
         }
 
-        async function fetchEvaluationsData() { 
+        async function fetchEvaluationsData(forceRefresh = false) { 
+            if (!forceRefresh && appCache.evaluations && appCache.evaluations.length > 0) {
+                _backgroundFetchEvaluations();
+                return appCache.evaluations;
+            }
+            return await _backgroundFetchEvaluations();
+        }
+
+        async function _backgroundFetchEvaluations() {
             try {
                 const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getEvaluations&t=${new Date().getTime()}`);
                 const r = await res.json();
@@ -379,19 +416,16 @@
             } catch (e) { return appCache.evaluations || []; }
         }
 
-        // ==========================================
-        // NAVIGATION & STATE
-        // ==========================================
+        function goToHome() {
+            navigate(currentRole === 'student' ? 'events' : 'admin-dash');
+        }
+
         function switchRole(role) {
             if (role === 'admin' && !sessionStorage.getItem('isAdminAuthenticated')) {
                 showAdminLoginModal();
                 return;
             }
             proceedSwitchRole(role);
-        }
-
-        function goToHome() {
-            navigate(currentRole === 'student' ? 'events' : 'admin-dash');
         }
 
         function proceedSwitchRole(role) {
@@ -478,12 +512,10 @@
                 else if(viewId === 'admin-events') renderAdminEvents(content); 
                 else if(viewId === 'admin-spss') renderAdminSPSS(content); 
                 else if(viewId === 'admin-settings') renderAdminSettings(content);
+                else if(viewId === 'admin-event-participants') renderAdminEventParticipants(content, param);
             }
         }
 
-        // ==========================================
-        // STUDENT VIEWS
-        // ==========================================
         function renderEvents(container) {
             if (!appCache.activities || appCache.activities.length === 0) {
                 container.innerHTML = getGokuLoader('กำลังดึงข้อมูลกิจกรรม...', 'ระบบกำลังเชื่อมต่อฐานข้อมูล');
@@ -614,7 +646,6 @@
         function showManualForm(prefillId = '') {
             const searchInput = document.getElementById('search-student-id').value.trim() || prefillId;
             
-            // ปลดล็อคฟิลด์ต่างๆ ให้สามารถแก้ไข/กรอกข้อมูลเองได้
             ['reg-name', 'reg-faculty', 'reg-student-id', 'reg-citizen-id'].forEach(id => { 
                 const f = document.getElementById(id); 
                 if (f) { 
@@ -677,7 +708,6 @@
                 });
             };
 
-            // 1. Double Check Layer 1 (Local Cache)
             if (isDuplicate(appCache.checkIns)) {
                 if (errorMsgEl) {
                     errorMsgEl.innerHTML = '<i class="ph-fill ph-warning-circle text-lg inline-block align-middle mr-1"></i> ระบบตรวจพบว่าคุณลงทะเบียนกิจกรรมนี้ไปแล้ว!';
@@ -693,7 +723,6 @@
             submitBtn.disabled = true;
 
             try {
-                // 2. Double Check Layer 2 (Real-time Google Apps Script)
                 const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAllCheckIns&_nocache=${new Date().getTime()}`);
                 const result = await res.json();
                 
@@ -715,7 +744,6 @@
                 console.log("Offline mode: skipping server check");
             }
 
-            // 3. Store Data via POST
             const payload = { 
                 action: 'checkIn',
                 eventId: eventId, 
@@ -727,7 +755,6 @@
                 timestamp: new Date().toLocaleString('th-TH') 
             };
             
-            // แอบใส่ข้อมูลลงแคชชั่วคราว เพื่อกันการกดปุ่มย้อนกลับแล้วส่งข้อมูลซ้ำ
             appCache.checkIns.push([payload.timestamp, payload.eventName, payload.studentId, payload.citizenId, payload.name, payload.faculty, 3]);
 
             if (eventObj) eventObj.joined = (parseInt(eventObj.joined) || 0) + 1;
@@ -1217,11 +1244,21 @@
         function verifyOrderFromModal() { if(currentModalOrderId){ updateOrderStatus(currentModalOrderId, 2); closeModal(); } }
 
         async function renderAdminEvents(container) {
-            if (!appCache.activities || appCache.activities.length === 0) container.innerHTML = getGokuLoader('กำลังโหลดข้อมูลกิจกรรม...', 'ระบบสำหรับผู้ดูแล');
-            const activities = await fetchActivitiesData();
+            container.innerHTML = getGokuLoader('กำลังโหลดข้อมูลกิจกรรม...', 'ระบบสำหรับผู้ดูแล');
+            await fetchActivitiesData(); // ดึงข้อมูลมาก่อน
+
             let html = `
-                <div class="fade-in">
-                    <div class="mb-5 sm:mb-6 text-center sm:text-left"><h1 class="text-2xl sm:text-3xl font-bold text-slate-800">จัดการกิจกรรม</h1><p class="text-sm sm:text-base text-slate-500 mt-1">สร้าง แก้ไข และดาวน์โหลดรายชื่อผู้เข้าร่วม</p></div>
+                <div class="fade-in max-w-7xl mx-auto">
+                    <div class="mb-5 sm:mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div><h1 class="text-2xl sm:text-3xl font-bold text-slate-800">จัดการกิจกรรม</h1><p class="text-sm sm:text-base text-slate-500 mt-1">สร้าง แก้ไข ค้นหา และดาวน์โหลดรายชื่อผู้เข้าร่วม</p></div>
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <div class="relative w-full sm:w-64">
+                                <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                                <input type="text" id="admin-event-search" placeholder="ค้นหากิจกรรม..." class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary font-medium bg-white shadow-sm transition-colors" oninput="handleAdminEventSearch(event)">
+                            </div>
+                            <button onclick="refreshAdminEvents(this)" class="p-2.5 border border-slate-200 bg-white rounded-xl text-slate-600 hover:text-primary hover:bg-primary/5 transition-colors shadow-sm shrink-0" title="รีเฟรชข้อมูล"><i class="ph ph-arrows-clockwise text-xl"></i></button>
+                        </div>
+                    </div>
                     <div class="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-100 p-5 sm:p-8 mb-6 sm:mb-8">
                         <h3 class="font-bold text-base sm:text-lg text-slate-800 mb-4 sm:mb-5 flex items-center gap-2"><i class="ph-fill ph-plus-circle text-primary text-lg sm:text-xl"></i> สร้างกิจกรรมใหม่</h3>
                         <form onsubmit="createNewEvent(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 sm:gap-5 items-end">
@@ -1231,36 +1268,121 @@
                             <div class="md:col-span-1"><button type="submit" class="w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-admin text-white font-bold rounded-xl hover:bg-admin_hover transition-colors shadow-sm flex items-center justify-center gap-2 text-sm sm:text-base"><i class="ph ph-floppy-disk text-lg"></i> บันทึก</button></div>
                         </form>
                     </div>
-                    <div class="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-                        <div class="overflow-x-auto">
+                    <div class="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-100 overflow-hidden flex flex-col">
+                        <div class="overflow-x-auto flex-grow">
                             <table class="w-full text-left border-collapse min-w-[700px]">
                                 <thead><tr class="bg-slate-50 border-b border-slate-100 text-slate-500 text-[10px] sm:text-xs font-bold uppercase tracking-wider"><th class="p-3 sm:p-4">เวลาสร้าง</th><th class="p-3 sm:p-4">ชื่อกิจกรรม</th><th class="p-3 sm:p-4">วันที่จัด</th><th class="p-3 sm:p-4">สถานที่</th><th class="p-3 sm:p-4 text-center">จัดการ</th></tr></thead>
-                                <tbody class="text-xs sm:text-sm text-slate-700">
+                                <tbody id="admin-events-tbody" class="text-xs sm:text-sm text-slate-700">
+                                    <!-- ข้อมูลตารางจะถูกแทรกที่นี่ผ่าน JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- แถบ Pagination แบ่งหน้า -->
+                        <div id="admin-events-pagination" class="p-4 border-t border-slate-100 flex justify-between items-center bg-slate-50/50"></div>
+                    </div>
+                </div>`;
+            container.innerHTML = html;
+            
+            // คงค่าช่องค้นหาเมื่อมีการรีเฟรช (Re-render)
+            const searchInput = document.getElementById('admin-event-search');
+            if (searchInput) searchInput.value = adminEventsSearch;
+            
+            updateAdminEventsTable();
+        }
+
+        // ฟังก์ชันอัปเดตข้อมูลในตาราง 5 แถวต่อหน้า
+        function updateAdminEventsTable() {
+            const tbody = document.getElementById('admin-events-tbody');
+            const paginationContainer = document.getElementById('admin-events-pagination');
+            if (!tbody || !paginationContainer) return;
+
+            let activities = appCache.activities || [];
+            
+            // การค้นหา (Filter)
+            if (adminEventsSearch) {
+                const s = adminEventsSearch.toLowerCase();
+                activities = activities.filter(e => 
+                    (e.title && e.title.toLowerCase().includes(s)) || 
+                    (e.location && e.location.toLowerCase().includes(s)) ||
+                    (e.date && e.date.toLowerCase().includes(s))
+                );
+            }
+
+            // การแบ่งหน้า (Pagination)
+            const totalItems = activities.length;
+            const totalPages = Math.ceil(totalItems / adminEventsPerPage) || 1;
+            
+            if (adminEventsPage > totalPages) adminEventsPage = totalPages;
+            if (adminEventsPage < 1) adminEventsPage = 1;
+
+            const startIndex = (adminEventsPage - 1) * adminEventsPerPage;
+            const paginatedActivities = activities.slice(startIndex, startIndex + adminEventsPerPage);
+
+            // เรนเดอร์แถวข้อมูล
+            let html = '';
+            if (paginatedActivities.length === 0) {
+                 html = `<tr><td colspan="5" class="p-8 text-center text-slate-400 font-medium">ไม่พบข้อมูลกิจกรรมที่ค้นหา</td></tr>`;
+            } else {
+                paginatedActivities.forEach(event => {
+                    const isOpen = event.status === 'open';
+                    html += `
+                        <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                            <td class="p-3 sm:p-4 text-slate-500 text-[10px] sm:text-xs font-medium">${event.timestamp || '-'}</td>
+                            <td class="p-3 sm:p-4 font-bold text-slate-800">${event.title}</td>
+                            <td class="p-3 sm:p-4 text-slate-600 font-medium">${event.date}</td>
+                            <td class="p-3 sm:p-4 text-slate-600 font-medium">${event.location}</td>
+                            <td class="p-3 sm:p-4 text-center">
+                                <div class="flex items-center justify-center gap-3 sm:gap-4">
+                                    <div class="flex flex-col items-center">
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" class="sr-only peer" ${isOpen ? 'checked' : ''} onchange="toggleEventStatus('${event.id}', '${event.status}')">
+                                            <div class="w-9 sm:w-11 h-5 sm:h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 sm:after:h-5 after:w-4 sm:after:w-5 after:transition-all peer-checked:bg-green-500 shadow-inner"></div>
+                                        </label><span class="block text-[8px] sm:text-[10px] mt-1 font-bold uppercase ${isOpen?'text-green-600':'text-slate-400'}">${isOpen?'เปิด':'ปิด'}</span>
+                                    </div>
+                                    <div class="flex items-center gap-1 border-l border-slate-200 pl-2 sm:pl-3">
+                                        <button onclick="openEditEventModal('${event.id}')" class="w-7 sm:w-8 h-7 sm:h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 flex items-center justify-center transition-colors"><i class="ph-fill ph-pencil-simple text-xs sm:text-sm"></i></button>
+                                        <button onclick="exportEventParticipants('${event.title}')" class="w-7 sm:w-8 h-7 sm:h-8 rounded-full bg-green-50 text-green-600 hover:bg-green-100 flex items-center justify-center transition-colors"><i class="ph-fill ph-microsoft-excel-logo text-xs sm:text-sm"></i></button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>`;
+                });
+            }
+            tbody.innerHTML = html;
+
+            // เรนเดอร์ปุ่มเปลี่ยนหน้า
+            const startDisplay = totalItems === 0 ? 0 : startIndex + 1;
+            const endDisplay = Math.min(startIndex + adminEventsPerPage, totalItems);
+            
+            let phtml = `
+                <span class="text-xs sm:text-sm text-slate-500 font-medium">แสดง <span class="font-bold text-slate-700">${startDisplay}</span> ถึง <span class="font-bold text-slate-700">${endDisplay}</span> จากทั้งหมด <span class="font-bold text-slate-700">${totalItems}</span> รายการ</span>
+                <div class="flex gap-1.5">
+                    <button onclick="changeAdminEventPage(${adminEventsPage - 1})" ${adminEventsPage <= 1 ? 'disabled' : ''} class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"><i class="ph-bold ph-caret-left"></i></button>
+                    <button onclick="changeAdminEventPage(${adminEventsPage + 1})" ${adminEventsPage >= totalPages ? 'disabled' : ''} class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"><i class="ph-bold ph-caret-right"></i></button>
+                </div>
             `;
-            if (activities.length === 0) html += `<tr><td colspan="5" class="p-8 text-center text-slate-400 font-medium">ยังไม่มีข้อมูล</td></tr>`;
-            else activities.forEach(event => {
-                const isOpen = event.status === 'open';
-                html += `
-                    <tr class="border-b border-slate-50 hover:bg-slate-50/50">
-                        <td class="p-3 sm:p-4 text-slate-500 text-[10px] sm:text-xs font-medium">${event.timestamp || '-'}</td>
-                        <td class="p-3 sm:p-4 font-bold text-slate-800">${event.title}</td><td class="p-3 sm:p-4 text-slate-600 font-medium">${event.date}</td><td class="p-3 sm:p-4 text-slate-600 font-medium">${event.location}</td>
-                        <td class="p-3 sm:p-4 text-center">
-                            <div class="flex items-center justify-center gap-3 sm:gap-4">
-                                <div class="flex flex-col items-center">
-                                    <label class="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" class="sr-only peer" ${isOpen ? 'checked' : ''} onchange="toggleEventStatus('${event.id}', '${event.status}')">
-                                        <div class="w-9 sm:w-11 h-5 sm:h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 sm:after:h-5 after:w-4 sm:after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                                    </label><span class="block text-[8px] sm:text-[10px] mt-1 font-bold uppercase ${isOpen?'text-green-600':'text-slate-400'}">${isOpen?'เปิด':'ปิด'}</span>
-                                </div>
-                                <div class="flex items-center gap-1 border-l border-slate-200 pl-2 sm:pl-3">
-                                    <button onclick="openEditEventModal('${event.id}')" class="w-7 sm:w-8 h-7 sm:h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 flex items-center justify-center"><i class="ph-fill ph-pencil-simple text-xs sm:text-sm"></i></button>
-                                    <button onclick="exportEventParticipants('${event.title}')" class="w-7 sm:w-8 h-7 sm:h-8 rounded-full bg-green-50 text-green-600 hover:bg-green-100 flex items-center justify-center"><i class="ph-fill ph-microsoft-excel-logo text-xs sm:text-sm"></i></button>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>`;
-            });
-            html += `</tbody></table></div></div></div>`; if(container.innerHTML !== html) container.innerHTML = html;
+            paginationContainer.innerHTML = phtml;
+        }
+
+        // Event Listeners สำหรับหน้าจัดการกิจกรรม
+        window.handleAdminEventSearch = function(e) {
+            adminEventsSearch = e.target.value;
+            adminEventsPage = 1; // เมื่อค้นหาให้กลับไปหน้าแรกเสมอ
+            updateAdminEventsTable();
+        }
+
+        window.changeAdminEventPage = function(newPage) {
+            adminEventsPage = newPage;
+            updateAdminEventsTable();
+        }
+
+        window.refreshAdminEvents = async function(btn) {
+            const icon = btn.querySelector('i');
+            if(icon) icon.classList.add('animate-spin'); // หมุนไอคอนรอ
+            await fetchActivitiesData(true); // เพิ่ม true เพื่อบังคับรีเฟรชข้อมูลล่าสุดจริงๆ
+            updateAdminEventsTable();
+            if(icon) icon.classList.remove('animate-spin');
+            showToast('อัปเดตข้อมูลกิจกรรมล่าสุดแล้ว', 'success');
         }
 
         async function createNewEvent(e) {
@@ -1764,38 +1886,13 @@
         };
 
         async function renderAdminDashboard(container) {
-            if (!appCache.activities || appCache.activities.length === 0) container.innerHTML = getGokuLoader('กำลังสรุปภาพรวมระบบ...', 'รวบรวมข้อมูลสถิติทั้งหมด');
+            
+            // บังคับโชว์ Loader เสมอก่อนดึงข้อมูล
+            container.innerHTML = getGokuLoader('กำลังสรุปภาพรวมระบบ...', 'รวบรวมข้อมูลสถิติทั้งหมด');
+            
             const activities = await fetchActivitiesData(); const allCheckIns = await fetchAllCheckInsData(); const ordersData = await fetchOrdersData();
             const totalJoined = activities.reduce((sum, ev) => sum + (parseInt(ev.joined) || 0), 0);
             const participationRate = totalJoined > 0 ? Math.round((allCheckIns.length / totalJoined) * 100) : 0;
-
-            let activityListHtml = `<div class="space-y-4 mb-8">`;
-            if (activities.length === 0) {
-                activityListHtml += `<div class="bg-white p-8 rounded-3xl text-center text-slate-400 border border-slate-100 font-medium">ยังไม่มีกิจกรรม</div>`;
-            } else {
-                activities.forEach(event => {
-                    const isOpen = event.status === 'open';
-                    activityListHtml += `
-                    <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-5 transition-all hover:shadow-md">
-                        <div class="flex-grow text-center sm:text-left w-full sm:w-auto">
-                            <span class="inline-block px-3 py-1 bg-${isOpen ? 'green' : 'slate'}-100 text-${isOpen ? 'green' : 'slate'}-700 text-[10px] font-bold rounded-lg mb-2 border border-${isOpen ? 'green' : 'slate'}-200">${isOpen ? 'กำลังเปิดรับ' : 'ปิดรับลงทะเบียน'}</span>
-                            <h3 class="text-lg sm:text-xl font-bold text-slate-800 line-clamp-2">${event.title}</h3>
-                            <p class="text-sm text-slate-500 mt-1.5 flex items-center justify-center sm:justify-start gap-2"><i class="ph-fill ph-calendar-blank"></i> ${event.date}</p>
-                        </div>
-                        <div class="bg-slate-50 rounded-2xl p-4 sm:p-5 flex items-center justify-center gap-4 w-full sm:w-auto border border-slate-100 shrink-0">
-                            <div class="text-right hidden sm:block">
-                                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">ลงทะเบียนแล้ว</p>
-                                <p class="text-xs font-medium text-slate-500 mt-0.5">เป้าหมาย ${event.spots} คน</p>
-                            </div>
-                            <div class="flex items-baseline justify-center gap-1">
-                                <span class="text-4xl sm:text-5xl font-black text-primary drop-shadow-sm leading-none">${event.joined}</span>
-                                <span class="text-sm font-bold text-slate-400">/${event.spots}</span>
-                            </div>
-                        </div>
-                    </div>`;
-                });
-            }
-            activityListHtml += `</div>`;
 
             let html = `
                 <div class="fade-in">
@@ -1810,7 +1907,8 @@
                     </div>
 
                     <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-3 sm:mb-4 mt-8"><i class="ph-fill ph-users-three text-primary"></i> สรุปผู้เข้าร่วมแต่ละกิจกรรม</h2>
-                    ${activityListHtml}
+                    <div id="dash-events-list"></div>
+                    <div id="dash-events-pagination" class="mt-4 mb-8 flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100"></div>
 
                     <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-3 sm:mb-4"><i class="ph-fill ph-t-shirt text-primary"></i> ยอดสั่งจองเสื้อ</h2>
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
@@ -1837,7 +1935,10 @@
                 const s = STATUS_MAP[order.status];
                 html += `<tr class="border-b border-slate-50 hover:bg-slate-50"><td class="p-3 sm:p-4 font-bold text-slate-800">${order.id}</td><td class="p-3 sm:p-4 font-medium text-slate-600">${order.studentId}</td><td class="p-3 sm:p-4"><span class="${s.color} px-2 py-1 rounded-md sm:rounded-full text-[10px] sm:text-xs font-bold border inline-flex items-center gap-1"><i class="ph ${s.icon}"></i> ${s.text}</span></td><td class="p-3 sm:p-4 text-right"><button onclick="openSlipModal('${order.id}')" class="px-3 py-1.5 sm:px-4 sm:py-2 bg-admin text-white rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold hover:bg-admin_hover transition shadow-sm">ตรวจสลิป</button></td></tr>`;
             });
-            html += `</tbody></table></div></div></div></div>`; if(container.innerHTML !== html) container.innerHTML = html;
+            html += `</tbody></table></div></div></div></div>`; 
+            
+            container.innerHTML = html;
+            updateDashboardEventsList();
 
             setTimeout(() => {
                 new Chart(document.getElementById('statusChart').getContext('2d'), {
@@ -1845,9 +1946,131 @@
                 });
             }, 100);
         }
+        
+        function updateDashboardEventsList() {
+            const listContainer = document.getElementById('dash-events-list');
+            const pageContainer = document.getElementById('dash-events-pagination');
+            if (!listContainer || !pageContainer) return;
+
+            const activities = appCache.activities || [];
+            const totalItems = activities.length;
+            const totalPages = Math.ceil(totalItems / dashEventsPerPage) || 1;
+
+            if (dashEventsPage > totalPages) dashEventsPage = totalPages;
+            if (dashEventsPage < 1) dashEventsPage = 1;
+
+            const startIndex = (dashEventsPage - 1) * dashEventsPerPage;
+            const paginatedActivities = activities.slice(startIndex, startIndex + dashEventsPerPage);
+
+            let html = '<div class="space-y-4">';
+            if (paginatedActivities.length === 0) {
+                html += `<div class="bg-white p-8 rounded-3xl text-center text-slate-400 border border-slate-100 font-medium">ยังไม่มีกิจกรรม</div>`;
+            } else {
+                paginatedActivities.forEach(event => {
+                    const isOpen = event.status === 'open';
+                    html += `
+                    <div onclick="navigate('admin-event-participants', '${event.title}')" class="cursor-pointer bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-5 transition-all hover:shadow-md hover:ring-2 hover:ring-primary/20 group relative overflow-hidden">
+                        <div class="absolute inset-y-0 left-0 w-1.5 ${isOpen ? 'bg-green-500' : 'bg-slate-300'}"></div>
+                        <div class="flex-grow text-center sm:text-left w-full sm:w-auto pl-2">
+                            <span class="inline-block px-3 py-1 bg-${isOpen ? 'green' : 'slate'}-100 text-${isOpen ? 'green' : 'slate'}-700 text-[10px] font-bold rounded-lg mb-2 border border-${isOpen ? 'green' : 'slate'}-200">${isOpen ? 'กำลังเปิดรับ' : 'ปิดรับลงทะเบียน'}</span>
+                            <h3 class="text-lg sm:text-xl font-bold text-slate-800 line-clamp-2 group-hover:text-primary transition-colors">${event.title}</h3>
+                            <p class="text-sm text-slate-500 mt-1.5 flex items-center justify-center sm:justify-start gap-2"><i class="ph-fill ph-calendar-blank"></i> ${event.date}</p>
+                        </div>
+                        <div class="bg-slate-50 rounded-2xl p-4 sm:p-5 flex items-center justify-center gap-4 w-full sm:w-auto border border-slate-100 shrink-0 group-hover:bg-primary/5 transition-colors">
+                            <div class="text-right hidden sm:block">
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">ลงทะเบียนแล้ว</p>
+                                <p class="text-xs font-medium text-slate-500 mt-0.5">เป้าหมาย ${event.spots} คน</p>
+                            </div>
+                            <div class="flex items-baseline justify-center gap-1">
+                                <span class="text-4xl sm:text-5xl font-black text-primary drop-shadow-sm leading-none">${event.joined}</span>
+                                <span class="text-sm font-bold text-slate-400">/${event.spots}</span>
+                            </div>
+                            <div class="h-10 w-10 rounded-full bg-white shadow-sm border border-slate-200 flex items-center justify-center ml-2 hidden sm:flex group-hover:border-primary group-hover:text-primary transition-colors">
+                                <i class="ph-bold ph-caret-right text-xl text-slate-400 group-hover:text-primary"></i>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+            }
+            html += '</div>';
+            listContainer.innerHTML = html;
+
+            const startDisplay = totalItems === 0 ? 0 : startIndex + 1;
+            const endDisplay = Math.min(startIndex + dashEventsPerPage, totalItems);
+            
+            pageContainer.innerHTML = `
+                <span class="text-xs sm:text-sm text-slate-500 font-medium">แสดง <span class="font-bold text-slate-700">${startDisplay}</span> ถึง <span class="font-bold text-slate-700">${endDisplay}</span> จากทั้งหมด <span class="font-bold text-slate-700">${totalItems}</span> กิจกรรม</span>
+                <div class="flex gap-1.5">
+                    <button onclick="changeDashEventPage(${dashEventsPage - 1})" ${dashEventsPage <= 1 ? 'disabled' : ''} class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"><i class="ph-bold ph-caret-left"></i></button>
+                    <button onclick="changeDashEventPage(${dashEventsPage + 1})" ${dashEventsPage >= totalPages ? 'disabled' : ''} class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"><i class="ph-bold ph-caret-right"></i></button>
+                </div>
+            `;
+        }
+
+        window.changeDashEventPage = function(newPage) {
+            dashEventsPage = newPage;
+            updateDashboardEventsList();
+        }
+
+        async function renderAdminEventParticipants(container, eventName) {
+            container.innerHTML = getGokuLoader('กำลังโหลดรายชื่อ...', eventName);
+            const checkIns = await fetchAllCheckInsData();
+            const participants = checkIns.filter(r => String(r[1]).trim() === String(eventName).trim());
+
+            let html = `
+                <div class="fade-in max-w-6xl mx-auto pb-10">
+                    <div class="mb-5 sm:mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                        <div>
+                            <button onclick="navigate('admin-dash')" class="flex items-center gap-2 text-slate-500 hover:text-primary mb-2 transition-colors font-medium text-sm"><i class="ph ph-arrow-left text-lg"></i> กลับไปหน้าภาพรวม</button>
+                            <h1 class="text-xl sm:text-2xl font-bold text-slate-800">รายชื่อผู้เข้าร่วมกิจกรรม</h1>
+                            <p class="text-primary text-sm sm:text-base font-bold mt-1">${eventName}</p>
+                        </div>
+                        <button onclick="exportEventParticipants('${eventName}')" class="w-full sm:w-auto px-4 py-2.5 bg-green-50 text-green-600 hover:bg-green-100 rounded-xl font-bold shadow-sm text-sm flex items-center justify-center gap-2 border border-green-200 transition-colors">
+                            <i class="ph-fill ph-microsoft-excel-logo text-lg"></i> โหลด Excel
+                        </button>
+                    </div>
+
+                    <div class="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-100 overflow-hidden flex flex-col">
+                        <div class="p-4 sm:p-5 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                            <h3 class="font-bold text-slate-700">ผู้ลงทะเบียนทั้งหมด <span class="text-primary">${participants.length}</span> คน</h3>
+                        </div>
+                        <div class="overflow-x-auto flex-grow">
+                            <table class="w-full text-left border-collapse min-w-[700px]">
+                                <thead>
+                                    <tr class="bg-white text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider border-b border-slate-100">
+                                        <th class="p-3 sm:p-4 w-16 text-center">ลำดับ</th>
+                                        <th class="p-3 sm:p-4">รหัสนักศึกษา</th>
+                                        <th class="p-3 sm:p-4">ชื่อ-นามสกุล</th>
+                                        <th class="p-3 sm:p-4">คณะ</th>
+                                        <th class="p-3 sm:p-4 text-center">เวลาลงทะเบียน</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-xs sm:text-sm text-slate-700">
+            `;
+
+            if (participants.length === 0) {
+                html += `<tr><td colspan="5" class="p-8 text-center text-slate-400 font-medium">ยังไม่มีผู้ลงทะเบียน</td></tr>`;
+            } else {
+                participants.forEach((p, index) => {
+                    html += `
+                        <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                            <td class="p-3 sm:p-4 text-center text-slate-400 font-medium">${index + 1}</td>
+                            <td class="p-3 sm:p-4 font-bold text-slate-800">${p[2] || p[3]}</td>
+                            <td class="p-3 sm:p-4 font-medium text-slate-700">${p[4]}</td>
+                            <td class="p-3 sm:p-4 text-slate-500">${p[5]}</td>
+                            <td class="p-3 sm:p-4 text-center text-slate-500 text-[10px] sm:text-xs">${p[0]}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            html += `</tbody></table></div></div></div>`;
+            container.innerHTML = html;
+        }
 
         async function renderAdminOrders(container) {
-            if (!appCache.orders || appCache.orders.length === 0) container.innerHTML = getGokuLoader('กำลังโหลดยอดสั่งจอง...', 'ระบบสำหรับผู้ดูแล');
+            
+            container.innerHTML = getGokuLoader('กำลังโหลดยอดสั่งจอง...', 'ระบบสำหรับผู้ดูแล');
             const ordersData = await fetchOrdersData();
             let summary = { polo: { S: 0, M: 0, L: 0, XL: 0, '2XL': 0 }, act: { S: 0, M: 0, L: 0, XL: 0, '2XL': 0 } };
             ordersData.forEach(order => {
@@ -2100,6 +2323,12 @@
         window.submitSettings = submitSettings;
         window.previewCurrentPopup = previewCurrentPopup;
         window.updateOrderStatus = updateOrderStatus;
+        
+        // Export Pagination & Search functions
+        window.handleAdminEventSearch = handleAdminEventSearch;
+        window.changeAdminEventPage = changeAdminEventPage;
+        window.refreshAdminEvents = refreshAdminEvents;
+        window.changeDashEventPage = changeDashEventPage;
     </script>
 </body>
 </html>
