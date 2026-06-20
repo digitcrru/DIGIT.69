@@ -140,7 +140,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-1.5">วันที่จัด</label>
-                    <input type="text" id="edit-event-date" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-sm">
+                    <input type="date" id="edit-event-date" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-sm text-slate-600">
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-1.5">สถานที่</label>
@@ -176,17 +176,14 @@
     <div id="toast-container" class="fixed bottom-20 md:bottom-5 right-4 md:right-5 z-[130] flex flex-col gap-2 w-auto max-w-[90%] pointer-events-none"></div>
 
     <script>
-        // ==========================================
-        // 🚀 URL ใหม่ล่าสุดของคุณ
-        // ==========================================
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCPFTT76JLJLo3cNjTDNXQPbofR3AmVEPxCOD9yzdW_73yFy92d-Q0OHAu26DgsA7x/exec';
         
         let currentRole = 'student'; 
+        let currentAdminRole = 'superadmin'; 
         let currentView = 'events';
         let currentModalOrderId = null;
         let currentCheckoutOrder = null;
         
-        // --- ตัวแปรสำหรับ Pagination ---
         let adminEventsPage = 1;
         let adminEventsSearch = '';
         const adminEventsPerPage = 5;
@@ -198,7 +195,7 @@
             activities: [], checkIns: [], orders: [], evaluations: [], students: {} 
         };
         
-        let isShirtShopOpen = localStorage.getItem('CRRU_ShopOpen') === 'true'; 
+        let isShirtShopOpen = localStorage.getItem('CRRU_ShopOpen') !== 'false'; 
         
         let popupSettings = JSON.parse(localStorage.getItem('CRRU_PopupSettings')) || {
             enabled: true, 
@@ -211,22 +208,20 @@
             accountName: 'ฝ่ายกิจการนักศึกษา', accountNumber: '012-3-45678-9', bankName: 'ธ.กรุงไทย (สาขามร.ชร.)'
         };
 
-        // ==========================================
-        // 🚀 ROBUST API CALL WRAPPER (รื้อระบบเดิมทิ้ง)
-        // จัดการเรื่อง CORS อย่างเด็ดขาด และรองรับทั้ง GET/POST แบบไม่พึ่ง Firebase
-        // ==========================================
+        let adminUsers = JSON.parse(localStorage.getItem('CRRU_AdminUsers')) || [
+            { id: '1', user: 'D.crru', pass: '9999', role: 'superadmin' }
+        ];
+
         async function apiCall(method, payloadData = {}) {
             try {
                 let url = GOOGLE_SCRIPT_URL;
                 let options = { redirect: 'follow' };
 
                 if (method.toUpperCase() === 'GET') {
-                    // ส่งแบบ GET (ป้องกัน Cache ด้วย _nocache)
                     const params = new URLSearchParams(payloadData);
                     params.append('_nocache', new Date().getTime());
                     url += '?' + params.toString();
                 } else {
-                    // ส่งแบบ POST (ใช้ text/plain เลี่ยง CORS Preflight OPTIONS)
                     options.method = 'POST';
                     options.headers = { 'Content-Type': 'text/plain;charset=utf-8' };
                     options.body = JSON.stringify(payloadData);
@@ -241,9 +236,6 @@
             }
         }
 
-        // ==========================================
-        // UI & HELPERS
-        // ==========================================
         function getGokuLoader(title = 'กำลังโหลด...', subtitle = 'โปรดรอสักครู่') {
             return `
                 <div class="fade-in py-20 flex flex-col items-center justify-center text-center w-full">
@@ -276,11 +268,11 @@
         ];
 
         const NAV_ADMIN = [
-            { id: 'admin-dash', label: 'ภาพรวม', tabLabel: 'ภาพรวม', icon: 'ph-chart-pie-slice' },
-            { id: 'admin-orders', label: 'จัดการจองเสื้อ', tabLabel: 'จองเสื้อ', icon: 'ph-t-shirt' },
-            { id: 'admin-events', label: 'จัดการกิจกรรม', tabLabel: 'กิจกรรม', icon: 'ph-calendar-plus' },
-            { id: 'admin-spss', label: 'รายงานผล (SPSS)', tabLabel: 'SPSS', icon: 'ph-chart-bar' },
-            { id: 'admin-settings', label: 'ตั้งค่าระบบ', tabLabel: 'ตั้งค่า', icon: 'ph-gear' } 
+            { id: 'admin-dash', label: 'ภาพรวม', tabLabel: 'ภาพรวม', icon: 'ph-chart-pie-slice', roles: ['superadmin', 'activity', 'shop'] },
+            { id: 'admin-orders', label: 'จัดการจองเสื้อ', tabLabel: 'จองเสื้อ', icon: 'ph-t-shirt', roles: ['superadmin', 'shop'] },
+            { id: 'admin-events', label: 'จัดการกิจกรรม', tabLabel: 'กิจกรรม', icon: 'ph-calendar-plus', roles: ['superadmin', 'activity'] },
+            { id: 'admin-spss', label: 'รายงานผล (SPSS)', tabLabel: 'SPSS', icon: 'ph-chart-bar', roles: ['superadmin', 'activity'] },
+            { id: 'admin-settings', label: 'ตั้งค่าระบบ', tabLabel: 'ตั้งค่า', icon: 'ph-gear', roles: ['superadmin'] } 
         ];
 
         const STATUS_MAP = {
@@ -288,6 +280,12 @@
             2: { text: 'ชำระเงินแล้ว', color: 'bg-blue-100 text-blue-700 border-blue-200', icon: 'ph-check-circle' },
             3: { text: 'กำลังผลิต', color: 'bg-purple-100 text-purple-700 border-purple-200', icon: 'ph-scissors' },
             4: { text: 'พร้อมรับ', color: 'bg-green-100 text-green-700 border-green-200', icon: 'ph-package' }
+        };
+
+        const ROLE_MAP = {
+            'superadmin': 'ผู้ดูแลระบบสูงสุด',
+            'activity': 'ผู้จัดการกิจกรรม',
+            'shop': 'ผู้จัดการร้านค้า'
         };
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -304,11 +302,12 @@
             fetchAllCheckInsData();
             fetchOrdersData();
             fetchEvaluationsData();
+            
+            if (sessionStorage.getItem('isAdminAuthenticated')) {
+                currentAdminRole = sessionStorage.getItem('currentAdminRole') || 'superadmin';
+            }
         });
 
-        // ==========================================
-        // DATA FETCHING VIA apiCall
-        // ==========================================
         async function fetchSettingsData() {
             try {
                 const result = await apiCall('GET', { action: 'getSettings' });
@@ -316,10 +315,12 @@
                     isShirtShopOpen = (result.data.isShirtShopOpen === true || String(result.data.isShirtShopOpen).toLowerCase() === 'true');
                     if(result.data.popupSettings) popupSettings = result.data.popupSettings;
                     if(result.data.promptPaySettings) promptPaySettings = result.data.promptPaySettings;
+                    if(result.data.adminUsers) adminUsers = result.data.adminUsers;
                     
                     localStorage.setItem('CRRU_ShopOpen', isShirtShopOpen ? 'true' : 'false');
                     localStorage.setItem('CRRU_PopupSettings', JSON.stringify(popupSettings));
                     localStorage.setItem('CRRU_PromptPaySettings', JSON.stringify(promptPaySettings));
+                    localStorage.setItem('CRRU_AdminUsers', JSON.stringify(adminUsers));
                     
                     if(isShirtShopOpen) {
                         if(!NAV_STUDENT.find(n => n.id === 'shirt')) {
@@ -421,9 +422,6 @@
             } catch (e) { return appCache.evaluations || []; }
         }
 
-        // ==========================================
-        // NAVIGATION & STATE
-        // ==========================================
         function goToHome() {
             navigate(currentRole === 'student' ? 'events' : 'admin-dash');
         }
@@ -464,14 +462,25 @@
 
         function showAdminLoginModal() { document.getElementById('admin-username').value = ''; document.getElementById('admin-password').value = ''; document.getElementById('admin-login-error').classList.add('hidden'); document.getElementById('adminLoginModal').classList.remove('hidden'); }
         function closeAdminLoginModal() { document.getElementById('adminLoginModal').classList.add('hidden'); }
+        
         function handleAdminLogin(e) { 
             e.preventDefault(); 
             const user = document.getElementById('admin-username').value.trim(); 
             const pass = document.getElementById('admin-password').value.trim(); 
-            if (user === 'Admin' && pass === '9999') { 
+            
+            let matchedAdmin = adminUsers.find(a => a.user === user && a.pass === pass);
+            
+            // ⚡ Master Fallback: บังคับให้ D.crru เข้าใช้งานได้เสมอ ไม่ว่า LocalStorage จะจำค่าอะไรไว้
+            if (user === 'D.crru' && pass === '9999') {
+                matchedAdmin = { role: 'superadmin' };
+            }
+            
+            if (matchedAdmin) { 
                 sessionStorage.setItem('isAdminAuthenticated', 'true'); 
+                sessionStorage.setItem('currentAdminRole', matchedAdmin.role);
+                currentAdminRole = matchedAdmin.role;
                 closeAdminLoginModal(); 
-                showToast('เข้าสู่ระบบ Admin สำเร็จ', 'success'); 
+                showToast(`เข้าสู่ระบบสำเร็จ (สิทธิ์: ${ROLE_MAP[currentAdminRole] || 'ผู้ดูแลระบบสูงสุด'})`, 'success'); 
                 proceedSwitchRole('admin'); 
             } else { 
                 document.getElementById('admin-login-error').classList.remove('hidden'); 
@@ -479,7 +488,13 @@
         }
 
         function renderNav() {
-            const items = currentRole === 'student' ? NAV_STUDENT : NAV_ADMIN;
+            let items = [];
+            if (currentRole === 'student') {
+                items = NAV_STUDENT;
+            } else {
+                items = NAV_ADMIN.filter(nav => nav.roles.includes(currentAdminRole));
+            }
+            
             const desktopContainer = document.getElementById('desktop-menu'); const tabBarContainer = document.getElementById('mobile-tab-bar');
             let desktopHTML = ''; let tabBarHTML = '';
             
@@ -524,9 +539,6 @@
             }
         }
 
-        // ==========================================
-        // STUDENT VIEWS
-        // ==========================================
         function renderEvents(container) {
             if (!appCache.activities || appCache.activities.length === 0) {
                 container.innerHTML = getGokuLoader('กำลังดึงข้อมูลกิจกรรม...', 'ระบบกำลังเชื่อมต่อฐานข้อมูล');
@@ -540,7 +552,6 @@
                     html += `<div class="col-span-full text-center py-16 bg-white rounded-3xl border border-slate-100 shadow-sm"><i class="ph-fill ph-calendar-x text-5xl text-slate-300 mb-3"></i><p class="text-slate-500 font-bold text-lg">ยังไม่มีกิจกรรมที่เปิดรับสมัครในขณะนี้</p><p class="text-sm text-slate-400 mt-1">กรุณาติดตามการประกาศกิจกรรมใหม่ได้เร็วๆ นี้</p></div>`;
                 } else {
                     openActivities.forEach(event => {
-                        const percentFull = Math.min(Math.round((event.joined / event.spots) * 100) || 0, 100);
                         html += `
                             <div class="bg-white rounded-2xl sm:rounded-[20px] shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow flex flex-col p-5 sm:p-6">
                                 <div class="flex justify-between items-start mb-3 sm:mb-4 gap-2 sm:gap-4">
@@ -551,12 +562,8 @@
                                     <div class="flex items-center gap-2"><i class="ph-fill ph-calendar-blank text-primary text-base sm:text-lg"></i> ${event.date}</div>
                                     <div class="flex items-center gap-2"><i class="ph-fill ph-map-pin text-primary text-base sm:text-lg"></i> ${event.location}</div>
                                     <div class="mt-4 pt-3 sm:pt-4 bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
-                                        <div class="flex justify-between items-center mb-2">
-                                            <span class="text-[13px] sm:text-sm font-bold text-slate-700">ยอดลงทะเบียน ${event.joined}/${event.spots} คน</span>
-                                            <span class="text-[13px] sm:text-sm font-bold text-primary">${percentFull}%</span>
-                                        </div>
-                                        <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
-                                            <div class="bg-primary h-2.5 rounded-full transition-all duration-500" style="width: ${percentFull}%"></div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-[13px] sm:text-sm font-bold text-slate-700"><i class="ph-fill ph-users-three text-primary"></i> ยอดลงทะเบียน ${event.joined} คน</span>
                                         </div>
                                     </div>
                                 </div>
@@ -877,7 +884,7 @@
             try {
                 await fetchSettingsData();
             } catch (e) {
-                isShirtShopOpen = localStorage.getItem('CRRU_ShopOpen') === 'true';
+                isShirtShopOpen = localStorage.getItem('CRRU_ShopOpen') !== 'false';
             }
 
             if (!isShirtShopOpen) {
@@ -1141,7 +1148,7 @@
             try {
                 await fetchSettingsData();
             } catch (e) {
-                isShirtShopOpen = localStorage.getItem('CRRU_ShopOpen') === 'true';
+                isShirtShopOpen = localStorage.getItem('CRRU_ShopOpen') !== 'false';
             }
 
             if (!isShirtShopOpen) {
@@ -1229,7 +1236,7 @@
                 
                 order.size = newSize; order.qty = newQty; order.total = newTotal; order.hasEdited = true;
                 
-                const payload = { action: 'updateOrderStatus', orderId: String(orderId), status: order.status }; 
+                const payload = { action: 'updateOrderStatus', orderId: String(orderId), status: order.status, size: newSize, qty: newQty, total: newTotal, hasEdited: true }; 
                 apiCall('POST', payload);
 
                 showToast('อัปเดตข้อมูลสำเร็จ!', 'success');
@@ -1237,18 +1244,22 @@
             }
         }
 
-        // ==========================================
-        // ADMIN VIEWS
-        // ==========================================
         async function updateOrderStatus(orderId, newStatus) {
-            showToast('กำลังบันทึก...', 'warning');
+            showToast('กำลังอัปเดต...', 'warning');
+            
+            // Optimistic Update
+            const orderIndex = appCache.orders.findIndex(o => String(o.id) === String(orderId));
+            if (orderIndex !== -1) {
+                appCache.orders[orderIndex].status = parseInt(newStatus);
+            }
+            
+            if (currentView === 'admin-orders') renderAdminOrders(document.getElementById('app-content'), true);
+            else if (currentView === 'admin-dash') renderAdminDashboard(document.getElementById('app-content'), true);
             
             const payload = { action: 'updateOrderStatus', orderId: String(orderId), status: parseInt(newStatus) };
             apiCall('POST', payload)
             .then(() => showToast(`อัปเดตสถานะสำเร็จ`, 'success'))
-            .catch(() => showToast('อัปเดตสถานะจำลอง', 'warning'));
-            
-            navigate(currentView); 
+            .catch(() => showToast('อัปเดตสถานะจำลอง (Offline)', 'warning'));
         }
 
         function openSlipModal(orderId) { currentModalOrderId = orderId; document.getElementById('slipModal').classList.remove('hidden'); }
@@ -1276,7 +1287,7 @@
                         <h3 class="font-bold text-base sm:text-lg text-slate-800 mb-4 sm:mb-5 flex items-center gap-2"><i class="ph-fill ph-plus-circle text-primary text-lg sm:text-xl"></i> สร้างกิจกรรมใหม่</h3>
                         <form onsubmit="createNewEvent(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 sm:gap-5 items-end">
                             <div class="md:col-span-1"><label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5 sm:mb-2">ชื่อกิจกรรม *</label><input type="text" id="new-event-title" required class="w-full px-4 py-2.5 sm:py-3 rounded-xl border border-slate-200 outline-none font-medium text-sm"></div>
-                            <div class="md:col-span-1"><label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5 sm:mb-2">วันที่จัด *</label><input type="text" id="new-event-date" required class="w-full px-4 py-2.5 sm:py-3 rounded-xl border border-slate-200 outline-none font-medium text-sm" placeholder="เช่น 20 ต.ค. 2026"></div>
+                            <div class="md:col-span-1"><label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5 sm:mb-2">วันที่จัด *</label><input type="date" id="new-event-date" required class="w-full px-4 py-2.5 sm:py-3 rounded-xl border border-slate-200 outline-none font-medium text-sm text-slate-600"></div>
                             <div class="md:col-span-1"><label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5 sm:mb-2">สถานที่ *</label><input type="text" id="new-event-location" required class="w-full px-4 py-2.5 sm:py-3 rounded-xl border border-slate-200 outline-none font-medium text-sm"></div>
                             <div class="md:col-span-1"><button type="submit" class="w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-admin text-white font-bold rounded-xl hover:bg-admin_hover transition-colors shadow-sm flex items-center justify-center gap-2 text-sm sm:text-base"><i class="ph ph-floppy-disk text-lg"></i> บันทึก</button></div>
                         </form>
@@ -1393,12 +1404,16 @@
             e.preventDefault(); 
             const submitBtn = e.target.querySelector('button[type="submit"]'); const txt = submitBtn.innerHTML; submitBtn.innerHTML = '<i class="ph ph-spinner animate-spin"></i>'; submitBtn.disabled = true;
             const now = new Date(); 
+            
+            const rawDate = document.getElementById('new-event-date').value;
+            const formattedDate = formatThaiDate(rawDate) || rawDate;
+
             const newEvent = { 
                 action: 'createActivity',
                 id: 'ACT-' + Date.now().toString(), 
                 timestamp: formatThaiDate(now, true), 
                 title: document.getElementById('new-event-title').value, 
-                date: document.getElementById('new-event-date').value, 
+                date: formattedDate, 
                 location: document.getElementById('new-event-location').value, 
                 status: 'open', 
                 spots: 100, 
@@ -1425,7 +1440,8 @@
         function openEditEventModal(id) {
             const event = appCache.activities.find(e => String(e.id) === String(id)); 
             if (!event) return;
-            document.getElementById('edit-event-id').value = event.id; document.getElementById('edit-event-title').value = event.title; document.getElementById('edit-event-date').value = event.date; document.getElementById('edit-event-location').value = event.location;
+            document.getElementById('edit-event-id').value = event.id; document.getElementById('edit-event-title').value = event.title; 
+            document.getElementById('edit-event-location').value = event.location;
             document.getElementById('editEventModal').classList.remove('hidden');
         }
         function closeEditEventModal() { document.getElementById('editEventModal').classList.add('hidden'); }
@@ -1435,7 +1451,8 @@
             const submitBtn = e.target.querySelector('button[type="submit"]'); const txt = submitBtn.innerHTML; submitBtn.innerHTML = '<i class="ph ph-spinner animate-spin"></i>'; submitBtn.disabled = true;
             const id = document.getElementById('edit-event-id').value;
             const title = document.getElementById('edit-event-title').value;
-            const date = document.getElementById('edit-event-date').value;
+            const rawDate = document.getElementById('edit-event-date').value;
+            const date = formatThaiDate(rawDate) || rawDate;
             const location = document.getElementById('edit-event-location').value;
 
             const event = appCache.activities.find(ev => String(ev.id) === String(id));
@@ -1874,11 +1891,14 @@
             if (wordBtn) wordBtn.classList.remove('hidden'); 
         };
 
-        async function renderAdminDashboard(container) {
+        async function renderAdminDashboard(container, skipFetch = false) {
             
-            container.innerHTML = getGokuLoader('กำลังสรุปภาพรวมระบบ...', 'รวบรวมข้อมูลสถิติทั้งหมด');
+            if (!skipFetch) container.innerHTML = getGokuLoader('กำลังสรุปภาพรวมระบบ...', 'รวบรวมข้อมูลสถิติทั้งหมด');
             
-            const activities = await fetchActivitiesData(); const allCheckIns = await fetchAllCheckInsData(); const ordersData = await fetchOrdersData();
+            const activities = skipFetch ? appCache.activities : await fetchActivitiesData(); 
+            const allCheckIns = skipFetch ? appCache.checkIns : await fetchAllCheckInsData(); 
+            const ordersData = skipFetch ? appCache.orders : await fetchOrdersData();
+            
             const totalJoined = activities.reduce((sum, ev) => sum + (parseInt(ev.joined) || 0), 0);
             const participationRate = totalJoined > 0 ? Math.round((allCheckIns.length / totalJoined) * 100) : 0;
 
@@ -1929,9 +1949,12 @@
             updateDashboardEventsList();
 
             setTimeout(() => {
-                new Chart(document.getElementById('statusChart').getContext('2d'), {
-                    type: 'doughnut', data: { labels: ['รอตรวจสอบ', 'ชำระเงินแล้ว', 'กำลังผลิต', 'พร้อมรับ'], datasets: [{ data: [ordersData.filter(o=>o.status===1).length, ordersData.filter(o=>o.status===2).length, ordersData.filter(o=>o.status===3).length, ordersData.filter(o=>o.status===4).length], backgroundColor: ['#fcd34d', '#3b82f6', '#a855f7', '#10b981'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Prompt', weight: 'bold' } } } }, cutout: '75%' }
-                });
+                const ctx = document.getElementById('statusChart');
+                if (ctx) {
+                    new Chart(ctx.getContext('2d'), {
+                        type: 'doughnut', data: { labels: ['รอตรวจสอบ', 'ชำระเงินแล้ว', 'กำลังผลิต', 'พร้อมรับ'], datasets: [{ data: [ordersData.filter(o=>o.status===1).length, ordersData.filter(o=>o.status===2).length, ordersData.filter(o=>o.status===3).length, ordersData.filter(o=>o.status===4).length], backgroundColor: ['#fcd34d', '#3b82f6', '#a855f7', '#10b981'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Prompt', weight: 'bold' } } } }, cutout: '75%' }
+                    });
+                }
             }, 100);
         }
         
@@ -1940,15 +1963,15 @@
             const pageContainer = document.getElementById('dash-events-pagination');
             if (!listContainer || !pageContainer) return;
 
-            const activities = appCache.activities || [];
-            const totalItems = activities.length;
+            const reversedActivities = [...(appCache.activities || [])].reverse();
+            const totalItems = reversedActivities.length;
             const totalPages = Math.ceil(totalItems / dashEventsPerPage) || 1;
 
             if (dashEventsPage > totalPages) dashEventsPage = totalPages;
             if (dashEventsPage < 1) dashEventsPage = 1;
 
             const startIndex = (dashEventsPage - 1) * dashEventsPerPage;
-            const paginatedActivities = activities.slice(startIndex, startIndex + dashEventsPerPage);
+            const paginatedActivities = reversedActivities.slice(startIndex, startIndex + dashEventsPerPage);
 
             let html = '<div class="space-y-4">';
             if (paginatedActivities.length === 0) {
@@ -1965,13 +1988,12 @@
                             <p class="text-sm text-slate-500 mt-1.5 flex items-center justify-center sm:justify-start gap-2"><i class="ph-fill ph-calendar-blank"></i> ${event.date}</p>
                         </div>
                         <div class="bg-slate-50 rounded-2xl p-4 sm:p-5 flex items-center justify-center gap-4 w-full sm:w-auto border border-slate-100 shrink-0 group-hover:bg-primary/5 transition-colors">
-                            <div class="text-right hidden sm:block">
+                            <div class="text-right hidden sm:block mt-1">
                                 <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">ลงทะเบียนแล้ว</p>
-                                <p class="text-xs font-medium text-slate-500 mt-0.5">เป้าหมาย ${event.spots} คน</p>
                             </div>
                             <div class="flex items-baseline justify-center gap-1">
                                 <span class="text-4xl sm:text-5xl font-black text-primary drop-shadow-sm leading-none">${event.joined}</span>
-                                <span class="text-sm font-bold text-slate-400">/${event.spots}</span>
+                                <span class="text-sm font-bold text-slate-400 ml-1">คน</span>
                             </div>
                             <div class="h-10 w-10 rounded-full bg-white shadow-sm border border-slate-200 flex items-center justify-center ml-2 hidden sm:flex group-hover:border-primary group-hover:text-primary transition-colors">
                                 <i class="ph-bold ph-caret-right text-xl text-slate-400 group-hover:text-primary"></i>
@@ -2056,10 +2078,10 @@
             container.innerHTML = html;
         }
 
-        async function renderAdminOrders(container) {
+        async function renderAdminOrders(container, skipFetch = false) {
             
-            container.innerHTML = getGokuLoader('กำลังโหลดยอดสั่งจอง...', 'ระบบสำหรับผู้ดูแล');
-            const ordersData = await fetchOrdersData();
+            if (!skipFetch) container.innerHTML = getGokuLoader('กำลังโหลดยอดสั่งจอง...', 'ระบบสำหรับผู้ดูแล');
+            const ordersData = skipFetch ? appCache.orders : await fetchOrdersData();
             let summary = { polo: { S: 0, M: 0, L: 0, XL: 0, '2XL': 0 }, act: { S: 0, M: 0, L: 0, XL: 0, '2XL': 0 } };
             ordersData.forEach(order => {
                 let poloMatch = String(order.size).match(/โปโล\s([SMLX2]+)/); let actMatch = String(order.size).match(/กิจกรรม\s([SMLX2]+)/); let pairQty = order.qty >= 2 ? Math.floor(order.qty / 2) : 1; 
@@ -2073,6 +2095,7 @@
                         <div><h1 class="text-2xl sm:text-3xl font-bold text-slate-800">จัดการจองเสื้อ</h1><p class="text-sm sm:text-base text-slate-500 mt-1">สรุปยอดสั่งผลิตและอัปเดตสถานะ</p></div>
                         <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-3">
                             <button onclick="window.print()" class="px-4 py-2 sm:py-2.5 bg-white border border-slate-200 text-slate-600 rounded-lg sm:rounded-xl font-bold hover:bg-slate-50 flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm transition w-full md:w-auto"><i class="ph ph-printer text-lg"></i> พิมพ์ยอด</button>
+                            <button onclick="refreshAdminOrders(this)" class="px-4 py-2 sm:py-2.5 bg-primary/10 text-primary border border-primary/20 rounded-lg sm:rounded-xl font-bold hover:bg-primary/20 flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm transition w-full md:w-auto"><i class="ph ph-arrows-clockwise text-lg"></i> รีเฟรช</button>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mt-6 sm:mt-8 mb-6 sm:mb-10">
@@ -2115,9 +2138,15 @@
             html += `</tbody></table></div></div></div>`; if(container.innerHTML !== html) container.innerHTML = html;
         }
 
-        // ==========================================
-        // MASTER CONTROL & SETTINGS
-        // ==========================================
+        async function refreshAdminOrders(btn) {
+            const icon = btn.querySelector('i');
+            if(icon) icon.classList.add('animate-spin'); 
+            await fetchOrdersData(true); 
+            renderAdminOrders(document.getElementById('app-content'), true);
+            if(icon) icon.classList.remove('animate-spin');
+            showToast('อัปเดตข้อมูลสั่งจองล่าสุดแล้ว', 'success');
+        }
+
         function toggleMasterControl(isChecked) {
             isShirtShopOpen = isChecked;
             const textEl = document.getElementById('shirt-toggle-text');
@@ -2133,7 +2162,8 @@
                 action: 'saveSettings', 
                 isShirtShopOpen: isShirtShopOpen, 
                 popupSettings: popupSettings, 
-                promptPaySettings: promptPaySettings 
+                promptPaySettings: promptPaySettings,
+                adminUsers: adminUsers
             })
             .then(data => {
                 if(data.success) {
@@ -2147,6 +2177,23 @@
         }
 
         function renderAdminSettings(container) {
+            
+            let usersHtml = '';
+            adminUsers.forEach(u => {
+                usersHtml += `
+                    <div class="flex flex-col sm:flex-row items-center justify-between p-4 bg-white border border-slate-200 rounded-xl mb-3 shadow-sm group">
+                        <div class="flex items-center gap-4 w-full sm:w-auto mb-3 sm:mb-0">
+                            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-admin font-bold"><i class="ph-fill ph-user text-xl"></i></div>
+                            <div><p class="font-bold text-slate-800">${u.user}</p><p class="text-xs text-slate-500 mt-0.5">รหัสผ่าน: <span class="font-mono bg-slate-100 px-1 rounded">${u.pass}</span></p></div>
+                        </div>
+                        <div class="flex items-center gap-3 w-full sm:w-auto">
+                            <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg text-xs font-bold border border-blue-100 mr-auto sm:mr-0 whitespace-nowrap">${ROLE_MAP[u.role] || u.role}</span>
+                            ${u.role !== 'superadmin' || adminUsers.filter(x=>x.role==='superadmin').length > 1 ? `<button type="button" onclick="removeAdminUser('${u.id}')" class="w-8 h-8 rounded-full bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors"><i class="ph-fill ph-trash text-sm"></i></button>` : `<div class="w-8 h-8 flex items-center justify-center text-slate-300" title="ต้องมีผู้ดูแลสูงสุดอย่างน้อย 1 คน"><i class="ph-fill ph-lock-key"></i></div>`}
+                        </div>
+                    </div>
+                `;
+            });
+
             container.innerHTML = `
                 <div class="fade-in max-w-4xl mx-auto pb-10">
                     <div class="mb-6 sm:mb-8 text-center sm:text-left"><h1 class="text-2xl sm:text-3xl font-bold text-slate-800">ตั้งค่าระบบ</h1><p class="text-sm sm:text-base text-slate-500 mt-1">ปรับแต่งการทำงานและข้อมูลพื้นฐานของระบบ</p></div>
@@ -2164,6 +2211,26 @@
                     </div>
 
                     <form onsubmit="submitSettings(event)" class="space-y-5 sm:space-y-6">
+
+                        <div class="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-sm border border-slate-100">
+                            <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-4 sm:mb-5 flex items-center gap-2"><i class="ph-fill ph-users-three text-admin"></i> สิทธิ์การเข้าถึง (Admin Access)</h2>
+                            <div class="bg-slate-50 p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 mb-5">
+                                ${usersHtml}
+                                <div class="mt-4 pt-4 border-t border-slate-200">
+                                    <p class="text-xs sm:text-sm font-bold text-slate-700 mb-3">เพิ่มบัญชีผู้ดูแลใหม่</p>
+                                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                                        <input type="text" id="new-admin-user" placeholder="Username" class="sm:col-span-1 px-3 py-2.5 rounded-lg border border-slate-300 outline-none font-medium text-sm">
+                                        <input type="text" id="new-admin-pass" placeholder="Password" class="sm:col-span-1 px-3 py-2.5 rounded-lg border border-slate-300 outline-none font-medium text-sm">
+                                        <select id="new-admin-role" class="sm:col-span-1 px-3 py-2.5 rounded-lg border border-slate-300 outline-none font-medium text-sm bg-white">
+                                            <option value="activity">ผู้จัดการกิจกรรม</option>
+                                            <option value="shop">ผู้จัดการร้านค้า</option>
+                                            <option value="superadmin">ผู้ดูแลระบบสูงสุด</option>
+                                        </select>
+                                        <button type="button" onclick="addAdminUser()" class="sm:col-span-1 px-3 py-2.5 bg-admin text-white rounded-lg font-bold text-sm hover:bg-admin_hover transition-colors shadow-sm">เพิ่มบัญชี</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         
                         <div class="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-sm border border-slate-100">
                             <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-4 sm:mb-5 flex items-center gap-2"><i class="ph-fill ph-qr-code text-emerald-500"></i> ตั้งค่าบัญชีรับชำระเงิน (PromptPay)</h2>
@@ -2205,6 +2272,27 @@
                 </div>`;
         }
 
+        window.addAdminUser = function() {
+            const u = document.getElementById('new-admin-user').value.trim();
+            const p = document.getElementById('new-admin-pass').value.trim();
+            const r = document.getElementById('new-admin-role').value;
+            
+            if(!u || !p) return showToast('กรุณากรอก Username และ Password ให้ครบ', 'warning');
+            if(adminUsers.some(a => a.user === u)) return showToast('Username นี้มีอยู่ในระบบแล้ว', 'error');
+
+            adminUsers.push({ id: Date.now().toString(), user: u, pass: p, role: r });
+            renderAdminSettings(document.getElementById('app-content'));
+            showToast('เพิ่มบัญชีผู้ดูแลสำเร็จ กรุณากดบันทึกการตั้งค่า', 'success');
+        };
+
+        window.removeAdminUser = function(id) {
+            const index = adminUsers.findIndex(u => u.id === id);
+            if(index > -1) {
+                adminUsers.splice(index, 1);
+                renderAdminSettings(document.getElementById('app-content'));
+            }
+        };
+
         function previewCurrentPopup() {
             document.getElementById('popup-banner-img').src = document.getElementById('setting-popup-image').value; 
             document.getElementById('popup-title').innerHTML = document.getElementById('setting-popup-title').value.replace(/\n/g, '<br>'); 
@@ -2226,13 +2314,15 @@
 
             localStorage.setItem('CRRU_PopupSettings', JSON.stringify(popupSettings));
             localStorage.setItem('CRRU_PromptPaySettings', JSON.stringify(promptPaySettings));
+            localStorage.setItem('CRRU_AdminUsers', JSON.stringify(adminUsers));
             sessionStorage.removeItem('homePopupShown');
 
             apiCall('POST', { 
                 action: 'saveSettings', 
                 isShirtShopOpen: isShirtShopOpen, 
                 popupSettings: popupSettings,
-                promptPaySettings: promptPaySettings
+                promptPaySettings: promptPaySettings,
+                adminUsers: adminUsers
             }).then(() => {
                 showToast('บันทึกการตั้งค่าเรียบร้อยแล้ว', 'success'); 
                 btn.innerHTML = txt; btn.disabled = false; 
@@ -2262,7 +2352,6 @@
             setTimeout(() => { toast.classList.add('translate-x-full'); setTimeout(() => toast.remove(), 300); }, 3000);
         }
 
-        // Expose functions to global scope for inline event handlers
         window.navigate = navigate;
         window.goToHome = goToHome;
         window.switchRole = switchRole;
@@ -2303,8 +2392,7 @@
         window.submitSettings = submitSettings;
         window.previewCurrentPopup = previewCurrentPopup;
         window.updateOrderStatus = updateOrderStatus;
-        
-        // Export Pagination & Search functions
+        window.refreshAdminOrders = refreshAdminOrders;
         window.handleAdminEventSearch = handleAdminEventSearch;
         window.changeAdminEventPage = changeAdminEventPage;
         window.refreshAdminEvents = refreshAdminEvents;
