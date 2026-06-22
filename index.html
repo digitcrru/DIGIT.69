@@ -143,7 +143,9 @@
         <div class="bg-white rounded-[32px] p-6 sm:p-8 max-w-md w-full shadow-2xl transform transition-all relative">
             <div class="flex justify-between items-center mb-6"><h3 class="text-2xl font-black text-slate-800 flex items-center gap-3"><div class="p-2 bg-primary/10 text-primary rounded-xl"><i class="ph-fill ph-ruler"></i></div> ตารางไซส์เสื้อ</h3><button onclick="document.getElementById('sizeChartModal').classList.add('hidden')" class="w-10 h-10 flex items-center justify-center bg-slate-100 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"><i class="ph-bold ph-x"></i></button></div>
             <div class="bg-blue-50 border border-blue-200/60 rounded-2xl p-4 mb-6 flex items-start gap-3 shadow-sm"><i class="ph-fill ph-info text-blue-500 text-xl mt-0.5"></i><p class="text-xs sm:text-sm text-blue-800 font-medium leading-relaxed">คำแนะนำ: ควรวัดรอบอกจริง แล้ว <span class="font-bold underline decoration-blue-400 underline-offset-2">บวกเพิ่ม 1-2 นิ้ว</span> เพื่อให้ได้ทรงเสื้อที่ใส่สบาย ไม่อึดอัด</p></div>
-            <div class="overflow-hidden rounded-2xl border border-slate-200 shadow-sm"><table class="w-full text-center border-collapse"><thead><tr class="bg-slate-50 text-slate-500 text-xs sm:text-sm uppercase tracking-wider"><th class="py-3 px-2 font-bold border-b border-slate-200">ไซส์ (Size)</th><th class="py-3 px-2 font-bold border-b border-slate-200">รอบอก (นิ้ว)</th><th class="py-3 px-2 font-bold border-b border-slate-200">ความยาว (นิ้ว)</th></tr></thead><tbody class="text-sm sm:text-base font-medium text-slate-700 bg-white"><tr class="border-b border-slate-100 hover:bg-slate-50"><td class="py-3.5 font-bold text-slate-800">S</td><td class="py-3.5">38"</td><td class="py-3.5 text-slate-400">27"</td></tr><tr class="border-b border-slate-100 hover:bg-slate-50"><td class="py-3.5 font-bold text-slate-800">M</td><td class="py-3.5">40"</td><td class="py-3.5 text-slate-400">28"</td></tr><tr class="border-b border-slate-100 hover:bg-slate-50"><td class="py-3.5 font-bold text-slate-800">L</td><td class="py-3.5">42"</td><td class="py-3.5 text-slate-400">29"</td></tr><tr class="border-b border-slate-100 hover:bg-slate-50 bg-primary/5"><td class="py-3.5 font-bold text-primary">XL</td><td class="py-3.5 font-bold text-primary">44"</td><td class="py-3.5 text-slate-400">30"</td></tr><tr class="hover:bg-slate-50 bg-primary/5"><td class="py-3.5 font-bold text-primary">2XL</td><td class="py-3.5 font-bold text-primary">46"</td><td class="py-3.5 text-slate-400">31"</td></tr></tbody></table></div>
+            <div class="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
+                <img src="https://img1.pic.in.th/images/S__269672452.jpg" alt="ตารางไซส์เสื้อ" class="w-full h-auto object-contain">
+            </div>
             <button onclick="document.getElementById('sizeChartModal').classList.add('hidden')" class="w-full mt-6 py-4 bg-slate-800 text-white font-bold rounded-2xl hover:bg-black transition-colors shadow-lg shadow-slate-800/20 text-sm">รับทราบ</button>
         </div>
     </div>
@@ -348,13 +350,45 @@
 
         async function handleRegistrationSubmit(e, eventId) {
             e.preventDefault(); const finalSid = document.getElementById('reg-hidden-student-id').value.trim() || document.getElementById('reg-student-id').value.trim(); const finalCid = document.getElementById('reg-hidden-citizen-id').value.trim() || document.getElementById('reg-citizen-id').value.trim(); const finalName = document.getElementById('reg-name').value; const finalFaculty = document.getElementById('reg-faculty').value; const finalMajor = document.getElementById('reg-major').value; const eventObj = appCache.activities.find(ev => String(ev.id) === String(eventId)); const eventName = eventObj?.title || 'กิจกรรม'; const errorMsgEl = document.getElementById('reg-error-message'); if (errorMsgEl) errorMsgEl.classList.add('hidden');
+            
             const isDuplicate = (checkInsData) => { if (!Array.isArray(checkInsData)) return false; const targetEvent = String(eventName).trim(); const targetSid = String(finalSid).trim(); const targetCid = String(finalCid).trim(); return checkInsData.some(row => { if (!row || row.length < 4) return false; const rowEvent = String(row[1] || '').trim(); const rowSid = String(row[2] || '').trim(); const rowCid = String(row[3] || '').trim(); if (rowEvent !== targetEvent) return false; return (targetSid !== '' && targetSid !== '-' && rowSid === targetSid) || (targetCid !== '' && targetCid !== '-' && rowCid === targetCid); }); };
             if (isDuplicate(appCache.checkIns)) { if (errorMsgEl) { errorMsgEl.innerHTML = '<i class="ph-fill ph-warning-circle text-lg inline-block align-middle mr-1"></i> ระบบตรวจพบว่าคุณลงทะเบียนกิจกรรมนี้ไปแล้ว!'; errorMsgEl.classList.remove('hidden'); } showToast('พบข้อมูลการลงทะเบียนซ้ำซ้อน!', 'error'); return; }
-            const submitBtn = e.target.querySelector('button[type="submit"]'); const originalBtnText = submitBtn.innerHTML; submitBtn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-xl"></i> กำลังตรวจสอบ...'; submitBtn.disabled = true;
-            try { const result = await apiCall('GET', { action: 'getAllCheckIns' }); if (result.success && result.data) { appCache.checkIns = result.data; if (isDuplicate(result.data)) { if (errorMsgEl) { errorMsgEl.innerHTML = '<i class="ph-fill ph-warning-circle text-lg inline-block align-middle mr-1"></i> ระบบตรวจพบว่าคุณลงทะเบียนกิจกรรมนี้ไปแล้ว!'; errorMsgEl.classList.remove('hidden'); } showToast('ระบบฐานข้อมูลกลางพบข้อมูลซ้ำซ้อน!', 'error'); submitBtn.innerHTML = originalBtnText; submitBtn.disabled = false; return; } } } catch (err) { console.log("Offline mode"); }
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]'); const originalBtnText = submitBtn.innerHTML; submitBtn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-xl"></i> กำลังตรวจสอบข้อมูล...'; submitBtn.disabled = true;
+            
             const payload = { action: 'checkIn', eventId: eventId, eventName: eventName, studentId: finalSid, citizenId: finalCid, name: finalName, faculty: finalFaculty, major: finalMajor, timestamp: new Date().toLocaleString('th-TH') };
-            appCache.checkIns.push([payload.timestamp, payload.eventName, payload.studentId, payload.citizenId, payload.name, payload.faculty, payload.major, 3]); if (eventObj) eventObj.joined = (parseInt(eventObj.joined) || 0) + 1; apiCall('POST', payload).catch(() => null);
-            submitBtn.innerHTML = '<i class="ph-fill ph-check-circle text-xl"></i> สำเร็จ!'; showToast('ลงทะเบียนสำเร็จ! กรุณาทำแบบประเมิน...', 'success'); setTimeout(() => { navigate('survey', { eventId: eventId, eventTitle: eventName, studentId: finalSid || finalCid }); }, 1200);
+            
+            try { 
+                const result = await apiCall('GET', { action: 'getAllCheckIns' }); 
+                if (result.success && result.data) { 
+                    appCache.checkIns = result.data; 
+                    if (isDuplicate(result.data)) { 
+                        if (errorMsgEl) { errorMsgEl.innerHTML = '<i class="ph-fill ph-warning-circle text-lg inline-block align-middle mr-1"></i> ระบบตรวจพบว่าคุณลงทะเบียนกิจกรรมนี้ไปแล้ว!'; errorMsgEl.classList.remove('hidden'); } 
+                        showToast('ระบบฐานข้อมูลกลางพบข้อมูลซ้ำซ้อน!', 'error'); 
+                        submitBtn.innerHTML = originalBtnText; submitBtn.disabled = false; return; 
+                    } 
+                } 
+                
+                submitBtn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-xl"></i> กำลังบันทึก...';
+                const postResult = await apiCall('POST', payload);
+                
+                if(postResult.success) {
+                    appCache.checkIns.push([payload.timestamp, payload.eventName, payload.studentId, payload.citizenId, payload.name, payload.faculty, payload.major, 3]); if (eventObj) eventObj.joined = (parseInt(eventObj.joined) || 0) + 1;
+                    submitBtn.innerHTML = '<i class="ph-fill ph-check-circle text-xl"></i> สำเร็จ!'; showToast('ลงทะเบียนสำเร็จ! กรุณาทำแบบประเมิน...', 'success'); setTimeout(() => { navigate('survey', { eventId: eventId, eventTitle: eventName, studentId: finalSid || finalCid }); }, 1200);
+                } else {
+                    throw new Error(postResult.error || "Server rejected submission");
+                }
+            } catch (err) { 
+                console.error(err);
+                if (err.message && err.message.includes("DUPLICATE_ENTRY")) {
+                     if (errorMsgEl) { errorMsgEl.innerHTML = '<i class="ph-fill ph-warning-circle text-lg inline-block align-middle mr-1"></i> คุณได้ลงทะเบียนกิจกรรมนี้เรียบร้อยแล้ว ไม่สามารถลงทะเบียนซ้ำได้'; errorMsgEl.classList.remove('hidden'); }
+                     showToast('เซิร์ฟเวอร์ปฏิเสธ: ข้อมูลซ้ำ', 'error');
+                } else {
+                     appCache.checkIns.push([payload.timestamp, payload.eventName, payload.studentId, payload.citizenId, payload.name, payload.faculty, payload.major, 3]); if (eventObj) eventObj.joined = (parseInt(eventObj.joined) || 0) + 1;
+                     submitBtn.innerHTML = '<i class="ph-fill ph-check-circle text-xl"></i> สำเร็จ!'; showToast('บันทึกสำเร็จ (โหมดออฟไลน์)...', 'success'); setTimeout(() => { navigate('survey', { eventId: eventId, eventTitle: eventName, studentId: finalSid || finalCid }); }, 1200);
+                }
+                submitBtn.innerHTML = originalBtnText; submitBtn.disabled = false;
+            }
         }
 
         function renderSurvey(container, param) {
@@ -437,7 +471,7 @@
                                     <div class="p-6 sm:p-8 flex-grow space-y-6">
                                         <div>
                                             <div class="flex justify-between items-end mb-4"><label class="block text-sm font-bold text-slate-700">เลือกไซส์</label><div class="flex items-center gap-2"><button type="button" onclick="document.getElementById('sizeChartModal').classList.remove('hidden')" class="text-xs font-bold text-primary hover:text-primary_hover bg-primary/10 px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition-colors"><i class="ph-bold ph-ruler text-sm"></i> ตารางไซส์</button></div></div>
-                                            <div class="grid grid-cols-5 gap-2">${['S','M','L','XL','2XL'].map(s => `<label class="cursor-pointer"><input type="radio" name="poloSize" value="${s}" required ${s==='M'?'checked':''} onchange="recalculatePrice()" class="peer sr-only"><div class="text-center py-3 rounded-2xl border-2 border-slate-100 peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-primary font-bold text-slate-500 bg-white text-sm hover:border-slate-200 hover:bg-slate-50 transition-all peer-checked:shadow-sm">${s}</div></label>`).join('')}</div>
+                                            <div class="grid grid-cols-5 gap-2">${['XS','S','M','L','XL','2XL','3XL','4XL','5XL','6XL'].map(s => `<label class="cursor-pointer"><input type="radio" name="poloSize" value="${s}" required ${s==='M'?'checked':''} onchange="recalculatePrice()" class="peer sr-only"><div class="text-center py-2.5 rounded-2xl border-2 border-slate-100 peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-primary font-bold text-slate-500 bg-white text-xs sm:text-sm hover:border-slate-200 hover:bg-slate-50 transition-all peer-checked:shadow-sm">${s}</div></label>`).join('')}</div>
                                         </div>
                                         <div>
                                             <label class="block text-sm font-bold text-slate-700 mb-3">จำนวน</label>
@@ -450,7 +484,7 @@
                                     <div class="p-6 sm:p-8 flex-grow space-y-6">
                                         <div>
                                             <div class="flex justify-between items-end mb-4"><label class="block text-sm font-bold text-slate-700">เลือกไซส์</label><div class="flex items-center gap-2"><button type="button" onclick="document.getElementById('sizeChartModal').classList.remove('hidden')" class="text-xs font-bold text-primary hover:text-primary_hover bg-primary/10 px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition-colors"><i class="ph-bold ph-ruler text-sm"></i> ตารางไซส์</button></div></div>
-                                            <div class="grid grid-cols-5 gap-2">${['S','M','L','XL','2XL'].map(s => `<label class="cursor-pointer"><input type="radio" name="actSize" value="${s}" required ${s==='M'?'checked':''} onchange="recalculatePrice()" class="peer sr-only"><div class="text-center py-3 rounded-2xl border-2 border-slate-100 peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-primary font-bold text-slate-500 bg-white text-sm hover:border-slate-200 hover:bg-slate-50 transition-all peer-checked:shadow-sm">${s}</div></label>`).join('')}</div>
+                                            <div class="grid grid-cols-5 gap-2">${['XS','S','M','L','XL','2XL','3XL','4XL','5XL','6XL'].map(s => `<label class="cursor-pointer"><input type="radio" name="actSize" value="${s}" required ${s==='M'?'checked':''} onchange="recalculatePrice()" class="peer sr-only"><div class="text-center py-2.5 rounded-2xl border-2 border-slate-100 peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-primary font-bold text-slate-500 bg-white text-xs sm:text-sm hover:border-slate-200 hover:bg-slate-50 transition-all peer-checked:shadow-sm">${s}</div></label>`).join('')}</div>
                                         </div>
                                         <div>
                                             <label class="block text-sm font-bold text-slate-700 mb-3">จำนวน</label>
@@ -738,61 +772,67 @@
             btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-lg"></i> กำลังสร้าง PDF...'; 
             btn.disabled = true;
 
-            const opt = { 
-                margin:       0, 
-                filename:     `Receipt_CRU_${orderId}.pdf`, 
-                image:        { type: 'jpeg', quality: 1.0 }, 
-                html2canvas:  { 
-                    scale: 2, 
-                    useCORS: true, 
-                    width: 794,
-                    windowWidth: 794,
-                    scrollX: 0,
-                    scrollY: 0,
-                    x: 0,
-                    y: 0,
-                    onclone: function(clonedDoc) {
-                        const target = clonedDoc.getElementById('receipt-card-display');
-                        if (target) {
-                            target.style.margin = '0';
-                            target.style.boxShadow = 'none';
-                            target.style.border = 'none';
-                            target.style.transform = 'none';
+            // 1. สร้าง Overlay บังหน้าจอ (ป้องกันการกระตุกให้ผู้ใช้เห็น)
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #ffffff; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center;';
+            overlay.innerHTML = `
+                <i class="ph-bold ph-spinner animate-spin text-primary" style="font-size: 50px; margin-bottom: 15px;"></i>
+                <h3 style="font-family: 'Prompt', sans-serif; font-size: 20px; font-weight: bold; color: #1e293b; margin: 0;">กำลังจัดเตรียมไฟล์ PDF...</h3>
+                <p style="font-family: 'Prompt', sans-serif; font-size: 14px; color: #64748b; margin-top: 5px;">กรุณารอสักครู่ (ห้ามปิดหน้าจอ)</p>
+            `;
+            document.body.appendChild(overlay);
 
-                            // ทะลวงหน้าจอจำลอง (Clone) เพื่อปลดล็อคการจำกัดความกว้างของมือถือ
-                            let parent = target.parentElement;
-                            while (parent && parent.tagName !== 'HTML') {
-                                parent.style.overflow = 'visible';
-                                parent.style.overflowX = 'visible';
-                                parent.style.overflowY = 'visible';
-                                parent.style.width = 'auto';
-                                parent.style.maxWidth = 'none';
-                                parent.style.display = 'block';
-                                parent.style.padding = '0';
-                                parent = parent.parentElement;
+            // 2. ขยาย Viewport ชั่วคราว (ทริคที่ดีที่สุดในการแก้ PDF บนมือถือโดนตัดขอบ)
+            const viewportMeta = document.querySelector('meta[name="viewport"]');
+            const originalViewport = viewportMeta ? viewportMeta.getAttribute('content') : '';
+            if (viewportMeta) {
+                viewportMeta.setAttribute('content', 'width=800, initial-scale=1.0');
+            }
+
+            // 3. รอให้เบราว์เซอร์ปรับโครงสร้างจอ (Reflow) ให้กว้าง 800px ก่อนค่อยจับภาพ
+            setTimeout(() => {
+                const opt = { 
+                    margin:       0, 
+                    filename:     `Receipt_CRU_${orderId}.pdf`, 
+                    image:        { type: 'jpeg', quality: 1.0 }, 
+                    html2canvas:  { 
+                        scale: 2, 
+                        useCORS: true, 
+                        width: 794,
+                        windowWidth: 800,
+                        onclone: function(clonedDoc) {
+                            const target = clonedDoc.getElementById('receipt-card-display');
+                            if (target) {
+                                target.style.boxShadow = 'none';
+                                target.style.border = 'none';
+                                target.style.margin = '0 auto';
                             }
                         }
-                    }
-                }, 
-                jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' } 
-            };
-            
-            html2pdf().set(opt).from(element).save().then(() => { 
-                btn.innerHTML = oldHtml; 
-                btn.disabled = false; 
-                showToast('บันทึก PDF สำเร็จ! สามารถพิมพ์ลงกระดาษ A4 ได้เลย', 'success'); 
-            }).catch(err => { 
-                console.error(err); 
-                btn.innerHTML = oldHtml; 
-                btn.disabled = false; 
-                showToast('เกิดข้อผิดพลาดในการสร้าง PDF', 'error'); 
-            });
+                    }, 
+                    jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' } 
+                };
+                
+                html2pdf().set(opt).from(element).save().then(() => { 
+                    if (viewportMeta) viewportMeta.setAttribute('content', originalViewport);
+                    document.body.removeChild(overlay);
+                    btn.innerHTML = oldHtml; 
+                    btn.disabled = false; 
+                    showToast('บันทึก PDF สำเร็จ!', 'success'); 
+                }).catch(err => { 
+                    console.error(err); 
+                    if (viewportMeta) viewportMeta.setAttribute('content', originalViewport);
+                    document.body.removeChild(overlay);
+                    btn.innerHTML = oldHtml; 
+                    btn.disabled = false; 
+                    showToast('เกิดข้อผิดพลาดในการสร้าง PDF', 'error'); 
+                });
+            }, 500); 
         };
 
         function renderEditOrder(container, orderId) {
             if(!isShirtShopOpen) { showToast('ระบบปิดให้บริการแล้ว', 'error'); return navigate('shirt'); }
             const order = appCache.orders.find(o => String(o.id) === String(orderId)); if(!order) return navigate('tracking');
-            container.innerHTML = `<div class="fade-in max-w-3xl mx-auto pb-10"><div class="mb-6 flex justify-between items-center"><div><h1 class="text-3xl font-black text-slate-800 tracking-tight">แก้ไขข้อมูลสั่งจอง</h1><p class="text-red-500 text-sm mt-2 font-bold flex items-center gap-1.5"><i class="ph-fill ph-warning-circle text-lg"></i> อนุญาตให้แก้ไขไซส์ได้เพียง 1 ครั้งเท่านั้น</p></div><button onclick="navigate('tracking')" class="px-5 py-3 text-slate-500 bg-white border border-slate-200 hover:bg-slate-50 rounded-2xl font-bold shadow-sm text-sm hover-lift flex items-center gap-2"><i class="ph-bold ph-x"></i> ยกเลิก</button></div><div class="glass rounded-[32px] p-8 sm:p-10 shadow-xl shadow-slate-200/40 border border-white/60"><form onsubmit="submitEditOrder(event, '${order.id}')" class="space-y-6"><div class="bg-blue-50/80 border border-blue-200/50 rounded-2xl p-5 mb-8 flex items-center gap-4"><div class="bg-blue-100 text-blue-600 p-2 rounded-xl"><i class="ph-bold ph-info text-xl"></i></div><div><p class="text-sm text-blue-900 font-medium"><span class="font-bold uppercase text-[10px] tracking-widest block text-blue-600 mb-0.5">รายละเอียดออเดอร์เดิม</span> ${order.type} ไซส์ ${order.size} จำนวน ${order.qty} ตัว</p></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-100 shadow-sm"><label class="block text-lg font-bold text-slate-800 mb-5 flex items-center gap-2"><i class="ph-fill ph-t-shirt text-blue-500 text-xl"></i> 1. โปโลคณะ</label><div class="space-y-5"><div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">เลือกไซส์ใหม่</label><select id="editPoloSize" class="w-full p-4 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary font-bold bg-slate-50 text-slate-700 transition-all text-sm"><option value="S">S (250฿)</option><option value="M" selected>M (250฿)</option><option value="L">L (250฿)</option><option value="XL">XL (250฿)</option><option value="2XL">2XL (250฿)</option></select></div><div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">จำนวน</label><input type="number" id="editPoloQty" value="1" min="1" max="10" class="w-full p-4 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary font-bold bg-slate-50 text-slate-700 transition-all text-sm"></div></div></div><div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-100 shadow-sm"><label class="block text-lg font-bold text-slate-800 mb-5 flex items-center gap-2"><i class="ph-fill ph-t-shirt text-amber-500 text-xl"></i> 2. เสื้อกิจกรรม</label><div class="space-y-5"><div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">เลือกไซส์ใหม่</label><select id="editActSize" class="w-full p-4 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary font-bold bg-slate-50 text-slate-700 transition-all text-sm"><option value="S" selected>S (250฿)</option><option value="M">M (250฿)</option><option value="L">L (250฿)</option><option value="XL">XL (250฿)</option><option value="2XL">2XL (250฿)</option></select></div><div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">จำนวน</label><input type="number" id="editActQty" value="1" min="1" max="10" class="w-full p-4 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary font-bold bg-slate-50 text-slate-700 transition-all text-sm"></div></div></div></div><button type="submit" class="w-full py-4 sm:py-5 mt-8 rounded-2xl font-bold text-white btn-gradient flex items-center justify-center gap-2 shadow-xl shadow-primary/20 text-base"><i class="ph-bold ph-floppy-disk text-xl"></i> ยืนยันการเปลี่ยนแปลง</button></form></div></div>`;
+            container.innerHTML = `<div class="fade-in max-w-3xl mx-auto pb-10"><div class="mb-6 flex justify-between items-center"><div><h1 class="text-3xl font-black text-slate-800 tracking-tight">แก้ไขข้อมูลสั่งจอง</h1><p class="text-red-500 text-sm mt-2 font-bold flex items-center gap-1.5"><i class="ph-fill ph-warning-circle text-lg"></i> อนุญาตให้แก้ไขไซส์ได้เพียง 1 ครั้งเท่านั้น</p></div><button onclick="navigate('tracking')" class="px-5 py-3 text-slate-500 bg-white border border-slate-200 hover:bg-slate-50 rounded-2xl font-bold shadow-sm text-sm hover-lift flex items-center gap-2"><i class="ph-bold ph-x"></i> ยกเลิก</button></div><div class="glass rounded-[32px] p-8 sm:p-10 shadow-xl shadow-slate-200/40 border border-white/60"><form onsubmit="submitEditOrder(event, '${order.id}')" class="space-y-6"><div class="bg-blue-50/80 border border-blue-200/50 rounded-2xl p-5 mb-8 flex items-center gap-4"><div class="bg-blue-100 text-blue-600 p-2 rounded-xl"><i class="ph-bold ph-info text-xl"></i></div><div><p class="text-sm text-blue-900 font-medium"><span class="font-bold uppercase text-[10px] tracking-widest block text-blue-600 mb-0.5">รายละเอียดออเดอร์เดิม</span> ${order.type} ไซส์ ${order.size} จำนวน ${order.qty} ตัว</p></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-100 shadow-sm"><label class="block text-lg font-bold text-slate-800 mb-5 flex items-center gap-2"><i class="ph-fill ph-t-shirt text-blue-500 text-xl"></i> 1. โปโลคณะ</label><div class="space-y-5"><div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">เลือกไซส์ใหม่</label><select id="editPoloSize" class="w-full p-4 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary font-bold bg-slate-50 text-slate-700 transition-all text-sm"><option value="XS">XS (250฿)</option><option value="S">S (250฿)</option><option value="M" selected>M (250฿)</option><option value="L">L (250฿)</option><option value="XL">XL (250฿)</option><option value="2XL">2XL (250฿)</option><option value="3XL">3XL (250฿)</option><option value="4XL">4XL (250฿)</option><option value="5XL">5XL (250฿)</option><option value="6XL">6XL (250฿)</option></select></div><div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">จำนวน</label><input type="number" id="editPoloQty" value="1" min="1" max="10" class="w-full p-4 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary font-bold bg-slate-50 text-slate-700 transition-all text-sm"></div></div></div><div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-100 shadow-sm"><label class="block text-lg font-bold text-slate-800 mb-5 flex items-center gap-2"><i class="ph-fill ph-t-shirt text-amber-500 text-xl"></i> 2. เสื้อกิจกรรม</label><div class="space-y-5"><div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">เลือกไซส์ใหม่</label><select id="editActSize" class="w-full p-4 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary font-bold bg-slate-50 text-slate-700 transition-all text-sm"><option value="XS">XS (250฿)</option><option value="S" selected>S (250฿)</option><option value="M">M (250฿)</option><option value="L">L (250฿)</option><option value="XL">XL (250฿)</option><option value="2XL">2XL (250฿)</option><option value="3XL">3XL (250฿)</option><option value="4XL">4XL (250฿)</option><option value="5XL">5XL (250฿)</option><option value="6XL">6XL (250฿)</option></select></div><div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">จำนวน</label><input type="number" id="editActQty" value="1" min="1" max="10" class="w-full p-4 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary font-bold bg-slate-50 text-slate-700 transition-all text-sm"></div></div></div></div><button type="submit" class="w-full py-4 sm:py-5 mt-8 rounded-2xl font-bold text-white btn-gradient flex items-center justify-center gap-2 shadow-xl shadow-primary/20 text-base"><i class="ph-bold ph-floppy-disk text-xl"></i> ยืนยันการเปลี่ยนแปลง</button></form></div></div>`;
         }
 
         async function submitEditOrder(e, orderId) {
@@ -812,11 +852,11 @@
         async function renderAdminOrders(container, skipFetch = false) {
             if (!skipFetch) container.innerHTML = getGokuLoader('กำลังโหลดยอดสั่งจอง...', 'ระบบสำหรับผู้ดูแล');
             const ordersData = skipFetch ? appCache.orders : await fetchOrdersData();
-            let summary = { polo: { S: 0, M: 0, L: 0, XL: 0, '2XL': 0 }, act: { S: 0, M: 0, L: 0, XL: 0, '2XL': 0 } };
+            let summary = { polo: { XS: 0, S: 0, M: 0, L: 0, XL: 0, '2XL': 0, '3XL': 0, '4XL': 0, '5XL': 0, '6XL': 0 }, act: { XS: 0, S: 0, M: 0, L: 0, XL: 0, '2XL': 0, '3XL': 0, '4XL': 0, '5XL': 0, '6XL': 0 } };
             ordersData.forEach(order => { 
                 let sizeStr = String(order.size || '');
-                let poloMatch = sizeStr.match(/โปโล\s*([SMLX2]+)/i); 
-                let actMatch = sizeStr.match(/กิจกรรม\s*([SMLX2]+)/i); 
+                let poloMatch = sizeStr.match(/โปโล\s*([A-Za-z0-9]+)/i); 
+                let actMatch = sizeStr.match(/กิจกรรม\s*([A-Za-z0-9]+)/i); 
                 let pMatchNew = sizeStr.match(/โปโล.*\[(\d+)\]/i);
                 let aMatchNew = sizeStr.match(/กิจกรรม.*\[(\d+)\]/i);
                 
@@ -829,7 +869,7 @@
             const totalPolo = Object.values(summary.polo).reduce((a, b) => a + b, 0); const totalAct = Object.values(summary.act).reduce((a, b) => a + b, 0);
 
             let html = `
-                <div class="fade-in max-w-7xl mx-auto"><div class="mb-8 flex flex-col md:flex-row justify-between md:items-end gap-4 text-center sm:text-left"><div><h1 class="text-3xl font-black text-slate-800 tracking-tight">จัดการจองเสื้อ</h1><p class="text-base text-slate-500 mt-2 font-medium">สรุปยอดสั่งผลิตและอัปเดตสถานะ</p></div><div class="flex justify-center gap-3"><button onclick="window.print()" class="px-5 py-3 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 flex items-center gap-2 shadow-sm transition hover-lift"><i class="ph-bold ph-printer text-lg"></i> พิมพ์ยอด</button><button onclick="refreshAdminOrders(this)" class="px-5 py-3 bg-primary/10 text-primary border border-primary/20 rounded-xl font-bold hover:bg-primary/20 flex items-center gap-2 shadow-sm transition hover-lift"><i class="ph-bold ph-arrows-clockwise text-lg"></i> รีเฟรช</button></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 mb-10"><div class="glass rounded-3xl shadow-sm border border-white/60 overflow-hidden"><div class="p-6 bg-blue-50/80 border-b border-slate-100 flex items-center justify-between"><h2 class="text-lg font-bold text-slate-800 flex items-center gap-3"><div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center"><i class="ph-fill ph-t-shirt text-xl"></i></div> โปโลคณะ</h2><span class="bg-white text-blue-700 px-4 py-1.5 rounded-xl border border-blue-100 text-xs font-bold shadow-sm">รวม ${totalPolo} ตัว</span></div><table class="w-full text-left border-collapse bg-white/40"><tbody class="text-sm font-bold text-slate-700">${['S','M','L','XL','2XL'].map(s => `<tr class="border-b border-slate-100 hover:bg-white transition-colors"><td class="py-4 px-6 w-1/2">ไซส์ ${s}</td><td class="py-4 px-6 text-right w-1/2 ${s.includes('X')?'text-primary text-base':''}">${summary.polo[s]} ตัว</td></tr>`).join('')}</tbody></table></div><div class="glass rounded-3xl shadow-sm border border-white/60 overflow-hidden"><div class="p-6 bg-amber-50/80 border-b border-slate-100 flex items-center justify-between"><h2 class="text-lg font-bold text-slate-800 flex items-center gap-3"><div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center"><i class="ph-fill ph-t-shirt text-xl"></i></div> เสื้อกิจกรรม</h2><span class="bg-white text-amber-700 px-4 py-1.5 rounded-xl border border-amber-100 text-xs font-bold shadow-sm">รวม ${totalAct} ตัว</span></div><table class="w-full text-left border-collapse bg-white/40"><tbody class="text-sm font-bold text-slate-700">${['S','M','L','XL','2XL'].map(s => `<tr class="border-b border-slate-100 hover:bg-white transition-colors"><td class="py-4 px-6 w-1/2">ไซส์ ${s}</td><td class="py-4 px-6 text-right w-1/2 ${s.includes('X')?'text-primary text-base':''}">${summary.act[s]} ตัว</td></tr>`).join('')}</tbody></table></div></div><h2 class="text-xl font-bold text-slate-800 mb-5 flex items-center gap-2"><i class="ph-fill ph-list-checks text-primary"></i> รายการคำสั่งซื้อทั้งหมด</h2><div class="glass rounded-3xl shadow-sm border border-white/60 overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left border-collapse min-w-[1000px]"><thead><tr class="bg-slate-50/80 border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider"><th class="p-5 font-bold">Order ID</th><th class="p-5 font-bold">นักศึกษา</th><th class="p-5 font-bold">รายละเอียดสินค้า</th><th class="p-5 font-bold">สถานะ</th><th class="p-5 text-center font-bold">จัดการ</th></tr></thead><tbody class="text-sm text-slate-700 bg-white/40">`;
+                <div class="fade-in max-w-7xl mx-auto"><div class="mb-8 flex flex-col md:flex-row justify-between md:items-end gap-4 text-center sm:text-left"><div><h1 class="text-3xl font-black text-slate-800 tracking-tight">จัดการจองเสื้อ</h1><p class="text-base text-slate-500 mt-2 font-medium">สรุปยอดสั่งผลิตและอัปเดตสถานะ</p></div><div class="flex justify-center gap-3"><button onclick="window.print()" class="px-5 py-3 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 flex items-center gap-2 shadow-sm transition hover-lift"><i class="ph-bold ph-printer text-lg"></i> พิมพ์ยอด</button><button onclick="refreshAdminOrders(this)" class="px-5 py-3 bg-primary/10 text-primary border border-primary/20 rounded-xl font-bold hover:bg-primary/20 flex items-center gap-2 shadow-sm transition hover-lift"><i class="ph-bold ph-arrows-clockwise text-lg"></i> รีเฟรช</button></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 mb-10"><div class="glass rounded-3xl shadow-sm border border-white/60 overflow-hidden"><div class="p-6 bg-blue-50/80 border-b border-slate-100 flex items-center justify-between"><h2 class="text-lg font-bold text-slate-800 flex items-center gap-3"><div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center"><i class="ph-fill ph-t-shirt text-xl"></i></div> โปโลคณะ</h2><span class="bg-white text-blue-700 px-4 py-1.5 rounded-xl border border-blue-100 text-xs font-bold shadow-sm">รวม ${totalPolo} ตัว</span></div><table class="w-full text-left border-collapse bg-white/40"><tbody class="text-sm font-bold text-slate-700">${['XS','S','M','L','XL','2XL','3XL','4XL','5XL','6XL'].map(s => `<tr class="border-b border-slate-100 hover:bg-white transition-colors"><td class="py-4 px-6 w-1/2">ไซส์ ${s}</td><td class="py-4 px-6 text-right w-1/2 ${s.includes('X')?'text-primary text-base':''}">${summary.polo[s]} ตัว</td></tr>`).join('')}</tbody></table></div><div class="glass rounded-3xl shadow-sm border border-white/60 overflow-hidden"><div class="p-6 bg-amber-50/80 border-b border-slate-100 flex items-center justify-between"><h2 class="text-lg font-bold text-slate-800 flex items-center gap-3"><div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center"><i class="ph-fill ph-t-shirt text-xl"></i></div> เสื้อกิจกรรม</h2><span class="bg-white text-amber-700 px-4 py-1.5 rounded-xl border border-amber-100 text-xs font-bold shadow-sm">รวม ${totalAct} ตัว</span></div><table class="w-full text-left border-collapse bg-white/40"><tbody class="text-sm font-bold text-slate-700">${['XS','S','M','L','XL','2XL','3XL','4XL','5XL','6XL'].map(s => `<tr class="border-b border-slate-100 hover:bg-white transition-colors"><td class="py-4 px-6 w-1/2">ไซส์ ${s}</td><td class="py-4 px-6 text-right w-1/2 ${s.includes('X')?'text-primary text-base':''}">${summary.act[s]} ตัว</td></tr>`).join('')}</tbody></table></div></div><h2 class="text-xl font-bold text-slate-800 mb-5 flex items-center gap-2"><i class="ph-fill ph-list-checks text-primary"></i> รายการคำสั่งซื้อทั้งหมด</h2><div class="glass rounded-3xl shadow-sm border border-white/60 overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left border-collapse min-w-[1000px]"><thead><tr class="bg-slate-50/80 border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider"><th class="p-5 font-bold">Order ID</th><th class="p-5 font-bold">นักศึกษา</th><th class="p-5 font-bold">รายละเอียดสินค้า</th><th class="p-5 font-bold">สถานะ</th><th class="p-5 text-center font-bold">จัดการ</th></tr></thead><tbody class="text-sm text-slate-700 bg-white/40">`;
             
             if (ordersData.length === 0) { html += `<tr><td colspan="5" class="p-12 text-center text-slate-400 font-medium">ไม่มีรายการสั่งจอง</td></tr>`; } 
             else { 
