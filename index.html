@@ -809,14 +809,14 @@
             `;
             document.body.appendChild(overlay);
 
-            // 2. ขยาย Viewport ชั่วคราว (ทริคที่ดีที่สุดในการแก้ PDF บนมือถือโดนตัดขอบ)
+            // 2. ขยาย Viewport ชั่วคราว (แก้ปัญหาจอมือถือแคบ)
             const viewportMeta = document.querySelector('meta[name="viewport"]');
             const originalViewport = viewportMeta ? viewportMeta.getAttribute('content') : '';
             if (viewportMeta) {
                 viewportMeta.setAttribute('content', 'width=800, initial-scale=1.0');
             }
 
-            // 3. รอให้เบราว์เซอร์ปรับโครงสร้างจอ (Reflow) ให้กว้าง 800px ก่อนค่อยจับภาพ
+            // 3. รอให้เบราว์เซอร์ปรับโครงสร้างจอ (Reflow) ก่อนจับภาพ
             setTimeout(() => {
                 const opt = { 
                     margin:       0, 
@@ -826,13 +826,28 @@
                         scale: 2, 
                         useCORS: true, 
                         width: 794,
+                        height: 1123,
                         windowWidth: 800,
+                        x: 0, // บังคับเริ่มจับภาพที่พิกัด X 0 เสมอ (แก้ปัญหาขอบแหว่ง)
+                        y: 0, // บังคับเริ่มจับภาพที่พิกัด Y 0
+                        scrollX: 0,
+                        scrollY: 0,
                         onclone: function(clonedDoc) {
                             const target = clonedDoc.getElementById('receipt-card-display');
                             if (target) {
+                                // ล้าง CSS ที่เกี่ยวกับการจัดกึ่งกลางออกทั้งหมด เพื่อไม่ให้พิกัดเพี้ยน
                                 target.style.boxShadow = 'none';
                                 target.style.border = 'none';
-                                target.style.margin = '0 auto';
+                                target.style.margin = '0';
+                                target.style.transform = 'none';
+                                // บังคับให้อยู่มุมซ้ายบนสุดของหน้าจอจำลอง
+                                target.style.position = 'absolute';
+                                target.style.top = '0px';
+                                target.style.left = '0px';
+                                
+                                // ขยาย Body จำลองให้กว้างพอ
+                                clonedDoc.body.style.width = '800px';
+                                clonedDoc.body.style.position = 'relative';
                             }
                         }
                     }, 
