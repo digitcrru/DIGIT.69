@@ -233,31 +233,23 @@
         
         // ฟังก์ชันระบบนับสถิติการเข้าใช้งานแบบจำลอง
         window.initVisitorCounter = function() {
-            // วันที่เริ่มใช้งานระบบ (สมมติว่าเป็นวันที่ 1 มิถุนายน 2024)
-            const startDate = new Date('2024-06-01').getTime();
-            const today = new Date().getTime();
-            const daysActive = Math.max(1, Math.floor((today - startDate) / (1000 * 60 * 60 * 24)));
-            
-            // จำลองยอดเข้าชมพื้นฐาน (ประเมินว่ามีคนเข้า 68 ครั้งต่อวันโดยเฉลี่ย)
-            const baseCount = daysActive * 68; 
-            
-            // นับการเข้าชมจาก Local Storage เฉพาะของเครื่องผู้ใช้นี้
-            let localCount = parseInt(localStorage.getItem('CRRU_LocalVisitCount') || 0);
+            // ใช้คีย์ใหม่เพื่อให้เริ่มนับ 1 ใหม่ทั้งหมด (รีเซ็ตสถิติเก่าทิ้ง)
+            let localCount = parseInt(localStorage.getItem('CRRU_VisitCount_V2') || 0);
             
             // เช็คว่าใน Session นี้เคยนับไปหรือยัง (ป้องกันการนับซ้ำเวลากด Refresh รัวๆ)
-            if (!sessionStorage.getItem('CRRU_SessionVisited')) {
+            if (!sessionStorage.getItem('CRRU_SessionVisited_V2')) {
                 localCount += 1;
-                localStorage.setItem('CRRU_LocalVisitCount', localCount);
-                sessionStorage.setItem('CRRU_SessionVisited', 'true');
+                localStorage.setItem('CRRU_VisitCount_V2', localCount);
+                sessionStorage.setItem('CRRU_SessionVisited_V2', 'true');
             }
             
-            const totalVisitors = baseCount + localCount;
+            const totalVisitors = localCount;
             
             const counterEl = document.getElementById('global-visitor-count');
             if (counterEl) {
                 // เอฟเฟกต์ตัวเลขวิ่ง (Number Animation)
                 let current = 0;
-                const increment = Math.ceil(totalVisitors / 50); // วิ่ง 50 รอบ
+                const increment = Math.ceil(totalVisitors / 10) || 1; // วิ่งเร็วขึ้น
                 const timer = setInterval(() => {
                     current += increment;
                     if (current >= totalVisitors) {
