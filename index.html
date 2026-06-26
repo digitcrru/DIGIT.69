@@ -36,6 +36,7 @@
 </head>
 <body class="text-slate-800 antialiased flex flex-col">
 
+    <!-- Navigation -->
     <nav class="glass-nav shadow-sm sticky top-0 z-50 border-b border-slate-100/50 print:hidden transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-20">
@@ -65,13 +66,14 @@
         </div>
     </nav>
 
+    <!-- Main Content -->
     <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 pb-28 w-full" id="app-content"></main>
 
+    <!-- Footer -->
     <footer class="mt-auto py-8 text-center text-slate-500 text-xs sm:text-sm px-4 glass border-t border-slate-200/50 pb-28 md:pb-8 print:hidden">
         <p class="font-bold text-slate-600">ฝ่ายกิจการนักศึกษา คณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย</p>
         <p class="mt-1 text-slate-400">ระบบจัดการกิจกรรมนักศึกษา (DIGIT.CRRU)</p>
         
-        <!-- วิดเจ็ตสถิติการเข้าใช้งาน -->
         <div class="mt-5 inline-flex items-center justify-center gap-2.5 bg-white px-5 py-2 rounded-full border border-slate-200 shadow-sm hover:shadow-md transition-shadow hover-lift">
             <div class="relative flex h-3 w-3">
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -81,10 +83,12 @@
         </div>
     </footer>
 
+    <!-- Mobile Bottom Navigation -->
     <div class="md:hidden fixed bottom-6 left-4 right-4 z-40 print:hidden pointer-events-none" style="padding-bottom: env(safe-area-inset-bottom);">
         <nav id="mobile-tab-bar" class="glass bg-white/90 rounded-2xl flex justify-around items-center p-2 shadow-2xl pointer-events-auto border border-white"></nav>
     </div>
 
+    <!-- Modals -->
     <div id="adminLoginModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[200] flex items-center justify-center p-4 fade-in">
         <div class="bg-white rounded-[32px] p-8 max-w-sm w-full relative">
             <button onclick="document.getElementById('adminLoginModal').classList.add('hidden')" class="absolute top-5 right-5 w-10 h-10 rounded-full bg-slate-50 text-slate-400 hover:text-red-500"><i class="ph-bold ph-x"></i></button>
@@ -113,22 +117,52 @@
         </div>
     </div>
 
+    <!-- Edit Event Modal -->
     <div id="editEventModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 fade-in">
-        <div class="bg-white rounded-[32px] p-8 max-w-lg w-full">
+        <div class="bg-white rounded-[32px] p-8 max-w-lg w-full relative">
             <div class="flex justify-between items-center mb-8">
                 <h3 class="text-2xl font-black flex items-center gap-3"><i class="ph-fill ph-pencil-simple text-primary"></i> แก้ไขกิจกรรม</h3>
-                <button onclick="document.getElementById('editEventModal').classList.add('hidden')" class="w-10 h-10 bg-slate-100 rounded-full text-slate-400"><i class="ph-bold ph-x"></i></button>
+                <button onclick="document.getElementById('editEventModal').classList.add('hidden')" class="w-10 h-10 bg-slate-100 rounded-full text-slate-400 hover:text-red-500 transition-colors"><i class="ph-bold ph-x"></i></button>
             </div>
             <form id="editEventForm" onsubmit="submitEditEvent(event)" class="space-y-5">
                 <input type="hidden" id="edit-event-id">
                 <div><label class="block text-sm font-bold text-slate-700 mb-2">ชื่อกิจกรรม</label><input type="text" id="edit-event-title" required class="w-full px-5 py-3.5 rounded-2xl border bg-slate-50"></div>
                 <div><label class="block text-sm font-bold mb-2">วันที่จัด</label><input type="date" id="edit-event-date" required class="w-full px-5 py-3.5 rounded-2xl border bg-slate-50"></div>
                 <div><label class="block text-sm font-bold mb-2">สถานที่</label><input type="text" id="edit-event-location" required class="w-full px-5 py-3.5 rounded-2xl border bg-slate-50"></div>
-                <button type="submit" class="w-full py-4 mt-4 rounded-2xl font-bold text-white btn-gradient">บันทึก</button>
+                <button type="submit" class="w-full py-4 mt-4 rounded-2xl font-bold text-white btn-gradient flex items-center justify-center gap-2">บันทึกข้อมูล</button>
             </form>
         </div>
     </div>
 
+    <!-- Timer Event Modal -->
+    <div id="timerEventModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 fade-in">
+        <div class="bg-white rounded-[32px] p-8 max-w-lg w-full relative">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-2xl font-black flex items-center gap-3"><i class="ph-fill ph-clock text-purple-500"></i> ตั้งเวลาเปิด-ปิดรับสมัคร</h3>
+                <button onclick="document.getElementById('timerEventModal').classList.add('hidden')" class="w-10 h-10 bg-slate-100 rounded-full text-slate-400 hover:text-red-500 transition-colors"><i class="ph-bold ph-x"></i></button>
+            </div>
+            <form id="timerEventForm" onsubmit="submitTimerEvent(event)" class="space-y-5">
+                <input type="hidden" id="timer-event-id">
+                <div class="bg-purple-50 p-4 rounded-2xl mb-4 border border-purple-100">
+                    <p class="text-sm font-bold text-purple-800 text-center" id="timer-event-name"></p>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold mb-2 text-slate-700">เวลาเปิดรับสมัคร</label>
+                    <input type="datetime-local" id="timer-open" class="w-full px-5 py-3.5 rounded-2xl border border-slate-200 bg-white shadow-sm font-medium outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold mb-2 text-slate-700">เวลาปิดรับสมัคร</label>
+                    <input type="datetime-local" id="timer-close" class="w-full px-5 py-3.5 rounded-2xl border border-slate-200 bg-white shadow-sm font-medium outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all">
+                </div>
+                <div class="flex gap-3 mt-8">
+                    <button type="button" onclick="clearTimerEvent()" class="w-1/3 py-4 rounded-2xl font-bold text-red-500 bg-red-50 border border-red-100 hover:bg-red-100 transition-colors">ยกเลิกตั้งเวลา</button>
+                    <button type="submit" class="w-2/3 py-4 rounded-2xl font-bold text-white bg-purple-600 hover:bg-purple-700 shadow-lg shadow-purple-500/30 transition-all flex items-center justify-center gap-2"><i class="ph-bold ph-floppy-disk text-lg"></i> บันทึกเวลา</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Home Popup Modal -->
     <div id="homePopupModal" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-md z-[200] flex items-center justify-center p-4 fade-in">
         <div class="bg-white rounded-[32px] overflow-hidden max-w-md w-full relative">
             <button onclick="document.getElementById('homePopupModal').classList.add('hidden')" class="absolute top-4 right-4 w-10 h-10 bg-black/30 text-white rounded-full z-20"><i class="ph-bold ph-x"></i></button>
@@ -147,6 +181,7 @@
         </div>
     </div>
 
+    <!-- Size Chart Modal -->
     <div id="sizeChartModal" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[150] flex items-center justify-center p-4 fade-in">
         <div class="bg-white rounded-[32px] p-6 max-w-md w-full">
             <div class="flex justify-between items-center mb-6">
@@ -159,6 +194,7 @@
         </div>
     </div>
 
+    <!-- Shirt Design Modal -->
     <div id="shirtDesignModal" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[150] flex items-center justify-center p-4 fade-in">
         <div class="bg-white rounded-[32px] p-6 max-w-2xl w-full flex flex-col max-h-[95vh]">
             <div class="flex justify-between items-center mb-6 shrink-0">
@@ -173,8 +209,10 @@
         </div>
     </div>
 
+    <!-- Toast Container -->
     <div id="toast-container" class="fixed bottom-24 md:bottom-8 right-4 md:right-8 z-[160] flex flex-col gap-3 w-auto max-w-[90%] pointer-events-none"></div>
 
+    <!-- MAIN SCRIPT -->
     <script>
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCPFTT76JLJLo3cNjTDNXQPbofR3AmVEPxCOD9yzdW_73yFy92d-Q0OHAu26DgsA7x/exec';
         
@@ -208,12 +246,10 @@
             4: { text: 'พร้อมรับ', color: 'bg-blue-100 text-blue-700', icon: 'ph-package' } 
         };
         const ROLE_MAP = { 'superadmin': 'ผู้ดูแลระบบสูงสุด', 'activity': 'ผู้จัดการกิจกรรม', 'shop': 'ผู้จัดการร้านค้า' };
-        
         const SIZE_LIST = ['XS','S','M','L','XL','2XL','3XL','4XL','5XL','6XL','ไม่รับ'];
 
         document.addEventListener('DOMContentLoaded', () => {
-            window.initVisitorCounter(); // เรียกใช้งานระบบนับสถิติ
-            
+            window.initVisitorCounter(); 
             window.proceedSwitchRole('student');
             window.fetchSettingsData().then(() => { 
                 if (!sessionStorage.getItem('homePopupShown') && currentRole === 'student') { 
@@ -230,26 +266,19 @@
             window.fetchEvaluationsData();
             if (sessionStorage.getItem('isAdminAuthenticated')) currentAdminRole = sessionStorage.getItem('currentAdminRole') || 'superadmin';
         });
-        
-        // ฟังก์ชันระบบนับสถิติการเข้าใช้งานแบบจำลอง
+
         window.initVisitorCounter = function() {
-            // ใช้คีย์ใหม่เพื่อให้เริ่มนับ 1 ใหม่ทั้งหมด (รีเซ็ตสถิติเก่าทิ้ง)
             let localCount = parseInt(localStorage.getItem('CRRU_VisitCount_V2') || 0);
-            
-            // เช็คว่าใน Session นี้เคยนับไปหรือยัง (ป้องกันการนับซ้ำเวลากด Refresh รัวๆ)
             if (!sessionStorage.getItem('CRRU_SessionVisited_V2')) {
                 localCount += 1;
                 localStorage.setItem('CRRU_VisitCount_V2', localCount);
                 sessionStorage.setItem('CRRU_SessionVisited_V2', 'true');
             }
-            
-            const totalVisitors = localCount;
-            
             const counterEl = document.getElementById('global-visitor-count');
             if (counterEl) {
-                // เอฟเฟกต์ตัวเลขวิ่ง (Number Animation)
                 let current = 0;
-                const increment = Math.ceil(totalVisitors / 10) || 1; // วิ่งเร็วขึ้น
+                const totalVisitors = localCount;
+                const increment = Math.ceil(totalVisitors / 10) || 1;
                 const timer = setInterval(() => {
                     current += increment;
                     if (current >= totalVisitors) {
@@ -311,6 +340,7 @@
             if (!f && appCache.activities.length > 0) { window._bgFetchAct(); return appCache.activities; } 
             return await window._bgFetchAct(); 
         };
+        
         window._bgFetchAct = async function() { 
             try { 
                 const a = await window.apiCall('GET', { action: 'getActivities' }); 
@@ -322,6 +352,7 @@
                 } 
                 if (a.success && a.data) { 
                     a.data.forEach(i => { 
+                        i.rawDate = i.date; // เก็บค่า Raw Date เดิมไว้ไม่ให้โดนเขียนทับ
                         i.date = window.formatThaiDate(i.date); 
                         i.timestamp = window.formatThaiDate(i.timestamp, true); 
                         i.joined = ct[i.title.trim()] || 0; 
@@ -501,20 +532,125 @@
             if (!e) return; 
             document.getElementById('edit-event-id').value = e.id; 
             document.getElementById('edit-event-title').value = e.title; 
+            // แปลงวันที่กลับให้ input type date เข้าใจ (YYYY-MM-DD)
+            let parsedDate = '';
+            if (e.rawDate && e.rawDate !== '-') {
+                 parsedDate = e.rawDate;
+            }
+            document.getElementById('edit-event-date').value = parsedDate; 
             document.getElementById('edit-event-location').value = e.location; 
             document.getElementById('editEventModal').classList.remove('hidden'); 
+        };
+
+        window.openTimerEventModal = function(id) {
+            const e = appCache.activities.find(x => String(x.id) === String(id));
+            if (!e) return;
+            document.getElementById('timer-event-id').value = e.id;
+            document.getElementById('timer-event-name').innerText = e.title;
+            
+            // ป้องกันปัญหา input type="datetime-local" คืนค่าว่างถ้าเจอรูปแบบ Date ISO ที่มีตัว Z หรือวินาที
+            const formatForInput = (val) => {
+                if (!val || String(val).trim() === '') return '';
+                if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(val)) return val;
+                try {
+                    const d = new Date(val);
+                    if (isNaN(d.getTime())) return String(val).substring(0, 16);
+                    const pad = n => String(n).padStart(2, '0');
+                    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                } catch(err) { return String(val).substring(0, 16); }
+            };
+
+            document.getElementById('timer-open').value = formatForInput(e.openTime);
+            document.getElementById('timer-close').value = formatForInput(e.closeTime);
+            document.getElementById('timerEventModal').classList.remove('hidden');
+        };
+
+        window.submitTimerEvent = async function(e) {
+            e.preventDefault();
+            const b = e.target.querySelector('button[type="submit"]');
+            const txt = b.innerHTML; b.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-lg"></i> บันทึก...'; b.disabled = true;
+            try {
+                const id = document.getElementById('timer-event-id').value;
+                const openT = document.getElementById('timer-open').value;
+                const closeT = document.getElementById('timer-close').value;
+
+                const ev = appCache.activities.find(x => String(x.id) === String(id));
+                if (ev) { 
+                    ev.openTime = openT; 
+                    ev.closeTime = closeT; 
+                    
+                    window.apiCall('POST', { 
+                        action: 'editActivity', 
+                        id: id, 
+                        title: ev.title || '', 
+                        date: ev.rawDate || ev.date || '', // ส่ง rawDate ป้องกันไม่ให้ Google Sheets งง
+                        location: ev.location || '', 
+                        status: ev.status || 'open', 
+                        openTime: openT, 
+                        closeTime: closeT 
+                    }).catch(()=>null);
+                }
+
+                document.getElementById('timerEventModal').classList.add('hidden');
+                window.renderAdminEvents(document.getElementById('app-content'));
+                window.showToast('ตั้งเวลาเปิด-ปิดกิจกรรมสำเร็จ', 'success');
+            } catch (error) {
+                console.error(error);
+                window.showToast('เกิดข้อผิดพลาด', 'error');
+            } finally {
+                b.innerHTML = txt; b.disabled = false;
+            }
+        };
+
+        window.clearTimerEvent = async function() {
+            const id = document.getElementById('timer-event-id').value;
+            const ev = appCache.activities.find(x => String(x.id) === String(id));
+            if (ev) { 
+                ev.openTime = ''; 
+                ev.closeTime = ''; 
+                window.apiCall('POST', { 
+                    action: 'editActivity', 
+                    id: id, 
+                    title: ev.title || '', 
+                    date: ev.rawDate || ev.date || '', 
+                    location: ev.location || '', 
+                    status: ev.status || 'open',
+                    openTime: '', 
+                    closeTime: '' 
+                }).catch(()=>null);
+            }
+            document.getElementById('timerEventModal').classList.add('hidden');
+            window.renderAdminEvents(document.getElementById('app-content'));
+            window.showToast('ยกเลิกการตั้งเวลาแล้ว', 'success');
         };
 
         window.renderEvents = function(c) {
             if (!appCache.activities || appCache.activities.length === 0) { c.innerHTML = window.getGokuLoader('กำลังดึงข้อมูลกิจกรรม...'); }
             window.fetchActivitiesData().then(acts => {
-                const oA = acts.filter(e => e.status === 'open'); 
+                const now = new Date();
+                // ดึงกิจกรรมทั้งหมด ยกเว้นอันที่ "ปิด (closed)" และ "ไม่มีการตั้งเวลา" 
+                // หมายความว่า ถ้าถูกปิดด้วยมือ แต่มีตั้งเวลาไว้ ระบบจะยังแสดงอยู่เพื่อให้นักศึกษารู้ว่าเดี๋ยวจะเปิด
+                const oA = acts.filter(e => e.status !== 'closed' || e.openTime || e.closeTime); 
+                
                 let h = `<div class="fade-in"><div class="mb-10 text-center sm:text-left"><h1 class="text-3xl sm:text-4xl font-black text-slate-800">ลงทะเบียนเข้าร่วมกิจกรรม</h1></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">`;
                 if (oA.length === 0) { 
                     h += `<div class="col-span-full text-center py-20 glass rounded-[32px]"><i class="ph-fill ph-calendar-x text-5xl text-slate-300"></i><p class="text-slate-600 font-bold text-xl mt-4">ยังไม่มีกิจกรรมที่เปิดรับสมัคร</p></div>`; 
                 } else { 
                     oA.forEach(e => { 
-                        h += `<div class="glass hover-lift rounded-[32px] flex flex-col p-7 border"><div class="flex justify-between items-start mb-5 gap-4"><h3 class="text-xl font-bold leading-snug">${e.title}</h3><span class="bg-emerald-50 text-emerald-600 border border-emerald-200/50 text-[10px] font-bold px-3 py-1.5 rounded-full whitespace-nowrap">เปิดรับสมัคร</span></div><div class="space-y-3 mt-auto mb-8 text-sm text-slate-600 font-medium"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary"><i class="ph-fill ph-calendar-blank"></i></div> ${e.date}</div><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary"><i class="ph-fill ph-map-pin"></i></div> <span class="truncate">${e.location}</span></div></div><div class="mt-4 mb-6 px-5 py-4 bg-slate-50 rounded-2xl border flex justify-between items-center"><span class="text-xs font-bold text-slate-500 uppercase">ผู้ลงทะเบียน</span><span class="text-base font-black text-primary">${e.joined} <span class="text-xs font-bold text-slate-400">คน</span></span></div><button onclick="navigate('register', '${e.id}')" class="w-full py-4 rounded-2xl font-bold flex justify-center items-center gap-2 btn-gradient text-white shadow-lg">ลงทะเบียน <i class="ph-bold ph-arrow-right"></i></button></div>`; 
+                        let sT = 'เปิดรับสมัคร', sC = 'bg-emerald-50 text-emerald-600 border-emerald-200/50', bH = `<button onclick="navigate('register', '${e.id}')" class="w-full py-4 rounded-2xl font-bold flex justify-center items-center gap-2 btn-gradient text-white shadow-lg">ลงทะเบียน <i class="ph-bold ph-arrow-right"></i></button>`;
+
+                        if (e.openTime && now < new Date(e.openTime)) {
+                            sT = 'ยังไม่เปิดรับสมัคร'; sC = 'bg-amber-50 text-amber-600 border-amber-200/50';
+                            bH = `<button disabled class="w-full py-4 rounded-2xl font-bold flex justify-center items-center gap-2 bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200 shadow-sm"><i class="ph-bold ph-clock"></i> เปิด: ${window.formatThaiDate(e.openTime, true)}</button>`;
+                        } else if (e.closeTime && now > new Date(e.closeTime)) {
+                            sT = 'หมดเวลา'; sC = 'bg-rose-50 text-rose-600 border-rose-200/50';
+                            bH = `<button disabled class="w-full py-4 rounded-2xl font-bold flex justify-center items-center gap-2 bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200 shadow-sm"><i class="ph-bold ph-x-circle"></i> ปิดรับสมัครแล้ว</button>`;
+                        } else if (e.status === 'closed') {
+                            sT = 'ปิดรับสมัครชั่วคราว'; sC = 'bg-slate-100 text-slate-500 border-slate-200';
+                            bH = `<button disabled class="w-full py-4 rounded-2xl font-bold flex justify-center items-center gap-2 bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200 shadow-sm"><i class="ph-bold ph-lock-key"></i> ปิดรับสมัคร</button>`;
+                        }
+
+                        h += `<div class="glass hover-lift rounded-[32px] flex flex-col p-7 border"><div class="flex justify-between items-start mb-5 gap-4"><h3 class="text-xl font-bold leading-snug">${e.title}</h3><span class="${sC} border text-[10px] font-bold px-3 py-1.5 rounded-full whitespace-nowrap">${sT}</span></div><div class="space-y-3 mt-auto mb-8 text-sm text-slate-600 font-medium"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary"><i class="ph-fill ph-calendar-blank"></i></div> ${e.date}</div><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary"><i class="ph-fill ph-map-pin"></i></div> <span class="truncate">${e.location}</span></div></div><div class="mt-4 mb-6 px-5 py-4 bg-slate-50 rounded-2xl border flex justify-between items-center"><span class="text-xs font-bold text-slate-500 uppercase">ผู้ลงทะเบียน</span><span class="text-base font-black text-primary">${e.joined} <span class="text-xs font-bold text-slate-400">คน</span></span></div>${bH}</div>`; 
                     }); 
                 }
                 h += `</div></div>`; 
@@ -524,8 +660,14 @@
 
         window.renderRegistration = function(c, id) {
             const e = appCache.activities.find(x => String(x.id) === String(id)) || { title: 'กิจกรรม', id: id }; 
+            
+            const now = new Date();
+            if (e.openTime && now < new Date(e.openTime)) { window.showToast('ยังไม่ถึงเวลาเปิดรับสมัคร', 'warning'); return window.navigate('events'); }
+            if (e.closeTime && now > new Date(e.closeTime)) { window.showToast('หมดเวลาลงทะเบียนแล้ว', 'error'); return window.navigate('events'); }
+            if (e.status === 'closed') { window.showToast('กิจกรรมนี้ถูกปิดรับสมัครชั่วคราว', 'error'); return window.navigate('events'); }
+
             c.innerHTML = `
-                <div class="fade-in max-w-2xl mx-auto"><button onclick="navigate('events')" class="flex items-center gap-2 text-slate-500 hover:text-primary mb-6 font-bold text-sm bg-white/50 px-4 py-2 rounded-xl glass hover-lift"><i class="ph-bold ph-arrow-left text-lg"></i> กลับไปหน้ากิจกรรม</button><div class="glass rounded-[32px] shadow-xl overflow-hidden border border-white/60"><div class="bg-gradient-to-br from-primary/5 to-transparent p-8 sm:p-10 border-b border-slate-100/50"><div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-primary text-3xl mb-5"><i class="ph-fill ph-calendar-check"></i></div><h2 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">ลงทะเบียนกิจกรรม</h2><p class="text-primary font-bold mt-2 leading-snug">${e.title}</p></div><div class="p-8 sm:p-10 bg-white/40"><div id="step-search" class="mb-2"><label class="block text-sm font-bold text-slate-700 mb-3">ระบุรหัสนักศึกษา หรือ หมายเลขบัตรประชาชน</label><div class="flex flex-col sm:flex-row gap-3"><div class="relative w-full"><i class="ph-fill ph-identification-card absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 text-xl"></i><input type="text" id="search-student-id" class="w-full pl-12 py-4 rounded-2xl border font-bold shadow-sm" placeholder="กรอกรหัส หรือ บัตรปชช." onkeypress="if(event.key === 'Enter') fetchStudentData()"></div><button onclick="fetchStudentData()" id="btn-fetch-student" class="w-full sm:w-auto px-8 py-4 bg-slate-800 text-white font-bold rounded-2xl hover:bg-black shadow-lg flex items-center justify-center gap-2"><i class="ph-bold ph-magnifying-glass"></i> ค้นหา</button></div><p id="search-feedback" class="text-xs text-red-500 mt-3 font-bold hidden bg-red-50 p-3 rounded-xl border border-red-100"></p><div class="text-center mt-6 pt-6 border-t"><button type="button" onclick="showManualForm()" class="text-sm font-bold text-slate-400 hover:text-primary flex items-center justify-center gap-2 w-full"><i class="ph-bold ph-pencil-simple"></i> ไม่มีข้อมูลในระบบ? กรอกข้อมูลเอง</button></div></div><form id="step-form" class="space-y-6 hidden" onsubmit="handleRegistrationSubmit(event, '${id}')"><input type="hidden" id="reg-hidden-student-id"><input type="hidden" id="reg-hidden-citizen-id"><div class="space-y-5 bg-white p-6 rounded-[24px] shadow-sm border"><div><label class="block text-xs font-bold text-slate-500 mb-2">รหัสนักศึกษา/บัตรประชาชน</label><input type="text" id="reg-student-id" required readonly class="w-full px-5 py-3.5 rounded-xl border bg-slate-50 text-slate-500 text-sm font-bold shadow-inner"></div><div><label class="block text-xs font-bold text-slate-500 mb-2">ชื่อ-นามสกุล *</label><input type="text" id="reg-name" required class="w-full px-5 py-3.5 rounded-xl border font-bold text-sm"></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-5"><div><label class="block text-xs font-bold text-slate-500 mb-2">คณะ *</label><input type="text" id="reg-faculty" required class="w-full px-5 py-3.5 rounded-xl border font-bold text-sm"></div><div><label class="block text-xs font-bold text-slate-500 mb-2">สาขาวิชา *</label><input type="text" id="reg-major" required class="w-full px-5 py-3.5 rounded-xl border font-bold text-sm"></div></div><div><label class="block text-xs font-bold text-slate-500 mb-2">เลขบัตรประชาชน</label><input type="text" id="reg-citizen-id" class="w-full px-5 py-3.5 rounded-xl border font-bold text-sm"></div></div><p id="reg-error-message" class="text-sm font-bold text-red-600 hidden bg-red-50 p-4 rounded-xl"></p><div class="flex gap-3 justify-end mt-4"><button type="button" onclick="resetSearchForm()" class="px-6 py-4 rounded-2xl font-bold text-slate-500 border bg-white">ค้นหาใหม่</button><button type="submit" class="px-8 py-4 rounded-2xl font-bold text-white btn-gradient shadow-lg">ยืนยันลงทะเบียน</button></div></form></div></div></div>
+                <div class="fade-in max-w-2xl mx-auto"><button onclick="navigate('events')" class="flex items-center gap-2 text-slate-500 hover:text-primary mb-6 font-bold text-sm bg-white/50 px-4 py-2 rounded-xl glass hover-lift"><i class="ph-bold ph-arrow-left text-lg"></i> กลับไปหน้ากิจกรรม</button><div class="glass rounded-[32px] shadow-xl overflow-hidden border border-white/60"><div class="bg-gradient-to-br from-primary/5 to-transparent p-8 sm:p-10 border-b border-slate-100/50"><div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-primary text-3xl mb-5"><i class="ph-fill ph-calendar-check"></i></div><h2 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">ลงทะเบียนกิจกรรม</h2><p class="text-primary font-bold mt-2 leading-snug">${e.title}</p></div><div class="p-8 sm:p-10 bg-white/40"><div id="step-search" class="mb-2"><label class="block text-sm font-bold text-slate-700 mb-3">ระบุรหัสนักศึกษา หรือ หมายเลขบัตรประชาชน</label><div class="flex flex-col sm:flex-row gap-4"><div class="relative w-full"><div class="absolute inset-y-0 left-0 flex items-center pl-5 pointer-events-none"><i class="ph-fill ph-identification-card text-slate-400 text-xl"></i></div><input type="text" id="search-student-id" class="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 bg-white font-bold shadow-sm outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all" placeholder="กรอกรหัส หรือ บัตรปชช." onkeypress="if(event.key === 'Enter') fetchStudentData()"></div><button onclick="fetchStudentData()" id="btn-fetch-student" class="w-full sm:w-auto px-8 py-4 bg-slate-800 text-white text-base font-bold rounded-2xl hover:bg-black transition-colors shadow-lg shadow-slate-800/20 flex items-center justify-center gap-2 shrink-0"><i class="ph-bold ph-magnifying-glass text-lg"></i> ค้นหา</button></div><p id="search-feedback" class="text-xs text-red-500 mt-3 font-bold hidden bg-red-50 p-3 rounded-xl border border-red-100"></p><div class="text-center mt-6 pt-6 border-t"><button type="button" onclick="showManualForm()" class="text-sm font-bold text-slate-400 hover:text-primary flex items-center justify-center gap-2 w-full"><i class="ph-bold ph-pencil-simple text-lg"></i> ไม่มีข้อมูลในระบบ? กรอกข้อมูลเอง</button></div></div><form id="step-form" class="space-y-6 hidden" onsubmit="handleRegistrationSubmit(event, '${id}')"><input type="hidden" id="reg-hidden-student-id"><input type="hidden" id="reg-hidden-citizen-id"><div class="space-y-5 bg-white p-6 rounded-[24px] shadow-sm border"><div><label class="block text-xs font-bold text-slate-500 mb-2">รหัสนักศึกษา/บัตรประชาชน</label><input type="text" id="reg-student-id" required readonly class="w-full px-5 py-3.5 rounded-xl border bg-slate-50 text-slate-500 text-sm font-bold shadow-inner"></div><div><label class="block text-xs font-bold text-slate-500 mb-2">ชื่อ-นามสกุล *</label><input type="text" id="reg-name" required class="w-full px-5 py-3.5 rounded-xl border font-bold text-sm"></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-5"><div><label class="block text-xs font-bold text-slate-500 mb-2">คณะ *</label><input type="text" id="reg-faculty" required class="w-full px-5 py-3.5 rounded-xl border font-bold text-sm"></div><div><label class="block text-xs font-bold text-slate-500 mb-2">สาขาวิชา *</label><input type="text" id="reg-major" required class="w-full px-5 py-3.5 rounded-xl border font-bold text-sm"></div></div><div><label class="block text-xs font-bold text-slate-500 mb-2">เลขบัตรประชาชน</label><input type="text" id="reg-citizen-id" class="w-full px-5 py-3.5 rounded-xl border font-bold text-sm"></div></div><p id="reg-error-message" class="text-sm font-bold text-red-600 hidden bg-red-50 p-4 rounded-xl"></p><div class="flex gap-3 justify-end mt-4"><button type="button" onclick="resetSearchForm()" class="px-6 py-4 rounded-2xl font-bold text-slate-500 border bg-white">ค้นหาใหม่</button><button type="submit" class="px-8 py-4 rounded-2xl font-bold text-white btn-gradient shadow-lg">ยืนยันลงทะเบียน</button></div></form></div></div></div>
             `;
         };
 
@@ -733,23 +875,22 @@
         };
         window.clearHistorySearch = function() { sessionStorage.removeItem('historySearchTerm'); sessionStorage.removeItem('historyData'); window.renderHistory(document.getElementById('app-content')); };
 
+        // --- SHOP SECTION ---
         window.applyShirtLogic = function() {
-            const sId = document.getElementById('order-student-id').value.trim();
-            const is69 = sId.startsWith('69');
-            
-            const poloNoShirt = document.querySelector('input[name="poloSize"][value="ไม่รับ"]');
-            const actNoShirt = document.querySelector('input[name="actSize"][value="ไม่รับ"]');
-            
-            if (poloNoShirt && actNoShirt) {
-                if (is69) {
-                    poloNoShirt.parentElement.classList.add('hidden');
-                    actNoShirt.parentElement.classList.add('hidden');
-                    if (poloNoShirt.checked) document.querySelector('input[name="poloSize"][value="M"]').checked = true;
-                    if (actNoShirt.checked) document.querySelector('input[name="actSize"][value="M"]').checked = true;
-                } else {
-                    poloNoShirt.parentElement.classList.remove('hidden');
-                    actNoShirt.parentElement.classList.remove('hidden');
-                }
+            const sidInput = document.getElementById('order-student-id');
+            if(!sidInput) return;
+            const sid = sidInput.value.trim();
+            const isMan = sid.startsWith('69');
+            const noShirtOptions = document.querySelectorAll('.no-shirt-option');
+
+            if (isMan) {
+                noShirtOptions.forEach(el => el.style.display = 'none');
+                let pRadio = document.querySelector('input[name="poloSize"]:checked');
+                let aRadio = document.querySelector('input[name="actSize"]:checked');
+                if(pRadio && pRadio.value === 'ไม่รับ') document.querySelector('input[name="poloSize"][value="M"]').checked = true;
+                if(aRadio && aRadio.value === 'ไม่รับ') document.querySelector('input[name="actSize"][value="M"]').checked = true;
+            } else {
+                noShirtOptions.forEach(el => el.style.display = 'block');
             }
             window.recalculatePrice();
         };
@@ -787,12 +928,12 @@
                     <div id="order-step-form" class="hidden animate-fadeIn">
                         <div class="text-center mb-8"><h2 class="text-3xl font-black text-slate-800">ระบุรายละเอียดสั่งจอง</h2></div>
                         <form id="orderForm" onsubmit="mockOrderSubmit(event)">
-                            <div class="bg-gradient-to-br from-indigo-50 to-blue-50 border border-blue-100 p-6 rounded-[32px] mb-8 flex flex-col md:flex-row gap-5 relative overflow-hidden"><div class="w-full flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10"><div><label class="block text-[10px] font-bold text-indigo-500 uppercase mb-1.5">รหัส นศ.</label><input type="text" id="order-student-id" required class="w-full px-5 py-3 rounded-2xl border-none bg-white/60 font-bold text-sm"></div><div><label class="block text-[10px] font-bold text-indigo-500 uppercase mb-1.5">ชื่อ-นามสกุล</label><input type="text" id="order-student-name" required class="w-full px-5 py-3 rounded-2xl border-none bg-white/60 font-bold text-sm"></div><div><label class="block text-[10px] font-bold text-indigo-500 uppercase mb-1.5">คณะ</label><input type="text" id="order-faculty" required class="w-full px-5 py-3 rounded-2xl border-none bg-white/60 font-bold text-sm"></div><div><label class="block text-[10px] font-bold text-indigo-500 uppercase mb-1.5">สาขา</label><input type="text" id="order-major" required class="w-full px-5 py-3 rounded-2xl border-none bg-white/60 font-bold text-sm"></div></div><button type="button" onclick="resetOrderSearch()" class="relative z-10 h-[46px] mt-auto mb-0.5 text-xs font-bold text-slate-500 hover:text-red-500 bg-white px-5 rounded-2xl border shadow-sm w-full md:w-auto flex justify-center items-center gap-2 shrink-0">เปลี่ยน</button></div>
+                            <div class="bg-gradient-to-br from-indigo-50 to-blue-50 border border-blue-100 p-6 rounded-[32px] mb-8 flex flex-col md:flex-row gap-5 relative overflow-hidden"><div class="w-full flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10"><div><label class="block text-[10px] font-bold text-indigo-500 uppercase mb-1.5">รหัส นศ.</label><input type="text" id="order-student-id" required class="w-full px-5 py-3 rounded-2xl border-none bg-white/60 font-bold text-sm" oninput="window.applyShirtLogic()"></div><div><label class="block text-[10px] font-bold text-indigo-500 uppercase mb-1.5">ชื่อ-นามสกุล</label><input type="text" id="order-student-name" required class="w-full px-5 py-3 rounded-2xl border-none bg-white/60 font-bold text-sm"></div><div><label class="block text-[10px] font-bold text-indigo-500 uppercase mb-1.5">คณะ</label><input type="text" id="order-faculty" required class="w-full px-5 py-3 rounded-2xl border-none bg-white/60 font-bold text-sm"></div><div><label class="block text-[10px] font-bold text-indigo-500 uppercase mb-1.5">สาขา</label><input type="text" id="order-major" required class="w-full px-5 py-3 rounded-2xl border-none bg-white/60 font-bold text-sm"></div></div><button type="button" onclick="resetOrderSearch()" class="relative z-10 h-[46px] mt-auto mb-0.5 text-xs font-bold text-slate-500 hover:text-red-500 bg-white px-5 rounded-2xl border shadow-sm w-full md:w-auto flex justify-center items-center gap-2 shrink-0">เปลี่ยน</button></div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                                 <div class="glass hover-lift rounded-[32px] flex flex-col overflow-hidden"><div class="bg-slate-50 p-5 border-b flex justify-between items-center"><div class="flex items-center gap-4"><div class="w-12 h-12 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center"><i class="ph-fill ph-t-shirt text-2xl"></i></div><div><h3 class="font-bold text-slate-800 text-lg">1. โปโลคณะ</h3></div></div><button type="button" onclick="document.getElementById('sizeChartModal').classList.remove('hidden')" class="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-xl">ตารางไซส์</button></div><div class="p-6 flex-grow space-y-6"><div>
-                                <div class="grid grid-cols-5 gap-2">
+                                <div class="grid grid-cols-4 sm:grid-cols-5 gap-2">
                                     ${SIZE_LIST.map(s => `
-                                        <label class="cursor-pointer ${s==='ไม่รับ' ? 'col-span-full' : ''}">
+                                        <label class="cursor-pointer ${s==='ไม่รับ' ? 'no-shirt-option col-span-full' : ''}">
                                             <input type="radio" name="poloSize" value="${s}" required ${s==='M'?'checked':''} onchange="recalculatePrice()" class="peer sr-only">
                                             <div class="text-center py-2.5 rounded-2xl border-2 border-slate-100 peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-primary font-bold text-slate-500 bg-white text-xs sm:text-sm hover:border-slate-200 hover:bg-slate-50 transition-all peer-checked:shadow-sm ${s==='ไม่รับ'?'text-red-500':''}">${s}</div>
                                         </label>
@@ -801,9 +942,9 @@
                                 </div><div><label class="block text-sm font-bold text-slate-700 mb-3">จำนวน</label><div class="flex items-center w-full border-2 rounded-2xl overflow-hidden bg-slate-50 h-14"><button type="button" onclick="updateQty('polo', -1)" class="w-16 h-full flex justify-center items-center text-slate-500"><i class="ph-bold ph-minus"></i></button><input type="number" id="poloQty" value="1" min="1" max="10" readonly class="w-full text-center outline-none font-black text-xl bg-transparent"><button type="button" onclick="updateQty('polo', 1)" class="w-16 h-full flex justify-center items-center text-slate-500"><i class="ph-bold ph-plus"></i></button></div></div></div></div>
                                 
                                 <div class="glass hover-lift rounded-[32px] flex flex-col overflow-hidden"><div class="bg-slate-50 p-5 border-b flex justify-between items-center"><div class="flex items-center gap-4"><div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center"><i class="ph-fill ph-t-shirt text-2xl"></i></div><div><h3 class="font-bold text-slate-800 text-lg">2. เสื้อกิจกรรม</h3></div></div><button type="button" onclick="document.getElementById('sizeChartModal').classList.remove('hidden')" class="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-xl">ตารางไซส์</button></div><div class="p-6 flex-grow space-y-6"><div>
-                                <div class="grid grid-cols-5 gap-2">
+                                <div class="grid grid-cols-4 sm:grid-cols-5 gap-2">
                                     ${SIZE_LIST.map(s => `
-                                        <label class="cursor-pointer ${s==='ไม่รับ' ? 'col-span-full' : ''}">
+                                        <label class="cursor-pointer ${s==='ไม่รับ' ? 'no-shirt-option col-span-full' : ''}">
                                             <input type="radio" name="actSize" value="${s}" required ${s==='M'?'checked':''} onchange="recalculatePrice()" class="peer sr-only">
                                             <div class="text-center py-2.5 rounded-2xl border-2 border-slate-100 peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-primary font-bold text-slate-500 bg-white text-xs sm:text-sm hover:border-slate-200 hover:bg-slate-50 transition-all peer-checked:shadow-sm ${s==='ไม่รับ'?'text-red-500':''}">${s}</div>
                                         </label>
@@ -886,39 +1027,34 @@
 
         window.mockOrderSubmit = async function(e) { 
             e.preventDefault(); if(!isShirtShopOpen) { window.showToast('ปิดรับจองแล้ว', 'error'); return window.navigate('shirt'); } 
-            const b = e.target.querySelector('button[type="submit"]'); b.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> บันทึก...'; b.disabled = true;
+            const btn = e.target.querySelector('button[type="submit"]'), originalHtml = btn.innerHTML;
             
-            const f = e.target, pS = f.poloSize.value, aS = f.actSize.value;
-            let pQ = parseInt(document.getElementById('poloQty').value);
-            let aQ = parseInt(document.getElementById('actQty').value); 
+            const f = e.target, pSz = f.poloSize.value, aSz = f.actSize.value, pQty = parseInt(document.getElementById('poloQty').value), aQty = parseInt(document.getElementById('actQty').value); 
+            const studentId = document.getElementById('order-student-id').value.trim();
             
-            if (pS === 'ไม่รับ') pQ = 0;
-            if (aS === 'ไม่รับ') aQ = 0;
-
-            const pP = pS === 'ไม่รับ' ? 0 : 250; const aP = aS === 'ไม่รับ' ? 0 : 250;
-            
-            const is69 = document.getElementById('order-student-id').value.trim().startsWith('69');
-            if (is69 && (pS === 'ไม่รับ' || aS === 'ไม่รับ')) {
-                window.showToast('รหัส 69 จำเป็นต้องสั่งจองชุดเสื้อคณะ', 'error');
-                b.innerHTML = 'ยืนยันการสั่งจอง <i class="ph-bold ph-arrow-right"></i>';
-                b.disabled = false;
+            if (studentId.startsWith('69') && (pSz === 'ไม่รับ' || aSz === 'ไม่รับ')) {
+                window.showToast('นักศึกษารหัส 69 จำเป็นต้องจองเสื้อทั้ง 2 ประเภทครับ', 'error');
                 return;
             }
 
+            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> บันทึก...'; btn.disabled = true;
+            
+            const pPr = pSz === 'ไม่รับ' ? 0 : 250; const aPr = aSz === 'ไม่รับ' ? 0 : 250;
+            
             currentCheckoutOrder = { 
                 id: 'ORD-26-' + Math.floor(1000 + Math.random() * 9000), 
-                studentId: document.getElementById('order-student-id').value, 
+                studentId: studentId, 
                 name: document.getElementById('order-student-name').value, 
                 faculty: document.getElementById('order-faculty').value || '-', 
                 major: document.getElementById('order-major').value || '-', 
                 type: 'สั่งจองชุดเสื้อ', 
-                size: `โปโล ${pS} [${pQ}], กิจกรรม ${aS} [${aQ}]`, 
-                qty: pQ + aQ, 
+                size: `โปโล ${pSz} [${pQty}], กิจกรรม ${aSz} [${aQty}]`, 
+                qty: pQty + aQty, 
                 items: [
-                    { name: '1. โปโลคณะ', size: pS, qty: pQ, price: pP, subtotal: pP * pQ }, 
-                    { name: '2. เสื้อกิจกรรม', size: aS, qty: aQ, price: aP, subtotal: aP * aQ }
+                    { name: '1. โปโลคณะ', size: pSz, qty: pQty, price: pPr, subtotal: pPr * pQty }, 
+                    { name: '2. เสื้อกิจกรรม', size: aSz, qty: aQty, price: aPr, subtotal: aPr * aQty }
                 ], 
-                total: (pP * pQ) + (aP * aQ) 
+                total: (pPr * pQty) + (aPr * aQty) 
             }; 
             
             window.navigate('checkout', currentCheckoutOrder); 
@@ -1000,8 +1136,8 @@
             if (!isShirtShopOpen) { c.innerHTML = `<div class="fade-in max-w-4xl mx-auto px-4 py-10"><div class="glass rounded-[32px] p-12 text-center"><i class="ph-fill ph-lock-key text-5xl text-red-500 mb-4 block"></i><h2 class="text-3xl font-black mb-3">ปิดให้บริการชั่วคราว</h2><button onclick="navigate('events')" class="px-8 py-4 bg-slate-800 text-white font-bold rounded-2xl mt-6 mx-auto"><i class="ph-bold ph-arrow-left"></i> กลับไปหน้ากิจกรรม</button></div></div>`; return; }
             c.innerHTML = `
                 <div class="fade-in max-w-4xl mx-auto pb-10">
-                    <div class="mb-8"><h1 class="text-3xl font-black text-slate-800">ติดตามสถานะการจอง</h1></div>
-                    <div class="glass rounded-[32px] shadow-sm p-8 mb-8 print:hidden"><label class="block text-sm font-bold text-slate-700 mb-3">รหัสนักศึกษา/บัตรประชาชน</label><div class="flex flex-col sm:flex-row gap-4"><input type="text" id="search-tracking-id" class="w-full px-5 py-4 bg-white border rounded-2xl font-bold" placeholder="กรอกรหัส" onkeypress="if(event.key === 'Enter') fetchTrackingData()"><div class="flex gap-2 w-full sm:w-auto"><button onclick="fetchTrackingData()" id="btn-fetch-tracking" class="flex-1 px-8 py-4 bg-slate-800 text-white font-bold rounded-2xl"><i class="ph-bold ph-magnifying-glass"></i> ค้นหา</button><button onclick="clearTrackingSearch()" id="btn-clear-tracking" class="hidden px-5 py-4 bg-red-50 text-red-600 font-bold rounded-2xl border"><i class="ph-bold ph-x"></i></button></div></div><p id="search-tracking-feedback" class="text-xs text-red-500 mt-3 font-bold hidden"></p></div>
+                    <div class="mb-8 text-center sm:text-left"><h1 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">ติดตามสถานะการจอง</h1></div>
+                    <div class="glass rounded-[32px] shadow-sm p-8 sm:p-10 mb-8 border border-white/60 print:hidden"><label class="block text-sm font-bold text-slate-700 mb-3">ระบุรหัสนักศึกษา หรือ หมายเลขบัตรประชาชน</label><div class="flex flex-col sm:flex-row gap-4"><div class="relative w-full"><div class="absolute inset-y-0 left-0 flex items-center pl-5 pointer-events-none"><i class="ph-fill ph-identification-card text-slate-400 text-xl"></i></div><input type="text" id="search-tracking-id" class="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl font-bold outline-none focus:border-primary transition-all shadow-sm" placeholder="กรอกรหัส" onkeypress="if(event.key === 'Enter') fetchTrackingData()"></div><div class="flex gap-2 w-full sm:w-auto shrink-0"><button onclick="fetchTrackingData()" id="btn-fetch-tracking" class="flex-1 sm:flex-none px-8 py-4 bg-slate-800 text-white text-base font-bold rounded-2xl shadow-lg hover:bg-black transition-colors flex items-center justify-center gap-2"><i class="ph-bold ph-magnifying-glass text-lg"></i> ค้นหา</button><button onclick="clearTrackingSearch()" id="btn-clear-tracking" class="hidden px-5 py-4 bg-red-50 text-red-600 text-lg font-bold rounded-2xl border border-red-100 hover:bg-red-100 transition-colors flex items-center justify-center"><i class="ph-bold ph-x"></i></button></div></div><p id="search-tracking-feedback" class="text-xs text-red-500 mt-3 font-bold hidden"></p></div>
                     <div id="tracking-result-section" class="hidden fade-in"></div>
                 </div>`;
         };
@@ -1070,12 +1206,30 @@
                 </div>`;
 
             let h = `
-                <div class="glass rounded-[32px] shadow-xl p-8 sm:p-10 mb-8 overflow-hidden print:hidden text-center"><h2 class="text-2xl font-black text-slate-800 mb-8">สถานะการดำเนินการ</h2><div class="relative flex flex-col md:flex-row justify-between items-start md:items-center max-w-3xl mx-auto">`;
+                <div class="glass rounded-[32px] shadow-xl p-8 sm:p-10 mb-8 overflow-hidden print:hidden text-center"><h2 class="text-2xl font-black text-slate-800 mb-8">สถานะการดำเนินการ</h2><div class="relative flex flex-col md:flex-row justify-between items-start md:items-center max-w-3xl mx-auto">
+                    <!-- Line connector -->
+                    <div class="hidden md:block absolute top-6 left-[10%] right-[10%] h-1 bg-slate-200 z-0"></div>
+                `;
             
-            [{ id: 1, label: 'รอตรวจสอบ', icon: 'ph-receipt' }, { id: 2, label: 'ชำระแล้ว', icon: 'ph-check-circle' }, { id: 3, label: 'กำลังผลิต', icon: 'ph-scissors' }, { id: 4, label: 'พร้อมรับ', icon: 'ph-package' }].forEach((st) => {
-                const iC = st.id <= cS ? 'bg-gradient-to-br from-emerald-400 to-emerald-500 text-white shadow-lg border-none' : 'bg-slate-50 text-slate-400 border-4 border-white';
-                h += `<div class="relative z-10 flex flex-col items-center gap-2"><div class="w-12 h-12 rounded-full flex items-center justify-center text-xl ${iC}"><i class="ph-bold ${st.icon}"></i></div><div class="text-center"><p class="font-bold text-sm ${st.id <= cS ? 'text-slate-800' : 'text-slate-400'}">${st.label}</p>${st.id === cS ? `<p class="text-[10px] text-emerald-500 font-bold mt-1 bg-emerald-50 px-2 rounded-md border">สถานะปัจจุบัน</p>` : ''}</div></div>`;
+            const steps = [{ id: 1, label: 'รอตรวจสอบ', icon: 'ph-receipt' }, { id: 2, label: 'ชำระแล้ว', icon: 'ph-check-circle' }, { id: 3, label: 'กำลังผลิต', icon: 'ph-scissors' }, { id: 4, label: 'พร้อมรับ', icon: 'ph-package' }];
+            steps.forEach((st, index) => {
+                const isPast = st.id <= cS;
+                const isCurrent = st.id === cS;
+                const iC = isPast ? 'bg-gradient-to-br from-emerald-400 to-emerald-500 text-white shadow-lg border-none' : 'bg-slate-50 text-slate-400 border-4 border-white';
+                
+                h += `
+                <div class="relative z-10 flex flex-row md:flex-col items-center gap-4 md:gap-3 w-full md:w-auto mb-6 md:mb-0">
+                    ${index > 0 ? `<div class="md:hidden absolute left-6 -top-8 bottom-8 w-0.5 bg-slate-200 z-0 ${isPast ? 'bg-emerald-400' : ''}"></div>` : ''}
+                    <div class="w-12 h-12 shrink-0 rounded-full flex items-center justify-center text-xl z-10 relative ${iC}">
+                        <i class="ph-bold ${st.icon}"></i>
+                    </div>
+                    <div class="text-left md:text-center w-full md:w-auto">
+                        <p class="font-bold text-sm ${isPast ? 'text-slate-800' : 'text-slate-400'}">${st.label}</p>
+                        ${isCurrent ? `<p class="text-[10px] text-emerald-500 font-bold mt-1 bg-emerald-50 px-2 py-0.5 inline-block md:block rounded-md border border-emerald-100 w-fit md:mx-auto">สถานะปัจจุบัน</p>` : ''}
+                    </div>
+                </div>`;
             });
+
             h += `</div></div><div class="mb-6 print:hidden flex justify-center gap-3"><button onclick="downloadReceiptPDF('${o.id}')" id="btn-download-receipt" class="px-8 py-4 bg-slate-800 text-white font-bold rounded-2xl shadow-xl hover:bg-black flex items-center gap-2"><i class="ph-bold ph-printer text-xl"></i> บันทึกใบเสร็จ PDF</button></div>
                 <div class="overflow-x-auto w-full flex justify-start lg:justify-center p-2 lg:p-0 scrollbar-hide"><div id="receipt-card-display" style="width: 794px; min-width: 794px; height: 1123px; padding: 20px; box-sizing: border-box; background-color: #ffffff; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid #e2e8f0; margin: 0 auto; border-radius: 8px;">
                     ${rT(false)}<div style="height: 40px; display: flex; align-items: center; justify-content: center; opacity: 0.5;"><div style="flex-grow: 1; border-top: 2px dashed #64748b;"></div><span style="padding: 0 16px; font-size: 12px; font-weight: 700;">✂️ ตัดตามรอยประ</span><div style="flex-grow: 1; border-top: 2px dashed #64748b;"></div></div>${rT(true)}
@@ -1136,7 +1290,7 @@
             });
             const tP = Object.values(sum.polo).reduce((a, b) => a + b, 0), tA = Object.values(sum.act).reduce((a, b) => a + b, 0);
 
-            c.innerHTML = `<div class="fade-in max-w-7xl mx-auto"><div class="mb-8 flex justify-between items-end"><h1 class="text-3xl font-black text-slate-800">จัดการจองเสื้อ</h1><div class="flex gap-3"><button onclick="window.print()" class="px-5 py-3 bg-white border rounded-xl font-bold"><i class="ph-bold ph-printer"></i> พิมพ์</button><button onclick="refreshAdminOrders(this)" class="px-5 py-3 bg-primary/10 text-primary border border-primary/20 rounded-xl font-bold"><i class="ph-bold ph-arrows-clockwise"></i> รีเฟรช</button></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10"><div class="glass rounded-3xl border overflow-hidden"><div class="p-6 bg-blue-50 border-b flex justify-between"><h2 class="text-lg font-bold flex items-center gap-3"><div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center"><i class="ph-fill ph-t-shirt text-xl"></i></div> โปโลคณะ</h2><span class="bg-white text-blue-700 px-4 py-1.5 rounded-xl border font-bold text-xs">รวม ${tP} ตัว</span></div><table class="w-full text-left"><tbody class="text-sm font-bold text-slate-700">${SIZE_LIST.map(s => `<tr class="border-b"><td class="py-4 px-6 w-1/2">ไซส์ ${s}</td><td class="py-4 px-6 text-right ${s==='ไม่รับ'?'text-red-500':''}">${sum.polo[s]} ตัว</td></tr>`).join('')}</tbody></table></div><div class="glass rounded-3xl border overflow-hidden"><div class="p-6 bg-amber-50 border-b flex justify-between"><h2 class="text-lg font-bold flex items-center gap-3"><div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center"><i class="ph-fill ph-t-shirt text-xl"></i></div> เสื้อกิจกรรม</h2><span class="bg-white text-amber-700 px-4 py-1.5 rounded-xl border font-bold text-xs">รวม ${tA} ตัว</span></div><table class="w-full text-left"><tbody class="text-sm font-bold text-slate-700">${SIZE_LIST.map(s => `<tr class="border-b"><td class="py-4 px-6 w-1/2">ไซส์ ${s}</td><td class="py-4 px-6 text-right ${s==='ไม่รับ'?'text-red-500':''}">${sum.act[s]} ตัว</td></tr>`).join('')}</tbody></table></div></div><div class="flex flex-col sm:flex-row justify-between items-center mb-5 gap-4"><h2 class="text-xl font-bold flex items-center gap-2"><i class="ph-fill ph-list-checks text-primary"></i> รายการคำสั่งซื้อทั้งหมด</h2><div class="relative w-full sm:w-64"><i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="text" id="adm-ord-search" oninput="admSearchOrders(this.value)" placeholder="ค้นหารหัส, ชื่อ, Order ID" class="w-full pl-12 pr-4 py-2.5 rounded-xl border font-medium text-sm" value="${adminOrdersSearch}"></div><button onclick="exportAdminOrdersExcel()" class="px-5 py-2.5 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-xl font-bold text-sm w-full sm:w-auto hover-lift"><i class="ph-bold ph-file-xls"></i> โหลด Excel (3 ชีต)</button></div><div class="glass rounded-3xl border overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left min-w-[1000px]"><thead class="bg-slate-50 border-b text-slate-500 text-xs uppercase"><th class="p-5">Order ID</th><th class="p-5">นักศึกษา</th><th class="p-5">สินค้า</th><th class="p-5">สถานะ</th><th class="p-5 text-center">จัดการ</th></thead><tbody id="admin-orders-tbody" class="text-sm bg-white/40"></tbody></table></div><div id="admin-orders-pagination" class="p-5 border-t flex justify-between bg-white/60"></div></div></div>`; 
+            c.innerHTML = `<div class="fade-in max-w-7xl mx-auto"><div class="mb-8 flex justify-between items-end"><h1 class="text-3xl font-black text-slate-800">จัดการจองเสื้อ</h1><div class="flex gap-3"><button onclick="window.print()" class="px-5 py-3 bg-white border rounded-xl font-bold hover-lift"><i class="ph-bold ph-printer"></i> พิมพ์</button><button onclick="refreshAdminOrders(this)" class="px-5 py-3 bg-primary/10 text-primary border border-primary/20 rounded-xl font-bold hover-lift"><i class="ph-bold ph-arrows-clockwise"></i> รีเฟรช</button></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10"><div class="glass rounded-3xl border overflow-hidden"><div class="p-6 bg-blue-50 border-b flex justify-between"><h2 class="text-lg font-bold flex items-center gap-3"><div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center"><i class="ph-fill ph-t-shirt text-xl"></i></div> โปโลคณะ</h2><span class="bg-white text-blue-700 px-4 py-1.5 rounded-xl border font-bold text-xs">รวม ${tP} ตัว</span></div><table class="w-full text-left"><tbody class="text-sm font-bold text-slate-700">${SIZE_LIST.map(s => `<tr class="border-b"><td class="py-4 px-6 w-1/2">ไซส์ ${s}</td><td class="py-4 px-6 text-right ${s==='ไม่รับ'?'text-red-500':''}">${sum.polo[s]} ตัว</td></tr>`).join('')}</tbody></table></div><div class="glass rounded-3xl border overflow-hidden"><div class="p-6 bg-amber-50 border-b flex justify-between"><h2 class="text-lg font-bold flex items-center gap-3"><div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center"><i class="ph-fill ph-t-shirt text-xl"></i></div> เสื้อกิจกรรม</h2><span class="bg-white text-amber-700 px-4 py-1.5 rounded-xl border font-bold text-xs">รวม ${tA} ตัว</span></div><table class="w-full text-left"><tbody class="text-sm font-bold text-slate-700">${SIZE_LIST.map(s => `<tr class="border-b"><td class="py-4 px-6 w-1/2">ไซส์ ${s}</td><td class="py-4 px-6 text-right ${s==='ไม่รับ'?'text-red-500':''}">${sum.act[s]} ตัว</td></tr>`).join('')}</tbody></table></div></div><div class="flex flex-col sm:flex-row justify-between items-center mb-5 gap-4"><h2 class="text-xl font-bold flex items-center gap-2"><i class="ph-fill ph-list-checks text-primary"></i> รายการคำสั่งซื้อทั้งหมด</h2><div class="flex flex-col sm:flex-row w-full sm:w-auto gap-3"><div class="relative w-full sm:w-64"><i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="text" id="adm-ord-search" oninput="admSearchOrders(this.value)" placeholder="ค้นหารหัส, ชื่อ, Order ID" class="w-full pl-12 pr-4 py-2.5 rounded-xl border font-medium text-sm" value="${adminOrdersSearch}"></div><button onclick="exportAdminOrdersExcel()" class="px-5 py-2.5 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-xl font-bold text-sm w-full sm:w-auto hover-lift whitespace-nowrap"><i class="ph-bold ph-file-xls"></i> โหลด Excel (3 ชีต)</button></div></div><div class="glass rounded-3xl border overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left min-w-[1000px]"><thead class="bg-slate-50 border-b text-slate-500 text-xs uppercase"><th class="p-5">Order ID</th><th class="p-5">นักศึกษา</th><th class="p-5">สินค้า</th><th class="p-5">สถานะ</th><th class="p-5 text-center">จัดการ</th></thead><tbody id="admin-orders-tbody" class="text-sm bg-white/40"></tbody></table></div><div id="admin-orders-pagination" class="p-5 border-t flex justify-between bg-white/60"></div></div></div>`; 
             window.updateAdminOrdersTable();
         };
 
@@ -1200,7 +1354,24 @@
 
         window.renderAdminEvents = async function(c) {
             c.innerHTML = window.getGokuLoader('กำลังโหลด...'); await window.fetchActivitiesData(); 
-            c.innerHTML = `<div class="fade-in max-w-7xl mx-auto"><div class="mb-8 flex justify-between"><h1 class="text-3xl font-black text-slate-800">จัดการกิจกรรม</h1><div class="flex gap-3"><div class="relative w-64"><i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="text" id="admin-event-search" placeholder="ค้นหา..." class="w-full pl-12 pr-4 py-2.5 rounded-xl border bg-white text-sm" oninput="handleAdminEventSearch(event)"></div><button onclick="refreshAdminEvents(this)" class="p-2.5 border bg-white rounded-xl text-slate-500 hover:text-primary"><i class="ph-bold ph-arrows-clockwise text-lg"></i></button></div></div><div class="glass rounded-3xl border p-8 mb-8"><h3 class="font-bold text-xl mb-6 flex items-center gap-2"><i class="ph-fill ph-plus-circle text-primary text-2xl"></i> สร้างกิจกรรมใหม่</h3><form onsubmit="createNewEvent(event)" class="grid grid-cols-4 gap-5 items-end"><div><label class="block text-xs font-bold mb-2">ชื่อกิจกรรม *</label><input type="text" id="new-event-title" required class="w-full px-5 py-3 rounded-2xl border bg-slate-50"></div><div><label class="block text-xs font-bold mb-2">วันที่จัด *</label><input type="date" id="new-event-date" required class="w-full px-5 py-3 rounded-2xl border bg-slate-50"></div><div><label class="block text-xs font-bold mb-2">สถานที่ *</label><input type="text" id="new-event-location" required class="w-full px-5 py-3 rounded-2xl border bg-slate-50"></div><div><button type="submit" class="w-full px-6 py-3 bg-admin text-white font-bold rounded-2xl">บันทึก</button></div></form></div><div class="glass rounded-3xl border overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left min-w-[800px]"><thead class="bg-slate-50 border-b text-slate-500 text-xs uppercase"><th class="p-5">เวลาสร้าง</th><th class="p-5">ชื่อกิจกรรม</th><th class="p-5">วันที่จัด</th><th class="p-5">สถานที่</th><th class="p-5 text-center">จัดการ</th></thead><tbody id="admin-events-tbody" class="text-sm bg-white/40"></tbody></table></div><div id="admin-events-pagination" class="p-5 border-t flex justify-between bg-white/60"></div></div></div>`;
+            c.innerHTML = `
+                <div class="fade-in max-w-7xl mx-auto">
+                    <div class="mb-8 flex flex-col md:flex-row justify-between md:items-end gap-4"><h1 class="text-3xl font-black text-slate-800">จัดการกิจกรรม</h1>
+                        <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                            <div class="relative flex-grow md:w-64"><i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="text" id="admin-event-search" placeholder="ค้นหา..." class="w-full pl-12 pr-4 py-3 rounded-xl border bg-white text-sm" oninput="handleAdminEventSearch(event)"></div>
+                            <button onclick="refreshAdminEvents(this)" class="p-3 border bg-white rounded-xl text-slate-500 hover:text-primary shrink-0 flex items-center justify-center hover-lift"><i class="ph-bold ph-arrows-clockwise text-xl"></i></button>
+                        </div>
+                    </div>
+                    <div class="glass rounded-3xl border p-6 sm:p-8 mb-8"><h3 class="font-bold text-xl mb-6 flex items-center gap-2"><i class="ph-fill ph-plus-circle text-primary text-2xl"></i> สร้างกิจกรรมใหม่</h3>
+                        <form onsubmit="createNewEvent(event)" class="flex flex-col md:grid md:grid-cols-4 gap-4 md:items-end">
+                            <div><label class="block text-xs font-bold mb-2">ชื่อกิจกรรม *</label><input type="text" id="new-event-title" required class="w-full px-5 py-3.5 rounded-2xl border bg-slate-50"></div>
+                            <div><label class="block text-xs font-bold mb-2">วันที่จัด *</label><input type="date" id="new-event-date" required class="w-full px-5 py-3.5 rounded-2xl border bg-slate-50"></div>
+                            <div><label class="block text-xs font-bold mb-2">สถานที่ *</label><input type="text" id="new-event-location" required class="w-full px-5 py-3.5 rounded-2xl border bg-slate-50"></div>
+                            <div class="mt-2 md:mt-0"><button type="submit" class="w-full px-6 py-3.5 bg-admin text-white font-bold rounded-2xl hover:bg-admin_hover transition-colors">บันทึก</button></div>
+                        </form>
+                    </div>
+                    <div class="glass rounded-3xl border overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left min-w-[800px]"><thead class="bg-slate-50 border-b text-slate-500 text-xs uppercase"><th class="p-5">เวลาสร้าง</th><th class="p-5">ชื่อกิจกรรม</th><th class="p-5">วันที่จัด</th><th class="p-5">สถานที่</th><th class="p-5 text-center">จัดการ</th></thead><tbody id="admin-events-tbody" class="text-sm bg-white/40"></tbody></table></div><div id="admin-events-pagination" class="p-5 border-t flex justify-between bg-white/60"></div></div>
+                </div>`;
             const s = document.getElementById('admin-event-search'); if (s) s.value = adminEventsSearch; window.updateAdminEventsTable();
         };
 
@@ -1222,12 +1393,16 @@
             const pA = acts.slice((adminEventsPage - 1) * adminEventsPerPage, adminEventsPage * adminEventsPerPage);
             let h = '';
             if (pA.length === 0) { h = `<tr><td colspan="5" class="p-12 text-center text-slate-400">ไม่พบข้อมูล</td></tr>`; } 
-            else { pA.forEach(e => { const iO = e.status === 'open'; h += `<tr class="border-b hover:bg-white"><td class="p-5 text-slate-400 text-[10px]">${e.timestamp||'-'}</td><td class="p-5 font-bold">${e.title}</td><td class="p-5">${e.date}</td><td class="p-5">${e.location}</td><td class="p-5 text-center"><div class="flex items-center justify-center gap-4"><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" class="sr-only peer" ${iO ? 'checked' : ''} onchange="toggleEventStatus('${e.id}', '${e.status}')"><div class="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-200 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div></label><button onclick="openEditEventModal('${e.id}')" class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center"><i class="ph-bold ph-pencil-simple"></i></button><button onclick="exportEventParticipants('${e.title}')" class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><i class="ph-bold ph-microsoft-excel-logo"></i></button></div></td></tr>`; }); }
+            else { pA.forEach(e => { 
+                const iO = e.status !== 'closed'; // เปลี่ยนเงื่อนไขเพื่อรองรับกิจกรรมที่ถูกบัคลบสถานะไปแล้ว
+                const hasTimer = e.openTime || e.closeTime;
+                h += `<tr class="border-b hover:bg-white"><td class="p-5 text-slate-400 text-[10px]">${e.timestamp||'-'}</td><td class="p-5 font-bold">${e.title}${hasTimer ? `<br><span class="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-100"><i class="ph-fill ph-clock"></i> ตั้งเวลาไว้</span>` : ''}</td><td class="p-5">${e.date}</td><td class="p-5">${e.location}</td><td class="p-5 text-center"><div class="flex items-center justify-center gap-4"><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" class="sr-only peer" ${iO ? 'checked' : ''} onchange="toggleEventStatus('${e.id}', '${e.status}')"><div class="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-200 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div></label><button onclick="openTimerEventModal('${e.id}')" class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center hover:bg-purple-100 transition-colors" title="ตั้งเวลาอัตโนมัติ"><i class="ph-bold ph-clock"></i></button><button onclick="openEditEventModal('${e.id}')" class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors" title="แก้ไข"><i class="ph-bold ph-pencil-simple"></i></button><button onclick="exportEventParticipants('${e.title}')" class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition-colors" title="โหลด Excel"><i class="ph-bold ph-microsoft-excel-logo"></i></button></div></td></tr>`; 
+            }); }
             tb.innerHTML = h; const sD = tI === 0 ? 0 : ((adminEventsPage - 1) * adminEventsPerPage) + 1, eD = Math.min(adminEventsPage * adminEventsPerPage, tI);
-            pg.innerHTML = `<span class="text-sm bg-white px-4 py-2 rounded-xl border">แสดง <b>${sD}-${eD}</b> จาก <b>${tI}</b></span><div class="flex gap-2"><button onclick="changeAdminEventPage(${adminEventsPage - 1})" ${adminEventsPage <= 1 ? 'disabled' : ''} class="w-10 h-10 rounded-xl bg-white border disabled:opacity-40"><i class="ph-bold ph-caret-left"></i></button><button onclick="changeAdminEventPage(${adminEventsPage + 1})" ${adminEventsPage >= tP ? 'disabled' : ''} class="w-10 h-10 rounded-xl bg-white border disabled:opacity-40"><i class="ph-bold ph-caret-right"></i></button></div>`;
+            pg.innerHTML = `<span class="text-sm bg-white px-4 py-2 rounded-xl border">แสดง <b>${sD}-${eD}</b> จาก <b>${tI}</b></span><div class="flex gap-2"><button onclick="changeAdminEventPage(${adminEventsPage - 1})" ${adminEventsPage <= 1 ? 'disabled' : ''} class="w-10 h-10 rounded-xl bg-white border disabled:opacity-40 hover-lift"><i class="ph-bold ph-caret-left"></i></button><button onclick="changeAdminEventPage(${adminEventsPage + 1})" ${adminEventsPage >= tP ? 'disabled' : ''} class="w-10 h-10 rounded-xl bg-white border disabled:opacity-40 hover-lift"><i class="ph-bold ph-caret-right"></i></button></div>`;
         };
 
-        window.refreshAdminEvents = async function(b) { const i = b.querySelector('i'); if(i) i.classList.add('animate-spin'); await window.fetchActivitiesData(true); window.updateAdminEventsTable(); if(i) i.classList.remove('animate-spin'); window.showToast('อัปเดตแล้ว', 'success'); };
+        window.refreshAdminEvents = async function(btn) { const icon = btn.querySelector('i'); if(icon) icon.classList.add('animate-spin'); await window.fetchActivitiesData(true); window.updateAdminEventsTable(); if(icon) icon.classList.remove('animate-spin'); window.showToast('อัปเดตแล้ว', 'success'); };
 
         window.createNewEvent = async function(e) {
             e.preventDefault(); 
@@ -1258,8 +1433,13 @@
         };
 
         window.toggleEventStatus = async function(id, cS) {
-            const nS = cS === 'open' ? 'closed' : 'open', e = appCache.activities.find(x => String(x.id) === String(id)); if (e) e.status = nS;
-            window.renderAdminEvents(document.getElementById('app-content')); window.showToast(`อัปเดตสถานะเรียบร้อย`, 'success'); window.apiCall('POST', { action: 'toggleActivity', id: String(id), status: nS }).catch(()=>null);
+            const currentStatus = cS || 'open'; // บังคับให้เริ่มจาก open ถ้าเคยบัคหายไป
+            const nS = currentStatus === 'open' ? 'closed' : 'open';
+            const e = appCache.activities.find(x => String(x.id) === String(id)); 
+            if (e) e.status = nS;
+            window.renderAdminEvents(document.getElementById('app-content')); 
+            window.showToast(`อัปเดตสถานะเรียบร้อย`, 'success'); 
+            window.apiCall('POST', { action: 'toggleActivity', id: String(id), status: nS }).catch(()=>null);
         };
 
         window.submitEditEvent = async function(e) {
@@ -1277,14 +1457,27 @@
                 const location = document.getElementById('edit-event-location').value;
                 
                 const event = appCache.activities.find(ev => String(ev.id) === String(id)); 
-                if (event) { event.title = title; event.date = date; event.location = location; }
+                if (event) { 
+                    event.title = title; 
+                    event.date = date; 
+                    event.location = location; 
+                    
+                    window.apiCall('POST', { 
+                        action: 'editActivity', 
+                        id: id, 
+                        title: title, 
+                        date: date, 
+                        location: location, 
+                        status: event.status || 'open', // ป้องกันข้อมูลสถานะหาย
+                        openTime: event.openTime || '', 
+                        closeTime: event.closeTime || '' 
+                    }).catch(()=>null);
+                }
                 
                 document.getElementById('editEventModal').classList.add('hidden'); 
                 
                 window.renderAdminEvents(document.getElementById('app-content'));
                 window.showToast('แก้ไขกิจกรรมสำเร็จ', 'success'); 
-                
-                window.apiCall('POST', { action: 'editActivity', id: id, title: title, date: date, location: location }).catch(()=>null);
             } catch (error) {
                 console.error(error);
                 window.showToast('เกิดข้อผิดพลาดในการแก้ไข', 'error');
@@ -1306,7 +1499,7 @@
             c.innerHTML = window.getGokuLoader('กำลังประมวลผล SPSS...');
             Promise.all([window.fetchEvaluationsData(true), window.fetchAllCheckInsData(true), window.fetchActivitiesData(true)]).then(([evals, cI, acts]) => {
                 let opts = '<option value="">-- เลือกกิจกรรม --</option>'; const uE = [...new Set(evals.map(e => String(e[3] || '').trim()))].filter(Boolean); uE.forEach(e => { opts += `<option value="${String(e).replace(/"/g, '&quot;')}">${e}</option>`; });
-                c.innerHTML = `<div class="fade-in max-w-6xl mx-auto pb-10"><div class="mb-8 flex justify-between items-end"><div><h1 class="text-3xl font-black">รายงานผลประเมิน (SPSS)</h1></div><div class="flex gap-3"><button onclick="window.print()" class="px-5 py-3 bg-white border rounded-xl font-bold flex items-center gap-2"><i class="ph-bold ph-printer"></i> พิมพ์</button><button onclick="exportToPDF()" id="btn-export-pdf" class="hidden px-5 py-3 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl font-bold flex items-center gap-2"><i class="ph-fill ph-file-pdf"></i> โหลด PDF</button><button onclick="exportToWord()" id="btn-export-word" class="hidden px-5 py-3 bg-blue-50 text-blue-600 border border-blue-200 rounded-xl font-bold flex items-center gap-2"><i class="ph-fill ph-file-doc"></i> โหลด Word</button></div></div><div class="glass rounded-3xl p-8 border mb-8 print:hidden flex items-center gap-5"><div class="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center text-3xl"><i class="ph-fill ph-chart-line-up"></i></div><div class="flex-grow w-full"><label class="block text-xs font-bold mb-2">เลือกกิจกรรมที่ต้องการดูรายงาน</label><select id="spss-event-selector" onchange="generateSPSSReport(this.value)" class="w-full p-4 rounded-2xl border font-bold bg-white">${opts}</select></div></div><div id="spss-report-content" class="hidden"></div></div>`;
+                c.innerHTML = `<div class="fade-in max-w-6xl mx-auto pb-10"><div class="mb-8 flex justify-between items-end"><div><h1 class="text-3xl font-black">รายงานผลประเมิน (SPSS)</h1></div><div class="flex gap-3"><button onclick="window.print()" class="px-5 py-3 bg-white border rounded-xl font-bold flex items-center gap-2 hover-lift"><i class="ph-bold ph-printer"></i> พิมพ์</button><button onclick="exportToPDF()" id="btn-export-pdf" class="hidden px-5 py-3 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl font-bold flex items-center gap-2 hover-lift"><i class="ph-fill ph-file-pdf"></i> โหลด PDF</button><button onclick="exportToWord()" id="btn-export-word" class="hidden px-5 py-3 bg-blue-50 text-blue-600 border border-blue-200 rounded-xl font-bold flex items-center gap-2 hover-lift"><i class="ph-fill ph-file-doc"></i> โหลด Word</button></div></div><div class="glass rounded-3xl p-8 border mb-8 print:hidden flex items-center gap-5"><div class="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center text-3xl shrink-0"><i class="ph-fill ph-chart-line-up"></i></div><div class="flex-grow w-full"><label class="block text-xs font-bold mb-2">เลือกกิจกรรมที่ต้องการดูรายงาน</label><select id="spss-event-selector" onchange="generateSPSSReport(this.value)" class="w-full p-4 rounded-2xl border font-bold bg-white outline-none focus:border-primary transition-all">${opts}</select></div></div><div id="spss-report-content" class="hidden"></div></div>`;
             }).catch(e => { c.innerHTML = `<div class="p-8 text-center text-red-500 font-bold bg-red-50 border mt-10">เกิดข้อผิดพลาด</div>`; });
         };
 
