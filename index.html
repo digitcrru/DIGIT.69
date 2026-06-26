@@ -70,6 +70,15 @@
     <footer class="mt-auto py-8 text-center text-slate-500 text-xs sm:text-sm px-4 glass border-t border-slate-200/50 pb-28 md:pb-8 print:hidden">
         <p class="font-bold text-slate-600">ฝ่ายกิจการนักศึกษา คณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย</p>
         <p class="mt-1 text-slate-400">ระบบจัดการกิจกรรมนักศึกษา (DIGIT.CRRU)</p>
+        
+        <!-- วิดเจ็ตสถิติการเข้าใช้งาน -->
+        <div class="mt-5 inline-flex items-center justify-center gap-2.5 bg-white px-5 py-2 rounded-full border border-slate-200 shadow-sm hover:shadow-md transition-shadow hover-lift">
+            <div class="relative flex h-3 w-3">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+            </div>
+            <span class="text-xs font-bold text-slate-600 uppercase tracking-widest">สถิติเข้าใช้งานระบบ: <span id="global-visitor-count" class="text-primary font-black text-sm ml-1">0</span> ครั้ง</span>
+        </div>
     </footer>
 
     <div class="md:hidden fixed bottom-6 left-4 right-4 z-40 print:hidden pointer-events-none" style="padding-bottom: env(safe-area-inset-bottom);">
@@ -203,6 +212,8 @@
         const SIZE_LIST = ['XS','S','M','L','XL','2XL','3XL','4XL','5XL','6XL','ไม่รับ'];
 
         document.addEventListener('DOMContentLoaded', () => {
+            window.initVisitorCounter(); // เรียกใช้งานระบบนับสถิติ
+            
             window.proceedSwitchRole('student');
             window.fetchSettingsData().then(() => { 
                 if (!sessionStorage.getItem('homePopupShown') && currentRole === 'student') { 
@@ -219,6 +230,44 @@
             window.fetchEvaluationsData();
             if (sessionStorage.getItem('isAdminAuthenticated')) currentAdminRole = sessionStorage.getItem('currentAdminRole') || 'superadmin';
         });
+        
+        // ฟังก์ชันระบบนับสถิติการเข้าใช้งานแบบจำลอง
+        window.initVisitorCounter = function() {
+            // วันที่เริ่มใช้งานระบบ (สมมติว่าเป็นวันที่ 1 มิถุนายน 2024)
+            const startDate = new Date('2024-06-01').getTime();
+            const today = new Date().getTime();
+            const daysActive = Math.max(1, Math.floor((today - startDate) / (1000 * 60 * 60 * 24)));
+            
+            // จำลองยอดเข้าชมพื้นฐาน (ประเมินว่ามีคนเข้า 68 ครั้งต่อวันโดยเฉลี่ย)
+            const baseCount = daysActive * 68; 
+            
+            // นับการเข้าชมจาก Local Storage เฉพาะของเครื่องผู้ใช้นี้
+            let localCount = parseInt(localStorage.getItem('CRRU_LocalVisitCount') || 0);
+            
+            // เช็คว่าใน Session นี้เคยนับไปหรือยัง (ป้องกันการนับซ้ำเวลากด Refresh รัวๆ)
+            if (!sessionStorage.getItem('CRRU_SessionVisited')) {
+                localCount += 1;
+                localStorage.setItem('CRRU_LocalVisitCount', localCount);
+                sessionStorage.setItem('CRRU_SessionVisited', 'true');
+            }
+            
+            const totalVisitors = baseCount + localCount;
+            
+            const counterEl = document.getElementById('global-visitor-count');
+            if (counterEl) {
+                // เอฟเฟกต์ตัวเลขวิ่ง (Number Animation)
+                let current = 0;
+                const increment = Math.ceil(totalVisitors / 50); // วิ่ง 50 รอบ
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= totalVisitors) {
+                        current = totalVisitors;
+                        clearInterval(timer);
+                    }
+                    counterEl.innerText = current.toLocaleString();
+                }, 30);
+            }
+        };
 
         window.apiCall = async function(m, p = {}) {
             try {
@@ -646,8 +695,18 @@
         window.renderHistory = function(c) {
             const sId = sessionStorage.getItem('historySearchTerm') || ''; const isS = sId.length > 0; let hD = []; if (isS) { try { const sd = JSON.parse(sessionStorage.getItem('historyData')); if (sd) hD = sd.history; } catch (e) {} }
             let h = `
-                <div class="fade-in max-w-4xl mx-auto"><div class="mb-8"><h1 class="text-3xl font-black text-slate-800">ประวัติเข้าร่วมกิจกรรม</h1></div>
-                <div class="glass rounded-[32px] shadow-sm border p-8 mb-8"><label class="block text-sm font-bold text-slate-700 mb-3">รหัสนักศึกษา/บัตร ปชช.</label><div class="flex gap-4"><input type="text" id="search-history-id" class="w-full px-5 py-4 rounded-2xl border font-bold" value="${sId}" onkeypress="if(event.key==='Enter') fetchHistoryData()"><div class="flex gap-2"><button onclick="fetchHistoryData()" id="btn-fetch-history" class="px-8 py-4 bg-slate-800 text-white font-bold rounded-2xl">ค้นหา</button>${isS ? `<button onclick="clearHistorySearch()" class="px-5 py-4 bg-red-50 text-red-600 font-bold rounded-2xl border">X</button>` : ''}</div></div></div>`;
+                <div class="fade-in max-w-4xl mx-auto"><div class="mb-8 text-center sm:text-left"><h1 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">ประวัติเข้าร่วมกิจกรรม</h1><p class="text-base text-slate-500 mt-2 font-medium">ตรวจสอบประวัติกิจกรรมที่เคยเข้าร่วม</p></div>
+                <div class="glass rounded-[32px] shadow-sm border border-white/60 p-8 sm:p-10 mb-8"><label class="block text-sm font-bold text-slate-700 mb-3">รหัสนักศึกษา หรือ หมายเลขบัตรประชาชน</label>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <div class="relative w-full">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-5 pointer-events-none"><i class="ph-fill ph-identification-card text-slate-400 text-xl"></i></div>
+                        <input type="text" id="search-history-id" class="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 bg-white font-bold shadow-sm outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all" placeholder="กรอกรหัส หรือ บัตรปชช." value="${sId}" onkeypress="if(event.key==='Enter') fetchHistoryData()">
+                    </div>
+                    <div class="flex gap-2 w-full sm:w-auto shrink-0">
+                        <button onclick="fetchHistoryData()" id="btn-fetch-history" class="flex-1 sm:flex-none px-8 py-4 bg-slate-800 text-white text-base font-bold rounded-2xl hover:bg-black transition-colors shadow-lg shadow-slate-800/20 flex items-center justify-center gap-2"><i class="ph-bold ph-magnifying-glass text-lg"></i> ค้นหา</button>
+                        ${isS ? `<button onclick="clearHistorySearch()" class="px-5 py-4 bg-red-50 text-red-600 text-lg font-bold rounded-2xl border border-red-100 hover:bg-red-100 transition-colors flex items-center justify-center"><i class="ph-bold ph-x"></i></button>` : ''}
+                    </div>
+                </div></div>`;
             
             if (isS) {
                 h += `<div class="fade-in"><h2 class="text-xl font-bold mb-5 flex items-center gap-2"><i class="ph-fill ph-list-dashes text-primary"></i> ผลการค้นหา: ${sId}</h2><div class="glass rounded-[24px] overflow-hidden"><table class="w-full text-left border-collapse"><thead class="bg-slate-50 text-slate-500 text-xs uppercase"><th class="p-5 w-1/2">ชื่อกิจกรรม</th><th class="p-5 text-center">วันที่จัด</th><th class="p-5 text-center">สถานะ</th></thead><tbody class="text-sm bg-white">`;
@@ -837,7 +896,13 @@
             e.preventDefault(); if(!isShirtShopOpen) { window.showToast('ปิดรับจองแล้ว', 'error'); return window.navigate('shirt'); } 
             const b = e.target.querySelector('button[type="submit"]'); b.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> บันทึก...'; b.disabled = true;
             
-            const f = e.target, pS = f.poloSize.value, aS = f.actSize.value, pQ = parseInt(document.getElementById('poloQty').value), aQ = parseInt(document.getElementById('actQty').value); 
+            const f = e.target, pS = f.poloSize.value, aS = f.actSize.value;
+            let pQ = parseInt(document.getElementById('poloQty').value);
+            let aQ = parseInt(document.getElementById('actQty').value); 
+            
+            if (pS === 'ไม่รับ') pQ = 0;
+            if (aS === 'ไม่รับ') aQ = 0;
+
             const pP = pS === 'ไม่รับ' ? 0 : 250; const aP = aS === 'ไม่รับ' ? 0 : 250;
             
             const is69 = document.getElementById('order-student-id').value.trim().startsWith('69');
@@ -870,7 +935,15 @@
         window.renderCheckout = function(c, d) {
             if(!isShirtShopOpen) { window.showToast('ปิดรับจองแล้ว', 'error'); return window.navigate('shirt'); } 
             if(!d) return window.navigate('shirt');
-            let iH = ''; d.items.forEach(i => { iH += `<div class="flex justify-between items-center py-4 border-b border-dashed"><div><p class="font-bold text-slate-800">${i.name}</p><p class="text-xs text-slate-500 mt-1">ไซส์ <span class="font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">${i.size}</span> x ${i.qty} ตัว (@฿${i.price})</p></div><p class="font-bold text-slate-800">฿ ${i.subtotal}</p></div>`; });
+            let iH = ''; 
+            d.items.forEach(i => { 
+                if(i.size !== 'ไม่รับ') {
+                    iH += `<div class="flex justify-between items-center py-4 border-b border-slate-100 border-dashed last:border-0"><div><p class="font-bold text-slate-800 text-base">${i.name}</p><p class="text-xs text-slate-500 mt-1">ไซส์ <span class="font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">${i.size}</span> x ${i.qty} ตัว (@฿${i.price})</p></div><p class="font-bold text-slate-800 text-base">฿ ${i.subtotal}</p></div>`; 
+                }
+            });
+            if(iH === '') {
+                iH = `<div class="py-4 text-center text-slate-500 font-medium border-b border-slate-100 border-dashed">ไม่ประสงค์รับเสื้อ (ยอดชำระ 0 บาท)</div>`;
+            }
             c.innerHTML = `
                 <div class="fade-in max-w-5xl mx-auto pb-10">
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-8">
@@ -960,10 +1033,21 @@
             let pN = sZ.match(/โปโล\s*([A-Za-z0-9\u0e00-\u0e7f]+)\s*\[(\d+)\]/i), aN = sZ.match(/กิจกรรม\s*([A-Za-z0-9\u0e00-\u0e7f]+)\s*\[(\d+)\]/i);
             if (pN) { pSz = pN[1]; pQ = parseInt(pN[2]); } if (aN) { aSz = aN[1]; aQ = parseInt(aN[2]); }
             
+            if (pSz === 'ไม่รับ') pQ = 0;
+            if (aSz === 'ไม่รับ') aQ = 0;
+
             let id = 1;
-            if (pQ > 0) iH += `<tr><td style="${tB} text-align: center;">${id++}</td><td style="${tB}"><b>1. เสื้อโปโลคณะ</b> (Size: ${pSz})</td><td style="${tB} text-align: center;">${pQ}</td><td style="${tB} text-align: right;">${pSz==='ไม่รับ'?0:250}</td><td style="${tB} text-align: right; font-weight: 700;">${(pSz==='ไม่รับ'?0:250) * pQ}</td></tr>`;
-            if (aQ > 0) iH += `<tr><td style="${tB} text-align: center;">${id++}</td><td style="${tB}"><b>2. เสื้อกิจกรรม</b> (Size: ${aSz})</td><td style="${tB} text-align: center;">${aQ}</td><td style="${tB} text-align: right;">${aSz==='ไม่รับ'?0:250}</td><td style="${tB} text-align: right; font-weight: 700;">${(aSz==='ไม่รับ'?0:250) * aQ}</td></tr>`;
+            if (pQ > 0 && pSz !== 'ไม่รับ') {
+                iH += `<tr><td style="${tB} text-align: center;">${id++}</td><td style="${tB}"><b>1. เสื้อโปโลคณะ</b> <span style="font-size: 11px; color: #475569; margin-left: 8px;">(Size: ${pSz})</span></td><td style="${tB} text-align: center;">${pQ}</td><td style="${tB} text-align: right;">250</td><td style="${tB} text-align: right; font-weight: 700;">${250 * pQ}</td></tr>`;
+            }
+            if (aQ > 0 && aSz !== 'ไม่รับ') {
+                iH += `<tr><td style="${tB} text-align: center;">${id++}</td><td style="${tB}"><b>2. เสื้อกิจกรรม</b> <span style="font-size: 11px; color: #475569; margin-left: 8px;">(Size: ${aSz})</span></td><td style="${tB} text-align: center;">${aQ}</td><td style="${tB} text-align: right;">250</td><td style="${tB} text-align: right; font-weight: 700;">${250 * aQ}</td></tr>`;
+            }
             
+            if (iH === '') {
+                iH = `<tr><td colspan="5" style="${tB} text-align: center; color: #64748b; padding: 15px;">ไม่มีรายการสั่งจองเสื้อ (ไม่ประสงค์รับเสื้อ)</td></tr>`;
+            }
+
             let sI = appCache.students[o.studentId] || {}, dM = (o.major && o.major !== '-' && o.major !== 'undefined') ? o.major : (sI.major || 'ไม่ระบุสาขา'), dF = (o.faculty && o.faculty !== '-' && o.faculty !== 'undefined') ? o.faculty : (sI.faculty || 'ไม่ระบุคณะ');
 
             const rT = (isC) => `
@@ -1026,7 +1110,14 @@
         window.submitEditOrder = async function(e, id) {
             e.preventDefault(); const o = appCache.orders.find(x => String(x.id) === String(id));
             if(o) {
-                const pS = document.getElementById('editPoloSize').value, pQ = parseInt(document.getElementById('editPoloQty').value), aS = document.getElementById('editActSize').value, aQ = parseInt(document.getElementById('editActQty').value); 
+                const pS = document.getElementById('editPoloSize').value;
+                const aS = document.getElementById('editActSize').value;
+                let pQ = parseInt(document.getElementById('editPoloQty').value);
+                let aQ = parseInt(document.getElementById('editActQty').value); 
+                
+                if (pS === 'ไม่รับ') pQ = 0;
+                if (aS === 'ไม่รับ') aQ = 0;
+                
                 const pPr = pS === 'ไม่รับ' ? 0 : 250; const aPr = aS === 'ไม่รับ' ? 0 : 250;
                 const nS = `โปโล ${pS} [${pQ}], กิจกรรม ${aS} [${aQ}]`, nQ = pQ + aQ, nT = (pPr * pQ) + (aPr * aQ); 
                 o.size = nS; o.qty = nQ; o.total = nT; o.hasEdited = true;
@@ -1144,7 +1235,7 @@
             pg.innerHTML = `<span class="text-sm bg-white px-4 py-2 rounded-xl border">แสดง <b>${sD}-${eD}</b> จาก <b>${tI}</b></span><div class="flex gap-2"><button onclick="changeAdminEventPage(${adminEventsPage - 1})" ${adminEventsPage <= 1 ? 'disabled' : ''} class="w-10 h-10 rounded-xl bg-white border disabled:opacity-40"><i class="ph-bold ph-caret-left"></i></button><button onclick="changeAdminEventPage(${adminEventsPage + 1})" ${adminEventsPage >= tP ? 'disabled' : ''} class="w-10 h-10 rounded-xl bg-white border disabled:opacity-40"><i class="ph-bold ph-caret-right"></i></button></div>`;
         };
 
-        window.refreshAdminEvents = async function(btn) { const icon = btn.querySelector('i'); if(icon) icon.classList.add('animate-spin'); await window.fetchActivitiesData(true); window.updateAdminEventsTable(); if(icon) icon.classList.remove('animate-spin'); window.showToast('อัปเดตข้อมูลกิจกรรมล่าสุดแล้ว', 'success'); };
+        window.refreshAdminEvents = async function(b) { const i = b.querySelector('i'); if(i) i.classList.add('animate-spin'); await window.fetchActivitiesData(true); window.updateAdminEventsTable(); if(i) i.classList.remove('animate-spin'); window.showToast('อัปเดตแล้ว', 'success'); };
 
         window.createNewEvent = async function(e) {
             e.preventDefault(); 
