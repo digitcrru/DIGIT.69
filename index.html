@@ -1363,25 +1363,31 @@
             if (orders.length === 0) { window.showToast('ไม่มีข้อมูล', 'warning'); return; }
             
             const wb = XLSX.utils.book_new();
+            
+            // กำหนดหัวคอลัมน์ตามที่ต้องการ
+            const headers = ["OrderID", "Timestamp", "StudentId", "Name", "Faculty", "Major", "Type", "Size", "Qty", "ItemsJSON", "Status", "PaymentMethod", "SlipTime", "SlipImage", "HasEdited"];
 
             // 1. ชีต "รายการทั้งหมดรวมทุกสาขา" (รวมไว้ดูภาพรวม)
-            let allSheet = [["Order ID", "เวลาที่สั่งจอง", "รหัสนักศึกษา", "ชื่อ-นามสกุล", "คณะ", "สาขาวิชา", "ประเภท", "รายละเอียดไซส์", "จำนวนรวม (ตัว)", "ยอดรวม (บาท)", "วิธีการชำระเงิน", "สถานะ"]];
+            let allSheet = [headers];
             orders.forEach(o => {
                 const sTxt = STATUS_MAP[o.status] ? STATUS_MAP[o.status].text : o.status;
-                const pMeth = o.paymentMethod === 'cash' ? 'เงินสด' : o.paymentMethod;
+                const itemsJson = typeof o.items === 'string' ? o.items : (o.items ? JSON.stringify(o.items) : '');
                 allSheet.push([
-                    o.id, 
-                    o.timestamp, 
-                    o.studentId, 
-                    o.name, 
+                    o.id || '', 
+                    o.timestamp || '', 
+                    o.studentId || '', 
+                    o.name || '', 
                     o.faculty || '-', 
                     o.major || '-', 
                     o.type || 'สั่งจองชุดเสื้อ', 
-                    o.size, 
-                    o.qty, 
-                    o.total, 
-                    pMeth, 
-                    sTxt
+                    o.size || '', 
+                    o.qty || 0, 
+                    itemsJson, 
+                    sTxt,
+                    o.paymentMethod || '',
+                    o.slipTime || '',
+                    o.slipImage || '',
+                    o.hasEdited ? 'True' : 'False'
                 ]);
             });
             XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(allSheet), "รวมทั้งหมด");
@@ -1398,24 +1404,27 @@
 
             // 3. วนลูปสร้างชีตย่อยตามสาขา
             for (const majorName in groupedByMajor) {
-                let majorSheetData = [["Order ID", "เวลาที่สั่งจอง", "รหัสนักศึกษา", "ชื่อ-นามสกุล", "คณะ", "สาขาวิชา", "ประเภท", "รายละเอียดไซส์", "จำนวนรวม (ตัว)", "ยอดรวม (บาท)", "วิธีการชำระเงิน", "สถานะ"]];
+                let majorSheetData = [headers];
                 
                 groupedByMajor[majorName].forEach(o => {
                     const sTxt = STATUS_MAP[o.status] ? STATUS_MAP[o.status].text : o.status;
-                    const pMeth = o.paymentMethod === 'cash' ? 'เงินสด' : o.paymentMethod;
+                    const itemsJson = typeof o.items === 'string' ? o.items : (o.items ? JSON.stringify(o.items) : '');
                     majorSheetData.push([
-                        o.id,                       // Order ID
-                        o.timestamp,                // เวลา
-                        o.studentId,                // รหัสนักศึกษา
-                        o.name,                     // ชื่อ-นามสกุล
-                        o.faculty || '-',           // คณะ
-                        majorName,                  // สาขาวิชา
-                        o.type || 'สั่งจองชุดเสื้อ',   // ประเภท
-                        o.size,                     // รายละเอียดไซส์
-                        o.qty,                      // จำนวนรวม (ตัว)
-                        o.total,                    // ยอดรวม
-                        pMeth,                      // วิธีการชำระเงิน
-                        sTxt                        // สถานะ
+                        o.id || '',                       // OrderID
+                        o.timestamp || '',                // Timestamp
+                        o.studentId || '',                // StudentId
+                        o.name || '',                     // Name
+                        o.faculty || '-',                 // Faculty
+                        majorName,                        // Major
+                        o.type || 'สั่งจองชุดเสื้อ',         // Type
+                        o.size || '',                     // Size
+                        o.qty || 0,                       // Qty
+                        itemsJson,                        // ItemsJSON
+                        sTxt,                             // Status
+                        o.paymentMethod || '',            // PaymentMethod
+                        o.slipTime || '',                 // SlipTime
+                        o.slipImage || '',                // SlipImage
+                        o.hasEdited ? 'True' : 'False'    // HasEdited
                     ]);
                 });
 
