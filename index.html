@@ -1080,7 +1080,7 @@
                 faculty: document.getElementById('order-faculty').value || '-', 
                 major: document.getElementById('order-major').value || '-', 
                 type: 'สั่งจองชุดเสื้อ', 
-                size: `โปโล ${pSz} [${pQty}], กิจกรรม ${aS} [${aQty}]`, 
+                size: `โปโล ${pSz} [${pQty}], กิจกรรม ${aSz} [${aQty}]`, 
                 qty: pQty + aQty, 
                 items: [
                     { name: '1. โปโลคณะ', size: pSz, qty: pQty, price: pPr, subtotal: pPr * pQty }, 
@@ -1339,7 +1339,7 @@
             });
             const tP = Object.values(sum.polo).reduce((a, b) => a + b, 0), tA = Object.values(sum.act).reduce((a, b) => a + b, 0);
 
-            c.innerHTML = `<div class="fade-in max-w-7xl mx-auto"><div class="mb-8 flex justify-between items-end"><h1 class="text-3xl font-black text-slate-800">จัดการจองเสื้อ</h1><div class="flex gap-3"><button onclick="window.print()" class="px-5 py-3 bg-white border rounded-xl font-bold hover-lift"><i class="ph-bold ph-printer"></i> พิมพ์</button><button onclick="refreshAdminOrders(this)" class="px-5 py-3 bg-primary/10 text-primary border border-primary/20 rounded-xl font-bold hover-lift"><i class="ph-bold ph-arrows-clockwise"></i> รีเฟรช</button></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10"><div class="glass rounded-3xl border overflow-hidden"><div class="p-6 bg-blue-50 border-b flex justify-between"><h2 class="text-lg font-bold flex items-center gap-3"><div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center"><i class="ph-fill ph-t-shirt text-xl"></i></div> โปโลคณะ</h2><span class="bg-white text-blue-700 px-4 py-1.5 rounded-xl border font-bold text-xs">รวม ${tP} ตัว</span></div><table class="w-full text-left"><tbody class="text-sm font-bold text-slate-700">${SIZE_LIST.map(s => `<tr class="border-b"><td class="py-4 px-6 w-1/2">ไซส์ ${s}</td><td class="py-4 px-6 text-right ${s==='ไม่รับ'?'text-red-500':''}">${sum.polo[s]} ตัว</td></tr>`).join('')}</tbody></table></div><div class="glass rounded-3xl border overflow-hidden"><div class="p-6 bg-amber-50 border-b flex justify-between"><h2 class="text-lg font-bold flex items-center gap-3"><div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center"><i class="ph-fill ph-t-shirt text-xl"></i></div> เสื้อกิจกรรม</h2><span class="bg-white text-amber-700 px-4 py-1.5 rounded-xl border font-bold text-xs">รวม ${tA} ตัว</span></div><table class="w-full text-left"><tbody class="text-sm font-bold text-slate-700">${SIZE_LIST.map(s => `<tr class="border-b"><td class="py-4 px-6 w-1/2">ไซส์ ${s}</td><td class="py-4 px-6 text-right ${s==='ไม่รับ'?'text-red-500':''}">${sum.act[s]} ตัว</td></tr>`).join('')}</tbody></table></div></div><div class="flex flex-col sm:flex-row justify-between items-center mb-5 gap-4"><h2 class="text-xl font-bold flex items-center gap-2"><i class="ph-fill ph-list-checks text-primary"></i> รายการคำสั่งซื้อทั้งหมด</h2><div class="flex flex-col sm:flex-row w-full sm:w-auto gap-3"><div class="relative w-full sm:w-64"><i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="text" id="adm-ord-search" oninput="admSearchOrders(this.value)" placeholder="ค้นหารหัส, ชื่อ, Order ID" class="w-full pl-12 pr-4 py-2.5 rounded-xl border font-medium text-sm" value="${adminOrdersSearch}"></div><button onclick="exportAdminOrdersExcel()" class="px-5 py-2.5 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-xl font-bold text-sm w-full sm:w-auto hover-lift whitespace-nowrap"><i class="ph-bold ph-file-xls"></i> โหลด Excel (แยกสาขา)</button></div></div><div class="glass rounded-3xl border overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left min-w-[1000px]"><thead class="bg-slate-50 border-b text-slate-500 text-xs uppercase"><th class="p-5">Order ID</th><th class="p-5">นักศึกษา</th><th class="p-5">สินค้า</th><th class="p-5">สถานะ</th><th class="p-5 text-center">จัดการ</th></thead><tbody id="admin-orders-tbody" class="text-sm bg-white/40"></tbody></table></div><div id="admin-orders-pagination" class="p-5 border-t flex justify-between bg-white/60"></div></div></div>`; 
+            c.innerHTML = `<div class="fade-in max-w-7xl mx-auto"><div class="mb-8 flex justify-between items-end"><h1 class="text-3xl font-black text-slate-800">จัดการจองเสื้อ</h1><div class="flex gap-3"><button onclick="window.print()" class="px-5 py-3 bg-white border rounded-xl font-bold hover-lift"><i class="ph-bold ph-printer"></i> พิมพ์</button><button onclick="refreshAdminOrders(this)" class="px-5 py-3 bg-primary/10 text-primary border border-primary/20 rounded-xl font-bold hover-lift"><i class="ph-bold ph-arrows-clockwise"></i> รีเฟรช</button></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10"><div class="glass rounded-3xl border overflow-hidden"><div class="p-6 bg-blue-50 border-b flex justify-between"><h2 class="text-lg font-bold flex items-center gap-3"><div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center"><i class="ph-fill ph-t-shirt text-xl"></i></div> โปโลคณะ</h2><span class="bg-white text-blue-700 px-4 py-1.5 rounded-xl border font-bold text-xs">รวม ${tP} ตัว</span></div><table class="w-full text-left"><tbody class="text-sm font-bold text-slate-700">${SIZE_LIST.map(s => `<tr class="border-b"><td class="py-4 px-6 w-1/2">ไซส์ ${s}</td><td class="py-4 px-6 text-right ${s==='ไม่รับ'?'text-red-500':''}">${sum.polo[s]} ตัว</td></tr>`).join('')}</tbody></table></div><div class="glass rounded-3xl border overflow-hidden"><div class="p-6 bg-amber-50 border-b flex justify-between"><h2 class="text-lg font-bold flex items-center gap-3"><div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center"><i class="ph-fill ph-t-shirt text-xl"></i></div> เสื้อกิจกรรม</h2><span class="bg-white text-amber-700 px-4 py-1.5 rounded-xl border font-bold text-xs">รวม ${tA} ตัว</span></div><table class="w-full text-left"><tbody class="text-sm font-bold text-slate-700">${SIZE_LIST.map(s => `<tr class="border-b"><td class="py-4 px-6 w-1/2">ไซส์ ${s}</td><td class="py-4 px-6 text-right ${s==='ไม่รับ'?'text-red-500':''}">${sum.act[s]} ตัว</td></tr>`).join('')}</tbody></table></div></div><div class="flex flex-col sm:flex-row justify-between items-center mb-5 gap-4"><h2 class="text-xl font-bold flex items-center gap-2"><i class="ph-fill ph-list-checks text-primary"></i> รายการคำสั่งซื้อทั้งหมด</h2><div class="flex flex-col sm:flex-row w-full sm:w-auto gap-3"><div class="relative w-full sm:w-64"><i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="text" id="adm-ord-search" oninput="admSearchOrders(this.value)" placeholder="ค้นหารหัส, ชื่อ, Order ID" class="w-full pl-12 pr-4 py-2.5 rounded-xl border font-medium text-sm" value="${adminOrdersSearch}"></div><button onclick="exportAdminOrdersExcel()" class="px-5 py-2.5 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-xl font-bold text-sm w-full sm:w-auto hover-lift whitespace-nowrap"><i class="ph-bold ph-file-xls"></i> โหลด Excel (แยกสาขา)</button></div></div><div class="glass rounded-3xl border overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left min-w-[1000px]"><thead class="bg-slate-50 border-b text-slate-500 text-xs uppercase"><th class="p-5">Order ID</th><th class="p-5">นักศึกษา</th><th class="p-5">สินค้า</th><th class="p-5">ยอดรวม</th><th class="p-5">สถานะ</th><th class="p-5 text-center">จัดการ</th></thead><tbody id="admin-orders-tbody" class="text-sm bg-white/40"></tbody></table></div><div id="admin-orders-pagination" class="p-5 border-t flex justify-between bg-white/60"></div></div></div>`; 
             window.updateAdminOrdersTable();
         };
 
@@ -1350,8 +1350,8 @@
             const tI = ods.length, tP = Math.ceil(tI / adminOrdersPerPage) || 1; if (adminOrdersPage > tP) adminOrdersPage = tP; if (adminOrdersPage < 1) adminOrdersPage = 1;
             const pO = ods.slice((adminOrdersPage - 1) * adminOrdersPerPage, adminOrdersPage * adminOrdersPerPage);
             let h = '';
-            if (pO.length === 0) { h = `<tr><td colspan="5" class="p-12 text-center text-slate-400">ไม่มีรายการ</td></tr>`; } 
-            else { pO.forEach(o => { const s = STATUS_MAP[o.status], pB = `<span class="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg text-[10px] font-bold border inline-flex mx-auto">เงินสด</span>`; let op = ''; for(let i=1; i<=4; i++) op += `<option value="${i}" ${o.status===i?'selected':''}>${STATUS_MAP[i].text}</option>`; h += `<tr class="border-b hover:bg-white"><td class="p-5"><p class="font-bold font-mono">${o.id}</p><p class="text-[10px] text-slate-400">${o.timestamp}</p></td><td class="p-5"><p class="font-bold">${o.name}</p><p class="text-xs text-slate-500">${o.studentId}</p></td><td class="p-5"><p class="font-bold bg-slate-100 px-2 py-1 rounded inline-block mb-1">${o.type}</p><p class="text-xs">${o.size}</p></td><td class="p-5"><span class="${s.color} px-4 py-2 rounded-xl text-xs font-bold border inline-flex items-center gap-1.5"><i class="ph-bold ${s.icon}"></i> ${s.text}</span></td><td class="p-5 text-center"><div class="flex flex-col items-center gap-2">${pB}<select onchange="updateOrderStatus('${o.id}', this.value)" class="text-xs font-bold border rounded-xl px-3 py-2.5 cursor-pointer">${op}</select><button onclick="openSlipModal('${o.id}')" class="text-[11px] font-bold text-slate-400 underline">ดูใบเสร็จ</button></div></td></tr>`; }); }
+            if (pO.length === 0) { h = `<tr><td colspan="6" class="p-12 text-center text-slate-400">ไม่มีรายการ</td></tr>`; } 
+            else { pO.forEach(o => { const s = STATUS_MAP[o.status], pB = `<span class="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg text-[10px] font-bold border inline-flex mx-auto">เงินสด</span>`; let op = ''; for(let i=1; i<=4; i++) op += `<option value="${i}" ${o.status===i?'selected':''}>${STATUS_MAP[i].text}</option>`; h += `<tr class="border-b hover:bg-white"><td class="p-5"><p class="font-bold font-mono">${o.id}</p><p class="text-[10px] text-slate-400">${o.timestamp}</p></td><td class="p-5"><p class="font-bold">${o.name}</p><p class="text-xs text-slate-500">${o.studentId}</p></td><td class="p-5"><p class="font-bold bg-slate-100 px-2 py-1 rounded inline-block mb-1">${o.type}</p><p class="text-xs">${o.size}</p></td><td class="p-5 font-bold text-primary text-base">฿${Number(o.total || 0).toLocaleString('th-TH')}</td><td class="p-5"><span class="${s.color} px-4 py-2 rounded-xl text-xs font-bold border inline-flex items-center gap-1.5"><i class="ph-bold ${s.icon}"></i> ${s.text}</span></td><td class="p-5 text-center"><div class="flex flex-col items-center gap-2">${pB}<select onchange="updateOrderStatus('${o.id}', this.value)" class="text-xs font-bold border rounded-xl px-3 py-2.5 cursor-pointer">${op}</select><button onclick="openSlipModal('${o.id}')" class="text-[11px] font-bold text-slate-400 underline">ดูใบเสร็จ</button></div></td></tr>`; }); }
             tb.innerHTML = h; const sD = tI === 0 ? 0 : ((adminOrdersPage - 1) * adminOrdersPerPage) + 1, eD = Math.min(adminOrdersPage * adminOrdersPerPage, tI);
             pg.innerHTML = `<span class="text-sm font-medium bg-white px-4 py-2 rounded-xl border">แสดง <b>${sD}-${eD}</b> จาก <b>${tI}</b></span><div class="flex gap-2"><button onclick="changeAdminOrdersPage(${adminOrdersPage - 1})" ${adminOrdersPage <= 1 ? 'disabled' : ''} class="w-10 h-10 flex justify-center items-center rounded-xl border bg-white disabled:opacity-40"><i class="ph-bold ph-caret-left"></i></button><button onclick="changeAdminOrdersPage(${adminOrdersPage + 1})" ${adminOrdersPage >= tP ? 'disabled' : ''} class="w-10 h-10 flex justify-center items-center rounded-xl border bg-white disabled:opacity-40"><i class="ph-bold ph-caret-right"></i></button></div>`;
         };
@@ -1365,11 +1365,24 @@
             const wb = XLSX.utils.book_new();
 
             // 1. ชีต "รายการทั้งหมดรวมทุกสาขา" (รวมไว้ดูภาพรวม)
-            let allSheet = [["เวลา", "สาขาวิชา", "รหัสนักศึกษา", "ชื่อ-นามสกุล", "รายการ", "ยอดรวม", "วิธีการชำระเงิน", "สถานะ"]];
+            let allSheet = [["Order ID", "เวลาที่สั่งจอง", "รหัสนักศึกษา", "ชื่อ-นามสกุล", "คณะ", "สาขาวิชา", "ประเภท", "รายละเอียดไซส์", "จำนวนรวม (ตัว)", "ยอดรวม (บาท)", "วิธีการชำระเงิน", "สถานะ"]];
             orders.forEach(o => {
                 const sTxt = STATUS_MAP[o.status] ? STATUS_MAP[o.status].text : o.status;
                 const pMeth = o.paymentMethod === 'cash' ? 'เงินสด' : o.paymentMethod;
-                allSheet.push([o.timestamp, o.major, o.studentId, o.name, o.size, o.total, pMeth, sTxt]);
+                allSheet.push([
+                    o.id, 
+                    o.timestamp, 
+                    o.studentId, 
+                    o.name, 
+                    o.faculty || '-', 
+                    o.major || '-', 
+                    o.type || 'สั่งจองชุดเสื้อ', 
+                    o.size, 
+                    o.qty, 
+                    o.total, 
+                    pMeth, 
+                    sTxt
+                ]);
             });
             XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(allSheet), "รวมทั้งหมด");
 
@@ -1385,21 +1398,24 @@
 
             // 3. วนลูปสร้างชีตย่อยตามสาขา
             for (const majorName in groupedByMajor) {
-                // กำหนดหัวคอลัมน์ตามที่คุณต้องการ: สาขาวิชา,รหัสนักศึกษา,ชื่อ-นามสกุล,รายการ,ยอดรวม,วิธีการชำระเงิน,สถานะ,เวลา
-                let majorSheetData = [["สาขาวิชา", "รหัสนักศึกษา", "ชื่อ-นามสกุล", "รายการ", "ยอดรวม", "วิธีการชำระเงิน", "สถานะ", "เวลา"]];
+                let majorSheetData = [["Order ID", "เวลาที่สั่งจอง", "รหัสนักศึกษา", "ชื่อ-นามสกุล", "คณะ", "สาขาวิชา", "ประเภท", "รายละเอียดไซส์", "จำนวนรวม (ตัว)", "ยอดรวม (บาท)", "วิธีการชำระเงิน", "สถานะ"]];
                 
                 groupedByMajor[majorName].forEach(o => {
                     const sTxt = STATUS_MAP[o.status] ? STATUS_MAP[o.status].text : o.status;
                     const pMeth = o.paymentMethod === 'cash' ? 'เงินสด' : o.paymentMethod;
                     majorSheetData.push([
-                        majorName,         // สาขาวิชา
-                        o.studentId,       // รหัสนักศึกษา
-                        o.name,            // ชื่อ-นามสกุล
-                        o.size,            // รายการ
-                        o.total,           // ยอดรวม
-                        pMeth,             // วิธีการชำระเงิน
-                        sTxt,              // สถานะ
-                        o.timestamp        // เวลา
+                        o.id,                       // Order ID
+                        o.timestamp,                // เวลา
+                        o.studentId,                // รหัสนักศึกษา
+                        o.name,                     // ชื่อ-นามสกุล
+                        o.faculty || '-',           // คณะ
+                        majorName,                  // สาขาวิชา
+                        o.type || 'สั่งจองชุดเสื้อ',   // ประเภท
+                        o.size,                     // รายละเอียดไซส์
+                        o.qty,                      // จำนวนรวม (ตัว)
+                        o.total,                    // ยอดรวม
+                        pMeth,                      // วิธีการชำระเงิน
+                        sTxt                        // สถานะ
                     ]);
                 });
 
@@ -1669,12 +1685,137 @@
             const oD = sF ? appCache.orders : await window.fetchOrdersData();
             
             const tJ = aD.reduce((s, e) => s + (parseInt(e.joined) || 0), 0), pR = tJ > 0 ? Math.round((cI.length / tJ) * 100) : 0;
-            let h = `<div class="fade-in"><div class="mb-8"><h1 class="text-3xl font-black text-slate-800">ภาพรวมระบบ</h1></div><div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10"><div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-indigo-100 text-indigo-600 p-4 rounded-2xl"><i class="ph-fill ph-flag-banner text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">กิจกรรมทั้งหมด</p><p class="text-2xl font-black">${aD.length}</p></div></div><div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-pink-100 text-pink-600 p-4 rounded-2xl"><i class="ph-fill ph-users-three text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">ลงทะเบียน</p><p class="text-2xl font-black">${tJ}</p></div></div><div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-emerald-100 text-emerald-600 p-4 rounded-2xl"><i class="ph-fill ph-check-square-offset text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">เช็คชื่อจริง</p><p class="text-2xl font-black">${cI.length}</p></div></div><div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-amber-100 text-amber-600 p-4 rounded-2xl"><i class="ph-fill ph-chart-line-up text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">อัตราเข้าร่วม</p><p class="text-2xl font-black">${pR}%</p></div></div></div><h2 class="text-xl font-bold mb-4">สรุปผู้เข้าร่วม</h2><div id="dash-events-list"></div><div id="dash-events-pagination" class="mt-6 mb-10 flex justify-between glass p-5 rounded-2xl"></div><h2 class="text-xl font-bold mb-4">ยอดสั่งจองเสื้อ</h2><div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10"><div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-blue-100 text-blue-600 p-4 rounded-2xl"><i class="ph-fill ph-shopping-bag text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">ทั้งหมด</p><p class="text-2xl font-black">${oD.length}</p></div></div><div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-amber-100 text-amber-600 p-4 rounded-2xl"><i class="ph-fill ph-warning-circle text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">รอตรวจสอบ</p><p class="text-2xl font-black">${oD.filter(o=>o.status===1).length}</p></div></div><div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-emerald-100 text-emerald-600 p-4 rounded-2xl"><i class="ph-fill ph-check-circle text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">พร้อมรับ</p><p class="text-2xl font-black">${oD.filter(o=>o.status!==1).length}</p></div></div><div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-purple-100 text-purple-600 p-4 rounded-2xl"><i class="ph-fill ph-money text-2xl"></i></div><div class="min-w-0"><p class="text-xs font-bold text-slate-500">เงินรวม</p><p class="text-lg sm:text-2xl font-black truncate">฿${oD.reduce((s,o)=>s+(Number(o.total)||0),0).toLocaleString()}</p></div></div></div><div class="grid grid-cols-1 lg:grid-cols-3 gap-6"><div class="glass p-6 rounded-[32px] border"><h3 class="font-black text-lg mb-6">สัดส่วนสถานะ</h3><div class="relative h-56 w-full"><canvas id="statusChart"></canvas></div></div><div class="glass rounded-[32px] border overflow-hidden lg:col-span-2"><div class="p-6 border-b bg-slate-50 flex justify-between"><h3 class="font-black text-lg">รอดำเนินการล่าสุด</h3><button onclick="navigate('admin-orders')" class="text-sm text-primary font-bold">ดูทั้งหมด</button></div><div class="overflow-x-auto"><table class="w-full text-left"><thead class="bg-slate-50 text-slate-400 text-xs uppercase border-b"><th class="p-4">Order ID</th><th class="p-4">นักศึกษา</th><th class="p-4">สถานะ</th><th class="p-4 text-right">จัดการ</th></thead><tbody class="text-sm">`;
+            
+            // Calculate Order Stats
+            const totalOrders = oD.length;
+            const pendingOrders = oD.filter(o=>o.status===1).length;
+            let totalShirts = 0;
+            let totalMoney = 0;
+            
+            oD.forEach(o => {
+                // คำนวณยอดเงินรวม (รองรับทั้งรูปแบบตัวเลขและสตริงที่มีลูกน้ำ/ตัวหนังสือ)
+                let rawTotal = String(o.total || '0').replace(/,/g, '').replace(/[^\d.-]/g, '');
+                let parsedTotal = parseFloat(rawTotal);
+                if (!isNaN(parsedTotal)) {
+                    totalMoney += parsedTotal;
+                }
+
+                // คำนวณจำนวนเสื้อ
+                let qty = parseInt(o.qty);
+                if (!isNaN(qty) && qty > 0) {
+                    totalShirts += qty;
+                } else {
+                    let sZ = String(o.size || '');
+                    let pM = sZ.match(/\[(\d+)\]/g);
+                    if (pM) pM.forEach(m => {
+                        let parsedQty = parseInt(m.replace(/\[|\]/g, ''));
+                        if(!isNaN(parsedQty)) totalShirts += parsedQty;
+                    });
+                }
+            });
+
+            let h = `<div class="fade-in">
+                <div class="mb-8"><h1 class="text-3xl font-black text-slate-800">ภาพรวมระบบ</h1></div>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+                    <div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-indigo-100 text-indigo-600 p-4 rounded-2xl"><i class="ph-fill ph-flag-banner text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">กิจกรรมทั้งหมด</p><p class="text-2xl font-black">${aD.length}</p></div></div>
+                    <div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-pink-100 text-pink-600 p-4 rounded-2xl"><i class="ph-fill ph-users-three text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">ลงทะเบียน</p><p class="text-2xl font-black">${tJ}</p></div></div>
+                    <div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-emerald-100 text-emerald-600 p-4 rounded-2xl"><i class="ph-fill ph-check-square-offset text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">เช็คชื่อจริง</p><p class="text-2xl font-black">${cI.length}</p></div></div>
+                    <div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-amber-100 text-amber-600 p-4 rounded-2xl"><i class="ph-fill ph-chart-line-up text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">อัตราเข้าร่วม</p><p class="text-2xl font-black">${pR}%</p></div></div>
+                </div>
+                
+                <h2 class="text-xl font-bold mb-4">สรุปผู้เข้าร่วม</h2>
+                <div id="dash-events-list"></div>
+                <div id="dash-events-pagination" class="mt-6 mb-10 flex justify-between glass p-5 rounded-2xl"></div>
+                
+                <h2 class="text-xl font-bold mb-4">ยอดสั่งจองเสื้อ</h2>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+                    <div class="glass p-5 rounded-[24px] border flex flex-col justify-center">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="bg-blue-100 text-blue-600 p-2.5 rounded-xl"><i class="ph-fill ph-shopping-bag text-xl"></i></div>
+                            <p class="text-xs font-bold text-slate-500">ออเดอร์รวม</p>
+                        </div>
+                        <p class="text-2xl font-black text-slate-800">${totalOrders}</p>
+                    </div>
+                    <div class="glass p-5 rounded-[24px] border flex flex-col justify-center">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="bg-indigo-100 text-indigo-600 p-2.5 rounded-xl"><i class="ph-fill ph-t-shirt text-xl"></i></div>
+                            <p class="text-xs font-bold text-slate-500">จำนวนเสื้อ</p>
+                        </div>
+                        <p class="text-2xl font-black text-slate-800">${totalShirts} <span class="text-sm font-medium text-slate-500">ตัว</span></p>
+                    </div>
+                    <div class="glass p-5 rounded-[24px] border flex flex-col justify-center">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="bg-amber-100 text-amber-600 p-2.5 rounded-xl"><i class="ph-fill ph-warning-circle text-xl"></i></div>
+                            <p class="text-xs font-bold text-slate-500">รอตรวจสอบ</p>
+                        </div>
+                        <p class="text-2xl font-black text-slate-800">${pendingOrders}</p>
+                    </div>
+                    <div class="glass p-5 rounded-[24px] border flex flex-col justify-center">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="bg-emerald-100 text-emerald-600 p-2.5 rounded-xl"><i class="ph-fill ph-money text-xl"></i></div>
+                            <p class="text-xs font-bold text-slate-500">ยอดเงินรวม</p>
+                        </div>
+                        <p class="text-xl sm:text-2xl font-black text-slate-800 truncate" title="฿${totalMoney.toLocaleString('th-TH')}">฿${totalMoney.toLocaleString('th-TH')}</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="glass p-6 rounded-[32px] border">
+                        <h3 class="font-black text-lg mb-6">สัดส่วนสถานะ</h3>
+                        <div class="relative h-56 w-full"><canvas id="statusChart"></canvas></div>
+                    </div>
+                    <div class="glass rounded-[32px] border overflow-hidden lg:col-span-2">
+                        <div class="p-6 border-b bg-slate-50 flex justify-between"><h3 class="font-black text-lg">รอดำเนินการล่าสุด</h3><button onclick="navigate('admin-orders')" class="text-sm text-primary font-bold">ดูทั้งหมด</button></div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-slate-50 text-slate-400 text-xs uppercase border-b"><th class="p-4">Order ID</th><th class="p-4">นักศึกษา</th><th class="p-4">ยอดรวม</th><th class="p-4">สถานะ</th><th class="p-4 text-right">จัดการ</th></thead>
+                                <tbody class="text-sm">`;
+                                
             const pL = oD.filter(o => o.status === 1).slice(0, 4);
-            if (pL.length === 0) { h += `<tr><td colspan="4" class="p-10 text-center text-slate-400">ไม่มีรายการ</td></tr>`; } 
-            else { pL.forEach(o => { const s = STATUS_MAP[o.status]; h += `<tr class="border-b hover:bg-white"><td class="p-4 font-bold font-mono">${o.id}</td><td class="p-4 font-medium text-slate-600">${o.studentId}</td><td class="p-4"><span class="${s.color} px-2 py-1 rounded-md text-xs font-bold border">${s.text}</span></td><td class="p-4 text-right"><button onclick="openSlipModal('${o.id}')" class="px-4 py-2 bg-admin text-white rounded-xl text-xs font-bold">ตรวจสอบ</button></td></tr>`; }); }
-            h += `</tbody></table></div></div></div></div>`; c.innerHTML = h; window.updateDashboardEventsList();
-            setTimeout(() => { const ctx = document.getElementById('statusChart'); if (ctx) { new Chart(ctx.getContext('2d'), { type: 'doughnut', data: { labels: ['รอตรวจสอบ', 'ชำระเงินแล้ว', 'กำลังผลิต', 'พร้อมรับ'], datasets: [{ data: [oD.filter(o=>o.status===1).length, oD.filter(o=>o.status===2).length, oD.filter(o=>o.status===3).length, oD.filter(o=>o.status===4).length], backgroundColor: ['#fcd34d', '#34d399', '#a855f7', '#60a5fa'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'bottom' } } } }); } }, 100);
+            if (pL.length === 0) { h += `<tr><td colspan="5" class="p-10 text-center text-slate-400">ไม่มีรายการ</td></tr>`; } 
+            else { 
+                pL.forEach(o => { 
+                    const s = STATUS_MAP[o.status]; 
+                    h += `<tr class="border-b hover:bg-white"><td class="p-4 font-bold font-mono">${o.id}</td><td class="p-4 font-medium text-slate-600">${o.studentId}</td><td class="p-4 font-bold text-primary">฿${Number(o.total || 0).toLocaleString('th-TH')}</td><td class="p-4"><span class="${s.color} px-2 py-1 rounded-md text-xs font-bold border">${s.text}</span></td><td class="p-4 text-right"><button onclick="openSlipModal('${o.id}')" class="px-4 py-2 bg-admin text-white rounded-xl text-xs font-bold">ตรวจสอบ</button></td></tr>`; 
+                }); 
+            }
+            h += `              </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>`; 
+            
+            c.innerHTML = h; 
+            window.updateDashboardEventsList();
+            
+            setTimeout(() => { 
+                const ctx = document.getElementById('statusChart'); 
+                if (ctx) { 
+                    new Chart(ctx.getContext('2d'), { 
+                        type: 'doughnut', 
+                        data: { 
+                            labels: ['รอตรวจสอบ', 'ชำระเงินแล้ว', 'กำลังผลิต', 'พร้อมรับ'], 
+                            datasets: [{ 
+                                data: [
+                                    oD.filter(o=>o.status===1).length, 
+                                    oD.filter(o=>o.status===2).length, 
+                                    oD.filter(o=>o.status===3).length, 
+                                    oD.filter(o=>o.status===4).length
+                                ], 
+                                backgroundColor: ['#fcd34d', '#34d399', '#a855f7', '#60a5fa'], 
+                                borderWidth: 0 
+                            }] 
+                        }, 
+                        options: { 
+                            responsive: true, 
+                            maintainAspectRatio: false, 
+                            cutout: '75%', 
+                            plugins: { legend: { position: 'bottom' } } 
+                        } 
+                    }); 
+                } 
+            }, 100);
         };
 
         window.updateDashboardEventsList = function() {
