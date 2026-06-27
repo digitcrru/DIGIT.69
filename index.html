@@ -1193,11 +1193,15 @@
             if (aSz === 'ไม่รับ') aQ = 0;
 
             let id = 1;
+            let sumTotal = 0;
+            
             if (pQ > 0 && pSz !== 'ไม่รับ') {
-                iH += `<tr><td style="${tB} text-align: center;">${id++}</td><td style="${tB}"><b>1. เสื้อโปโลคณะ</b> <span style="font-size: 11px; color: #475569; margin-left: 8px;">(Size: ${pSz})</span></td><td style="${tB} text-align: center;">${pQ}</td><td style="${tB} text-align: right;">250</td><td style="${tB} text-align: right; font-weight: 700;">${250 * pQ}</td></tr>`;
+                let subP = 250 * pQ; sumTotal += subP;
+                iH += `<tr><td style="${tB} text-align: center;">${id++}</td><td style="${tB}"><b>1. เสื้อโปโลคณะ</b> <span style="font-size: 11px; color: #475569; margin-left: 8px;">(Size: ${pSz})</span></td><td style="${tB} text-align: center;">${pQ}</td><td style="${tB} text-align: right;">250</td><td style="${tB} text-align: right; font-weight: 700;">${subP.toLocaleString()}</td></tr>`;
             }
             if (aQ > 0 && aSz !== 'ไม่รับ') {
-                iH += `<tr><td style="${tB} text-align: center;">${id++}</td><td style="${tB}"><b>2. เสื้อกิจกรรม</b> <span style="font-size: 11px; color: #475569; margin-left: 8px;">(Size: ${aSz})</span></td><td style="${tB} text-align: center;">${aQ}</td><td style="${tB} text-align: right;">250</td><td style="${tB} text-align: right; font-weight: 700;">${250 * aQ}</td></tr>`;
+                let subA = 250 * aQ; sumTotal += subA;
+                iH += `<tr><td style="${tB} text-align: center;">${id++}</td><td style="${tB}"><b>2. เสื้อกิจกรรม</b> <span style="font-size: 11px; color: #475569; margin-left: 8px;">(Size: ${aSz})</span></td><td style="${tB} text-align: center;">${aQ}</td><td style="${tB} text-align: right;">250</td><td style="${tB} text-align: right; font-weight: 700;">${subA.toLocaleString()}</td></tr>`;
             }
             
             if (iH === '') {
@@ -1220,7 +1224,7 @@
                         </div>
                         <table style="width: 100%; border-collapse: collapse; border: 2px solid #1e293b;">
                             <thead><tr style="background-color: #f1f5f9;"><th style="${tB} text-align: center;">ลำดับ</th><th style="${tB}">รายการสินค้า</th><th style="${tB} text-align: center;">จำนวน</th><th style="${tB} text-align: right;">หน่วยละ</th><th style="${tB} text-align: right;">จำนวนเงิน</th></tr></thead>
-                            <tbody>${iH}<tr><td colspan="4" style="border: 1px solid #1e293b; padding: 10px; text-align: right; font-weight: 700;">รวมเงินสุทธิ</td><td style="border: 1px solid #1e293b; padding: 10px; text-align: right; font-weight: 900; font-size: 16px;">${o.total}</td></tr></tbody>
+                            <tbody>${iH}<tr><td colspan="4" style="border: 1px solid #1e293b; padding: 10px; text-align: right; font-weight: 700;">รวมเงินสุทธิ</td><td style="border: 1px solid #1e293b; padding: 10px; text-align: right; font-weight: 900; font-size: 16px;">${sumTotal.toLocaleString()}</td></tr></tbody>
                         </table>
                     </div>
                     <div style="margin-top: auto; padding-top: 20px;">
