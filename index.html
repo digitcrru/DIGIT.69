@@ -267,26 +267,26 @@
             if (sessionStorage.getItem('isAdminAuthenticated')) currentAdminRole = sessionStorage.getItem('currentAdminRole') || 'superadmin';
         });
 
-        window.initVisitorCounter = function() {
-            let localCount = parseInt(localStorage.getItem('CRRU_VisitCount_V2') || 0);
-            if (!sessionStorage.getItem('CRRU_SessionVisited_V2')) {
-                localCount += 1;
-                localStorage.setItem('CRRU_VisitCount_V2', localCount);
-                sessionStorage.setItem('CRRU_SessionVisited_V2', 'true');
-            }
+        window.initVisitorCounter = async function() {
             const counterEl = document.getElementById('global-visitor-count');
-            if (counterEl) {
-                let current = 0;
-                const totalVisitors = localCount;
-                const increment = Math.ceil(totalVisitors / 10) || 1;
-                const timer = setInterval(() => {
-                    current += increment;
-                    if (current >= totalVisitors) {
-                        current = totalVisitors;
-                        clearInterval(timer);
-                    }
-                    counterEl.innerText = current.toLocaleString();
-                }, 30);
+            if (!counterEl) return;
+            
+            // เช็คว่าเคยเข้าเว็บในรอบ (Session) นี้แล้วหรือยัง
+            const isNewVisit = !sessionStorage.getItem('CRRU_SessionVisited_RealTime');
+            counterEl.innerText = "กำลังโหลด...";
+            
+            try {
+                // เรียกใช้ API ใหม่ โดยส่งสถานะไปบอกด้วยว่าเป็นผู้ใช้ใหม่หรือไม่
+                const response = await window.apiCall('GET', { action: 'getVisitorCount', newVisit: isNewVisit });
+                
+                if (response.success && response.count !== undefined && response.count > 0) {
+                    if (isNewVisit) sessionStorage.setItem('CRRU_SessionVisited_RealTime', 'true');
+                    counterEl.innerText = response.count.toLocaleString();
+                } else {
+                    counterEl.innerText = "ยังไม่มีผู้เข้าชม";
+                }
+            } catch (e) {
+                counterEl.innerText = "ไม่สามารถเชื่อมต่อได้";
             }
         };
 
@@ -363,7 +363,24 @@
                         i.openTime = stParts[1] || '';
                         i.closeTime = stParts[2] || '';
                     }); 
-                    appCache.activities = a.data; 
+                    // เรียงข้อมูลตามวันที่ของกิจกรรม (property `rawDate`) จากน้อยไปหามาก
+                    appCache.activities = a.data.sort((a, b) => {
+                        // สร้าง Date object จาก string รูปแบบ YYYY-MM-DD
+                        const dateA = new Date(a.rawDate);
+                        const dateB = new Date(b.rawDate);
+                        
+                        // ในกรณีที่ไม่มีรูปแบบวันที่ที่ถูกต้อง
+                        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) {
+                            return 0;
+                        } else if (isNaN(dateA.getTime())) {
+                            return 1; // ให้ a อยู่ข้างล่าง b
+                        } else if (isNaN(dateB.getTime())) {
+                            return -1; // ให้ b อยู่ข้างล่าง a
+                        }
+                        
+                        // เรียงจากน้อยไปหามาก (ascending)
+                        return dateA.getTime() - dateB.getTime();
+                    }); 
                 } 
                 return appCache.activities; 
             } catch (e) { return appCache.activities || []; } 
@@ -843,14 +860,14 @@
             let h = `
                 <div class="fade-in max-w-4xl mx-auto"><div class="mb-8 text-center sm:text-left"><h1 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">ประวัติเข้าร่วมกิจกรรม</h1><p class="text-base text-slate-500 mt-2 font-medium">ตรวจสอบประวัติกิจกรรมที่เคยเข้าร่วม</p></div>
                 <div class="glass rounded-[32px] shadow-sm border border-white/60 p-8 sm:p-10 mb-8"><label class="block text-sm font-bold text-slate-700 mb-3">รหัสนักศึกษา หรือ หมายเลขบัตรประชาชน</label>
-                <div class="flex flex-col gap-4">
+                <div class="flex flex-col sm:flex-row gap-4">
                     <div class="relative w-full">
                         <div class="absolute inset-y-0 left-0 flex items-center pl-5 pointer-events-none"><i class="ph-fill ph-identification-card text-slate-400 text-xl"></i></div>
                         <input type="text" id="search-history-id" class="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 bg-white font-bold shadow-sm outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all" placeholder="กรอกรหัส หรือ บัตรปชช." value="${sId}" onkeypress="if(event.key==='Enter') fetchHistoryData()">
                     </div>
-                    <div class="flex gap-2 w-full">
-                        <button onclick="fetchHistoryData()" id="btn-fetch-history" class="w-full px-8 py-4 bg-slate-800 text-white text-base font-bold rounded-2xl hover:bg-black transition-colors shadow-lg shadow-slate-800/20 flex items-center justify-center gap-2"><i class="ph-bold ph-magnifying-glass text-lg"></i> ค้นหา</button>
-                        ${isS ? `<button onclick="clearHistorySearch()" class="w-16 px-0 py-4 bg-red-50 text-red-600 text-lg font-bold rounded-2xl border border-red-100 hover:bg-red-100 transition-colors flex items-center justify-center shrink-0"><i class="ph-bold ph-x"></i></button>` : ''}
+                    <div class="flex gap-2 w-full sm:w-auto shrink-0">
+                        <button onclick="fetchHistoryData()" id="btn-fetch-history" class="flex-1 sm:flex-none px-8 py-4 bg-slate-800 text-white text-base font-bold rounded-2xl hover:bg-black transition-colors shadow-lg shadow-slate-800/20 flex items-center justify-center gap-2"><i class="ph-bold ph-magnifying-glass text-lg"></i> ค้นหา</button>
+                        ${isS ? `<button onclick="clearHistorySearch()" class="px-5 py-4 bg-red-50 text-red-600 text-lg font-bold rounded-2xl border border-red-100 hover:bg-red-100 transition-colors flex items-center justify-center"><i class="ph-bold ph-x"></i></button>` : ''}
                     </div>
                 </div></div>`;
             
@@ -1063,7 +1080,7 @@
                 faculty: document.getElementById('order-faculty').value || '-', 
                 major: document.getElementById('order-major').value || '-', 
                 type: 'สั่งจองชุดเสื้อ', 
-                size: `โปโล ${pSz} [${pQty}], กิจกรรม ${aSz} [${aQty}]`, 
+                size: `โปโล ${pSz} [${pQty}], กิจกรรม ${aS} [${aQty}]`, 
                 qty: pQty + aQty, 
                 items: [
                     { name: '1. โปโลคณะ', size: pSz, qty: pQty, price: pPr, subtotal: pPr * pQty }, 
@@ -1142,7 +1159,7 @@
             const t = window.formatThaiDate(new Date(), true); 
             currentCheckoutOrder.status = 1; currentCheckoutOrder.paymentMethod = 'cash'; currentCheckoutOrder.timestamp = t; currentCheckoutOrder.date = t; currentCheckoutOrder.slipTime = ''; currentCheckoutOrder.slipImage = '';
             const pL = { action: 'createOrder', orderId: currentCheckoutOrder.id, studentId: currentCheckoutOrder.studentId, name: currentCheckoutOrder.name, faculty: currentCheckoutOrder.faculty || '-', major: currentCheckoutOrder.major || '-', type: currentCheckoutOrder.type, size: currentCheckoutOrder.size, qty: currentCheckoutOrder.qty, total: currentCheckoutOrder.total, paymentMethod: 'cash', timestamp: t, slipTime: '', slipImage: '' };
-            try { await window.apiCall('POST', pL); window.showToast('บันทึกเรียบร้อย!', 'success'); } catch (err) { window.showToast('บันึก (Offline)', 'warning'); }
+            try { await window.apiCall('POST', pL); window.showToast('บันทึกเรียบร้อย!', 'success'); } catch (err) { window.showToast('บันทึก (Offline)', 'warning'); }
             appCache.orders.unshift(currentCheckoutOrder); window.navigate('tracking'); 
         };
 
@@ -1652,7 +1669,7 @@
             const oD = sF ? appCache.orders : await window.fetchOrdersData();
             
             const tJ = aD.reduce((s, e) => s + (parseInt(e.joined) || 0), 0), pR = tJ > 0 ? Math.round((cI.length / tJ) * 100) : 0;
-            let h = `<div class="fade-in"><div class="mb-8"><h1 class="text-3xl font-black text-slate-800">ภาพรวมระบบ</h1></div><div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10"><div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-indigo-100 text-indigo-600 p-4 rounded-2xl"><i class="ph-fill ph-flag-banner text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">กิจกรรมทั้งหมด</p><p class="text-2xl font-black">${aD.length}</p></div></div><div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-pink-100 text-pink-600 p-4 rounded-2xl"><i class="ph-fill ph-users-three text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">ลงทะเบียน</p><p class="text-2xl font-black">${tJ}</p></div></div><div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-emerald-100 text-emerald-600 p-4 rounded-2xl"><i class="ph-fill ph-check-square-offset text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">เช็คชื่อจริง</p><p class="text-2xl font-black">${cI.length}</p></div></div><div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-amber-100 text-amber-600 p-4 rounded-2xl"><i class="ph-fill ph-chart-line-up text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">อัตราเข้าร่วม</p><p class="text-2xl font-black">${pR}%</p></div></div></div><h2 class="text-xl font-bold mb-4">สรุปผู้เข้าร่วม</h2><div id="dash-events-list"></div><div id="dash-events-pagination" class="mt-6 mb-10 flex justify-between glass p-5 rounded-2xl"></div><h2 class="text-xl font-bold mb-4">ยอดสั่งจองเสื้อ</h2><div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10"><div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-blue-100 text-blue-600 p-4 rounded-2xl"><i class="ph-fill ph-shopping-bag text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">ทั้งหมด</p><p class="text-2xl font-black">${oD.length}</p></div></div><div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-amber-100 text-amber-600 p-4 rounded-2xl"><i class="ph-fill ph-warning-circle text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">รอตรวจสอบ</p><p class="text-2xl font-black">${oD.filter(o=>o.status===1).length}</p></div></div><div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-emerald-100 text-emerald-600 p-4 rounded-2xl"><i class="ph-fill ph-check-circle text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">พร้อมรับ</p><p class="text-2xl font-black">${oD.filter(o=>o.status!==1).length}</p></div></div><div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-purple-100 text-purple-600 p-4 rounded-2xl"><i class="ph-fill ph-money text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">เงินรวม</p><p class="text-lg sm:text-2xl font-black">฿${oD.reduce((s,o)=>s+o.total,0).toLocaleString()}</p></div></div></div><div class="grid grid-cols-1 lg:grid-cols-3 gap-6"><div class="glass p-6 rounded-[32px] border"><h3 class="font-black text-lg mb-6">สัดส่วนสถานะ</h3><div class="relative h-56 w-full"><canvas id="statusChart"></canvas></div></div><div class="glass rounded-[32px] border overflow-hidden lg:col-span-2"><div class="p-6 border-b bg-slate-50 flex justify-between"><h3 class="font-black text-lg">รอดำเนินการล่าสุด</h3><button onclick="navigate('admin-orders')" class="text-sm text-primary font-bold">ดูทั้งหมด</button></div><div class="overflow-x-auto"><table class="w-full text-left"><thead class="bg-slate-50 text-slate-400 text-xs uppercase border-b"><th class="p-4">Order ID</th><th class="p-4">นักศึกษา</th><th class="p-4">สถานะ</th><th class="p-4 text-right">จัดการ</th></thead><tbody class="text-sm">`;
+            let h = `<div class="fade-in"><div class="mb-8"><h1 class="text-3xl font-black text-slate-800">ภาพรวมระบบ</h1></div><div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10"><div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-indigo-100 text-indigo-600 p-4 rounded-2xl"><i class="ph-fill ph-flag-banner text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">กิจกรรมทั้งหมด</p><p class="text-2xl font-black">${aD.length}</p></div></div><div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-pink-100 text-pink-600 p-4 rounded-2xl"><i class="ph-fill ph-users-three text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">ลงทะเบียน</p><p class="text-2xl font-black">${tJ}</p></div></div><div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-emerald-100 text-emerald-600 p-4 rounded-2xl"><i class="ph-fill ph-check-square-offset text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">เช็คชื่อจริง</p><p class="text-2xl font-black">${cI.length}</p></div></div><div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-amber-100 text-amber-600 p-4 rounded-2xl"><i class="ph-fill ph-chart-line-up text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">อัตราเข้าร่วม</p><p class="text-2xl font-black">${pR}%</p></div></div></div><h2 class="text-xl font-bold mb-4">สรุปผู้เข้าร่วม</h2><div id="dash-events-list"></div><div id="dash-events-pagination" class="mt-6 mb-10 flex justify-between glass p-5 rounded-2xl"></div><h2 class="text-xl font-bold mb-4">ยอดสั่งจองเสื้อ</h2><div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10"><div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-blue-100 text-blue-600 p-4 rounded-2xl"><i class="ph-fill ph-shopping-bag text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">ทั้งหมด</p><p class="text-2xl font-black">${oD.length}</p></div></div><div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-amber-100 text-amber-600 p-4 rounded-2xl"><i class="ph-fill ph-warning-circle text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">รอตรวจสอบ</p><p class="text-2xl font-black">${oD.filter(o=>o.status===1).length}</p></div></div><div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-emerald-100 text-emerald-600 p-4 rounded-2xl"><i class="ph-fill ph-check-circle text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">พร้อมรับ</p><p class="text-2xl font-black">${oD.filter(o=>o.status!==1).length}</p></div></div><div class="glass p-6 rounded-[24px] border flex gap-4"><div class="bg-purple-100 text-purple-600 p-4 rounded-2xl"><i class="ph-fill ph-money text-2xl"></i></div><div class="min-w-0"><p class="text-xs font-bold text-slate-500">เงินรวม</p><p class="text-lg sm:text-2xl font-black truncate">฿${oD.reduce((s,o)=>s+(Number(o.total)||0),0).toLocaleString()}</p></div></div></div><div class="grid grid-cols-1 lg:grid-cols-3 gap-6"><div class="glass p-6 rounded-[32px] border"><h3 class="font-black text-lg mb-6">สัดส่วนสถานะ</h3><div class="relative h-56 w-full"><canvas id="statusChart"></canvas></div></div><div class="glass rounded-[32px] border overflow-hidden lg:col-span-2"><div class="p-6 border-b bg-slate-50 flex justify-between"><h3 class="font-black text-lg">รอดำเนินการล่าสุด</h3><button onclick="navigate('admin-orders')" class="text-sm text-primary font-bold">ดูทั้งหมด</button></div><div class="overflow-x-auto"><table class="w-full text-left"><thead class="bg-slate-50 text-slate-400 text-xs uppercase border-b"><th class="p-4">Order ID</th><th class="p-4">นักศึกษา</th><th class="p-4">สถานะ</th><th class="p-4 text-right">จัดการ</th></thead><tbody class="text-sm">`;
             const pL = oD.filter(o => o.status === 1).slice(0, 4);
             if (pL.length === 0) { h += `<tr><td colspan="4" class="p-10 text-center text-slate-400">ไม่มีรายการ</td></tr>`; } 
             else { pL.forEach(o => { const s = STATUS_MAP[o.status]; h += `<tr class="border-b hover:bg-white"><td class="p-4 font-bold font-mono">${o.id}</td><td class="p-4 font-medium text-slate-600">${o.studentId}</td><td class="p-4"><span class="${s.color} px-2 py-1 rounded-md text-xs font-bold border">${s.text}</span></td><td class="p-4 text-right"><button onclick="openSlipModal('${o.id}')" class="px-4 py-2 bg-admin text-white rounded-xl text-xs font-bold">ตรวจสอบ</button></td></tr>`; }); }
