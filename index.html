@@ -212,7 +212,6 @@
     <!-- Toast Container -->
     <div id="toast-container" class="fixed bottom-24 md:bottom-8 right-4 md:right-8 z-[160] flex flex-col gap-3 w-auto max-w-[90%] pointer-events-none"></div>
 
-    <!-- MAIN SCRIPT -->
     <script>
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCPFTT76JLJLo3cNjTDNXQPbofR3AmVEPxCOD9yzdW_73yFy92d-Q0OHAu26DgsA7x/exec';
         
@@ -226,6 +225,7 @@
         let promptPaySettings = JSON.parse(localStorage.getItem('CRRU_PromptPaySettings')) || { accountName: 'ฝ่ายกิจการนักศึกษา', accountNumber: '012-3-45678-9', bankName: 'ธ.กรุงไทย' };
         let parsedAdminUsers = null; try { parsedAdminUsers = JSON.parse(localStorage.getItem('CRRU_AdminUsers')); } catch(e) {}
         let adminUsers = Array.isArray(parsedAdminUsers) ? parsedAdminUsers : [{ id: '1', user: 'D.crru', pass: '9999', role: 'superadmin' }];
+        let globalVisitorCount = parseInt(localStorage.getItem('CRRU_VisitorCount')) || 0;
         
         const NAV_STUDENT = [ 
             { id: 'events', label: 'กิจกรรม', tabLabel: 'กิจกรรม', icon: 'ph-megaphone' }, 
@@ -249,7 +249,9 @@
         const SIZE_LIST = ['XS','S','M','L','XL','2XL','3XL','4XL','5XL','6XL','ไม่รับ'];
 
         document.addEventListener('DOMContentLoaded', () => {
-            window.initVisitorCounter(); 
+            const counterEl = document.getElementById('global-visitor-count');
+            if (counterEl) counterEl.innerText = "...";
+
             window.proceedSwitchRole('student');
             window.fetchSettingsData().then(() => { 
                 if (!sessionStorage.getItem('homePopupShown') && currentRole === 'student') { 
@@ -266,29 +268,6 @@
             window.fetchEvaluationsData();
             if (sessionStorage.getItem('isAdminAuthenticated')) currentAdminRole = sessionStorage.getItem('currentAdminRole') || 'superadmin';
         });
-
-        window.initVisitorCounter = async function() {
-            const counterEl = document.getElementById('global-visitor-count');
-            if (!counterEl) return;
-            
-            // เช็คว่าเคยเข้าเว็บในรอบ (Session) นี้แล้วหรือยัง
-            const isNewVisit = !sessionStorage.getItem('CRRU_SessionVisited_RealTime');
-            counterEl.innerText = "กำลังโหลด...";
-            
-            try {
-                // เรียกใช้ API ใหม่ โดยส่งสถานะไปบอกด้วยว่าเป็นผู้ใช้ใหม่หรือไม่
-                const response = await window.apiCall('GET', { action: 'getVisitorCount', newVisit: isNewVisit });
-                
-                if (response.success && response.count !== undefined && response.count > 0) {
-                    if (isNewVisit) sessionStorage.setItem('CRRU_SessionVisited_RealTime', 'true');
-                    counterEl.innerText = response.count.toLocaleString();
-                } else {
-                    counterEl.innerText = "ยังไม่มีผู้เข้าชม";
-                }
-            } catch (e) {
-                counterEl.innerText = "ไม่สามารถเชื่อมต่อได้";
-            }
-        };
 
         window.apiCall = async function(m, p = {}) {
             try {
@@ -317,6 +296,26 @@
                     if(r.data.promptPaySettings) promptPaySettings = r.data.promptPaySettings;
                     if(r.data.adminUsers && Array.isArray(r.data.adminUsers)) adminUsers = r.data.adminUsers;
                     
+                    // จัดการสถิติการเข้าชมระบบ และบันทึกลง Settings
+                    globalVisitorCount = parseInt(r.data.visitorCount) || 0;
+                    const isNewVisit = !sessionStorage.getItem('CRRU_SessionVisited_RealTime');
+                    if (isNewVisit) {
+                        globalVisitorCount += 1;
+                        sessionStorage.setItem('CRRU_SessionVisited_RealTime', 'true');
+                        // ส่งค่ากลับไปบันทึกที่ Settings ใน Apps Script
+                        window.apiCall('POST', { 
+                            action: 'saveSettings', 
+                            isShirtShopOpen: isShirtShopOpen, 
+                            popupSettings: popupSettings, 
+                            adminUsers: adminUsers,
+                            visitorCount: globalVisitorCount
+                        }).catch(()=>{});
+                    }
+                    
+                    const counterEl = document.getElementById('global-visitor-count');
+                    if (counterEl) counterEl.innerText = globalVisitorCount.toLocaleString();
+                    localStorage.setItem('CRRU_VisitorCount', globalVisitorCount.toString());
+
                     localStorage.setItem('CRRU_ShopOpen', isShirtShopOpen ? 'true' : 'false'); 
                     localStorage.setItem('CRRU_PopupSettings', JSON.stringify(popupSettings)); 
                     localStorage.setItem('CRRU_AdminUsers', JSON.stringify(adminUsers));
@@ -333,7 +332,10 @@
                         if(currentRole === 'student') window.renderNav(); 
                     }
                 }
-            } catch(e) {}
+            } catch(e) {
+                const counterEl = document.getElementById('global-visitor-count');
+                if (counterEl) counterEl.innerText = globalVisitorCount.toLocaleString();
+            }
         };
 
         window.fetchActivitiesData = async function(f=false) { 
@@ -352,33 +354,22 @@
                 } 
                 if (a.success && a.data) { 
                     a.data.forEach(i => { 
-                        i.rawDate = i.date; // เก็บค่า Raw Date เดิมไว้ไม่ให้โดนเขียนทับ
+                        i.rawDate = i.date; 
                         i.date = window.formatThaiDate(i.date); 
                         i.timestamp = window.formatThaiDate(i.timestamp, true); 
                         i.joined = ct[i.title.trim()] || 0; 
 
-                        // แยกสถานะออกจากเวลา
                         let stParts = String(i.status || 'open').split('|');
                         i.status = stParts[0] === 'closed' ? 'closed' : 'open';
                         i.openTime = stParts[1] || '';
                         i.closeTime = stParts[2] || '';
                     }); 
-                    // เรียงข้อมูลตามวันที่ของกิจกรรม (property `rawDate`) จากน้อยไปหามาก
                     appCache.activities = a.data.sort((a, b) => {
-                        // สร้าง Date object จาก string รูปแบบ YYYY-MM-DD
                         const dateA = new Date(a.rawDate);
                         const dateB = new Date(b.rawDate);
-                        
-                        // ในกรณีที่ไม่มีรูปแบบวันที่ที่ถูกต้อง
-                        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) {
-                            return 0;
-                        } else if (isNaN(dateA.getTime())) {
-                            return 1; // ให้ a อยู่ข้างล่าง b
-                        } else if (isNaN(dateB.getTime())) {
-                            return -1; // ให้ b อยู่ข้างล่าง a
-                        }
-                        
-                        // เรียงจากน้อยไปหามาก (ascending)
+                        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+                        else if (isNaN(dateA.getTime())) return 1; 
+                        else if (isNaN(dateB.getTime())) return -1;
                         return dateA.getTime() - dateB.getTime();
                     }); 
                 } 
@@ -455,7 +446,11 @@
         window.toggleMobileMenu = function() { document.getElementById('mobile-menu').classList.toggle('hidden'); };
         
         window.navigate = function(vId, p = null) {
-            currentView = vId; window.renderNav(); const c = document.getElementById('app-content'); window.scrollTo(0, 0);
+            currentView = vId; window.renderNav(); 
+            const c = document.getElementById('app-content'); 
+            if (!c) return;
+            window.scrollTo(0, 0);
+            
             try {
                 if (currentRole === 'student') {
                     if (vId === 'events') window.renderEvents(c); 
@@ -474,7 +469,9 @@
                     else if (vId === 'admin-settings') window.renderAdminSettings(c); 
                     else if (vId === 'admin-event-participants') window.renderAdminEventParticipants(c, p);
                 }
-            } catch (err) { c.innerHTML = `<div class="p-8 text-center text-red-500 font-bold bg-red-50 rounded-2xl mt-10">เกิดข้อผิดพลาด</div>`; }
+            } catch (err) { 
+                if(c) c.innerHTML = `<div class="p-8 text-center text-red-500 font-bold bg-red-50 rounded-2xl mt-10">เกิดข้อผิดพลาด</div>`; 
+            }
         };
 
         window.getGokuLoader = function(t = 'กำลังโหลด...') { 
@@ -493,7 +490,9 @@
         };
 
         window.showToast = function(m, t = 'success') { 
-            const c = document.getElementById('toast-container'), to = document.createElement('div'); 
+            const c = document.getElementById('toast-container');
+            if(!c) return;
+            const to = document.createElement('div'); 
             const bgC = t === 'success' ? 'bg-white border-l-[5px] border-emerald-500' : t === 'error' ? 'bg-white border-l-[5px] border-red-500' : 'bg-white border-l-[5px] border-amber-500'; 
             const ic = t === 'success' ? '<div class="p-2 bg-emerald-50 rounded-full"><i class="ph-fill ph-check-circle text-emerald-500 text-xl"></i></div>' : t === 'error' ? '<div class="p-2 bg-red-50 rounded-full"><i class="ph-fill ph-x-circle text-red-500 text-xl"></i></div>' : '<div class="p-2 bg-amber-50 rounded-full"><i class="ph-fill ph-warning-circle text-amber-500 text-xl"></i></div>'; 
             to.className = `${bgC} text-slate-700 p-3 pr-5 rounded-2xl shadow-xl flex items-center gap-3 transform transition-all duration-400 translate-x-full pointer-events-auto`; 
@@ -661,17 +660,17 @@
                     h += `<div class="col-span-full text-center py-20 glass rounded-[32px]"><i class="ph-fill ph-calendar-x text-5xl text-slate-300"></i><p class="text-slate-600 font-bold text-xl mt-4">ยังไม่มีกิจกรรมที่เปิดรับสมัคร</p></div>`; 
                 } else { 
                     oA.forEach(e => { 
-                        let sT = 'เปิดรับสมัคร', sC = 'bg-emerald-50 text-emerald-600 border-emerald-200/50', bH = `<button onclick="navigate('register', '${e.id}')" class="w-full py-4 rounded-2xl font-bold flex justify-center items-center gap-2 btn-gradient text-white shadow-lg">ลงทะเบียน <i class="ph-bold ph-arrow-right"></i></button>`;
+                        let sT = 'เปิดลงทะเบียน', sC = 'bg-emerald-50 text-emerald-600 border-emerald-200/50', bH = `<button onclick="navigate('register', '${e.id}')" class="w-full py-4 rounded-2xl font-bold flex justify-center items-center gap-2 btn-gradient text-white shadow-lg">ลงทะเบียน <i class="ph-bold ph-arrow-right"></i></button>`;
 
                         if (e.openTime && now < new Date(e.openTime)) {
-                            sT = 'ยังไม่เปิดรับสมัคร'; sC = 'bg-amber-50 text-amber-600 border-amber-200/50';
+                            sT = 'ยังไม่เปิดลงทะเบียน'; sC = 'bg-amber-50 text-amber-600 border-amber-200/50';
                             bH = `<button disabled class="w-full py-4 rounded-2xl font-bold flex justify-center items-center gap-2 bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200 shadow-sm"><i class="ph-bold ph-clock"></i> เปิด: ${window.formatThaiDate(e.openTime, true)}</button>`;
                         } else if (e.closeTime && now > new Date(e.closeTime)) {
                             sT = 'หมดเวลา'; sC = 'bg-rose-50 text-rose-600 border-rose-200/50';
-                            bH = `<button disabled class="w-full py-4 rounded-2xl font-bold flex justify-center items-center gap-2 bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200 shadow-sm"><i class="ph-bold ph-x-circle"></i> ปิดรับสมัครแล้ว</button>`;
+                            bH = `<button disabled class="w-full py-4 rounded-2xl font-bold flex justify-center items-center gap-2 bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200 shadow-sm"><i class="ph-bold ph-x-circle"></i> ปิดลงทะเบียนแล้ว</button>`;
                         } else if (e.status === 'closed') {
-                            sT = 'ปิดรับสมัครชั่วคราว'; sC = 'bg-slate-100 text-slate-500 border-slate-200';
-                            bH = `<button disabled class="w-full py-4 rounded-2xl font-bold flex justify-center items-center gap-2 bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200 shadow-sm"><i class="ph-bold ph-lock-key"></i> ปิดรับสมัคร</button>`;
+                            sT = 'ปิดลงทะเบียนชั่วคราว'; sC = 'bg-slate-100 text-slate-500 border-slate-200';
+                            bH = `<button disabled class="w-full py-4 rounded-2xl font-bold flex justify-center items-center gap-2 bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200 shadow-sm"><i class="ph-bold ph-lock-key"></i> ปิดลงทะเบียน</button>`;
                         }
 
                         h += `<div class="glass hover-lift rounded-[32px] flex flex-col p-7 border"><div class="flex justify-between items-start mb-5 gap-4"><h3 class="text-xl font-bold leading-snug">${e.title}</h3><span class="${sC} border text-[10px] font-bold px-3 py-1.5 rounded-full whitespace-nowrap">${sT}</span></div><div class="space-y-3 mt-auto mb-8 text-sm text-slate-600 font-medium"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary"><i class="ph-fill ph-calendar-blank"></i></div> ${e.date}</div><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary"><i class="ph-fill ph-map-pin"></i></div> <span class="truncate">${e.location}</span></div></div><div class="mt-4 mb-6 px-5 py-4 bg-slate-50 rounded-2xl border flex justify-between items-center"><span class="text-xs font-bold text-slate-500 uppercase">ผู้ลงทะเบียน</span><span class="text-base font-black text-primary">${e.joined} <span class="text-xs font-bold text-slate-400">คน</span></span></div>${bH}</div>`; 
@@ -686,9 +685,9 @@
             const e = appCache.activities.find(x => String(x.id) === String(id)) || { title: 'กิจกรรม', id: id }; 
             
             const now = new Date();
-            if (e.openTime && now < new Date(e.openTime)) { window.showToast('ยังไม่ถึงเวลาเปิดรับสมัคร', 'warning'); return window.navigate('events'); }
+            if (e.openTime && now < new Date(e.openTime)) { window.showToast('ยังไม่ถึงเวลาเปิดลงทะเบียน', 'warning'); return window.navigate('events'); }
             if (e.closeTime && now > new Date(e.closeTime)) { window.showToast('หมดเวลาลงทะเบียนแล้ว', 'error'); return window.navigate('events'); }
-            if (e.status === 'closed') { window.showToast('กิจกรรมนี้ถูกปิดรับสมัครชั่วคราว', 'error'); return window.navigate('events'); }
+            if (e.status === 'closed') { window.showToast('กิจกรรมนี้ถูกปิดลงทะเบียนชั่วคราว', 'error'); return window.navigate('events'); }
 
             c.innerHTML = `
                 <div class="fade-in max-w-2xl mx-auto"><button onclick="navigate('events')" class="flex items-center gap-2 text-slate-500 hover:text-primary mb-6 font-bold text-sm bg-white/50 px-4 py-2 rounded-xl glass hover-lift"><i class="ph-bold ph-arrow-left text-lg"></i> กลับไปหน้ากิจกรรม</button><div class="glass rounded-[32px] shadow-xl overflow-hidden border border-white/60"><div class="bg-gradient-to-br from-primary/5 to-transparent p-8 sm:p-10 border-b border-slate-100/50"><div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-primary text-3xl mb-5"><i class="ph-fill ph-calendar-check"></i></div><h2 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">ลงทะเบียนกิจกรรม</h2><p class="text-primary font-bold mt-2 leading-snug">${e.title}</p></div><div class="p-8 sm:p-10 bg-white/40"><div id="step-search" class="mb-2"><label class="block text-sm font-bold text-slate-700 mb-3">ระบุรหัสนักศึกษา หรือ หมายเลขบัตรประชาชน</label>
@@ -1306,15 +1305,15 @@
             e.preventDefault(); const o = appCache.orders.find(x => String(x.id) === String(id));
             if(o) {
                 const pS = document.getElementById('editPoloSize').value;
-                const aS = document.getElementById('editActSize').value;
+                const aSz = document.getElementById('editActSize').value;
                 let pQ = parseInt(document.getElementById('editPoloQty').value);
                 let aQ = parseInt(document.getElementById('editActQty').value); 
                 
                 if (pS === 'ไม่รับ') pQ = 0;
-                if (aS === 'ไม่รับ') aQ = 0;
+                if (aSz === 'ไม่รับ') aQ = 0;
                 
-                const pPr = pS === 'ไม่รับ' ? 0 : 250; const aPr = aS === 'ไม่รับ' ? 0 : 250;
-                const nS = `โปโล ${pS} [${pQ}], กิจกรรม ${aS} [${aQ}]`, nQ = pQ + aQ, nT = (pPr * pQ) + (aPr * aQ); 
+                const pPr = pS === 'ไม่รับ' ? 0 : 250; const aPr = aSz === 'ไม่รับ' ? 0 : 250;
+                const nS = `โปโล ${pS} [${pQ}], กิจกรรม ${aSz} [${aQ}]`, nQ = pQ + aQ, nT = (pPr * pQ) + (aPr * aQ); 
                 o.size = nS; o.qty = nQ; o.total = nT; o.hasEdited = true;
                 window.apiCall('POST', { action: 'updateOrder', orderId: String(id), size: nS, qty: nQ, total: nT, hasEdited: true }); 
                 window.showToast('อัปเดตสำเร็จ!', 'success'); window.navigate('tracking');
@@ -1339,7 +1338,10 @@
             });
             const tP = Object.values(sum.polo).reduce((a, b) => a + b, 0), tA = Object.values(sum.act).reduce((a, b) => a + b, 0);
 
-            c.innerHTML = `<div class="fade-in max-w-7xl mx-auto"><div class="mb-8 flex justify-between items-end"><h1 class="text-3xl font-black text-slate-800">จัดการจองเสื้อ</h1><div class="flex gap-3"><button onclick="window.print()" class="px-5 py-3 bg-white border rounded-xl font-bold hover-lift"><i class="ph-bold ph-printer"></i> พิมพ์</button><button onclick="refreshAdminOrders(this)" class="px-5 py-3 bg-primary/10 text-primary border border-primary/20 rounded-xl font-bold hover-lift"><i class="ph-bold ph-arrows-clockwise"></i> รีเฟรช</button></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10"><div class="glass rounded-3xl border overflow-hidden"><div class="p-6 bg-blue-50 border-b flex justify-between"><h2 class="text-lg font-bold flex items-center gap-3"><div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center"><i class="ph-fill ph-t-shirt text-xl"></i></div> โปโลคณะ</h2><span class="bg-white text-blue-700 px-4 py-1.5 rounded-xl border font-bold text-xs">รวม ${tP} ตัว</span></div><table class="w-full text-left"><tbody class="text-sm font-bold text-slate-700">${SIZE_LIST.map(s => `<tr class="border-b"><td class="py-4 px-6 w-1/2">ไซส์ ${s}</td><td class="py-4 px-6 text-right ${s==='ไม่รับ'?'text-red-500':''}">${sum.polo[s]} ตัว</td></tr>`).join('')}</tbody></table></div><div class="glass rounded-3xl border overflow-hidden"><div class="p-6 bg-amber-50 border-b flex justify-between"><h2 class="text-lg font-bold flex items-center gap-3"><div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center"><i class="ph-fill ph-t-shirt text-xl"></i></div> เสื้อกิจกรรม</h2><span class="bg-white text-amber-700 px-4 py-1.5 rounded-xl border font-bold text-xs">รวม ${tA} ตัว</span></div><table class="w-full text-left"><tbody class="text-sm font-bold text-slate-700">${SIZE_LIST.map(s => `<tr class="border-b"><td class="py-4 px-6 w-1/2">ไซส์ ${s}</td><td class="py-4 px-6 text-right ${s==='ไม่รับ'?'text-red-500':''}">${sum.act[s]} ตัว</td></tr>`).join('')}</tbody></table></div></div><div class="flex flex-col sm:flex-row justify-between items-center mb-5 gap-4"><h2 class="text-xl font-bold flex items-center gap-2"><i class="ph-fill ph-list-checks text-primary"></i> รายการคำสั่งซื้อทั้งหมด</h2><div class="flex flex-col sm:flex-row w-full sm:w-auto gap-3"><div class="relative w-full sm:w-64"><i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="text" id="adm-ord-search" oninput="admSearchOrders(this.value)" placeholder="ค้นหารหัส, ชื่อ, Order ID" class="w-full pl-12 pr-4 py-2.5 rounded-xl border font-medium text-sm" value="${adminOrdersSearch}"></div><button onclick="exportAdminOrdersExcel()" class="px-5 py-2.5 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-xl font-bold text-sm w-full sm:w-auto hover-lift whitespace-nowrap"><i class="ph-bold ph-file-xls"></i> โหลด Excel (แยกสาขา)</button></div></div><div class="glass rounded-3xl border overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left min-w-[1000px]"><thead class="bg-slate-50 border-b text-slate-500 text-xs uppercase"><th class="p-5">Order ID</th><th class="p-5">นักศึกษา</th><th class="p-5">สินค้า</th><th class="p-5">ยอดรวม</th><th class="p-5">สถานะ</th><th class="p-5 text-center">จัดการ</th></thead><tbody id="admin-orders-tbody" class="text-sm bg-white/40"></tbody></table></div><div id="admin-orders-pagination" class="p-5 border-t flex justify-between bg-white/60"></div></div></div>`; 
+            const activePoloSizes = SIZE_LIST.filter(s => sum.polo[s] > 0);
+            const activeActSizes = SIZE_LIST.filter(s => sum.act[s] > 0);
+
+            c.innerHTML = `<div class="fade-in max-w-7xl mx-auto"><div class="mb-8 flex justify-between items-end"><h1 class="text-3xl font-black text-slate-800">จัดการจองเสื้อ</h1><div class="flex gap-3"><button onclick="window.print()" class="px-5 py-3 bg-white border rounded-xl font-bold hover-lift"><i class="ph-bold ph-printer"></i> พิมพ์</button><button onclick="refreshAdminOrders(this)" class="px-5 py-3 bg-primary/10 text-primary border border-primary/20 rounded-xl font-bold hover-lift"><i class="ph-bold ph-arrows-clockwise"></i> รีเฟรช</button></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10"><div class="glass rounded-3xl border overflow-hidden"><div class="p-6 bg-blue-50 border-b flex justify-between"><h2 class="text-lg font-bold flex items-center gap-3"><div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center"><i class="ph-fill ph-t-shirt text-xl"></i></div> โปโลคณะ</h2><span class="bg-white text-blue-700 px-4 py-1.5 rounded-xl border font-bold text-xs">รวม ${tP} ตัว</span></div><table class="w-full text-left"><tbody class="text-sm font-bold text-slate-700">${activePoloSizes.length > 0 ? activePoloSizes.map(s => `<tr class="border-b"><td class="py-4 px-6 w-1/2">ไซส์ ${s}</td><td class="py-4 px-6 text-right">${sum.polo[s]} ตัว</td></tr>`).join('') : `<tr><td colspan="2" class="py-6 text-center text-slate-400">ยังไม่มีข้อมูล</td></tr>`}</tbody></table></div><div class="glass rounded-3xl border overflow-hidden"><div class="p-6 bg-amber-50 border-b flex justify-between"><h2 class="text-lg font-bold flex items-center gap-3"><div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center"><i class="ph-fill ph-t-shirt text-xl"></i></div> เสื้อกิจกรรม</h2><span class="bg-white text-amber-700 px-4 py-1.5 rounded-xl border font-bold text-xs">รวม ${tA} ตัว</span></div><table class="w-full text-left"><tbody class="text-sm font-bold text-slate-700">${activeActSizes.length > 0 ? activeActSizes.map(s => `<tr class="border-b"><td class="py-4 px-6 w-1/2">ไซส์ ${s}</td><td class="py-4 px-6 text-right">${sum.act[s]} ตัว</td></tr>`).join('') : `<tr><td colspan="2" class="py-6 text-center text-slate-400">ยังไม่มีข้อมูล</td></tr>`}</tbody></table></div></div><div class="flex flex-col sm:flex-row justify-between items-center mb-5 gap-4"><h2 class="text-xl font-bold flex items-center gap-2"><i class="ph-fill ph-list-checks text-primary"></i> รายการคำสั่งซื้อทั้งหมด</h2><div class="flex flex-col sm:flex-row w-full sm:w-auto gap-3"><div class="relative w-full sm:w-64"><i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="text" id="adm-ord-search" oninput="admSearchOrders(this.value)" placeholder="ค้นหารหัส, ชื่อ, Order ID" class="w-full pl-12 pr-4 py-2.5 rounded-xl border font-medium text-sm" value="${adminOrdersSearch}"></div><button onclick="exportAdminOrdersExcel()" class="px-5 py-2.5 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-xl font-bold text-sm w-full sm:w-auto hover-lift whitespace-nowrap"><i class="ph-bold ph-file-xls"></i> โหลด Excel (แยกสาขา)</button></div></div><div class="glass rounded-3xl border overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left min-w-[1000px]"><thead class="bg-slate-50 border-b text-slate-500 text-xs uppercase"><th class="p-5">Order ID</th><th class="p-5">นักศึกษา</th><th class="p-5">สินค้า</th><th class="p-5">ยอดรวม</th><th class="p-5">สถานะ</th><th class="p-5 text-center">จัดการ</th></thead><tbody id="admin-orders-tbody" class="text-sm bg-white/40"></tbody></table></div><div id="admin-orders-pagination" class="p-5 border-t flex justify-between bg-white/60"></div></div></div>`; 
             window.updateAdminOrdersTable();
         };
 
@@ -1351,7 +1353,7 @@
             const pO = ods.slice((adminOrdersPage - 1) * adminOrdersPerPage, adminOrdersPage * adminOrdersPerPage);
             let h = '';
             if (pO.length === 0) { h = `<tr><td colspan="6" class="p-12 text-center text-slate-400">ไม่มีรายการ</td></tr>`; } 
-            else { pO.forEach(o => { const s = STATUS_MAP[o.status], pB = `<span class="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg text-[10px] font-bold border inline-flex mx-auto">เงินสด</span>`; let op = ''; for(let i=1; i<=4; i++) op += `<option value="${i}" ${o.status===i?'selected':''}>${STATUS_MAP[i].text}</option>`; h += `<tr class="border-b hover:bg-white"><td class="p-5"><p class="font-bold font-mono">${o.id}</p><p class="text-[10px] text-slate-400">${o.timestamp}</p></td><td class="p-5"><p class="font-bold">${o.name}</p><p class="text-xs text-slate-500">${o.studentId}</p></td><td class="p-5"><p class="font-bold bg-slate-100 px-2 py-1 rounded inline-block mb-1">${o.type}</p><p class="text-xs">${o.size}</p></td><td class="p-5 font-bold text-primary text-base">฿${Number(o.total || 0).toLocaleString('th-TH')}</td><td class="p-5"><span class="${s.color} px-4 py-2 rounded-xl text-xs font-bold border inline-flex items-center gap-1.5"><i class="ph-bold ${s.icon}"></i> ${s.text}</span></td><td class="p-5 text-center"><div class="flex flex-col items-center gap-2">${pB}<select onchange="updateOrderStatus('${o.id}', this.value)" class="text-xs font-bold border rounded-xl px-3 py-2.5 cursor-pointer">${op}</select><button onclick="openSlipModal('${o.id}')" class="text-[11px] font-bold text-slate-400 underline">ดูใบเสร็จ</button></div></td></tr>`; }); }
+            else { pO.forEach(o => { const s = STATUS_MAP[o.status], pB = `<span class="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg text-[10px] font-bold border inline-flex mx-auto">เงินสด</span>`; let op = ''; for(let i=1; i<=4; i++) op += `<option value="${i}" ${o.status===i?'selected':''}>${STATUS_MAP[i].text}</option>`; h += `<tr class="border-b hover:bg-white"><td class="p-5"><p class="font-bold font-mono">${o.id}</p><p class="text-[10px] text-slate-400">${o.timestamp}</p></td><td class="p-5"><p class="font-bold">${o.name}</p><p class="text-xs text-slate-500">${o.studentId}</p></td><td class="p-5"><p class="font-bold bg-slate-100 px-2 py-1 rounded inline-block mb-1">${o.type}</p><p class="text-xs">${o.size}</p></td><td class="p-5 font-bold text-primary text-base">฿${Number(o.total || 0).toLocaleString('th-TH')}</td><td class="p-5"><span class="${s.color} px-4 py-2 rounded-xl text-xs font-bold border inline-flex items-center gap-1.5"><i class="ph-bold ${s.icon}"></i> ${s.text}</span></td><td class="p-5 text-center"><div class="flex flex-col items-center gap-2">${pB}<select onchange="updateOrderStatus('${o.id}', this.value)" class="text-xs font-bold border rounded-xl px-3 py-2.5 cursor-pointer">${op}</select></div></td></tr>`; }); }
             tb.innerHTML = h; const sD = tI === 0 ? 0 : ((adminOrdersPage - 1) * adminOrdersPerPage) + 1, eD = Math.min(adminOrdersPage * adminOrdersPerPage, tI);
             pg.innerHTML = `<span class="text-sm font-medium bg-white px-4 py-2 rounded-xl border">แสดง <b>${sD}-${eD}</b> จาก <b>${tI}</b></span><div class="flex gap-2"><button onclick="changeAdminOrdersPage(${adminOrdersPage - 1})" ${adminOrdersPage <= 1 ? 'disabled' : ''} class="w-10 h-10 flex justify-center items-center rounded-xl border bg-white disabled:opacity-40"><i class="ph-bold ph-caret-left"></i></button><button onclick="changeAdminOrdersPage(${adminOrdersPage + 1})" ${adminOrdersPage >= tP ? 'disabled' : ''} class="w-10 h-10 flex justify-center items-center rounded-xl border bg-white disabled:opacity-40"><i class="ph-bold ph-caret-right"></i></button></div>`;
         };
@@ -1364,10 +1366,8 @@
             
             const wb = XLSX.utils.book_new();
             
-            // กำหนดหัวคอลัมน์ตามที่ต้องการ
             const headers = ["OrderID", "Timestamp", "StudentId", "Name", "Faculty", "Major", "Type", "Size", "Qty", "ItemsJSON", "Status", "PaymentMethod", "SlipTime", "SlipImage", "HasEdited"];
 
-            // 1. ชีต "รายการทั้งหมดรวมทุกสาขา" (รวมไว้ดูภาพรวม)
             let allSheet = [headers];
             orders.forEach(o => {
                 const sTxt = STATUS_MAP[o.status] ? STATUS_MAP[o.status].text : o.status;
@@ -1392,7 +1392,6 @@
             });
             XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(allSheet), "รวมทั้งหมด");
 
-            // 2. จัดกลุ่มข้อมูลแยกตามสาขา (Group by Major)
             const groupedByMajor = orders.reduce((acc, o) => {
                 const major = (o.major && String(o.major).trim() !== '' && o.major !== '-') ? String(o.major).trim() : 'ไม่ระบุสาขา';
                 if (!acc[major]) {
@@ -1402,7 +1401,6 @@
                 return acc;
             }, {});
 
-            // 3. วนลูปสร้างชีตย่อยตามสาขา
             for (const majorName in groupedByMajor) {
                 let majorSheetData = [headers];
                 
@@ -1410,29 +1408,26 @@
                     const sTxt = STATUS_MAP[o.status] ? STATUS_MAP[o.status].text : o.status;
                     const itemsJson = typeof o.items === 'string' ? o.items : (o.items ? JSON.stringify(o.items) : '');
                     majorSheetData.push([
-                        o.id || '',                       // OrderID
-                        o.timestamp || '',                // Timestamp
-                        o.studentId || '',                // StudentId
-                        o.name || '',                     // Name
-                        o.faculty || '-',                 // Faculty
-                        majorName,                        // Major
-                        o.type || 'สั่งจองชุดเสื้อ',         // Type
-                        o.size || '',                     // Size
-                        o.qty || 0,                       // Qty
-                        itemsJson,                        // ItemsJSON
-                        sTxt,                             // Status
-                        o.paymentMethod || '',            // PaymentMethod
-                        o.slipTime || '',                 // SlipTime
-                        o.slipImage || '',                // SlipImage
-                        o.hasEdited ? 'True' : 'False'    // HasEdited
+                        o.id || '',                       
+                        o.timestamp || '',                
+                        o.studentId || '',                
+                        o.name || '',                     
+                        o.faculty || '-',                 
+                        majorName,                        
+                        o.type || 'สั่งจองชุดเสื้อ',         
+                        o.size || '',                     
+                        o.qty || 0,                       
+                        itemsJson,                        
+                        sTxt,                             
+                        o.paymentMethod || '',            
+                        o.slipTime || '',                 
+                        o.slipImage || '',                
+                        o.hasEdited ? 'True' : 'False'    
                     ]);
                 });
 
-                // สร้างแผ่นงาน (Sheet) ใหม่ โดยตั้งชื่อชีตตามชื่อสาขา
-                // หมายเหตุ: Excel จำกัดชื่อชีตไว้ที่ไม่เกิน 31 ตัวอักษร
                 let safeSheetName = majorName.substring(0, 31);
                 
-                // กันกรณีชื่อชีตซ้ำกันหลังถูกตัดคำ
                 if (wb.SheetNames.includes(safeSheetName)) {
                      safeSheetName = safeSheetName.substring(0, 27) + "..." + Math.floor(Math.random() * 10);
                 }
@@ -1441,7 +1436,6 @@
                 XLSX.utils.book_append_sheet(wb, ws, safeSheetName);
             }
 
-            // บันทึกไฟล์และโหลดลงเครื่อง
             XLSX.writeFile(wb, `รายงานจองเสื้อ_แยกสาขา_${window.formatThaiDate(new Date()).replace(/ /g, '_')}.xlsx`);
         };
 
@@ -1634,11 +1628,23 @@
         };
 
         window.exportEventParticipants = async function(eN) {
-            window.showToast('เตรียม Excel...', 'success'); const cI = await window.fetchAllCheckInsData(), p = cI.filter(r => String(r[1]).trim() === String(eN).trim());
+            window.showToast('เตรียม Excel...', 'success'); 
+            const cI = await window.fetchAllCheckInsData();
+            const p = cI.filter(r => String(r[1]).trim() === String(eN).trim());
             if (p.length === 0) { window.showToast('ไม่มีข้อมูล', 'warning'); return; }
-            let c = "\uFEFFเวลาลงทะเบียน,ชื่อกิจกรรม,รหัสนักศึกษา,บัตรประชาชน,ชื่อ-นามสกุล,คณะ,สาขาวิชา\n";
-            p.forEach(r => { c += `"${r[0]||''}","${r[1]||''}","${r[2]||''}","${r[3]||''}","${r[4]||''}","${r[5]||''}","${r[6]||''}"\n`; });
-            window.downloadCSV(c, `รายชื่อ_${eN}.csv`);
+            
+            const wb = XLSX.utils.book_new();
+            let sheetData = [["เวลาลงทะเบียน", "ชื่อกิจกรรม", "รหัสนักศึกษา", "บัตรประชาชน", "ชื่อ-นามสกุล", "คณะ", "สาขาวิชา"]];
+            
+            p.forEach(r => { 
+                sheetData.push([r[0]||'', r[1]||'', r[2]||'', r[3]||'', r[4]||'', r[5]||'', r[6]||'']); 
+            });
+            
+            const ws = XLSX.utils.aoa_to_sheet(sheetData);
+            let safeName = String(eN).substring(0, 30);
+            XLSX.utils.book_append_sheet(wb, ws, safeName);
+            
+            XLSX.writeFile(wb, `รายชื่อ_${safeName}_${window.formatThaiDate(new Date()).replace(/ /g, '_')}.xlsx`);
         };
 
         window.renderAdminSPSS = function(c) {
@@ -1682,8 +1688,30 @@
                 let h = `<div class="bg-white rounded-[32px] p-8 sm:p-12 shadow-xl border font-['Prompt']"><div class="relative bg-indigo-50 border-indigo-100 rounded-[24px] p-8 text-center mb-10"><h2 class="text-3xl font-black text-slate-800">รายงานผลประเมิน</h2><p class="text-primary text-xl font-bold">${eN}</p><p class="mt-4 text-slate-600 font-medium">ผู้ตอบแบบสอบถามทั้งหมด <span class="font-black">${evs.length}</span> คน</p></div><div class="mb-12"><h3 class="font-black text-xl text-slate-800 mb-5">ส่วนที่ 1: ข้อมูลผู้ตอบ</h3><table class="w-full text-left border-collapse border"><thead class="bg-slate-50 border-b"><th class="p-5">เพศ</th><th class="p-5 text-center">จำนวน (คน)</th><th class="p-5 text-center">ร้อยละ (%)</th></thead><tbody class="text-sm bg-white"><tr class="border-b"><td class="p-5 font-bold pl-8">ชาย</td><td class="p-5 text-center font-bold">${mC}</td><td class="p-5 text-center">${mP}%</td></tr><tr class="border-b"><td class="p-5 font-bold pl-8">หญิง</td><td class="p-5 text-center font-bold">${fC}</td><td class="p-5 text-center">${fP}%</td></tr><tr class="bg-slate-50 font-black"><td class="p-5 text-center">รวม</td><td class="p-5 text-center">${tG}</td><td class="p-5 text-center">100.00%</td></tr></tbody></table></div><div class="mb-12 print:hidden"><h3 class="font-black text-xl mb-5">สรุป 3 อันดับแรก</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-5"><div class="bg-amber-50 p-6 rounded-[24px] border"><span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-lg text-xs font-bold mb-2 inline-block">อันดับ 1</span><br><span class="font-black text-amber-600 text-2xl">${Number(t1.mean).toFixed(2)}</span><p class="text-sm font-bold mt-2">${t1.qText}</p></div><div class="bg-slate-100 p-6 rounded-[24px] border"><span class="bg-slate-200 text-slate-700 px-3 py-1 rounded-lg text-xs font-bold mb-2 inline-block">อันดับ 2</span><br><span class="font-black text-slate-600 text-2xl">${Number(t2.mean).toFixed(2)}</span><p class="text-sm font-bold mt-2">${t2.qText}</p></div><div class="bg-orange-50 p-6 rounded-[24px] border"><span class="bg-orange-100 text-orange-700 px-3 py-1 rounded-lg text-xs font-bold mb-2 inline-block">อันดับ 3</span><br><span class="font-black text-orange-600 text-2xl">${Number(t3.mean).toFixed(2)}</span><p class="text-sm font-bold mt-2">${t3.qText}</p></div></div></div><div class="mb-12"><h3 class="font-black text-xl mb-5">ส่วนที่ 2: ผลการสำรวจ</h3><table class="w-full text-left border-collapse border"><thead class="bg-slate-50 border-b"><th class="p-5 text-center">ข้อ</th><th class="p-5">รายการประเมิน</th><th class="p-5 text-center">x̄</th><th class="p-5 text-center">S.D.</th><th class="p-5 text-center">ระดับ</th></thead><tbody class="text-sm bg-white">`;
                 qMs.forEach((q, i) => { h += `<tr class="border-b hover:bg-slate-50"><td class="p-4 text-center font-bold">${i + 1}</td><td class="p-4 font-medium">${q.qText}</td><td class="p-4 text-center font-bold">${Number(q.mean).toFixed(2)}</td><td class="p-4 text-center font-bold text-slate-500">${Number(q.sd).toFixed(2)}</td><td class="p-4 text-center">${gBUI(q.mean)}</td></tr>`; });
                 h += `<tr class="bg-primary/5 font-black border-t-2 border-primary/20"><td colspan="2" class="p-5 text-right text-primary">รวมเฉลี่ย</td><td class="p-5 text-center text-primary text-xl">${oMn}</td><td class="p-5 text-center text-slate-700 text-lg">${oSd}</td><td class="p-5 text-center">${gBUI(oMn)}</td></tr></tbody></table></div>`;
-                const cmm = evs.map(e => String(e[4 + nQ] || '').trim()).filter(c => c !== '');
-                if (cmm.length > 0) { let cL = '<div class="space-y-4 mt-6 mb-8">'; [...new Set(cmm)].forEach(c => { cL += `<div class="bg-white p-5 rounded-2xl border"><p class="text-slate-700 font-medium">${c}</p></div>`; }); h += `<div class="mt-12"><h3 class="font-black text-xl mb-5">ส่วนที่ 3: ข้อเสนอแนะ</h3><div class="bg-slate-50 rounded-[32px] p-8 border">${cL}</div></div>`; } h += `</div>`; cD.innerHTML = h; cD.classList.remove('hidden'); if(pB) pB.classList.remove('hidden'); if(wB) wB.classList.remove('hidden'); 
+                
+                // กรองคำตอบที่ไม่เป็นประโยชน์ออก
+                const cmmRaw = evs.map(e => String(e[4 + nQ] || '').trim()).filter(c => c !== '' && c !== '-' && c.toLowerCase() !== 'ไม่มี' && c.toLowerCase() !== 'ไม่มีครับ' && c.toLowerCase() !== 'ไม่มีค่ะ');
+                
+                if (cmmRaw.length > 0) { 
+                    const cmmCounts = {};
+                    cmmRaw.forEach(c => { cmmCounts[c] = (cmmCounts[c] || 0) + 1; });
+                    const sortedCmm = Object.entries(cmmCounts).sort((a, b) => b[1] - a[1]);
+                    
+                    let cL = `<div class="mb-5 bg-white p-5 rounded-2xl border border-blue-100 shadow-sm"><p class="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2"><i class="ph-fill ph-info text-blue-500 text-lg"></i> ภาพรวมข้อเสนอแนะ</p><p class="text-slate-600 text-sm leading-relaxed">จากการสำรวจพบว่ามีผู้แสดงความคิดเห็นเพิ่มเติมจำนวน <span class="font-black text-primary text-base">${cmmRaw.length}</span> รายการ โดยมีประเด็นและตัวอย่างข้อเสนอแนะที่น่าสนใจ ดังนี้</p></div><div class="space-y-3">`;
+                    
+                    const examples = sortedCmm.slice(0, 10);
+                    examples.forEach(([text, count]) => { 
+                        cL += `<div class="bg-white p-4 rounded-2xl border flex gap-3 items-start"><div class="mt-0.5 text-blue-500 bg-blue-50 p-1.5 rounded-lg"><i class="ph-fill ph-chat-centered-text text-lg"></i></div><div><p class="text-slate-700 font-medium text-sm leading-relaxed">${text}</p>${count > 1 ? `<p class="text-[11px] text-slate-400 mt-1.5 font-bold">มีผู้เสนอความคิดเห็นนี้ตรงกัน ${count} คน</p>` : ''}</div></div>`; 
+                    });
+                    
+                    if (sortedCmm.length > 10) {
+                         cL += `<div class="text-center text-xs font-bold text-slate-400 mt-4 bg-slate-100/50 py-3 rounded-xl border border-dashed">...และข้อเสนอแนะอื่นๆ อีก ${sortedCmm.length - 10} รายการ...</div>`;
+                    }
+                    cL += `</div>`;
+                    h += `<div class="mt-12"><h3 class="font-black text-xl mb-5 flex items-center gap-2"><i class="ph-fill ph-lightbulb text-amber-500 text-2xl"></i> ส่วนที่ 3: สรุปข้อเสนอแนะและตัวอย่าง</h3><div class="bg-slate-50/80 rounded-[32px] p-6 sm:p-8 border">${cL}</div></div>`; 
+                } 
+                h += `</div>`; 
+                cD.innerHTML = h; cD.classList.remove('hidden'); if(pB) pB.classList.remove('hidden'); if(wB) wB.classList.remove('hidden'); 
             } catch (err) { document.getElementById('spss-report-content').innerHTML = `<div class="text-red-500 font-bold">Error</div>`; }
         };
 
@@ -1702,14 +1730,12 @@
             let totalMoney = 0;
             
             oD.forEach(o => {
-                // คำนวณยอดเงินรวม (รองรับทั้งรูปแบบตัวเลขและสตริงที่มีลูกน้ำ/ตัวหนังสือ)
                 let rawTotal = String(o.total || '0').replace(/,/g, '').replace(/[^\d.-]/g, '');
                 let parsedTotal = parseFloat(rawTotal);
                 if (!isNaN(parsedTotal)) {
                     totalMoney += parsedTotal;
                 }
 
-                // คำนวณจำนวนเสื้อ
                 let qty = parseInt(o.qty);
                 if (!isNaN(qty) && qty > 0) {
                     totalShirts += qty;
@@ -1767,7 +1793,6 @@
                         <p class="text-xl sm:text-2xl font-black text-slate-800 truncate" title="฿${totalMoney.toLocaleString('th-TH')}">฿${totalMoney.toLocaleString('th-TH')}</p>
                     </div>
                 </div>
-                
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="glass p-6 rounded-[32px] border">
                         <h3 class="font-black text-lg mb-6">สัดส่วนสถานะ</h3>
@@ -1842,7 +1867,7 @@
         window.toggleMasterControl = function(c) {
             isShirtShopOpen = c; const t = document.getElementById('shirt-toggle-text'); if (t) { t.innerText = c ? 'เปิด' : 'ปิด'; t.className = c ? 'ml-3 text-sm font-bold text-emerald-500 w-8' : 'ml-3 text-sm font-bold text-slate-400 w-8'; }
             localStorage.setItem('CRRU_ShopOpen', isShirtShopOpen ? 'true' : 'false'); window.showToast('กำลังซิงค์ข้อมูล...', 'warning');
-            window.apiCall('POST', { action: 'saveSettings', isShirtShopOpen: isShirtShopOpen, popupSettings: popupSettings, adminUsers: adminUsers }).then(d => { if(d.success) window.showToast('อัปเดตเรียบร้อย', 'success'); else window.showToast('เกิดข้อผิดพลาด', 'error'); }).catch(() => window.showToast('บันทึกแบบ Offline', 'warning'));
+            window.apiCall('POST', { action: 'saveSettings', isShirtShopOpen: isShirtShopOpen, popupSettings: popupSettings, adminUsers: adminUsers, visitorCount: globalVisitorCount }).then(d => { if(d.success) window.showToast('อัปเดตเรียบร้อย', 'success'); else window.showToast('เกิดข้อผิดพลาด', 'error'); }).catch(() => window.showToast('บันทึกแบบ Offline', 'warning'));
         };
 
         window.renderAdminSettings = function(c) {
@@ -1871,7 +1896,7 @@
             if(e) e.preventDefault(); let btn = null, txt = ''; if(e && e.target) { btn = e.target.querySelector('button[type="submit"]'); if(btn) { txt = btn.innerHTML; btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> บันทึก...'; btn.disabled = true; } }
             popupSettings.enabled = document.getElementById('setting-popup-toggle').checked; popupSettings.title = document.getElementById('setting-popup-title').value; popupSettings.description = document.getElementById('setting-popup-desc').value; popupSettings.imageUrl = document.getElementById('setting-popup-image').value; 
             localStorage.setItem('CRRU_PopupSettings', JSON.stringify(popupSettings)); localStorage.setItem('CRRU_AdminUsers', JSON.stringify(adminUsers)); sessionStorage.removeItem('homePopupShown'); 
-            window.apiCall('POST', { action: 'saveSettings', isShirtShopOpen: isShirtShopOpen, popupSettings: popupSettings, adminUsers: adminUsers }).then(() => { if(e) window.showToast('บันทึกสำเร็จ', 'success'); if(btn) { btn.innerHTML = txt; btn.disabled = false; } }).catch(() => { if(e) window.showToast('บันทึกสำเร็จ (Offline)', 'warning'); if(btn) { btn.innerHTML = txt; btn.disabled = false; } }); 
+            window.apiCall('POST', { action: 'saveSettings', isShirtShopOpen: isShirtShopOpen, popupSettings: popupSettings, adminUsers: adminUsers, visitorCount: globalVisitorCount }).then(() => { if(e) window.showToast('บันทึกสำเร็จ', 'success'); if(btn) { btn.innerHTML = txt; btn.disabled = false; } }).catch(() => { if(e) window.showToast('บันทึกสำเร็จ (Offline)', 'warning'); if(btn) { btn.innerHTML = txt; btn.disabled = false; } }); 
         };
     </script>
 </body>
