@@ -12,46 +12,48 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800;900&display=swap');
         
-        /* เปลี่ยนสีพื้นหลังเป็นแนว Liquid Glass โทนสีส้มเข้มขึ้น */
-        body { 
-            font-family: 'Prompt', sans-serif; 
-            background: linear-gradient(135deg, #fed7aa 0%, #fb923c 25%, #fed7aa 50%, #fb923c 75%, #fed7aa 100%); 
-            background-size: 400% 400%;
-            animation: liquid-bg 15s ease infinite;
-            min-height: 100vh; 
-            -webkit-tap-highlight-color: transparent; 
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #f8fafc;
+            /* รูปพื้นหลัง + overlay สีขาวโปร่งใสทำให้รูปจางลง อ่านเนื้อหาง่าย */
+            background-image:
+                linear-gradient(rgba(248, 250, 252, 0.82), rgba(241, 245, 249, 0.88)),
+                url('https://img1.pic.in.th/images/7e85de02-5b07-4734-a446-e1a4c4f48636.png');
+            background-size: cover, cover;
+            background-position: center, center;
+            background-attachment: fixed, fixed;
+            background-repeat: no-repeat, no-repeat;
+            min-height: 100vh;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        @keyframes liquid-bg {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        /* Glassmorphism Cards - ปรับให้นุ่มนวลและสวยงามขึ้น */
+        .glass {
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 8px 32px -8px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255,255,255,0.6);
         }
-
-        /* ปรับ Glassmorphism ให้เข้ากับสีส้มมากขึ้น */
-        .glass { 
-            background: rgba(255, 255, 255, 0.7); 
-            backdrop-filter: blur(16px); 
-            border: 1px solid rgba(255, 255, 255, 0.8); 
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
-        }
-        .glass-nav { 
-            background: rgba(255, 255, 255, 0.85); 
-            backdrop-filter: blur(12px); 
-            border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 4px 24px -8px rgba(15, 23, 42, 0.08);
         }
         
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #fdba74; border-radius: 4px; }
-        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-        .hover-lift { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(249, 115, 22, 0.2); }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #fdba74, #f97316); border-radius: 8px; border: 2px solid transparent; background-clip: content-box; }
+        ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #fb923c, #ea580c); background-clip: content-box; }
+        .fade-in { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .hover-lift { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .hover-lift:hover { transform: translateY(-6px); box-shadow: 0 24px 40px -12px rgba(249, 115, 22, 0.25); border-color: rgba(249, 115, 22, 0.3); }
         
-        /* ปรับปุ่ม Gradient เป็นโทนสีส้ม */
         .btn-gradient { 
             background: linear-gradient(135deg, #f97316 0%, #fb923c 100%); 
             transition: all 0.3s; 
@@ -72,7 +74,6 @@
             theme: { 
                 extend: { 
                     colors: { 
-                        /* ปรับสี Primary ให้เป็นโทนส้ม */
                         primary: '#f97316', 
                         primary_hover: '#ea580c', 
                         secondary: '#10b981', 
@@ -86,7 +87,6 @@
 </head>
 <body class="text-slate-800 antialiased flex flex-col">
 
-    <!-- Navigation -->
     <nav class="glass-nav shadow-sm sticky top-0 z-50 print:hidden transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-20">
@@ -264,6 +264,11 @@
         const appCache = { activities: [], checkIns: [], orders: [], evaluations: [], students: {} };
         
         let isShirtShopOpen = localStorage.getItem('CRRU_ShopOpen') !== 'false'; 
+        let isCertSystemOpen = localStorage.getItem('CRRU_CertOpen') !== 'false';
+        // สถานะเปิด/ปิด รับใบประกาศนียบัตรของแต่ละกิจกรรม { eventId: true/false }
+        let certEventStatus = JSON.parse(localStorage.getItem('CRRU_CertEventStatus') || '{}');
+        let adminCertPage = 1, adminCertSearch = '';
+        const adminCertPerPage = 5;
         let popupSettings = JSON.parse(localStorage.getItem('CRRU_PopupSettings')) || { enabled: true, title: 'แจ้งเตือนนักศึกษาใหม่\nรหัส 69 ทุกคน!', description: 'ขอให้นักศึกษาชั้นปีที่ 1 ทุกคน สั่งจองชุดเสื้อคณะให้เรียบร้อย', imageUrl: 'https://images.unsplash.com/photo-1523580494112-071d16940a1c?auto=format&fit=crop&q=80&w=800' };
         let promptPaySettings = JSON.parse(localStorage.getItem('CRRU_PromptPaySettings')) || { accountName: 'ฝ่ายกิจการนักศึกษา', accountNumber: '012-3-45678-9', bankName: 'ธ.กรุงไทย' };
         let parsedAdminUsers = null; try { parsedAdminUsers = JSON.parse(localStorage.getItem('CRRU_AdminUsers')); } catch(e) {}
@@ -271,12 +276,14 @@
         
         const NAV_STUDENT = [ 
             { id: 'events', label: 'กิจกรรม', tabLabel: 'กิจกรรม', icon: 'ph-megaphone' }, 
-            { id: 'history', label: 'ประวัติ', tabLabel: 'ประวัติ', icon: 'ph-clock-counter-clockwise' } 
+            { id: 'history', label: 'ประวัติ', tabLabel: 'ประวัติ', icon: 'ph-clock-counter-clockwise' },
+            { id: 'certificates', label: 'ใบประกาศ', tabLabel: 'ใบประกาศ', icon: 'ph-certificate' }
         ];
         const NAV_ADMIN = [ 
             { id: 'admin-dash', label: 'ภาพรวม', tabLabel: 'ภาพรวม', icon: 'ph-chart-pie-slice', roles: ['superadmin', 'activity', 'shop'] }, 
             { id: 'admin-orders', label: 'จองเสื้อ', tabLabel: 'จองเสื้อ', icon: 'ph-t-shirt', roles: ['superadmin', 'shop'] }, 
             { id: 'admin-events', label: 'กิจกรรม', tabLabel: 'กิจกรรม', icon: 'ph-calendar-plus', roles: ['superadmin', 'activity'] }, 
+            { id: 'admin-certificates', label: 'ใบประกาศ', tabLabel: 'ใบประกาศ', icon: 'ph-certificate', roles: ['superadmin', 'activity'] }, 
             { id: 'admin-spss', label: 'SPSS', tabLabel: 'SPSS', icon: 'ph-chart-bar', roles: ['superadmin', 'activity'] }, 
             { id: 'admin-settings', label: 'ตั้งค่า', tabLabel: 'ตั้งค่า', icon: 'ph-gear', roles: ['superadmin'] } 
         ];
@@ -383,20 +390,17 @@
                     }); 
                     // เรียงข้อมูลตามวันที่ของกิจกรรม (property `rawDate`) จากน้อยไปหามาก
                     appCache.activities = a.data.sort((a, b) => {
-                        // สร้าง Date object จาก string รูปแบบ YYYY-MM-DD
                         const dateA = new Date(a.rawDate);
                         const dateB = new Date(b.rawDate);
                         
-                        // ในกรณีที่ไม่มีรูปแบบวันที่ที่ถูกต้อง
                         if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) {
                             return 0;
                         } else if (isNaN(dateA.getTime())) {
-                            return 1; // ให้ a อยู่ข้างล่าง b
+                            return 1;
                         } else if (isNaN(dateB.getTime())) {
-                            return -1; // ให้ b อยู่ข้างล่าง a
+                            return -1;
                         }
                         
-                        // เรียงจากน้อยไปหามาก (ascending)
                         return dateA.getTime() - dateB.getTime();
                     }); 
                 } 
@@ -480,6 +484,7 @@
                     else if (vId === 'register') window.renderRegistration(c, p); 
                     else if (vId === 'survey') window.renderSurvey(c, p); 
                     else if (vId === 'history') window.renderHistory(c); 
+                    else if (vId === 'certificates') window.renderCertificates(c); 
                     else if (vId === 'shirt') window.renderShirtShop(c); 
                     else if (vId === 'checkout') window.renderCheckout(c, p); 
                     else if (vId === 'tracking') window.renderTracking(c); 
@@ -491,6 +496,7 @@
                     else if (vId === 'admin-spss') window.renderAdminSPSS(c); 
                     else if (vId === 'admin-settings') window.renderAdminSettings(c); 
                     else if (vId === 'admin-event-participants') window.renderAdminEventParticipants(c, p);
+                    else if (vId === 'admin-certificates') window.renderAdminCertificates(c, p);
                 }
             } catch (err) { c.innerHTML = `<div class="p-8 text-center text-red-500 font-bold bg-red-50 rounded-2xl mt-10">เกิดข้อผิดพลาด</div>`; }
         };
@@ -573,7 +579,6 @@
             if (!e) return; 
             document.getElementById('edit-event-id').value = e.id; 
             document.getElementById('edit-event-title').value = e.title; 
-            // แปลงวันที่กลับให้ input type date เข้าใจ (YYYY-MM-DD)
             let parsedDate = '';
             if (e.rawDate && e.rawDate !== '-') {
                  parsedDate = e.rawDate;
@@ -589,7 +594,6 @@
             document.getElementById('timer-event-id').value = e.id;
             document.getElementById('timer-event-name').innerText = e.title;
             
-            // ป้องกันปัญหา input type="datetime-local" คืนค่าว่างถ้าเจอรูปแบบ Date ISO ที่มีตัว Z หรือวินาที
             const formatForInput = (val) => {
                 if (!val || String(val).trim() === '') return '';
                 if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(val)) return val;
@@ -624,7 +628,7 @@
                         action: 'editActivity', 
                         id: id, 
                         title: ev.title || '', 
-                        date: ev.rawDate || ev.date || '', // ส่ง rawDate ป้องกันไม่ให้ Google Sheets งง
+                        date: ev.rawDate || ev.date || '', 
                         location: ev.location || '', 
                         status: ev.status || 'open', 
                         openTime: openT, 
@@ -666,11 +670,9 @@
         };
 
         window.renderEvents = function(c) {
-            if (!appCache.activities || appCache.activities.length === 0) { c.innerHTML = window.getGokuLoader('กำลังดึงข้อมูลกิจกรรม...'); }
+            if (!appCache.activities || appCache.activities.length === 0) { c.innerHTML = window.getGokuLoader('โปรดรอสักครู่'); }
             window.fetchActivitiesData().then(acts => {
                 const now = new Date();
-                // ดึงกิจกรรมทั้งหมด ยกเว้นอันที่ "ปิด (closed)" และ "ไม่มีการตั้งเวลา" 
-                // หมายความว่า ถ้าถูกปิดด้วยมือ แต่มีตั้งเวลาไว้ ระบบจะยังแสดงอยู่เพื่อให้นักศึกษารู้ว่าเดี๋ยวจะเปิด
                 const oA = acts.filter(e => e.status !== 'closed' || e.openTime || e.closeTime); 
                 
                 let h = `<div class="fade-in"><div class="mb-10 text-center sm:text-left"><h1 class="text-3xl sm:text-4xl font-black text-slate-800">ลงทะเบียนเข้าร่วมกิจกรรม</h1></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">`;
@@ -921,6 +923,549 @@
         };
         window.clearHistorySearch = function() { sessionStorage.removeItem('historySearchTerm'); sessionStorage.removeItem('historyData'); window.renderHistory(document.getElementById('app-content')); };
 
+        // --- CERTIFICATES SECTION ---
+        window.renderCertificates = function(c) {
+            const sId = sessionStorage.getItem('certSearchTerm') || ''; 
+            const isS = sId.length > 0; 
+            let cD = []; 
+            if (isS) { 
+                try { const sd = JSON.parse(sessionStorage.getItem('certData')); if (sd) cD = sd.certs; } catch (e) {} 
+            }
+            
+            let h = `
+                <div class="fade-in max-w-4xl mx-auto pb-10">
+                    <div class="mb-8 text-center sm:text-left">
+                        <h1 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">ดาวน์โหลดใบประกาศนียบัตร</h1>
+                        <p class="text-base text-slate-500 mt-2 font-medium">เฉพาะกิจกรรมที่คุณเข้าร่วมและ <span class="font-bold text-primary">ผ่านการประเมินผลแล้ว</span> เท่านั้น</p>
+                    </div>
+                    <div class="glass rounded-[32px] shadow-sm border border-white/60 p-8 sm:p-10 mb-8">
+                        <label class="block text-sm font-bold text-slate-700 mb-3">รหัสนักศึกษา หรือ หมายเลขบัตรประชาชน</label>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <div class="relative w-full">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-5 pointer-events-none"><i class="ph-fill ph-identification-card text-slate-400 text-xl"></i></div>
+                                <input type="text" id="search-cert-id" class="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 bg-white font-bold shadow-sm outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all" placeholder="กรอกรหัส หรือ บัตรปชช." value="${sId}" onkeypress="if(event.key==='Enter') fetchCertificatesData()">
+                            </div>
+                            <div class="flex gap-2 w-full sm:w-auto shrink-0">
+                                <button onclick="fetchCertificatesData()" id="btn-fetch-cert" class="flex-1 sm:flex-none px-8 py-4 bg-slate-800 text-white text-base font-bold rounded-2xl hover:bg-black transition-colors shadow-lg shadow-slate-800/20 flex items-center justify-center gap-2"><i class="ph-bold ph-magnifying-glass text-lg"></i> ค้นหา</button>
+                                ${isS ? `<button onclick="clearCertSearch()" class="w-16 px-0 py-4 bg-red-50 text-red-600 text-lg font-bold rounded-2xl border border-red-100 hover:bg-red-100 transition-colors flex items-center justify-center shrink-0"><i class="ph-bold ph-x"></i></button>` : ''}
+                            </div>
+                        </div>
+                    </div>`;
+            
+            if (isS) {
+                h += `<div class="fade-in"><h2 class="text-xl font-bold mb-5 flex items-center gap-2"><i class="ph-fill ph-certificate text-amber-500"></i> ใบประกาศนียบัตรของคุณ</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-5">`;
+                if (cD.length > 0) { 
+                    cD.forEach(cert => { 
+                        const safeName = cert.studentName.replace(/'/g, "\\'");
+                        const safeEvent = cert.eventName.replace(/'/g, "\\'");
+                        const safeDate = cert.date.replace(/'/g, "\\'");
+                        h += `
+                        <div class="glass p-6 rounded-[24px] border border-white shadow-sm flex flex-col hover-lift relative overflow-hidden bg-white/60">
+                            <div class="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-amber-200 to-orange-400 opacity-20 rounded-full z-0 blur-xl"></div>
+                            <div class="relative z-10 flex flex-col h-full">
+                                <div class="w-14 h-14 bg-gradient-to-br from-amber-100 to-orange-100 text-amber-600 rounded-2xl flex items-center justify-center text-3xl mb-4 border border-amber-200 shadow-sm"><i class="ph-fill ph-medal"></i></div>
+                                <h3 class="font-black text-lg text-slate-800 leading-snug mb-2 line-clamp-2">${cert.eventName}</h3>
+                                <p class="text-sm font-bold text-slate-500 mb-6 flex items-center gap-2"><i class="ph-bold ph-calendar-blank"></i> ${cert.date}</p>
+                                <button onclick="downloadCertificatePDF('${safeName}', '${safeEvent}', '${safeDate}')" class="w-full mt-auto py-3.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md shadow-amber-500/20"><i class="ph-bold ph-download-simple text-lg"></i> ดาวน์โหลด (JPEG)</button>
+                            </div>
+                        </div>`; 
+                    }); 
+                } else { 
+                    h += `<div class="col-span-full py-16 text-center glass rounded-[32px] border border-white shadow-sm"><i class="ph-fill ph-warning-circle text-6xl text-slate-300 mb-4 block mx-auto"></i><p class="text-slate-600 font-black text-xl">ยังไม่มีใบประกาศนียบัตร</p><p class="text-sm font-medium text-slate-500 mt-2">กรุณาเข้าร่วมกิจกรรมและทำแบบประเมินให้เสร็จสิ้นก่อนนะครับ</p></div>`; 
+                }
+                h += `</div></div>`;
+            }
+            h += `</div>`; c.innerHTML = h;
+        };
+
+        window.fetchCertificatesData = async function() {
+            const sId = document.getElementById('search-cert-id').value.trim(); if(!sId) { window.showToast('กรุณากรอกรหัสนักศึกษา', 'error'); return; }
+            const btn = document.getElementById('btn-fetch-cert'), txt = btn.innerHTML; btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i>'; btn.disabled = true;
+            
+            try { 
+                if (appCache.evaluations.length === 0) await window.fetchEvaluationsData(true);
+                if (appCache.checkIns.length === 0) await window.fetchAllCheckInsData(true);
+                if (appCache.activities.length === 0) await window.fetchActivitiesData(true);
+
+                const studentEvals = appCache.evaluations.filter(e => String(e[1]).trim() === sId);
+                
+                let studentName = "นักศึกษา";
+                const checkInRecord = appCache.checkIns.find(c => String(c[2]).trim() === sId || String(c[3]).trim() === sId);
+                if (checkInRecord && checkInRecord[4]) {
+                    studentName = checkInRecord[4];
+                }
+
+                const certs = [];
+                const processedEvents = new Set();
+                
+                studentEvals.forEach(ev => {
+                    const eventId = String(ev[2]).trim();
+                    const eventName = String(ev[3]).trim();
+
+                    if (!processedEvents.has(eventName) && eventName !== "") {
+                        processedEvents.add(eventName);
+
+                        const act = appCache.activities.find(a => String(a.id) === eventId || String(a.title).trim() === eventName);
+                        const eventDate = act ? act.date : "ตามที่กำหนดในโครงการ";
+
+                        // ตรวจสอบสถานะเปิด/ปิด รับใบประกาศของกิจกรรม (เชื่อมโยงกับ toggle ฝั่งแอดมิน)
+                        const certEventId = act ? act.id : eventId;
+                        if (!window.isCertEventOpen(certEventId)) {
+                            return; // ข้ามกิจกรรมที่ปิดรับใบประกาศ
+                        }
+
+                        certs.push({ studentName: studentName, eventName: eventName, date: eventDate });
+                    }
+                });
+
+                sessionStorage.setItem('certSearchTerm', sId); 
+                sessionStorage.setItem('certData', JSON.stringify({ certs: certs })); 
+                window.showToast('ค้นหาสำเร็จ', 'success'); 
+            } catch (err) { 
+                console.error(err);
+                sessionStorage.setItem('certSearchTerm', sId); 
+                sessionStorage.setItem('certData', JSON.stringify({ certs: [] })); 
+                window.showToast('เกิดข้อผิดพลาด หรือโหมด Offline', 'warning'); 
+            } finally { 
+                btn.innerHTML = txt; btn.disabled = false; window.renderCertificates(document.getElementById('app-content')); 
+            }
+        };
+
+        window.clearCertSearch = function() { sessionStorage.removeItem('certSearchTerm'); sessionStorage.removeItem('certData'); window.renderCertificates(document.getElementById('app-content')); };
+
+        window.downloadCertificatePDF = function(sName, eName, eDate) {
+            window.showToast('กำลังเตรียมไฟล์เกียรติบัตร...', 'warning');
+
+            const A4_W = 1123, A4_H = 794;
+
+            const certContainer = document.createElement('div');
+            certContainer.style.cssText = `position:absolute;left:-9999px;top:0;width:${A4_W}px;height:${A4_H}px;`;
+            document.body.appendChild(certContainer);
+
+            certContainer.innerHTML = `
+                <div id="cert-pdf-content" style="
+                    width:${A4_W}px;height:${A4_H}px;
+                    background:#fff;
+                    font-family:'Prompt',sans-serif;
+                    position:relative;overflow:hidden;box-sizing:border-box;
+                    color:#1e293b;
+                    display:flex;flex-direction:column;
+                ">
+                    <!-- Background Design -->
+                    <img src="https://img1.pic.in.th/images/------------A4-.png" crossorigin="anonymous" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: fill; z-index: 1;">
+
+                    <!-- Text Contents -->
+                    <div style="position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;text-align:center;box-sizing:border-box;padding-top:170px;height:100%;">
+                        <p style="font-size:24px;font-weight:700;color:#c2410c;margin:0 0 10px 0;letter-spacing:1px;">คณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย</p>
+                        <p style="font-size:18px;font-weight:500;color:#475569;margin:0 0 35px 0;">ขอมอบเกียรติบัตรฉบับนี้ให้ไว้เพื่อแสดงว่า</p>
+
+                        <h2 style="font-size:42px;font-weight:900;color:#1e293b;margin:0 0 35px 0;border-bottom:2px dotted #cbd5e1;padding-bottom:8px;min-width:55%;display:inline-block;">${sName}</h2>
+
+                        <p style="font-size:18px;font-weight:500;color:#475569;margin:0 0 5px 0;">ได้ผ่านการฝึกอบรมเชิงปฏิบัติการ</p>
+                        <p style="font-size:16px;font-weight:500;color:#64748b;margin:0 0 12px 0;">เรื่อง</p>
+                        <h3 style="font-size:26px;font-weight:800;color:#ea580c;margin:0 0 35px 0;max-width:85%;line-height:1.4;">"${eName}"</h3>
+
+                        <p style="font-size:16px;font-weight:500;color:#475569;margin:0 0 45px 0;">ขอให้ประสบความสุขสวัสดิ์ ความเจริญ และรักษาคุณความดีไว้ตลอดไป</p>
+
+                        <p style="font-size:16px;font-weight:500;color:#64748b;margin:0 0 40px 0;">ให้ไว้ ณ วันที่ ${eDate}</p>
+
+                        <!-- Dean's Signature Center-Bottom -->
+                        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;margin-top:auto;margin-bottom:50px;">
+                            <div style="width:280px;height:1px;background:#64748b;margin-bottom:12px;"></div>
+                            <p style="font-size:16px;font-weight:700;margin:0;color:#1e293b;">(ผู้ช่วยศาสตราจารย์ ดร.ภูมิพงษ์ ดวงตั้ง)</p>
+                            <p style="font-size:14px;font-weight:600;color:#475569;margin:3px 0 0 0;">คณบดีคณะเทคโนโลยีดิจิทัล</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const element = document.getElementById('cert-pdf-content');
+            const safeFileName = (sName || 'Certificate').replace(/[^\u0E00-\u0E7Fa-zA-Z0-9_-]/g, '_');
+
+            // ใช้ html2canvas เพื่อสร้างภาพ JPEG โดยตรง (ไม่ผ่าน PDF)
+            html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                width: A4_W,
+                height: A4_H,
+                windowWidth: A4_W,
+                windowHeight: A4_H
+            }).then(canvas => {
+                canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `Certificate_${safeFileName}.jpg`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    document.body.removeChild(certContainer);
+                    window.showToast('ดาวน์โหลดเกียรติบัตรสำเร็จแล้ว!', 'success');
+                }, 'image/jpeg', 1.0);
+            }).catch(err => {
+                console.error(err);
+                document.body.removeChild(certContainer);
+                window.showToast('เกิดข้อผิดพลาดในการสร้างไฟล์รูปภาพ', 'error');
+            });
+        };
+
+        // ฟังก์ชันสร้าง JPEG หนึ่งใบ (ใช้ภายใน สำหรับดาวน์โหลดทีละคน)
+        window.renderCertToCanvas = function(certData, scale = 2) {
+            return new Promise((resolve, reject) => {
+                const A4_W = 1123, A4_H = 794;
+                const wrap = document.createElement('div');
+                wrap.style.cssText = `position:absolute;left:-9999px;top:0;width:${A4_W}px;height:${A4_H}px;`;
+                wrap.innerHTML = `
+                    <div style="position:relative;width:${A4_W}px;height:${A4_H}px;background:#fff;font-family:'Prompt',sans-serif;overflow:hidden;box-sizing:border-box;color:#1e293b;">
+                        <img src="https://img1.pic.in.th/images/------------A4-.png" crossorigin="anonymous" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:fill;z-index:1;">
+                        <div style="position:relative;z-index:10;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;text-align:center;box-sizing:border-box;padding-top:170px;">
+                            <p style="font-size:24px;font-weight:700;color:#c2410c;margin:0 0 10px 0;letter-spacing:1px;">คณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย</p>
+                            <p style="font-size:18px;font-weight:500;color:#475569;margin:0 0 35px 0;">ขอมอบเกียรติบัตรฉบับนี้ให้ไว้เพื่อแสดงว่า</p>
+                            <h2 style="font-size:42px;font-weight:900;color:#1e293b;margin:0 0 35px 0;border-bottom:2px dotted #cbd5e1;padding-bottom:8px;min-width:55%;display:inline-block;">${certData.sName}</h2>
+                            <p style="font-size:18px;font-weight:500;color:#475569;margin:0 0 5px 0;">ได้ผ่านการฝึกอบรมเชิงปฏิบัติการ</p>
+                            <p style="font-size:16px;font-weight:500;color:#64748b;margin:0 0 12px 0;">เรื่อง</p>
+                            <h3 style="font-size:26px;font-weight:800;color:#ea580c;margin:0 0 35px 0;max-width:85%;line-height:1.4;">"${certData.eName}"</h3>
+                            <p style="font-size:16px;font-weight:500;color:#475569;margin:0 0 45px 0;">ขอให้ประสบความสุขสวัสดิ์ ความเจริญ และรักษาคุณความดีไว้ตลอดไป</p>
+                            <p style="font-size:16px;font-weight:500;color:#64748b;margin:0 0 40px 0;">ให้ไว้ ณ วันที่ ${certData.eDate}</p>
+                            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;margin-top:auto;margin-bottom:50px;">
+                                <div style="width:280px;height:1px;background:#64748b;margin-bottom:12px;"></div>
+                                <p style="font-size:16px;font-weight:700;margin:0;color:#1e293b;">(ผู้ช่วยศาสตราจารย์ ดร.ภูมิพงษ์ ดวงตั้ง)</p>
+                                <p style="font-size:14px;font-weight:600;color:#475569;margin:3px 0 0 0;">คณบดีคณะเทคโนโลยีดิจิทัล</p>
+                            </div>
+                        </div>
+                    </div>`;
+                document.body.appendChild(wrap);
+                const inner = wrap.firstElementChild;
+
+                html2canvas(inner, {
+                    scale: scale,
+                    useCORS: true,
+                    backgroundColor: '#ffffff',
+                    width: A4_W,
+                    height: A4_H,
+                    windowWidth: A4_W,
+                    windowHeight: A4_H
+                }).then(canvas => {
+                    document.body.removeChild(wrap);
+                    resolve(canvas);
+                }).catch(err => {
+                    document.body.removeChild(wrap);
+                    reject(err);
+                });
+            });
+        };
+
+        window.exportEventCertificates = async function(eId) {
+            window.showToast('กำลังรวบรวมรายชื่อผู้ผ่านประเมิน...', 'warning');
+            const event = appCache.activities.find(x => String(x.id) === String(eId));
+            if (!event) return window.showToast('ไม่พบกิจกรรม', 'error');
+            const eName = event.title;
+            const eDate = event.date;
+
+            if (appCache.evaluations.length === 0) await window.fetchEvaluationsData(true);
+            if (appCache.checkIns.length === 0) await window.fetchAllCheckInsData(true);
+
+            const studentEvals = appCache.evaluations.filter(e => String(e[2]).trim() === String(eId) || String(e[3]).trim() === String(eName).trim());
+            if (studentEvals.length === 0) {
+                return window.showToast('ยังไม่มีผู้ผ่านการประเมิน', 'warning');
+            }
+
+            const processedStudents = new Set();
+            const validStudents = [];
+            studentEvals.forEach(ev => {
+                const sId = String(ev[1]).trim();
+                if (!processedStudents.has(sId) && sId !== "") {
+                    processedStudents.add(sId);
+                    let studentName = "นักศึกษา";
+                    const checkInRecord = appCache.checkIns.find(c => String(c[2]).trim() === sId || String(c[3]).trim() === sId);
+                    if (checkInRecord && checkInRecord[4]) {
+                        studentName = checkInRecord[4];
+                    }
+                    validStudents.push({ sName: studentName, eName: eName, eDate: eDate });
+                }
+            });
+
+            if (validStudents.length === 0) return window.showToast('ไม่พบข้อมูลนักศึกษา', 'warning');
+            
+            const loader = document.createElement('div'); 
+            loader.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255,255,255,0.95); z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center;'; 
+            loader.innerHTML = `<i class="ph-bold ph-spinner animate-spin text-primary" style="font-size: 50px;"></i><h3 style="font-size: 20px; font-weight: bold; margin-top: 15px;">กำลังสร้างรูปภาพสำหรับ ${validStudents.length} คน...</h3><p class="text-slate-500 mt-2" id="cert-export-progress">0 / ${validStudents.length}</p><p class="text-xs text-slate-400 mt-1">อาจใช้เวลาสักครู่ ห้ามปิดหน้านี้</p>`; 
+            document.body.appendChild(loader);
+
+            const safeEventName = (eName || 'Event').replace(/[^\u0E00-\u0E7Fa-zA-Z0-9_-]/g, '_');
+            let completed = 0;
+            const progEl = loader.querySelector('#cert-export-progress');
+
+            try {
+                for (let i = 0; i < validStudents.length; i++) {
+                    const cert = validStudents[i];
+                    const canvas = await window.renderCertToCanvas(cert, 2);
+                    // รอให้ระบบประมวลผล blob และ trigger download แต่ละไฟล์
+                    await new Promise((resolve, reject) => {
+                        canvas.toBlob((blob) => {
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            const safeFileName = (cert.sName || 'Certificate_' + (i+1)).replace(/[^\u0E00-\u0E7Fa-zA-Z0-9_-]/g, '_');
+                            a.download = `${safeEventName}_${safeFileName}.jpg`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                            resolve();
+                        }, 'image/jpeg', 1.0);
+                    });
+                    completed++;
+                    if (progEl) progEl.innerText = `${completed} / ${validStudents.length}`;
+                    // รอเล็กน้อยระหว่างไฟล์เพื่อให้เบราว์เซอร์จัดการ download
+                    await new Promise(r => setTimeout(r, 350));
+                }
+                document.body.removeChild(loader);
+                window.showToast(`ดาวน์โหลดใบประกาศนียบัตร ${completed} ไฟล์เรียบร้อย!`, 'success');
+            } catch (err) {
+                console.error(err);
+                document.body.removeChild(loader);
+                window.showToast('เกิดข้อผิดพลาดในการสร้างไฟล์รูปภาพ', 'error');
+            }
+        };
+
+        // --- ฟังก์ชันสร้าง HTML pagination แบบใช้ซ้ำ ---
+        window.buildPagination = function(page, totalPages, fnName) {
+            if (totalPages <= 1) return '';
+            let btns = '';
+            // prev
+            btns += `<button onclick="${fnName}(${Math.max(1, page-1)})" class="w-10 h-10 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors" ${page <= 1 ? 'disabled' : ''}><i class="ph-bold ph-caret-left"></i></button>`;
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= page - 1 && i <= page + 1)) {
+                    btns += `<button onclick="${fnName}(${i})" class="w-10 h-10 rounded-xl font-bold text-sm transition-all ${i === page ? 'bg-primary text-white shadow-md shadow-orange-500/30' : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}">${i}</button>`;
+                } else if (i === page - 2 || i === page + 2) {
+                    btns += `<span class="w-10 h-10 flex items-center justify-center text-slate-400 font-bold">…</span>`;
+                }
+            }
+            // next
+            btns += `<button onclick="${fnName}(${Math.min(totalPages, page+1)})" class="w-10 h-10 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors" ${page >= totalPages ? 'disabled' : ''}><i class="ph-bold ph-caret-right"></i></button>`;
+            return btns;
+        };
+
+        // --- Toggle เปิด/ปิด รับใบประกาศนียบัตร ระดับกิจกรรม ---
+        window.toggleCertEventStatus = function(eventId, checked) {
+            certEventStatus[eventId] = checked;
+            localStorage.setItem('CRRU_CertEventStatus', JSON.stringify(certEventStatus));
+            const t = document.getElementById('cert-event-toggle-text-' + eventId);
+            if (t) {
+                t.innerText = checked ? 'เปิด' : 'ปิด';
+                t.className = checked ? 'ml-2 text-xs font-bold text-emerald-600 w-8 text-center' : 'ml-2 text-xs font-bold text-slate-400 w-8 text-center';
+            }
+            window.showToast(checked ? 'เปิดรับใบประกาศนียบัตรแล้ว' : 'ปิดรับใบประกาศนียบัตรแล้ว', checked ? 'success' : 'warning');
+            window.apiCall('POST', { action: 'saveCertEventStatus', eventId: eventId, status: checked }).catch(e => console.log(e));
+        };
+
+        // เช็คสถานะเปิด/ปิด ของกิจกรรม (default = เปิด)
+        window.isCertEventOpen = function(eventId) {
+            return certEventStatus[eventId] !== false;
+        };
+
+        window.goToAdminCertPage = function(page) {
+            adminCertPage = page;
+            window.renderAdminCertOverview(document.getElementById('app-content'));
+        };
+
+        window.searchAdminCert = function() {
+            adminCertSearch = (document.getElementById('admin-cert-search')?.value || '').trim().toLowerCase();
+            adminCertPage = 1;
+            window.renderAdminCertOverview(document.getElementById('app-content'));
+        };
+
+        // --- CERTIFICATE OVERVIEW (หน้าหลักเลือกกิจกรรม) ---
+        window.renderAdminCertOverview = async function(c) {
+            c.innerHTML = window.getGokuLoader('โปรดรอสักครู่');
+            if (appCache.evaluations.length === 0) await window.fetchEvaluationsData(true);
+            if (appCache.checkIns.length === 0) await window.fetchAllCheckInsData(true);
+
+            // นับจำนวนผู้ผ่านการประเมินต่อกิจกรรม
+            const evalByEvent = {};
+            appCache.evaluations.forEach(ev => {
+                const key = String(ev[2]).trim() || String(ev[3]).trim();
+                if (!key) return;
+                const uniq = new Set(evalByEvent[key]?.students || []);
+                const sId = String(ev[1]).trim();
+                if (sId) uniq.add(sId);
+                evalByEvent[key] = { students: Array.from(uniq), name: String(ev[3]).trim() };
+            });
+
+            // กรองตามคำค้นหา
+            const filtered = appCache.activities.filter(act => {
+                if (!adminCertSearch) return true;
+                return act.title.toLowerCase().includes(adminCertSearch) || String(act.id).toLowerCase().includes(adminCertSearch) || (act.date || '').toLowerCase().includes(adminCertSearch);
+            });
+
+            const totalPages = Math.max(1, Math.ceil(filtered.length / adminCertPerPage));
+            if (adminCertPage > totalPages) adminCertPage = totalPages;
+            const startIdx = (adminCertPage - 1) * adminCertPerPage;
+            const pageItems = filtered.slice(startIdx, startIdx + adminCertPerPage);
+
+            let h = `
+                <div class="fade-in max-w-6xl mx-auto pb-10">
+                    <div class="mb-8">
+                        <h1 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">จัดการ<span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-primary">ใบประกาศนียบัตร</span></h1>
+                        <p class="text-slate-500 mt-2 font-medium">เปิด/ปิด รับใบประกาศนียบัตรของแต่ละกิจกรรม และจัดการการดาวน์โหลด</p>
+                    </div>
+
+                    <div class="glass rounded-[32px] border border-white shadow-sm p-6 mb-6">
+                        <div class="flex flex-col md:flex-row gap-4 md:items-center justify-between">
+                            <div class="relative w-full md:max-w-md">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none"><i class="ph-fill ph-magnifying-glass text-slate-400"></i></div>
+                                <input type="text" id="admin-cert-search" class="w-full pl-11 pr-4 py-3 rounded-2xl border border-slate-200 bg-white text-sm font-medium outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all" placeholder="ค้นหากิจกรรม..." value="${adminCertSearch}" onkeypress="if(event.key==='Enter') searchAdminCert()">
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <span class="text-sm font-bold text-slate-600">ทั้งหมด</span>
+                                <span class="px-3 py-1.5 bg-amber-50 text-amber-700 border border-amber-100 rounded-xl text-sm font-bold">${filtered.length}</span>
+                                <span class="text-sm text-slate-500 font-medium">กิจกรรม</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass rounded-[32px] border border-white shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left min-w-[760px]">
+                                <thead class="bg-white/40 border-b border-white/80 text-slate-500 text-xs uppercase">
+                                    <tr>
+                                        <th class="p-4 pl-6 w-16 text-center">#</th>
+                                        <th class="p-4">ชื่อกิจกรรม</th>
+                                        <th class="p-4 w-32 text-center hidden sm:table-cell">วันที่จัด</th>
+                                        <th class="p-4 w-24 text-center hidden md:table-cell">ผู้ผ่าน</th>
+                                        <th class="p-4 w-40 text-center">เปิด/ปิด รับ</th>
+                                        <th class="p-4 pr-6 w-32 text-center">จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-sm">`;
+
+            if (pageItems.length === 0) {
+                h += `<tr><td colspan="6" class="p-12 text-center text-slate-500 font-medium"><i class="ph-fill ph-magnifying-glass text-5xl text-slate-300 mb-3 block mx-auto"></i>ไม่พบกิจกรรมที่ค้นหา</td></tr>`;
+            } else {
+                pageItems.forEach((act, idx) => {
+                    const evKey = String(act.id).trim();
+                    const count = evalByEvent[evKey]?.students?.length || 0;
+                    const isOpen = window.isCertEventOpen(act.id);
+                    const num = startIdx + idx + 1;
+                    h += `
+                        <tr class="border-b border-white/50 hover:bg-white/60 transition-colors fade-in" style="animation-delay:${idx * 0.04}s">
+                            <td class="p-4 pl-6 text-center text-slate-400 font-bold">${num}</td>
+                            <td class="p-4">
+                                <p class="font-bold text-slate-800 leading-snug line-clamp-1">${act.title}</p>
+                                <p class="text-xs text-slate-400 mt-1 sm:hidden"><i class="ph-fill ph-calendar-blank"></i> ${act.date || '-'}</p>
+                            </td>
+                            <td class="p-4 text-center text-slate-500 text-xs hidden sm:table-cell">${act.date || '-'}</td>
+                            <td class="p-4 text-center hidden md:table-cell">
+                                <span class="inline-flex items-center justify-center min-w-[2.5rem] px-2.5 py-1 rounded-lg text-xs font-bold ${count > 0 ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-slate-50 text-slate-400 border border-slate-100'}">${count}</span>
+                            </td>
+                            <td class="p-4 text-center">
+                                <div class="flex items-center justify-center">
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" class="sr-only peer" ${isOpen ? 'checked' : ''} onchange="toggleCertEventStatus('${act.id}', this.checked)">
+                                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                        <span id="cert-event-toggle-text-${act.id}" class="${isOpen ? 'ml-2 text-xs font-bold text-emerald-600 w-8 text-center' : 'ml-2 text-xs font-bold text-slate-400 w-8 text-center'}">${isOpen ? 'เปิด' : 'ปิด'}</span>
+                                    </label>
+                                </div>
+                            </td>
+                            <td class="p-4 pr-6 text-center">
+                                <button onclick="navigate('admin-certificates','${act.id}')" class="px-3 py-2 bg-amber-50 text-amber-700 border border-amber-100 rounded-xl text-xs font-bold hover:bg-amber-500 hover:text-white transition-all hover-lift shadow-sm inline-flex items-center gap-1.5"><i class="ph-bold ph-certificate"></i> จัดการ</button>
+                            </td>
+                        </tr>`;
+                });
+            }
+
+            h += `</tbody></table></div>`;
+            // pagination
+            h += `
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-white/80 bg-white/40">
+                    <p class="text-xs text-slate-500 font-medium">หน้า ${adminCertPage} จาก ${totalPages} · แสดง ${pageItems.length} จาก ${filtered.length} กิจกรรม</p>
+                    <div class="flex items-center gap-2">${window.buildPagination(adminCertPage, totalPages, 'goToAdminCertPage')}</div>
+                </div>`;
+            h += `</div></div>`;
+            c.innerHTML = h;
+        };
+
+        window.renderAdminCertificates = async function(c, eId) {
+            // ถ้าไม่มี eId → หน้า Overview เลือกกิจกรรมทั้งหมด
+            if (!eId) return window.renderAdminCertOverview(c);
+            c.innerHTML = window.getGokuLoader('กำลังโหลดข้อมูลใบประกาศ...');
+            const event = appCache.activities.find(x => String(x.id) === String(eId));
+            if (!event) { window.showToast('ไม่พบกิจกรรม', 'error'); return window.navigate('admin-events'); }
+            
+            if (appCache.evaluations.length === 0) await window.fetchEvaluationsData(true);
+            if (appCache.checkIns.length === 0) await window.fetchAllCheckInsData(true);
+
+            const eName = event.title;
+            const eDate = event.date;
+
+            const studentEvals = appCache.evaluations.filter(e => String(e[2]).trim() === String(eId) || String(e[3]).trim() === String(eName).trim());
+            
+            const processedStudents = new Set();
+            const validStudents = [];
+            studentEvals.forEach(ev => {
+                const sId = String(ev[1]).trim();
+                if (!processedStudents.has(sId) && sId !== "") {
+                    processedStudents.add(sId);
+                    let studentName = "นักศึกษา";
+                    const checkInRecord = appCache.checkIns.find(chk => String(chk[2]).trim() === sId || String(chk[3]).trim() === sId);
+                    if (checkInRecord && checkInRecord[4]) {
+                        studentName = checkInRecord[4];
+                    }
+                    validStudents.push({ sId: sId, sName: studentName });
+                }
+            });
+
+            let h = `
+                <div class="fade-in max-w-6xl mx-auto pb-10">
+                    <div class="mb-8 flex flex-col md:flex-row justify-between md:items-end gap-4">
+                        <div>
+                            <h1 class="text-3xl font-black text-slate-800">จัดการใบประกาศนียบัตร</h1>
+                            <p class="text-primary font-bold text-lg mt-1">${eName}</p>
+                        </div>
+                        <div class="flex gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+                            <button onclick="navigate('admin-certificates')" class="shrink-0 px-5 py-2.5 bg-white border border-white shadow-sm rounded-xl font-bold text-sm hover-lift flex items-center gap-2 text-slate-600 hover:text-primary"><i class="ph-bold ph-arrow-left"></i> ย้อนกลับ</button>
+                            ${validStudents.length > 0 ? `<button onclick="exportEventCertificates('${eId}')" class="shrink-0 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white shadow-md rounded-xl font-bold text-sm flex gap-2 items-center hover-lift transition-colors"><i class="ph-bold ph-file-pdf text-lg"></i> โหลด PDF ทั้งหมด (${validStudents.length})</button>` : ''}
+                        </div>
+                    </div>
+                    <div class="glass rounded-3xl border border-white shadow-sm overflow-hidden">
+                        <div class="bg-white/60 p-4 border-b border-white text-sm font-bold flex justify-between px-6 items-center">
+                            <span>ผู้ผ่านประเมินและมีสิทธิ์ได้รับใบประกาศ: <span class="text-primary text-base">${validStudents.length}</span> คน</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left min-w-[700px]">
+                                <thead class="bg-white/40 border-b border-white text-slate-500 text-xs uppercase">
+                                    <th class="p-5 pl-6 w-20">ลำดับ</th>
+                                    <th class="p-5 w-48">รหัสนักศึกษา</th>
+                                    <th class="p-5">ชื่อ-นามสกุล</th>
+                                    <th class="p-5 text-center w-40">จัดการ</th>
+                                </thead>
+                                <tbody class="text-sm">`;
+            
+            if (validStudents.length === 0) {
+                h += `<tr><td colspan="4" class="p-12 text-center text-slate-500 font-medium"><i class="ph-fill ph-certificate text-5xl text-slate-300 mb-3 block mx-auto"></i>ยังไม่มีผู้ผ่านการประเมินผลสำหรับกิจกรรมนี้</td></tr>`;
+            } else {
+                validStudents.forEach((s, idx) => {
+                    const safeName = s.sName.replace(/'/g, "\\'");
+                    const safeEvent = eName.replace(/'/g, "\\'");
+                    const safeDate = eDate.replace(/'/g, "\\'");
+                    h += `<tr class="border-b border-white/50 hover:bg-white/60 transition-colors">
+                        <td class="p-5 pl-6 text-slate-500 font-bold">${idx + 1}</td>
+                        <td class="p-5 font-bold font-mono">${s.sId}</td>
+                        <td class="p-5 font-bold text-slate-700">${s.sName}</td>
+                        <td class="p-5 text-center">
+                            <button onclick="downloadCertificatePDF('${safeName}', '${safeEvent}', '${safeDate}')" class="px-4 py-2 bg-white text-amber-600 border border-amber-200 rounded-xl text-xs font-bold hover:bg-amber-50 transition-colors hover-lift shadow-sm inline-flex items-center gap-2"><i class="ph-bold ph-download-simple"></i> โหลด PDF</button>
+                        </td>
+                    </tr>`;
+                });
+            }
+            
+            h += `</tbody></table></div></div></div>`;
+            c.innerHTML = h;
+        };
+
         // --- SHOP SECTION ---
         window.applyShirtLogic = function() {
             const sidInput = document.getElementById('order-student-id');
@@ -1158,14 +1703,14 @@
                                                 </li>
                                                 <li class="flex items-start gap-2">
                                                     <span class="mt-2 w-1.5 h-1.5 bg-primary rounded-full shrink-0"></span>
-                                                    <span>เวลาทำการ 09:00 - 16:30 น. <span class="text-slate-500">(ห้องฝ่ายกิจการนักศึกษา)</span></span>
+                                                    <span>เวลาทำการ 09:00 - 16:30 น. <span class="text-slate-500/80">(ห้องฝ่ายกิจการนักศึกษา)</span></span>
                                                 </li>
                                             </ul>
                                         </div>
                                     </div>
                                 </div>
 
-                                <button type="button" onclick="submitPayment(event)" class="px-10 py-5 rounded-2xl font-bold text-white bg-slate-800 hover:bg-black w-full sm:w-auto flex items-center justify-center gap-3 transition-all hover-lift shadow-lg shadow-slate-800/20">
+                                <button type="button" onclick="submitPayment(event)" class="px-10 py-5 rounded-2xl font-bold text-white bg-slate-800 hover:bg-black w-full sm:w-auto flex items-center justify-center gap-3 transition-all hover-lift">
                                     <i class="ph-bold ph-receipt text-xl"></i> ยืนยันการสั่งจองและรับใบเสร็จ
                                 </button>
                             </div>
@@ -1265,6 +1810,24 @@
                             <thead><tr style="background-color: #f1f5f9;"><th style="${tB} text-align: center;">ลำดับ</th><th style="${tB}">รายการสินค้า</th><th style="${tB} text-align: center;">จำนวน</th><th style="${tB} text-align: right;">หน่วยละ</th><th style="${tB} text-align: right;">จำนวนเงิน</th></tr></thead>
                             <tbody>${iH}<tr><td colspan="4" style="border: 1px solid #1e293b; padding: 10px; text-align: right; font-weight: 700;">รวมเงินสุทธิ</td><td style="border: 1px solid #1e293b; padding: 10px; text-align: right; font-weight: 900; font-size: 16px;">${sumTotal.toLocaleString()}</td></tr></tbody>
                         </table>
+
+                        <!-- ส่วนลายเซ็น ผู้จ่ายเงิน / ผู้รับเงิน -->
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; padding: 0 40px;">
+                            <div style="text-align: center; width: 40%;">
+                                <p style="margin: 0 0 10px 0; color: #94a3b8;">.......................................................</p>
+                                <p style="font-weight: 700; margin: 0; font-size: 13px; color: #1e293b;">ผู้จ่ายเงิน</p>
+                                <p style="font-weight: 500; margin: 5px 0 0; font-size: 12px; color: #64748b;">( ${o.name} )</p>
+                                <p style="font-weight: 500; margin: 5px 0 0; font-size: 11px; color: #94a3b8;">วันที่: ....../....../......</p>
+                            </div>
+                            <div style="text-align: center; width: 40%;">
+                                <p style="margin: 0 0 10px 0; color: #94a3b8;">.......................................................</p>
+                                <p style="font-weight: 700; margin: 0; font-size: 13px; color: #1e293b;">ผู้รับเงิน</p>
+                                <p style="font-weight: 500; margin: 5px 0 0; font-size: 12px; color: #64748b;">( เจ้าหน้าที่คณะ/สโมสรนักศึกษา )</p>
+                                <p style="font-weight: 500; margin: 5px 0 0; font-size: 11px; color: #94a3b8;">วันที่: ....../....../......</p>
+                            </div>
+                        </div>
+
+                        <p style="font-size: 10px; color: #64748b; margin: 25px 0 0 0; text-align: center; background-color: #f8fafc; padding: 6px; border-radius: 4px;">ชำระผ่าน: <b>เงินสด</b> | ใช้เป็นหลักฐานในการติดต่อรับชุดเสื้อคณะเท่านั้น</p>
                     </div>
                 </div>`;
 
@@ -1355,7 +1918,6 @@
             });
             const tP = Object.values(sum.polo).reduce((a, b) => a + b, 0), tA = Object.values(sum.act).reduce((a, b) => a + b, 0);
 
-            // ดึงเฉพาะไซส์ที่มีคนสั่ง (มากกว่า 0) มาแสดงผล
             let poloTableBody = SIZE_LIST.filter(s => sum.polo[s] > 0).length ? SIZE_LIST.filter(s => sum.polo[s] > 0).map(s => `<tr class="border-b border-white/50 hover:bg-white/40"><td class="py-4 px-6 w-1/2">ไซส์ ${s}</td><td class="py-4 px-6 text-right ${s==='ไม่รับ'?'text-red-500':''}">${sum.polo[s]} ตัว</td></tr>`).join('') : `<tr><td colspan="2" class="py-4 px-6 text-center text-slate-400 font-medium">ยังไม่มีข้อมูล</td></tr>`;
             let actTableBody = SIZE_LIST.filter(s => sum.act[s] > 0).length ? SIZE_LIST.filter(s => sum.act[s] > 0).map(s => `<tr class="border-b border-white/50 hover:bg-white/40"><td class="py-4 px-6 w-1/2">ไซส์ ${s}</td><td class="py-4 px-6 text-right ${s==='ไม่รับ'?'text-red-500':''}">${sum.act[s]} ตัว</td></tr>`).join('') : `<tr><td colspan="2" class="py-4 px-6 text-center text-slate-400 font-medium">ยังไม่มีข้อมูล</td></tr>`;
 
@@ -1384,7 +1946,6 @@
             
             const wb = XLSX.utils.book_new();
 
-            // 1. ชีต "รายการทั้งหมดรวมทุกสาขา" (รวมไว้ดูภาพรวม)
             let allSheet = [["เวลา", "สาขาวิชา", "รหัสนักศึกษา", "ชื่อ-นามสกุล", "รายการ", "ยอดรวม", "วิธีการชำระเงิน", "สถานะ"]];
             orders.forEach(o => {
                 const sTxt = STATUS_MAP[o.status] ? STATUS_MAP[o.status].text : o.status;
@@ -1393,7 +1954,6 @@
             });
             XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(allSheet), "รวมทั้งหมด");
 
-            // 2. จัดกลุ่มข้อมูลแยกตามสาขา (Group by Major)
             const groupedByMajor = orders.reduce((acc, o) => {
                 const major = (o.major && String(o.major).trim() !== '' && o.major !== '-') ? String(o.major).trim() : 'ไม่ระบุสาขา';
                 if (!acc[major]) {
@@ -1403,31 +1963,26 @@
                 return acc;
             }, {});
 
-            // 3. วนลูปสร้างชีตย่อยตามสาขา
             for (const majorName in groupedByMajor) {
-                // กำหนดหัวคอลัมน์ตามที่คุณต้องการ: สาขาวิชา,รหัสนักศึกษา,ชื่อ-นามสกุล,รายการ,ยอดรวม,วิธีการชำระเงิน,สถานะ,เวลา
                 let majorSheetData = [["สาขาวิชา", "รหัสนักศึกษา", "ชื่อ-นามสกุล", "รายการ", "ยอดรวม", "วิธีการชำระเงิน", "สถานะ", "เวลา"]];
                 
                 groupedByMajor[majorName].forEach(o => {
                     const sTxt = STATUS_MAP[o.status] ? STATUS_MAP[o.status].text : o.status;
                     const pMeth = o.paymentMethod === 'cash' ? 'เงินสด' : o.paymentMethod;
                     majorSheetData.push([
-                        majorName,         // สาขาวิชา
-                        o.studentId,       // รหัสนักศึกษา
-                        o.name,            // ชื่อ-นามสกุล
-                        o.size,            // รายการ
-                        o.total,           // ยอดรวม
-                        pMeth,             // วิธีการชำระเงิน
-                        sTxt,              // สถานะ
-                        o.timestamp        // เวลา
+                        majorName,         
+                        o.studentId,       
+                        o.name,            
+                        o.size,            
+                        o.total,           
+                        pMeth,             
+                        sTxt,              
+                        o.timestamp        
                     ]);
                 });
 
-                // สร้างแผ่นงาน (Sheet) ใหม่ โดยตั้งชื่อชีตตามชื่อสาขา
-                // หมายเหตุ: Excel จำกัดชื่อชีตไว้ที่ไม่เกิน 31 ตัวอักษร
                 let safeSheetName = majorName.substring(0, 31);
                 
-                // กันกรณีชื่อชีตซ้ำกันหลังถูกตัดคำ
                 if (wb.SheetNames.includes(safeSheetName)) {
                      safeSheetName = safeSheetName.substring(0, 27) + "..." + Math.floor(Math.random() * 10);
                 }
@@ -1436,7 +1991,6 @@
                 XLSX.utils.book_append_sheet(wb, ws, safeSheetName);
             }
 
-            // บันทึกไฟล์และโหลดลงเครื่อง
             XLSX.writeFile(wb, `รายงานจองเสื้อ_แยกสาขา_${window.formatThaiDate(new Date()).replace(/ /g, '_')}.xlsx`);
         };
 
@@ -1504,10 +2058,10 @@
                 else if (e.openTime) timerDisplay = `เปิด: ${window.formatThaiDate(e.openTime, true)}`;
                 else if (e.closeTime) timerDisplay = `ปิด: ${window.formatThaiDate(e.closeTime, true)}`;
 
-                h += `<tr class="border-b border-white/50 hover:bg-white/80 transition-colors"><td class="p-5 text-slate-400 text-[10px]">${e.timestamp||'-'}</td><td class="p-5 font-bold">${e.title}${hasTimer ? `<br><div class="inline-block mt-2 text-[10px] font-bold text-purple-600 bg-white/80 px-2.5 py-1.5 rounded-lg border border-purple-100 shadow-sm leading-relaxed"><i class="ph-fill ph-clock mb-0.5"></i> ตั้งเวลาไว้:<br><span class="font-medium">${timerDisplay}</span></div>` : ''}</td><td class="p-5">${e.date}</td><td class="p-5">${e.location}</td><td class="p-5 text-center"><div class="flex items-center justify-center gap-4"><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" class="sr-only peer" ${iO ? 'checked' : ''} onchange="toggleEventStatus('${e.id}', '${e.status}')"><div class="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-200 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500 shadow-inner"></div></label><button onclick="openTimerEventModal('${e.id}')" class="w-8 h-8 rounded-xl bg-purple-50 border border-purple-100 shadow-sm text-purple-600 flex items-center justify-center hover:bg-purple-100 transition-colors hover-lift" title="ตั้งเวลาอัตโนมัติ"><i class="ph-bold ph-clock"></i></button><button onclick="openEditEventModal('${e.id}')" class="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 shadow-sm text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors hover-lift" title="แก้ไข"><i class="ph-bold ph-pencil-simple"></i></button><button onclick="exportEventParticipants('${e.title}')" class="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 shadow-sm text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition-colors hover-lift" title="โหลด Excel"><i class="ph-bold ph-microsoft-excel-logo"></i></button></div></td></tr>`; 
+                h += `<tr class="border-b border-white/50 hover:bg-white/80 transition-colors"><td class="p-5 text-slate-400 text-[10px]">${e.timestamp||'-'}</td><td class="p-5 font-bold">${e.title}${hasTimer ? `<br><div class="inline-block mt-2 text-[10px] font-bold text-purple-600 bg-white/80 px-2.5 py-1.5 rounded-lg border border-purple-100 shadow-sm leading-relaxed"><i class="ph-fill ph-clock mb-0.5"></i> ตั้งเวลาไว้:<br><span class="font-medium">${timerDisplay}</span></div>` : ''}</td><td class="p-5">${e.date}</td><td class="p-5">${e.location}</td><td class="p-5 text-center"><div class="flex items-center justify-center gap-4"><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" class="sr-only peer" ${iO ? 'checked' : ''} onchange="toggleEventStatus('${e.id}', '${e.status}')"><div class="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-200 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500 shadow-inner"></div></label><button onclick="openTimerEventModal('${e.id}')" class="w-8 h-8 rounded-xl bg-purple-50 border border-purple-100 shadow-sm text-purple-600 flex items-center justify-center hover:bg-purple-100 transition-colors hover-lift" title="ตั้งเวลาอัตโนมัติ"><i class="ph-bold ph-clock"></i></button><button onclick="openEditEventModal('${e.id}')" class="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 shadow-sm text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors hover-lift" title="แก้ไข"><i class="ph-bold ph-pencil-simple"></i></button><button onclick="navigate('admin-certificates', '${e.id}')" class="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100 shadow-sm text-amber-600 flex items-center justify-center hover:bg-amber-100 transition-colors hover-lift" title="จัดการใบประกาศ"><i class="ph-bold ph-certificate"></i></button><button onclick="exportEventParticipants('${e.title}')" class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition-colors" title="โหลด Excel"><i class="ph-bold ph-microsoft-excel-logo"></i></button></div></td></tr>`; 
             }); }
             tb.innerHTML = h; const sD = tI === 0 ? 0 : ((adminEventsPage - 1) * adminEventsPerPage) + 1, eD = Math.min(adminEventsPage * adminEventsPerPage, tI);
-            pg.innerHTML = `<span class="text-sm bg-white/80 border border-white shadow-sm px-4 py-2 rounded-xl font-medium">แสดง <b class="font-black text-primary">${sD}-${eD}</b> จาก <b>${tI}</b></span><div class="flex gap-2"><button onclick="changeAdminEventPage(${adminEventsPage - 1})" ${adminEventsPage <= 1 ? 'disabled' : ''} class="w-10 h-10 rounded-xl bg-white/80 border border-white shadow-sm disabled:opacity-40 hover-lift flex items-center justify-center"><i class="ph-bold ph-caret-left"></i></button><button onclick="changeAdminEventPage(${adminEventsPage + 1})" ${adminEventsPage >= tP ? 'disabled' : ''} class="w-10 h-10 rounded-xl bg-white/80 border border-white shadow-sm disabled:opacity-40 hover-lift flex items-center justify-center"><i class="ph-bold ph-caret-right"></i></button></div>`;
+            pg.innerHTML = `<span class="text-sm bg-white/80 border border-white shadow-sm px-4 py-2 rounded-xl font-medium">แสดง <b class="font-black text-primary">${sD}-${eD}</b> จาก <b>${tI}</b></span><div class="flex gap-2"><button onclick="changeAdminEventPage(${adminEventsPage - 1})" ${adminEventsPage <= 1 ? 'disabled' : ''} class="w-10 h-10 rounded-xl bg-white border disabled:opacity-40 hover-lift"><i class="ph-bold ph-caret-left"></i></button><button onclick="changeAdminEventPage(${adminEventsPage + 1})" ${adminEventsPage >= tP ? 'disabled' : ''} class="w-10 h-10 rounded-xl bg-white border disabled:opacity-40 hover-lift"><i class="ph-bold ph-caret-right"></i></button></div>`;
         };
 
         window.refreshAdminEvents = async function(btn) { const icon = btn.querySelector('i'); if(icon) icon.classList.add('animate-spin'); await window.fetchActivitiesData(true); window.updateAdminEventsTable(); if(icon) icon.classList.remove('animate-spin'); window.showToast('อัปเดตแล้ว', 'success'); };
@@ -1677,7 +2231,7 @@
                 const evs = appCache.evaluations.filter(e => String(e[3] || '').trim() === String(eN).trim());
                 if (evs.length === 0) { cD.innerHTML = `<div class="text-center py-16 glass rounded-[32px] text-slate-500 border border-white shadow-sm"><p class="font-bold text-xl">ไม่มีข้อมูล</p></div>`; cD.classList.remove('hidden'); if(pB) pB.classList.add('hidden'); if(wB) wB.classList.add('hidden'); return; }
 
-                let mC = 0, fC = 0; evs.forEach(ev => { const sid = String(ev[1] || '').trim(), chk = appCache.checkIns.find(c => String(c[2] || '').trim() === sid); if (chk && chk[4]) { const n = String(chk[4]).trim(); if (n.startsWith('นาย')) mC++; else if (n.startsWith('นาง') || n.startsWith('น.ส.')) fC++; } });
+                let mC = 0, fC = 0; evs.forEach(ev => { const sid = String(ev[1]).trim(), chk = appCache.checkIns.find(c => String(c[2]).trim() === sid); if (chk && chk[4]) { const n = String(chk[4]).trim(); if (n.startsWith('นาย')) mC++; else if (n.startsWith('นาง') || n.startsWith('น.ส.')) fC++; } });
                 const tG = mC + fC || 1, mP = ((mC / tG) * 100).toFixed(2), fP = ((fC / tG) * 100).toFixed(2);
                 const sM = { 'q1_1': 'ถ่ายทอดความรู้ชัดเจน', 'q1_2': 'อธิบายเนื้อหา', 'q1_3': 'เชื่อมโยงเนื้อหา', 'q1_4': 'ความครบถ้วน', 'q1_5': 'เวลาเหมาะสม', 'q1_6': 'การตอบคำถาม', 'q2_1': 'สถานที่เหมาะสม', 'q2_2': 'อุปกรณ์พร้อม', 'q2_3': 'ระยะเวลาเหมาะสม', 'q2_4': 'อาหารเหมาะสม', 'q3_1': 'ความเข้าใจก่อน', 'q3_2': 'ความเข้าใจหลัง', 'q4_1': 'นำไปใช้ปฏิบัติงาน', 'q4_2': 'มั่นใจนำไปใช้', 'q4_3': 'นำไปเผยแพร่' };
                 const qMs = []; let aVS = []; const nQ = Object.keys(sM).length;
@@ -1690,7 +2244,7 @@
                 qMs.forEach((q, i) => { h += `<tr class="border-b border-slate-100 hover:bg-slate-50"><td class="p-4 text-center font-bold">${i + 1}</td><td class="p-4 font-medium">${q.qText}</td><td class="p-4 text-center font-bold">${Number(q.mean).toFixed(2)}</td><td class="p-4 text-center font-bold text-slate-500">${Number(q.sd).toFixed(2)}</td><td class="p-4 text-center">${gBUI(q.mean)}</td></tr>`; });
                 h += `<tr class="bg-orange-50/50 font-black border-t-2 border-orange-200"><td colspan="2" class="p-5 text-right text-primary">รวมเฉลี่ย</td><td class="p-5 text-center text-primary text-xl">${oMn}</td><td class="p-5 text-center text-slate-700 text-lg">${oSd}</td><td class="p-5 text-center">${gBUI(oMn)}</td></tr></tbody></table></div>`;
                 const cmm = evs.map(e => String(e[4 + nQ] || '').trim()).filter(c => c !== '');
-                if (cmm.length > 0) { let cL = '<div class="space-y-4 mt-6 mb-8">'; [...new Set(cmm)].forEach(c => { cL += `<div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm"><p class="text-slate-700 font-medium">${c}</p></div>`; }); h += `<div class="mt-12"><h3 class="font-black text-xl mb-5">ส่วนที่ 3: ข้อเสนอแนะ</h3><div class="bg-slate-50 rounded-[32px] p-8 border border-slate-200">${cL}</div></div>`; } h += `</div>`; cD.innerHTML = h; cD.classList.remove('hidden'); if(pB) pB.classList.remove('hidden'); if(wB) wB.classList.remove('hidden'); 
+                if (cmm.length > 0) { let cL = '<div class="space-y-4 mt-6 mb-8">'; [...new Set(cmm)].forEach(c => { cL += `<div class="bg-white p-5 rounded-2xl border"><p class="text-slate-700 font-medium">${c}</p></div>`; }); h += `<div class="mt-12"><h3 class="font-black text-xl mb-5">ส่วนที่ 3: ข้อเสนอแนะ</h3><div class="bg-slate-50 rounded-[32px] p-8 border">${cL}</div></div>`; } h += `</div>`; cD.innerHTML = h; cD.classList.remove('hidden'); if(pB) pB.classList.remove('hidden'); if(wB) wB.classList.remove('hidden'); 
             } catch (err) { document.getElementById('spss-report-content').innerHTML = `<div class="text-red-500 font-bold">Error</div>`; }
         };
 
@@ -1702,21 +2256,18 @@
             
             const tJ = aD.reduce((s, e) => s + (parseInt(e.joined) || 0), 0), pR = tJ > 0 ? Math.round((cI.length / tJ) * 100) : 0;
             
-            // Calculate Order Stats
             const totalOrders = oD.length;
             const pendingOrders = oD.filter(o=>o.status===1).length;
             let totalShirts = 0;
             let totalMoney = 0;
             
             oD.forEach(o => {
-                // คำนวณยอดเงินรวม
                 let rawTotal = String(o.total || '0').replace(/,/g, '').replace(/[^\d.-]/g, '');
                 let parsedTotal = parseFloat(rawTotal);
                 if (!isNaN(parsedTotal)) {
                     totalMoney += parsedTotal;
                 }
 
-                // คำนวณจำนวนเสื้อ
                 let qty = parseInt(o.qty);
                 if (!isNaN(qty) && qty > 0) {
                     totalShirts += qty;
@@ -1842,7 +2393,7 @@
             if (pA.length === 0) { h += `<div class="glass p-10 rounded-[32px] text-center text-slate-400 border border-white">ยังไม่มีกิจกรรม</div>`; } 
             else { pA.forEach(e => { const iO = e.status === 'open'; h += `<div onclick="navigate('admin-event-participants', '${e.title}')" class="cursor-pointer glass rounded-[24px] p-6 border border-white shadow-sm flex justify-between gap-5 relative hover-lift"><div class="absolute inset-y-0 left-0 w-2 ${iO ? 'bg-orange-400' : 'bg-slate-300'} rounded-l-[24px]"></div><div class="pl-4"><span class="px-3 py-1 bg-${iO?'orange':'slate'}-50 text-${iO?'orange':'slate'}-700 text-[10px] font-bold rounded-lg border border-${iO?'orange':'slate'}-100 shadow-sm">${iO?'กำลังเปิดรับ':'ปิดรับ'}</span><h3 class="text-lg font-bold mt-2">${e.title}</h3><p class="text-sm text-slate-500 mt-1"><i class="ph-fill ph-calendar-blank"></i> ${e.date}</p></div><div class="bg-white/80 rounded-2xl p-4 flex items-center gap-4 border border-white shadow-sm"><div class="flex items-baseline"><span class="text-3xl font-black text-primary">${e.joined}</span><span class="text-sm font-bold text-slate-400 ml-1">คน</span></div></div></div>`; }); }
             h += '</div>'; lC.innerHTML = h; const sD = tI === 0 ? 0 : ((dashEventsPage - 1) * dashEventsPerPage) + 1, eD = Math.min(dashEventsPage * dashEventsPerPage, tI);
-            pC.innerHTML = `<span class="text-sm text-slate-600 font-medium bg-white/80 px-4 py-2 rounded-xl border border-white shadow-sm">แสดง <span class="font-black text-primary">${sD}-${eD}</span> จาก <span class="font-bold">${tI}</span></span><div class="flex gap-2"><button onclick="changeDashEventPage(${dashEventsPage - 1})" ${dashEventsPage <= 1 ? 'disabled' : ''} class="w-10 h-10 flex justify-center items-center rounded-xl bg-white/80 border border-white shadow-sm text-slate-600 disabled:opacity-40 hover-lift"><i class="ph-bold ph-caret-left"></i></button><button onclick="changeDashEventPage(${dashEventsPage + 1})" ${dashEventsPage >= tP ? 'disabled' : ''} class="w-10 h-10 flex justify-center items-center rounded-xl bg-white/80 border border-white shadow-sm text-slate-600 disabled:opacity-40 hover-lift"><i class="ph-bold ph-caret-right"></i></button></div>`;
+            pC.innerHTML = `<span class="text-sm text-slate-500 font-medium bg-white/80 px-4 py-2 rounded-xl border border-white shadow-sm">แสดง <span class="font-black text-primary">${sD}-${eD}</span> จาก <span class="font-bold">${tI}</span></span><div class="flex gap-2"><button onclick="changeDashEventPage(${dashEventsPage - 1})" ${dashEventsPage <= 1 ? 'disabled' : ''} class="w-10 h-10 flex justify-center items-center rounded-xl bg-white/80 border border-white shadow-sm text-slate-600 disabled:opacity-40 hover-lift"><i class="ph-bold ph-caret-left"></i></button><button onclick="changeDashEventPage(${dashEventsPage + 1})" ${dashEventsPage >= tP ? 'disabled' : ''} class="w-10 h-10 flex justify-center items-center rounded-xl bg-white/80 border border-white shadow-sm text-slate-600 disabled:opacity-40 hover-lift"><i class="ph-bold ph-caret-right"></i></button></div>`;
         };
 
         window.changeDashEventPage = function(p) { dashEventsPage = p; window.updateDashboardEventsList(); };
