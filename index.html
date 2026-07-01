@@ -343,6 +343,46 @@
             } catch(e) {}
         };
 
+        window.formatThaiDate = function(dS, incT = false) {
+            if (!dS || String(dS).trim() === '-' || String(dS).trim() === '') return dS;
+            let d = new Date(String(dS).replace(/GMT.*/ig, '').replace(/\(.*?\)/g, '').trim()); 
+            if (isNaN(d.getTime())) return dS; 
+            const tM = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.']; 
+            let y = d.getFullYear(); if (y < 2500) y += 543;
+            let r = `${d.getDate()} ${tM[d.getMonth()]} ${y}`; 
+            if (incT) r += ` ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} น.`; 
+            return r;
+        };
+
+        window.formatThaiDateLong = function(dS) {
+            if (!dS || String(dS).trim() === '-' || String(dS).trim() === '') return dS;
+            let d = new Date(String(dS).replace(/GMT.*/ig, '').replace(/\(.*?\)/g, '').trim()); 
+            if (isNaN(d.getTime())) return dS; 
+            const days = ['วันอาทิตย์', 'วันจันทร์', 'วันอังคาร', 'วันพุธ', 'วันพฤหัสบดี', 'วันศุกร์', 'วันเสาร์'];
+            const months = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+            let y = d.getFullYear(); if (y < 2500) y += 543;
+            return `${days[d.getDay()]}ที่ ${d.getDate()} ${months[d.getMonth()]} พ.ศ. ${y}`;
+        };
+
+        window.parseThaiDateToISO = function(tStr) {
+            if (!tStr) return '';
+            const str = String(tStr).trim();
+            if (/^\d{4}-\d{2}-\d{2}/.test(str)) return str.substring(0, 10);
+            
+            const months = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+            const m = str.match(/ที่\s*(\d+)\s+([ก-๙]+)\s+พ\.ศ\.\s*(\d+)/);
+            if (m) {
+                const day = String(m[1]).padStart(2, '0');
+                const monthIdx = months.indexOf(m[2]);
+                if (monthIdx !== -1) {
+                    const month = String(monthIdx + 1).padStart(2, '0');
+                    const year = parseInt(m[3]) - 543;
+                    return `${year}-${month}-${day}`;
+                }
+            }
+            return str; 
+        };
+
         window.fetchActivitiesData = async function(f=false) { 
             if (!f && appCache.activities.length > 0) { window._bgFetchAct(); return appCache.activities; } 
             return await window._bgFetchAct(); 
@@ -359,8 +399,10 @@
                 } 
                 if (a.success && a.data) { 
                     a.data.forEach(i => { 
-                        i.rawDate = i.date; 
-                        i.date = window.formatThaiDate(i.date); 
+                        i.rawDate = window.parseThaiDateToISO(i.date) || i.date; 
+                        if (i.date.includes('-') && !i.date.includes('พ.ศ.')) {
+                             i.date = window.formatThaiDateLong(i.date);
+                        }
                         i.timestamp = window.formatThaiDate(i.timestamp, true); 
                         i.joined = ct[i.title.trim()] || 0; 
 
@@ -481,17 +523,6 @@
 
         window.getGokuLoader = function(t = 'กำลังโหลด...') { 
             return `<div class="fade-in py-24 flex flex-col items-center text-center"><div class="relative w-28 h-28 mb-8 flex items-center justify-center"><div class="absolute inset-0 bg-orange-400/20 rounded-full blur-2xl animate-pulse"></div><div class="absolute inset-2 border-[3px] border-white/60 rounded-full shadow-inner"></div><div class="absolute inset-2 border-[3px] border-orange-50 border-t-transparent rounded-full animate-spin"></div><div class="relative flex items-center justify-center bg-white/90 backdrop-blur-sm w-16 h-16 rounded-full shadow-lg"><i class="ph-fill ph-student text-3xl text-orange-500 animate-pulse"></i></div></div><h3 class="text-xl font-bold text-slate-800 mb-2">${t}</h3></div>`; 
-        };
-        
-        window.formatThaiDate = function(dS, incT = false) {
-            if (!dS || String(dS).trim() === '-' || String(dS).trim() === '') return dS;
-            let d = new Date(String(dS).replace(/GMT.*/ig, '').replace(/\(.*?\)/g, '').trim()); 
-            if (isNaN(d.getTime())) return dS; 
-            const tM = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.']; 
-            let y = d.getFullYear(); if (y < 2500) y += 543;
-            let r = `${d.getDate()} ${tM[d.getMonth()]} ${y}`; 
-            if (incT) r += ` ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} น.`; 
-            return r;
         };
 
         window.showToast = function(m, t = 'success') { 
@@ -916,7 +947,7 @@
                 <div class="fade-in max-w-4xl mx-auto pb-10">
                     <div class="mb-8 text-center sm:text-left">
                         <h1 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">ดาวน์โหลดใบประกาศนียบัตร</h1>
-                        <p class="text-base text-slate-500 mt-2 font-medium">เฉพาะกิจกรรมที่คุณเข้าร่วมและ <span class="font-bold text-primary">ผ่านการประเมินผลแล้ว</span> เท่านั้น</p>
+                        <p class="text-base text-slate-500 mt-2 font-medium">เฉพาะกิจกรรมที่คุณเข้าร่วม, <span class="font-bold text-primary">ผ่านการประเมินผล</span> และเปิดให้ดาวน์โหลดแล้วเท่านั้น</p>
                     </div>
                     <div class="glass rounded-[32px] shadow-sm border border-white/60 p-8 sm:p-10 mb-8">
                         <label class="block text-sm font-bold text-slate-700 mb-3">รหัสนักศึกษา หรือ หมายเลขบัตรประชาชน</label>
@@ -939,34 +970,19 @@
                         const safeName = cert.studentName.replace(/'/g, "\\'");
                         const safeEvent = cert.eventName.replace(/'/g, "\\'");
                         const safeDate = cert.date.replace(/'/g, "\\'");
-                        
-                        if (cert.isCertOpen) {
-                            // แบบที่ 1: แอดมินเปิดระบบแล้ว (โหลดได้)
-                            h += `
-                            <div class="glass p-6 rounded-[24px] border border-white shadow-sm flex flex-col hover-lift relative overflow-hidden bg-white/60">
-                                <div class="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-amber-200 to-orange-400 opacity-20 rounded-full z-0 blur-xl"></div>
-                                <div class="relative z-10 flex flex-col h-full">
-                                    <div class="w-14 h-14 bg-gradient-to-br from-amber-100 to-orange-100 text-amber-600 rounded-2xl flex items-center justify-center text-3xl mb-4 border border-amber-200 shadow-sm"><i class="ph-fill ph-medal"></i></div>
-                                    <h3 class="font-black text-lg text-slate-800 leading-snug mb-2 line-clamp-2">${cert.eventName}</h3>
-                                    <p class="text-sm font-bold text-slate-500 mb-6 flex items-center gap-2"><i class="ph-bold ph-calendar-blank"></i> ${cert.date}</p>
-                                    <button onclick="downloadCertificatePDF('${safeName}', '${safeEvent}', '${safeDate}')" class="w-full mt-auto py-3.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md shadow-amber-500/20"><i class="ph-bold ph-download-simple text-lg"></i> ดาวน์โหลด (PDF)</button>
-                                </div>
-                            </div>`; 
-                        } else {
-                            // แบบที่ 2: แอดมินยังไม่เปิดระบบ (โชว์ให้รู้ว่ามี แต่ล็อกปุ่มไว้)
-                            h += `
-                            <div class="p-6 rounded-[24px] border border-slate-200 shadow-sm flex flex-col relative overflow-hidden bg-slate-50/80">
-                                <div class="relative z-10 flex flex-col h-full opacity-70">
-                                    <div class="w-14 h-14 bg-slate-200 text-slate-500 rounded-2xl flex items-center justify-center text-3xl mb-4 border border-slate-300 shadow-sm"><i class="ph-fill ph-lock-key"></i></div>
-                                    <h3 class="font-black text-lg text-slate-700 leading-snug mb-2 line-clamp-2">${cert.eventName}</h3>
-                                    <p class="text-sm font-bold text-slate-500 mb-6 flex items-center gap-2"><i class="ph-bold ph-calendar-blank"></i> ${cert.date}</p>
-                                    <button disabled class="w-full mt-auto py-3.5 bg-slate-200 text-slate-500 font-bold rounded-xl flex items-center justify-center gap-2 cursor-not-allowed border border-slate-300"><i class="ph-bold ph-hourglass-medium text-lg"></i> รอเปิดระบบดาวน์โหลด</button>
-                                </div>
-                            </div>`; 
-                        }
+                        h += `
+                        <div class="glass p-6 rounded-[24px] border border-white shadow-sm flex flex-col hover-lift relative overflow-hidden bg-white/60">
+                            <div class="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-amber-200 to-orange-400 opacity-20 rounded-full z-0 blur-xl"></div>
+                            <div class="relative z-10 flex flex-col h-full">
+                                <div class="w-14 h-14 bg-gradient-to-br from-amber-100 to-orange-100 text-amber-600 rounded-2xl flex items-center justify-center text-3xl mb-4 border border-amber-200 shadow-sm"><i class="ph-fill ph-medal"></i></div>
+                                <h3 class="font-black text-lg text-slate-800 leading-snug mb-2 line-clamp-2">${cert.eventName}</h3>
+                                <p class="text-sm font-bold text-slate-500 mb-6 flex items-center gap-2"><i class="ph-bold ph-calendar-blank"></i> ${cert.date}</p>
+                                <button onclick="downloadCertificatePDF('${safeName}', '${safeEvent}', '${safeDate}')" class="w-full mt-auto py-3.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md shadow-amber-500/20"><i class="ph-bold ph-download-simple text-lg"></i> ดาวน์โหลด (PDF)</button>
+                            </div>
+                        </div>`; 
                     }); 
                 } else { 
-                    h += `<div class="col-span-full py-16 text-center glass rounded-[32px] border border-white shadow-sm"><i class="ph-fill ph-warning-circle text-6xl text-slate-300 mb-4 block mx-auto"></i><p class="text-slate-600 font-black text-xl">ยังไม่มีใบประกาศนียบัตร</p><p class="text-sm font-medium text-slate-500 mt-2">กรุณาเข้าร่วมกิจกรรมและทำแบบประเมินให้เสร็จสิ้นก่อนนะครับ</p></div>`; 
+                    h += `<div class="col-span-full py-16 text-center glass rounded-[32px] border border-white shadow-sm"><i class="ph-fill ph-warning-circle text-6xl text-slate-300 mb-4 block mx-auto"></i><p class="text-slate-600 font-black text-xl">ยังไม่มีใบประกาศนียบัตร</p><p class="text-sm font-medium text-slate-500 mt-2">ยังไม่พบข้อมูล หรือกิจกรรมยังไม่เปิดให้ดาวน์โหลดนะครับ</p></div>`; 
                 }
                 h += `</div></div>`;
             }
@@ -998,20 +1014,12 @@
                     const eventName = String(ev[3]).trim();
 
                     if (!processedEvents.has(eventName) && eventName !== "") {
-                        processedEvents.add(eventName);
-
-                        // หากิจกรรมในระบบ เพื่อเช็คสถานะการเปิด/ปิดเกียรติบัตร
                         const act = appCache.activities.find(a => String(a.id) === eventId || String(a.title).trim() === eventName);
-                        const eventDate = act ? act.date : "ตามที่กำหนดในโครงการ";
-                        const isCertOpen = act ? (act.certEnabled === true) : false; // อ่านค่าสถานะจากระบบแอดมิน
-
-                        // ดันข้อมูลลง array พร้อมแนบตัวแปร isCertOpen ไปด้วย
-                        certs.push({ 
-                            studentName: studentName, 
-                            eventName: eventName, 
-                            date: eventDate,
-                            isCertOpen: isCertOpen 
-                        });
+                        if (act && act.certEnabled === true) {
+                            processedEvents.add(eventName);
+                            const eventDate = act.date;
+                            certs.push({ studentName: studentName, eventName: eventName, date: eventDate });
+                        }
                     }
                 });
 
@@ -1030,28 +1038,20 @@
 
         window.clearCertSearch = function() { sessionStorage.removeItem('certSearchTerm'); sessionStorage.removeItem('certData'); window.renderCertificates(document.getElementById('app-content')); };
 
-        window.downloadCertificatePDF = function(sName, eName, eDate) {
-            window.showToast('กำลังเตรียมไฟล์เกียรติบัตร...', 'warning');
+        window.downloadCertificatePDF = async function(sName, eName, eDate) {
+            window.showToast('กำลังเตรียมไฟล์เกียรติบัตร กรุณารอสักครู่...', 'warning');
 
             const A4_W = 1123, A4_H = 794;
 
             const certContainer = document.createElement('div');
-            certContainer.style.cssText = `position:absolute;left:-9999px;top:0;width:${A4_W}px;height:${A4_H}px;`;
+            certContainer.style.cssText = `position: fixed; top: 0; left: 0; width: ${A4_W}px; height: ${A4_H}px; background-color: #fff; font-family: 'Prompt', sans-serif; color: #1e293b; z-index: -9999; opacity: 0.01; pointer-events: none; overflow: hidden;`;
             document.body.appendChild(certContainer);
 
-            certContainer.innerHTML = `
-                <div id="cert-pdf-content" style="
-                    width:${A4_W}px;height:${A4_H}px;
-                    background:#fff;
-                    font-family:'Prompt',sans-serif;
-                    position:relative;overflow:hidden;box-sizing:border-box;
-                    color:#1e293b;
-                    display:flex;flex-direction:column;
-                ">
-                    <!-- Background Design -->
-                    <img src="https://img1.pic.in.th/images/------------A4-.png" crossorigin="anonymous" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: fill; z-index: 1;">
+            const bgUrl = 'https://img1.pic.in.th/images/------------A4-.png';
 
-                    <!-- Text Contents -->
+            certContainer.innerHTML = `
+                <div style="position:relative;width:100%;height:100%;box-sizing:border-box;display:flex;flex-direction:column;">
+                    <img id="cert-bg-image" src="${bgUrl}" crossorigin="anonymous" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: fill; z-index: 1;">
                     <div style="position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;text-align:center;box-sizing:border-box;padding-top:170px;height:100%;">
                         <p style="font-size:24px;font-weight:700;color:#c2410c;margin:0 0 10px 0;letter-spacing:1px;">คณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย</p>
                         <p style="font-size:18px;font-weight:500;color:#475569;margin:0 0 35px 0;">ขอมอบเกียรติบัตรฉบับนี้ให้ไว้เพื่อแสดงว่า</p>
@@ -1066,7 +1066,6 @@
 
                         <p style="font-size:16px;font-weight:500;color:#64748b;margin:0 0 40px 0;">ให้ไว้ ณ วันที่ ${eDate}</p>
 
-                        <!-- Dean's Signature Center-Bottom -->
                         <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;margin-top:auto;margin-bottom:50px;">
                             <div style="width:280px;height:1px;background:#64748b;margin-bottom:12px;"></div>
                             <p style="font-size:16px;font-weight:700;margin:0;color:#1e293b;">(ผู้ช่วยศาสตราจารย์ ดร.ภูมิพงษ์ ดวงตั้ง)</p>
@@ -1076,40 +1075,55 @@
                 </div>
             `;
 
-            const element = document.getElementById('cert-pdf-content');
+            const executePDFGeneration = () => {
+                const opt = {
+                    margin:      0,
+                    filename:    `Certificate_${sName}.pdf`,
+                    image:       { type: 'jpeg', quality: 1.0 },
+                    html2canvas: {
+                        scale:       2,
+                        useCORS:     true,
+                        width:       A4_W,
+                        height:      A4_H,
+                        scrollY:     0,
+                        scrollX:     0,
+                        logging:     false
+                    },
+                    jsPDF: {
+                        unit:        'px',
+                        format:      [A4_W, A4_H],
+                        orientation: 'landscape',
+                        compress:    true
+                    },
+                    pagebreak:   { mode: ['avoid-all'] }
+                };
 
-            const opt = {
-                margin:      0,
-                filename:    `Certificate_${sName}.pdf`,
-                image:       { type: 'jpeg', quality: 1.0 },
-                html2canvas: {
-                    scale:       2,
-                    useCORS:     true,
-                    width:       A4_W,
-                    height:      A4_H,
-                    windowWidth: A4_W
-                },
-                jsPDF: {
-                    unit:        'px',
-                    format:      [A4_W, A4_H],
-                    orientation: 'landscape',
-                    compress:    true
-                },
-                pagebreak:   { mode: ['avoid-all'] }
+                html2pdf().set(opt).from(certContainer).save().then(() => {
+                    document.body.removeChild(certContainer);
+                    window.showToast('ดาวน์โหลดเกียรติบัตรสำเร็จแล้ว!', 'success');
+                }).catch(err => {
+                    console.error(err);
+                    document.body.removeChild(certContainer);
+                    window.showToast('เกิดข้อผิดพลาดในการสร้างไฟล์ PDF', 'error');
+                });
             };
 
-            html2pdf().set(opt).from(element).save().then(() => {
-                document.body.removeChild(certContainer);
-                window.showToast('ดาวน์โหลดเกียรติบัตรสำเร็จแล้ว!', 'success');
-            }).catch(err => {
-                console.error(err);
-                document.body.removeChild(certContainer);
-                window.showToast('เกิดข้อผิดพลาดในการสร้างไฟล์ PDF', 'error');
-            });
+            await document.fonts.ready;
+            const bgImg = certContainer.querySelector('#cert-bg-image');
+            
+            if (bgImg.complete && bgImg.naturalHeight !== 0) {
+                setTimeout(executePDFGeneration, 150);
+            } else {
+                bgImg.onload = () => setTimeout(executePDFGeneration, 150);
+                bgImg.onerror = () => {
+                    console.warn("Background image failed to load.");
+                    executePDFGeneration();
+                };
+            }
         };
 
         window.exportEventCertificates = async function(eId) {
-            window.showToast('กำลังรวบรวมรายชื่อผู้ผ่านประเมิน...', 'warning');
+            window.showToast('กำลังรวบรวมข้อมูล กรุณารอสักครู่...', 'warning');
             const event = appCache.activities.find(x => String(x.id) === String(eId));
             if (!event) return window.showToast('ไม่พบกิจกรรม', 'error');
             const eName = event.title;
@@ -1129,8 +1143,12 @@
                 const sId = String(ev[1]).trim();
                 if (!processedStudents.has(sId) && sId !== "") {
                     processedStudents.add(sId);
-                    let studentName = "นักศึกษา";
-                    const checkInRecord = appCache.checkIns.find(c => String(c[2]).trim() === sId || String(c[3]).trim() === sId);
+                    let studentName = sId;
+                    const checkInRecord = appCache.checkIns.find(c => {
+                        const recSId = String(c[2]).trim();
+                        const recCId = String(c[3]).trim();
+                        return recSId === sId || recCId === sId;
+                    });
                     if (checkInRecord && checkInRecord[4]) {
                         studentName = checkInRecord[4];
                     }
@@ -1142,37 +1160,33 @@
             
             const loader = document.createElement('div'); 
             loader.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255,255,255,0.9); z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center;'; 
-            loader.innerHTML = `<i class="ph-bold ph-spinner animate-spin text-primary" style="font-size: 50px;"></i><h3 style="font-size: 20px; font-weight: bold; margin-top: 15px;">กำลังสร้าง PDF สำหรับ ${validStudents.length} คน...</h3><p class="text-slate-500 mt-2">อาจใช้เวลาสักครู่ ห้ามปิดหน้านี้</p>`; 
+            loader.innerHTML = `<i class="ph-bold ph-spinner animate-spin text-primary" style="font-size: 50px;"></i><h3 style="font-size: 20px; font-weight: bold; margin-top: 15px;">กำลังสร้าง PDF สำหรับ ${validStudents.length} คน...</h3><p class="text-slate-500 mt-2">ห้ามปิดหรือสลับหน้าต่างระหว่างกระบวนการนี้</p>`; 
             document.body.appendChild(loader);
 
+            const A4_W = 1123, A4_H = 794;
+            
             const certContainer = document.createElement('div');
-            certContainer.style.position = 'absolute';
-            certContainer.style.left = '-9999px';
-            certContainer.style.top = '0';
-            certContainer.style.width = '1123px';
+            certContainer.style.cssText = `position: fixed; top: 0; left: 0; width: ${A4_W}px; background-color: #fff; font-family: 'Prompt', sans-serif; color: #1e293b; z-index: -9999; opacity: 0.01; pointer-events: none; overflow: hidden;`;
             document.body.appendChild(certContainer);
+
+            const bgUrl = 'https://img1.pic.in.th/images/------------A4-.png';
 
             let htmlContent = '';
             validStudents.forEach((cert, index) => {
                 const safeName = cert.sName.replace(/'/g, "\\'");
                 const pageBreak = index < validStudents.length - 1 ? 'page-break-after: always;' : '';
                 htmlContent += `
-                    <div style="position: relative; width: 1123px; height: 794px; overflow: hidden; background-color: #fff; font-family: 'Prompt', sans-serif; color: #1e293b; ${pageBreak}">
-                        <img src="https://img1.pic.in.th/images/------------A4-.png" crossorigin="anonymous" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: fill; z-index: 1;">
+                    <div style="position: relative; width: ${A4_W}px; height: ${A4_H}px; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; ${pageBreak}">
+                        <img class="batch-bg-img" src="${bgUrl}" crossorigin="anonymous" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: fill; z-index: 1;">
                         <div style="position: relative; z-index: 10; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; text-align: center; box-sizing: border-box; padding-top: 170px;">
                             <p style="font-size:24px;font-weight:700;color:#c2410c;margin:0 0 10px 0;letter-spacing:1px;">คณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย</p>
                             <p style="font-size:18px;font-weight:500;color:#475569;margin:0 0 35px 0;">ขอมอบเกียรติบัตรฉบับนี้ให้ไว้เพื่อแสดงว่า</p>
-
                             <h2 style="font-size:42px;font-weight:900;color:#1e293b;margin:0 0 35px 0;border-bottom:2px dotted #cbd5e1;padding-bottom:8px;min-width:55%;display:inline-block;">${safeName}</h2>
-
                             <p style="font-size:18px;font-weight:500;color:#475569;margin:0 0 5px 0;">ได้ผ่านการฝึกอบรมเชิงปฏิบัติการ</p>
                             <p style="font-size:16px;font-weight:500;color:#64748b;margin:0 0 12px 0;">เรื่อง</p>
                             <h3 style="font-size:26px;font-weight:800;color:#ea580c;margin:0 0 35px 0;max-width:85%;line-height:1.4;">"${cert.eName}"</h3>
-
                             <p style="font-size:16px;font-weight:500;color:#475569;margin:0 0 45px 0;">ขอให้ประสบความสุขสวัสดิ์ ความเจริญ และรักษาคุณความดีไว้ตลอดไป</p>
-
                             <p style="font-size:16px;font-weight:500;color:#64748b;margin:0 0 40px 0;">ให้ไว้ ณ วันที่ ${cert.eDate}</p>
-
                             <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;margin-top:auto;margin-bottom:50px;">
                                 <div style="width:280px;height:1px;background:#64748b;margin-bottom:12px;"></div>
                                 <p style="font-size:16px;font-weight:700;margin:0;color:#1e293b;">(ผู้ช่วยศาสตราจารย์ ดร.ภูมิพงษ์ ดวงตั้ง)</p>
@@ -1184,27 +1198,27 @@
             });
             certContainer.innerHTML = htmlContent;
 
-            const opt = {
-                margin:       0,
-                filename:     `Certificates_${eName}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { 
-                    scale: 2, 
-                    useCORS: true, 
-                    width: 1123,
-                    windowWidth: 1123,
-                    scrollX: 0,
-                    scrollY: 0
-                },
-                jsPDF:        { 
-                    unit: 'px', 
-                    format: [1123, 794],
-                    orientation: 'landscape' 
-                },
-                pagebreak: { mode: ['css', 'legacy'] }
-            };
+            const executeBatchPDF = () => {
+                const opt = {
+                    margin:       0,
+                    filename:     `Certificates_${eName}.pdf`,
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { 
+                        scale: 2, 
+                        useCORS: true, 
+                        width: A4_W,
+                        scrollY: 0,
+                        scrollX: 0,
+                        logging: false
+                    },
+                    jsPDF:        { 
+                        unit: 'px', 
+                        format: [A4_W, A4_H],
+                        orientation: 'landscape' 
+                    },
+                    pagebreak: { mode: ['css', 'legacy'] }
+                };
 
-            setTimeout(() => {
                 html2pdf().set(opt).from(certContainer).save().then(() => {
                     document.body.removeChild(certContainer);
                     document.body.removeChild(loader);
@@ -1215,7 +1229,21 @@
                     document.body.removeChild(loader);
                     window.showToast('เกิดข้อผิดพลาดในการสร้างไฟล์ PDF', 'error');
                 });
-            }, 500);
+            };
+
+            await document.fonts.ready;
+            const images = certContainer.querySelectorAll('.batch-bg-img');
+            if(images.length > 0) {
+                const firstImg = images[0];
+                if (firstImg.complete && firstImg.naturalHeight !== 0) {
+                    setTimeout(executeBatchPDF, 200);
+                } else {
+                    firstImg.onload = () => setTimeout(executeBatchPDF, 200);
+                    firstImg.onerror = () => executeBatchPDF(); 
+                }
+            } else {
+                setTimeout(executeBatchPDF, 200);
+            }
         };
 
         window.renderAdminCertsOverview = async function(c) {
@@ -1960,7 +1988,7 @@
             try {
                 const now = new Date(); 
                 const rawDate = document.getElementById('new-event-date').value; 
-                const formattedDate = window.formatThaiDate(rawDate) || rawDate;
+                const formattedDate = window.formatThaiDateLong(rawDate) || rawDate;
 
                 const openT = document.getElementById('new-event-open') ? document.getElementById('new-event-open').value : '';
                 const closeT = document.getElementById('new-event-close') ? document.getElementById('new-event-close').value : '';
@@ -2032,7 +2060,7 @@
                 const id = document.getElementById('edit-event-id').value; 
                 const title = document.getElementById('edit-event-title').value; 
                 const rawDate = document.getElementById('edit-event-date').value; 
-                const date = window.formatThaiDate(rawDate) || rawDate; 
+                const date = window.formatThaiDateLong(rawDate) || rawDate; 
                 const location = document.getElementById('edit-event-location').value;
                 
                 const event = appCache.activities.find(ev => String(ev.id) === String(id)); 
@@ -2048,7 +2076,7 @@
                         action: 'editActivity', 
                         id: id, 
                         title: title, 
-                        date: rawDate, 
+                        date: date, 
                         location: location, 
                         status: finalStatus
                     }).catch(()=>null);
