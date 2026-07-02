@@ -1104,29 +1104,29 @@
                 <div style="position:relative;width:1123px;height:794px;background:#fff;font-family:'Prompt',sans-serif;overflow:hidden;box-sizing:border-box;color:#0f172a;">
                     <img src="${bgUrl}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:fill;z-index:1;">
 
-                    <!-- เนื้อหาหลัก: เริ่มหลัง Logo จัดกึ่งกลางในพื้นที่สีขาว -->
-                    <div style="position:relative;z-index:10;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;box-sizing:border-box;padding:175px 135px 110px 135px;">
+                    <!-- เนื้อหาหลัก: เริ่มใต้ Logo/header band จัดกึ่งกลางในพื้นที่สีขาว -->
+                    <div style="position:relative;z-index:10;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;box-sizing:border-box;padding:230px 0px 0px 0px;">
 
                         <!-- หัวเรื่อง -->
-                        <p style="font-size:20px;font-weight:600;color:#1e3a5f;margin:0 0 6px 0;letter-spacing:0.8px;">คณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย</p>
-                        <p style="font-size:15px;font-weight:400;color:#94a3b8;margin:0 0 38px 0;">ขอมอบเกียรติบัตรฉบับนี้ให้ไว้เพื่อแสดงว่า</p>
+                        <p style="font-size:30px;font-weight:600;color:#1e3a5f;margin:0 0 0px 0;letter-spacing:0.2px;">คณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย</p>
+                        <p style="font-size:20px;font-weight:400;color:#94a3b8;margin:0 0 18px 0;">ขอมอบวุฒิบัตรบัตรฉบับนี้ให้ไว้เพื่อแสดงว่า</p>
 
                         <!-- ชื่อผู้รับ (เด่นที่สุด) -->
-                        <h2 style="font-size:44px;font-weight:800;color:#0f172a;margin:0 0 12px 0;line-height:1.2;letter-spacing:0.5px;">${d.sName}</h2>
-                        <div style="width:360px;height:2px;background:linear-gradient(90deg,transparent 0%,#d97706 30%,#f59e0b 50%,#d97706 70%,transparent 100%);margin:0 0 40px 0;"></div>
+                        <h2 style="font-size:38px;font-weight:400;color:#0f172a;margin:100 0 200px 0;line-height:1.2;letter-spacing:0.8px;">${d.sName}</h2>
+                        <div style="width:400px;height:0px;background:linear-gradient(90deg,transparent 0%,#d97706 30%,#f59e0b 50%,#d97706 70%,transparent 100%);margin:0 0 40px 0;"></div>
 
                         <!-- ชื่อกิจกรรม -->
-                        <p style="font-size:16px;font-weight:400;color:#475569;margin:0 0 10px 0;">ได้ผ่านการฝึกอบรมเชิงปฏิบัติการ</p>
-                        <h3 style="font-size:25px;font-weight:700;color:#b45309;margin:0 0 44px 0;max-width:78%;line-height:1.4;">“${d.eName}”</h3>
+                        <p style="font-size:20px;font-weight:450;color:#475569;margin:0 0 10px 0;">ได้ผ่านการฝึกอบรมเชิงปฏิบัติการ</p>
+                        <h3 style="font-size:22px;font-weight:400;color:#b45309;margin:0 0 10px 0;max-width:78%;line-height:1.4;">“${d.eName}”</h3>
 
                         <!-- คำอวยพร + วันที่ -->
-                        <p style="font-size:15px;font-weight:400;color:#475569;margin:0 0 10px 0;">ขอให้ประสบความสุขสวัสดิ์ ความเจริญ และรักษาคุณความดีไว้ตลอดไป</p>
-                        <p style="font-size:15px;font-weight:500;color:#1e3a5f;margin:0 0 0 0;">ให้ไว้ ณ ${d.eDate}</p>
+                        <p style="font-size:16px;font-weight:400;color:#475569;margin:0 0 0px 0;">ขอให้ประสบความสุขสวัสดิ์ ความเจริญ และรักษาคุณความดีไว้ตลอดไป</p>
+                        <p style="font-size:16px;font-weight:500;color:#1e3a5f;margin:0 0 0 0;">ให้ไว้ ณ วันที่ ${d.eDate}</p>
                     </div>
 
                     <!-- เลขกิจกรรม: มุมขวาล่าง -->
                     <div style="position:absolute;z-index:10;bottom:34px;right:62px;text-align:right;">
-                        <span style="font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.5px;">เลขกิจกรรม: ${activityId}</span>
+                        <span style="font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.5px;"> ${activityId}</span>
                     </div>
                 </div>`;
         };
