@@ -1817,8 +1817,8 @@
             let sI = appCache.students[o.studentId] || {}, dM = (o.major && o.major !== '-' && o.major !== 'undefined') ? o.major : (sI.major || 'ไม่ระบุสาขา'), dF = (o.faculty && o.faculty !== '-' && o.faculty !== 'undefined') ? o.faculty : (sI.faculty || 'ไม่ระบุคณะ');
 
             const rT = (isC) => `
-                <div style="height: auto; position: relative; box-sizing: border-box; background: #fff; page-break-inside: avoid; padding-bottom: 20px;">
-                    ${isC ? '<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.04; font-size: 120px; font-weight: 900; z-index: 1;">COPY</div>' : ''}
+                <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; position: relative; box-sizing: border-box; background: #fff; padding: 10px 20px;">
+                    ${isC ? '<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.04; font-size: 120px; font-weight: 900; z-index: 1; pointer-events: none;">COPY</div>' : ''}
                     <div style="position: relative; z-index: 10;">
                         <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #1e293b; padding-bottom: 12px; margin-bottom: 12px;">
                             <div style="width: 55%;"><h2 style="font-size: 16px; font-weight: 700; margin: 0;">สโมสรนักศึกษาคณะเทคโนโลยีดิจิทัล</h2><p style="font-size: 13px; margin: 0;">มหาวิทยาลัยราชภัฏเชียงราย</p></div>
@@ -1879,9 +1879,9 @@
             });
 
             h += `</div></div><div class="mb-6 print:hidden flex justify-center gap-3"><button onclick="downloadReceiptPDF('${o.id}')" id="btn-download-receipt" class="px-8 py-4 bg-slate-800 text-white font-bold rounded-2xl shadow-xl hover:bg-black flex items-center gap-2"><i class="ph-bold ph-printer text-xl"></i> บันทึกใบเสร็จ PDF</button></div>
-                <div class="overflow-x-auto w-full flex justify-start lg:justify-center p-2 lg:p-0 scrollbar-hide"><div id="receipt-card-display" style="width: 794px; min-width: 794px; padding: 20px; box-sizing: border-box; background-color: #ffffff; display: flex; flex-direction: column; justify-content: flex-start; border: 1px solid #e2e8f0; margin: 0 auto; border-radius: 8px;">
+                <div class="overflow-x-auto w-full flex justify-start lg:justify-center p-2 lg:p-0 scrollbar-hide"><div id="receipt-card-display" style="width: 794px; min-width: 794px; height: 1123px; min-height: 1123px; padding: 20px; box-sizing: border-box; background-color: #ffffff; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid #e2e8f0; margin: 0 auto; border-radius: 8px;">
                     ${rT(false)}
-                    <div style="height: 40px; display: flex; align-items: center; justify-content: center; opacity: 0.5;"><div style="flex-grow: 1; border-top: 2px dashed #64748b;"></div><span style="padding: 0 16px; font-size: 12px; font-weight: 700;">✂️ ตัดตามรอยประ</span><div style="flex-grow: 1; border-top: 2px dashed #64748b;"></div></div>
+                    <div style="height: 40px; min-height: 40px; display: flex; align-items: center; justify-content: center; opacity: 0.5;"><div style="flex-grow: 1; border-top: 2px dashed #64748b;"></div><span style="padding: 0 16px; font-size: 12px; font-weight: 700;">✂️ ตัดตามรอยประ</span><div style="flex-grow: 1; border-top: 2px dashed #64748b;"></div></div>
                     ${rT(true)}
                 </div></div>`; 
             c.innerHTML = h;
@@ -1891,9 +1891,8 @@
             const el = document.getElementById('receipt-card-display'); if (!el) return;
             const b = document.getElementById('btn-download-receipt'), oH = b.innerHTML; b.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> PDF...'; b.disabled = true;
             const o = document.createElement('div'); o.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #fff; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center;'; o.innerHTML = `<i class="ph-bold ph-spinner animate-spin text-primary" style="font-size: 50px;"></i><h3 style="font-size: 20px; font-weight: bold; margin-top: 15px;">กำลังสร้างไฟล์ PDF...</h3>`; document.body.appendChild(o);
-            const vM = document.querySelector('meta[name="viewport"]'), oV = vM ? vM.getAttribute('content') : ''; if (vM) vM.setAttribute('content', 'width=800, initial-scale=1.0');
             setTimeout(() => {
-                html2pdf().set({ margin: 0, filename: `Receipt_${oId}.pdf`, image: { type: 'jpeg', quality: 1.0 }, html2canvas: { scale: 2, useCORS: true, width: 794, height: 1123, windowWidth: 800, x: 0, y: 0, scrollX: 0, scrollY: 0, onclone: function(doc) { const t = doc.getElementById('receipt-card-display'); if (t) { t.style.boxShadow = 'none'; t.style.border = 'none'; t.style.margin = '0'; t.style.position = 'absolute'; t.style.top = '0px'; t.style.left = '0px'; doc.body.style.width = '800px'; doc.body.style.position = 'relative'; } } }, jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' } }).from(el).save().then(() => { if (vM) vM.setAttribute('content', oV); document.body.removeChild(o); b.innerHTML = oH; b.disabled = false; window.showToast('สำเร็จ!', 'success'); }).catch(err => { if (vM) vM.setAttribute('content', oV); document.body.removeChild(o); b.innerHTML = oH; b.disabled = false; window.showToast('เกิดข้อผิดพลาด', 'error'); });
+                html2pdf().set({ margin: 0, filename: `Receipt_${oId}.pdf`, image: { type: 'jpeg', quality: 1.0 }, html2canvas: { scale: 2, useCORS: true, scrollY: 0, onclone: function(doc) { const t = doc.getElementById('receipt-card-display'); if (t) { t.style.boxShadow = 'none'; t.style.border = 'none'; t.style.margin = '0'; t.style.borderRadius = '0'; let p = t.parentNode; while(p && p !== doc.body) { p.style.overflow = 'visible'; p = p.parentNode; } } } }, jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' } }).from(el).save().then(() => { document.body.removeChild(o); b.innerHTML = oH; b.disabled = false; window.showToast('สำเร็จ!', 'success'); }).catch(err => { document.body.removeChild(o); b.innerHTML = oH; b.disabled = false; window.showToast('เกิดข้อผิดพลาด', 'error'); });
             }, 500); 
         };
 
@@ -2280,12 +2279,25 @@
             const pendingOrders = oD.filter(o=>o.status===1).length;
             let totalShirts = 0;
             let totalMoney = 0;
+            let paidMoney = 0;
+            let pendingMoney = 0;
+            
+            // ตัวแปรสำหรับนับจำนวนคนสั่งจองเสื้อแยกตามชั้นปี
+            let orderUniqueStudents = new Set();
+            let orderCount69 = 0;
+            let orderCount60_68 = 0;
             
             oD.forEach(o => {
                 let rawTotal = String(o.total || '0').replace(/,/g, '').replace(/[^\d.-]/g, '');
                 let parsedTotal = parseFloat(rawTotal);
                 if (!isNaN(parsedTotal)) {
                     totalMoney += parsedTotal;
+                    // ถือว่าสถานะตั้งแต่ 2 ขึ้นไป คือชำระเงินแล้ว (2=ชำระแล้ว, 3=กำลังผลิต, 4=พร้อมรับ)
+                    if (o.status >= 2) {
+                        paidMoney += parsedTotal;
+                    } else {
+                        pendingMoney += parsedTotal;
+                    }
                 }
 
                 let qty = parseInt(o.qty);
@@ -2299,6 +2311,43 @@
                         if(!isNaN(parsedQty)) totalShirts += parsedQty;
                     });
                 }
+
+                // นับจำนวนผู้สั่งจองแบบไม่ซ้ำคน (สำหรับเสื้อ)
+                let sId = String(o.studentId).trim();
+                if (sId && sId !== '-' && sId !== 'undefined') {
+                    orderUniqueStudents.add(sId);
+                }
+            });
+
+            // แยกประเภทชั้นปีที่สั่งจองเสื้อ
+            orderUniqueStudents.forEach(id => {
+                if (id.startsWith('69')) {
+                    orderCount69++;
+                } else if (/^6[0-8]/.test(id)) {
+                    orderCount60_68++;
+                }
+            });
+
+            // วิเคราะห์และจัดกลุ่มรหัสนักศึกษาทั้งหมดในระบบ (ที่เคยเช็คชื่อ หรือสั่งจองเสื้อ)
+            let uniqueStudents = new Set();
+            cI.forEach(checkin => {
+                let sId = String(checkin[2]).trim();
+                if (sId && sId !== '-' && sId !== 'undefined') uniqueStudents.add(sId);
+            });
+            oD.forEach(order => {
+                let sId = String(order.studentId).trim();
+                if (sId && sId !== '-' && sId !== 'undefined') uniqueStudents.add(sId);
+            });
+
+            let count69 = 0;
+            let count60_68 = 0;
+
+            uniqueStudents.forEach(id => {
+                if (id.startsWith('69')) {
+                    count69++;
+                } else if (/^6[0-8]/.test(id)) {
+                    count60_68++;
+                }
             });
 
             let h = `<div class="fade-in">
@@ -2310,12 +2359,37 @@
                     <div class="glass p-6 rounded-[24px] border border-white shadow-sm flex gap-4"><div class="bg-white/80 text-amber-500 p-4 rounded-2xl border border-white"><i class="ph-fill ph-chart-line-up text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">อัตราเข้าร่วม</p><p class="text-2xl font-black">${pR}%</p></div></div>
                 </div>
                 
-                <h2 class="text-xl font-bold mb-4">สรุปผู้เข้าร่วม</h2>
+                <h2 class="text-xl font-bold mb-4">สรุปผู้ใช้งานระบบ (นักศึกษา)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+                    <div class="glass p-5 rounded-[24px] border border-white shadow-sm flex flex-col justify-center">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="bg-blue-100 text-blue-600 p-2.5 rounded-xl border border-white"><i class="ph-fill ph-users text-xl"></i></div>
+                            <p class="text-xs font-bold text-slate-500">นักศึกษาทั้งหมดที่ใช้งาน</p>
+                        </div>
+                        <p class="text-2xl font-black text-slate-800">${uniqueStudents.size} <span class="text-sm font-medium text-slate-500">คน</span></p>
+                    </div>
+                    <div class="glass p-5 rounded-[24px] border border-white shadow-sm flex flex-col justify-center">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="bg-purple-100 text-purple-600 p-2.5 rounded-xl border border-white"><i class="ph-fill ph-student text-xl"></i></div>
+                            <p class="text-xs font-bold text-slate-500">รหัส 69 (ปี 1)</p>
+                        </div>
+                        <p class="text-2xl font-black text-slate-800">${count69} <span class="text-sm font-medium text-slate-500">คน</span></p>
+                    </div>
+                    <div class="glass p-5 rounded-[24px] border border-white shadow-sm flex flex-col justify-center">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="bg-emerald-100 text-emerald-600 p-2.5 rounded-xl border border-white"><i class="ph-fill ph-graduation-cap text-xl"></i></div>
+                            <p class="text-xs font-bold text-slate-500">รหัส 60-68 (รุ่นพี่)</p>
+                        </div>
+                        <p class="text-2xl font-black text-slate-800">${count60_68} <span class="text-sm font-medium text-slate-500">คน</span></p>
+                    </div>
+                </div>
+                
+                <h2 class="text-xl font-bold mb-4">สรุปผู้เข้าร่วมกิจกรรมล่าสุด</h2>
                 <div id="dash-events-list"></div>
                 <div id="dash-events-pagination" class="mt-6 mb-10 flex justify-between glass p-5 rounded-2xl border border-white shadow-sm"></div>
                 
-                <h2 class="text-xl font-bold mb-4">ยอดสั่งจองเสื้อ</h2>
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+                <h2 class="text-xl font-bold mb-4">ยอดสั่งจองเสื้อและรายได้</h2>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                     <div class="glass p-5 rounded-[24px] border border-white shadow-sm flex flex-col justify-center">
                         <div class="flex items-center gap-3 mb-2">
                             <div class="bg-white/80 text-blue-600 p-2.5 rounded-xl border border-white"><i class="ph-fill ph-shopping-bag text-xl"></i></div>
@@ -2339,10 +2413,54 @@
                     </div>
                     <div class="glass p-5 rounded-[24px] border border-white shadow-sm flex flex-col justify-center">
                         <div class="flex items-center gap-3 mb-2">
-                            <div class="bg-gradient-to-br from-orange-400 to-orange-500 text-white p-2.5 rounded-xl shadow-md"><i class="ph-fill ph-money text-xl"></i></div>
-                            <p class="text-xs font-bold text-slate-500">ยอดเงินรวม</p>
+                            <div class="bg-gradient-to-br from-slate-700 to-slate-800 text-white p-2.5 rounded-xl shadow-md"><i class="ph-fill ph-money text-xl"></i></div>
+                            <p class="text-xs font-bold text-slate-300">ยอดเงินรวมทั้งหมด</p>
                         </div>
-                        <p class="text-xl sm:text-2xl font-black text-primary truncate" title="฿${totalMoney.toLocaleString('th-TH')}">฿${totalMoney.toLocaleString('th-TH')}</p>
+                        <p class="text-xl sm:text-2xl font-black text-slate-800 truncate" title="฿${totalMoney.toLocaleString('th-TH')}">฿${totalMoney.toLocaleString('th-TH')}</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-10">
+                    <div class="glass p-5 rounded-[24px] border border-white shadow-sm flex flex-col justify-center relative overflow-hidden">
+                        <div class="absolute -right-6 -top-6 text-emerald-500/10 text-9xl pointer-events-none"><i class="ph-fill ph-check-circle"></i></div>
+                        <div class="flex items-center gap-3 mb-2 relative z-10">
+                            <div class="bg-emerald-100 text-emerald-600 p-2.5 rounded-xl"><i class="ph-fill ph-check-circle text-xl"></i></div>
+                            <p class="text-xs font-bold text-slate-500">ยอดเงินชำระแล้ว</p>
+                        </div>
+                        <p class="text-3xl font-black text-emerald-600 relative z-10 truncate">฿${paidMoney.toLocaleString('th-TH')}</p>
+                    </div>
+                    <div class="glass p-5 rounded-[24px] border border-white shadow-sm flex flex-col justify-center relative overflow-hidden">
+                        <div class="absolute -right-6 -top-6 text-rose-500/10 text-9xl pointer-events-none"><i class="ph-fill ph-warning-circle"></i></div>
+                        <div class="flex items-center gap-3 mb-2 relative z-10">
+                            <div class="bg-rose-100 text-rose-600 p-2.5 rounded-xl"><i class="ph-fill ph-warning-circle text-xl"></i></div>
+                            <p class="text-xs font-bold text-slate-500">ยอดเงินค้างชำระ (รอตรวจสอบ)</p>
+                        </div>
+                        <p class="text-3xl font-black text-rose-600 relative z-10 truncate">฿${pendingMoney.toLocaleString('th-TH')}</p>
+                    </div>
+                </div>
+
+                <h3 class="text-lg font-bold mb-4 text-slate-700"><i class="ph-fill ph-users text-primary"></i> จำนวนนักศึกษาที่สั่งจองจำแนกตามรหัส</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+                    <div class="glass p-5 rounded-[24px] border border-white shadow-sm flex flex-col justify-center">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="bg-indigo-100 text-indigo-600 p-2.5 rounded-xl border border-white"><i class="ph-fill ph-users text-xl"></i></div>
+                            <p class="text-xs font-bold text-slate-500">ผู้สั่งจองทั้งหมด (คน)</p>
+                        </div>
+                        <p class="text-2xl font-black text-slate-800">${orderUniqueStudents.size} <span class="text-sm font-medium text-slate-500">คน</span></p>
+                    </div>
+                    <div class="glass p-5 rounded-[24px] border border-white shadow-sm flex flex-col justify-center">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="bg-purple-100 text-purple-600 p-2.5 rounded-xl border border-white"><i class="ph-fill ph-student text-xl"></i></div>
+                            <p class="text-xs font-bold text-slate-500">รหัส 69 ที่สั่งจอง</p>
+                        </div>
+                        <p class="text-2xl font-black text-slate-800">${orderCount69} <span class="text-sm font-medium text-slate-500">คน</span></p>
+                    </div>
+                    <div class="glass p-5 rounded-[24px] border border-white shadow-sm flex flex-col justify-center">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="bg-emerald-100 text-emerald-600 p-2.5 rounded-xl border border-white"><i class="ph-fill ph-graduation-cap text-xl"></i></div>
+                            <p class="text-xs font-bold text-slate-500">รหัส 60-68 ที่สั่งจอง</p>
+                        </div>
+                        <p class="text-2xl font-black text-slate-800">${orderCount60_68} <span class="text-sm font-medium text-slate-500">คน</span></p>
                     </div>
                 </div>
                 
