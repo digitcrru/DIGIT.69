@@ -18,19 +18,18 @@
         body {
             font-family: 'Prompt', sans-serif;
             background-color: #f8fafc;
-            /* รูปพื้นหลัง + overlay สีขาวโปร่งใสทำให้รูปจางลง อ่านเนื้อหาง่าย */
-            background-image:
-                linear-gradient(rgba(248, 250, 252, 0.82), rgba(241, 245, 249, 0.88)),
-                url('');
+            /* พื้นหลังระบบจะถูกจัดการผ่าน JS (applyTheme) */
+            background-image: linear-gradient(rgba(248, 250, 252, 0.82), rgba(241, 245, 249, 0.88));
             background-size: cover, cover;
             background-position: center, center;
             background-attachment: fixed, fixed;
             background-repeat: no-repeat, no-repeat;
             min-height: 100vh;
             -webkit-tap-highlight-color: transparent;
+            transition: background-image 0.5s ease;
         }
 
-        /* Glassmorphism Cards - ปรับให้นุ่มนวลและสวยงามขึ้น */
+        /* Glassmorphism Cards */
         .glass {
             background: rgba(255, 255, 255, 0.78);
             backdrop-filter: blur(20px) saturate(160%);
@@ -253,7 +252,7 @@
                 <button onclick="document.getElementById('sizeChartModal').classList.add('hidden')" class="w-10 h-10 bg-slate-100 rounded-full text-slate-400"><i class="ph-bold ph-x"></i></button>
             </div>
             <div class="bg-orange-50 border border-orange-100 rounded-2xl p-4 mb-6 text-sm text-orange-800">แนะนำ: วัดรอบอกจริง แล้วบวก 1-2 นิ้ว</div>
-            <img src="https://img1.pic.in.th/images/S__269672452.jpg" class="w-full rounded-2xl border" onerror="this.src='https://placehold.co/600x600?text=Size+Chart'">
+            <img id="sizeChartImgModal" src="" class="w-full rounded-2xl border" onerror="this.src='https://placehold.co/600x600?text=Size+Chart'">
             <button onclick="document.getElementById('sizeChartModal').classList.add('hidden')" class="w-full mt-6 py-4 bg-slate-800 text-white font-bold rounded-2xl">ปิด</button>
         </div>
     </div>
@@ -266,8 +265,8 @@
                 <button onclick="document.getElementById('shirtDesignModal').classList.add('hidden')" class="w-10 h-10 bg-slate-100 rounded-full text-slate-400"><i class="ph-bold ph-x"></i></button>
             </div>
             <div class="overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-5 shrink min-h-0">
-                <div class="border rounded-3xl p-4 bg-slate-50 relative"><span class="absolute top-3 left-3 bg-orange-100 text-orange-700 px-3 py-1 rounded-lg text-xs font-bold z-10">1. โปโลคณะ</span><img src="https://img1.pic.in.th/images/66814.jpg" class="w-full aspect-square object-contain rounded-2xl mt-2 bg-white border" onerror="this.src='https://placehold.co/400x400/e2e8f0/64748b?text=Polo+Shirt'"></div>
-                <div class="border rounded-3xl p-4 bg-slate-50 relative"><span class="absolute top-3 left-3 bg-amber-100 text-amber-700 px-3 py-1 rounded-lg text-xs font-bold z-10">2. เสื้อกิจกรรม</span><img src="https://img1.pic.in.th/images/66813.jpg" class="w-full aspect-square object-contain rounded-2xl mt-2 bg-white border" onerror="this.src='https://placehold.co/400x400/fef3c7/d97706?text=Activity+Shirt'"></div>
+                <div class="border rounded-3xl p-4 bg-slate-50 relative"><span class="absolute top-3 left-3 bg-orange-100 text-orange-700 px-3 py-1 rounded-lg text-xs font-bold z-10">1. โปโลคณะ</span><img id="poloImgModal" src="" class="w-full aspect-square object-contain rounded-2xl mt-2 bg-white border" onerror="this.src='https://placehold.co/400x400/e2e8f0/64748b?text=Polo+Shirt'"></div>
+                <div class="border rounded-3xl p-4 bg-slate-50 relative"><span class="absolute top-3 left-3 bg-amber-100 text-amber-700 px-3 py-1 rounded-lg text-xs font-bold z-10">2. เสื้อกิจกรรม</span><img id="actImgModal" src="" class="w-full aspect-square object-contain rounded-2xl mt-2 bg-white border" onerror="this.src='https://placehold.co/400x400/fef3c7/d97706?text=Activity+Shirt'"></div>
             </div>
             <button onclick="document.getElementById('shirtDesignModal').classList.add('hidden')" class="w-full mt-6 py-4 bg-slate-800 text-white font-bold rounded-2xl shrink-0">ปิดหน้าต่าง</button>
         </div>
@@ -287,10 +286,19 @@
         
         let isShirtShopOpen = localStorage.getItem('CRRU_ShopOpen') !== 'false'; 
         let isCertSystemOpen = localStorage.getItem('CRRU_CertOpen') !== 'false';
-        // สถานะเปิด/ปิด รับใบประกาศนียบัตรของแต่ละกิจกรรม { eventId: true/false }
         let certEventStatus = JSON.parse(localStorage.getItem('CRRU_CertEventStatus') || '{}');
         let adminCertPage = 1, adminCertSearch = '';
         const adminCertPerPage = 5;
+        
+        // --- CUSTOMIZATION SETTINGS ---
+        let appSettings = JSON.parse(localStorage.getItem('CRRU_AppSettings')) || { 
+            appBgImage: '', 
+            certBgImage: 'https://img1.pic.in.th/images/-268cba603e7a1b86a.png',
+            sizeChartImage: 'https://img1.pic.in.th/images/S__269672452.jpg',
+            shirtPoloImage: 'https://img1.pic.in.th/images/66814.jpg',
+            shirtActImage: 'https://img1.pic.in.th/images/66813.jpg'
+        };
+        
         let popupSettings = JSON.parse(localStorage.getItem('CRRU_PopupSettings')) || { enabled: true, title: 'แจ้งเตือนนักศึกษาใหม่\nรหัส 69 ทุกคน!', description: 'ขอให้นักศึกษาชั้นปีที่ 1 ทุกคน สั่งจองชุดเสื้อคณะให้เรียบร้อย', imageUrl: 'https://images.unsplash.com/photo-1523580494112-071d16940a1c?auto=format&fit=crop&q=80&w=800' };
         let promptPaySettings = JSON.parse(localStorage.getItem('CRRU_PromptPaySettings')) || { accountName: 'ฝ่ายกิจการนักศึกษา', accountNumber: '012-3-45678-9', bankName: 'ธ.กรุงไทย' };
         let parsedAdminUsers = null; try { parsedAdminUsers = JSON.parse(localStorage.getItem('CRRU_AdminUsers')); } catch(e) {}
@@ -298,8 +306,7 @@
         
         const NAV_STUDENT = [ 
             { id: 'events', label: 'กิจกรรม', tabLabel: 'กิจกรรม', icon: 'ph-megaphone' }, 
-            { id: 'history', label: 'ประวัติ', tabLabel: 'ประวัติ', icon: 'ph-clock-counter-clockwise' },
-            { id: 'certificates', label: 'ใบประกาศ', tabLabel: 'ใบประกาศ', icon: 'ph-certificate' }
+            { id: 'history', label: 'ประวัติ', tabLabel: 'ประวัติ', icon: 'ph-clock-counter-clockwise' }
         ];
         const NAV_ADMIN = [ 
             { id: 'admin-dash', label: 'ภาพรวม', tabLabel: 'ภาพรวม', icon: 'ph-chart-pie-slice', roles: ['superadmin', 'activity', 'shop'] }, 
@@ -319,7 +326,23 @@
         const ROLE_MAP = { 'superadmin': 'ผู้ดูแลระบบสูงสุด', 'activity': 'ผู้จัดการกิจกรรม', 'shop': 'ผู้จัดการร้านค้า' };
         const SIZE_LIST = ['XS','S','M','L','XL','2XL','3XL','4XL','5XL','6XL','ไม่รับ'];
 
+        // Apply Theme on load
+        window.applyTheme = function() {
+            if (appSettings.appBgImage) {
+                document.body.style.backgroundImage = `linear-gradient(rgba(248, 250, 252, 0.82), rgba(241, 245, 249, 0.88)), url('${appSettings.appBgImage}')`;
+            } else {
+                document.body.style.backgroundImage = `linear-gradient(rgba(248, 250, 252, 0.82), rgba(241, 245, 249, 0.88))`;
+            }
+            const sc = document.getElementById('sizeChartImgModal'); if(sc) sc.src = appSettings.sizeChartImage;
+            const pi = document.getElementById('poloImgModal'); if(pi) pi.src = appSettings.shirtPoloImage;
+            const ai = document.getElementById('actImgModal'); if(ai) ai.src = appSettings.shirtActImage;
+            
+            // Clear cert background cache so it reloads if changed
+            if (window._certBgCache) window._certBgCache = null; 
+        };
+
         document.addEventListener('DOMContentLoaded', () => {
+            window.applyTheme();
             window.proceedSwitchRole('student');
             window.fetchSettingsData().then(() => { 
                 if (!sessionStorage.getItem('homePopupShown') && currentRole === 'student') { 
@@ -361,13 +384,16 @@
                 if (r.success && r.data) {
                     isShirtShopOpen = (r.data.isShirtShopOpen === true || String(r.data.isShirtShopOpen).toLowerCase() === 'true');
                     if(r.data.popupSettings) popupSettings = r.data.popupSettings;
-                    if(r.data.promptPaySettings) promptPaySettings = r.data.promptPaySettings;
+                    if(r.data.appSettings) appSettings = { ...appSettings, ...r.data.appSettings };
                     if(r.data.adminUsers && Array.isArray(r.data.adminUsers)) adminUsers = r.data.adminUsers;
                     
                     localStorage.setItem('CRRU_ShopOpen', isShirtShopOpen ? 'true' : 'false'); 
                     localStorage.setItem('CRRU_PopupSettings', JSON.stringify(popupSettings)); 
+                    localStorage.setItem('CRRU_AppSettings', JSON.stringify(appSettings)); 
                     localStorage.setItem('CRRU_AdminUsers', JSON.stringify(adminUsers));
                     
+                    window.applyTheme();
+
                     if(isShirtShopOpen) { 
                         if(!NAV_STUDENT.find(n => n.id === 'shirt')) { 
                             NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
@@ -399,37 +425,27 @@
                 } 
                 if (a.success && a.data) { 
                     a.data.forEach(i => { 
-                        i.rawDate = i.date; // เก็บค่า Raw Date เดิมไว้ไม่ให้โดนเขียนทับ
+                        i.rawDate = i.date; 
                         i.date = window.formatThaiDate(i.date); 
                         i.timestamp = window.formatThaiDate(i.timestamp, true); 
                         i.joined = ct[i.title.trim()] || 0; 
 
-                        // แยกสถานะออกจากเวลา
                         let stParts = String(i.status || 'open').split('|');
                         i.status = stParts[0] === 'closed' ? 'closed' : 'open';
                         i.openTime = stParts[1] || '';
                         i.closeTime = stParts[2] || '';
 
-                        // Sync certEventStatus จาก backend (single source of truth)
                         if (i.certEnabled !== undefined) {
                             certEventStatus[i.id] = i.certEnabled;
                         }
                     }); 
-                    // บันทึก certEventStatus ที่ sync จาก backend ลง localStorage
                     localStorage.setItem('CRRU_CertEventStatus', JSON.stringify(certEventStatus));
-                    // เรียงข้อมูลตามวันที่ของกิจกรรม (property `rawDate`) จากน้อยไปหามาก
                     appCache.activities = a.data.sort((a, b) => {
                         const dateA = new Date(a.rawDate);
                         const dateB = new Date(b.rawDate);
-                        
-                        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) {
-                            return 0;
-                        } else if (isNaN(dateA.getTime())) {
-                            return 1;
-                        } else if (isNaN(dateB.getTime())) {
-                            return -1;
-                        }
-                        
+                        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+                        else if (isNaN(dateA.getTime())) return 1;
+                        else if (isNaN(dateB.getTime())) return -1;
                         return dateB.getTime() - dateA.getTime();
                     }); 
                 } 
@@ -545,8 +561,6 @@
             return r;
         };
 
-        // แปลงวันที่เป็นรูปแบบราชการไทย: "วันที่ 2 เดือน กรกฎาคม พ.ศ. 2569"
-        // ใช้กับใบประกาศนียบัตร (ดึงจาก CheckIns.Timestamp)
         window.formatThaiGovDate = function(dS) {
             if (!dS || String(dS).trim() === '-' || String(dS).trim() === '') return '';
             let d = new Date(String(dS).replace(/GMT.*/ig, '').replace(/\(.*?\)/g, '').trim());
@@ -568,7 +582,6 @@
             to.className = `${bgC} text-slate-700 p-3 pr-5 rounded-2xl shadow-xl flex items-center gap-3 transform transition-all duration-500 translate-x-full pointer-events-auto toast-card`; 
             to.innerHTML = `${ic} <span class="font-bold text-sm flex-grow">${m}</span>${actionHTML}`; 
             to._actionFn = opts.actionFn || (() => {});
-            // progress bar ด้านล่าง
             const bar = document.createElement('div');
             bar.className = 'absolute bottom-0 left-0 h-[3px] bg-primary/40 rounded-b-2xl transition-all';
             bar.style.cssText = 'width:100%; transition: width linear;';
@@ -622,14 +635,8 @@
             document.getElementById('slipModal').classList.remove('hidden'); 
         };
         
-        window.closeModal = function() { 
-            currentModalOrderId = null; 
-            document.getElementById('slipModal').classList.add('hidden'); 
-        };
-        
-        window.verifyOrderFromModal = function() { 
-            if(currentModalOrderId){ window.updateOrderStatus(currentModalOrderId, 2); window.closeModal(); } 
-        };
+        window.closeModal = function() { currentModalOrderId = null; document.getElementById('slipModal').classList.add('hidden'); };
+        window.verifyOrderFromModal = function() { if(currentModalOrderId){ window.updateOrderStatus(currentModalOrderId, 2); window.closeModal(); } };
 
         window.openEditEventModal = function(id) { 
             const e = appCache.activities.find(x => String(x.id) === String(id)); 
@@ -637,9 +644,7 @@
             document.getElementById('edit-event-id').value = e.id; 
             document.getElementById('edit-event-title').value = e.title; 
             let parsedDate = '';
-            if (e.rawDate && e.rawDate !== '-') {
-                 parsedDate = e.rawDate;
-            }
+            if (e.rawDate && e.rawDate !== '-') parsedDate = e.rawDate;
             document.getElementById('edit-event-date').value = parsedDate; 
             document.getElementById('edit-event-location').value = e.location; 
             document.getElementById('editEventModal').classList.remove('hidden'); 
@@ -680,46 +685,20 @@
                 if (ev) { 
                     ev.openTime = openT; 
                     ev.closeTime = closeT; 
-                    
-                    window.apiCall('POST', { 
-                        action: 'editActivity', 
-                        id: id, 
-                        title: ev.title || '', 
-                        date: ev.rawDate || ev.date || '', 
-                        location: ev.location || '', 
-                        status: ev.status || 'open', 
-                        openTime: openT, 
-                        closeTime: closeT 
-                    }).catch(()=>null);
+                    window.apiCall('POST', { action: 'editActivity', id: id, title: ev.title || '', date: ev.rawDate || ev.date || '', location: ev.location || '', status: ev.status || 'open', openTime: openT, closeTime: closeT }).catch(()=>null);
                 }
-
                 document.getElementById('timerEventModal').classList.add('hidden');
                 window.renderAdminEvents(document.getElementById('app-content'));
                 window.showToast('ตั้งเวลาเปิด-ปิดกิจกรรมสำเร็จ', 'success');
-            } catch (error) {
-                console.error(error);
-                window.showToast('เกิดข้อผิดพลาด', 'error');
-            } finally {
-                b.innerHTML = txt; b.disabled = false;
-            }
+            } catch (error) { window.showToast('เกิดข้อผิดพลาด', 'error'); } finally { b.innerHTML = txt; b.disabled = false; }
         };
 
         window.clearTimerEvent = async function() {
             const id = document.getElementById('timer-event-id').value;
             const ev = appCache.activities.find(x => String(x.id) === String(id));
             if (ev) { 
-                ev.openTime = ''; 
-                ev.closeTime = ''; 
-                window.apiCall('POST', { 
-                    action: 'editActivity', 
-                    id: id, 
-                    title: ev.title || '', 
-                    date: ev.rawDate || ev.date || '', 
-                    location: ev.location || '', 
-                    status: ev.status || 'open',
-                    openTime: '', 
-                    closeTime: '' 
-                }).catch(()=>null);
+                ev.openTime = ''; ev.closeTime = ''; 
+                window.apiCall('POST', { action: 'editActivity', id: id, title: ev.title || '', date: ev.rawDate || ev.date || '', location: ev.location || '', status: ev.status || 'open', openTime: '', closeTime: '' }).catch(()=>null);
             }
             document.getElementById('timerEventModal').classList.add('hidden');
             window.renderAdminEvents(document.getElementById('app-content'));
@@ -990,7 +969,6 @@
         };
         window.clearHistorySearch = function() { sessionStorage.removeItem('historySearchTerm'); sessionStorage.removeItem('historyData'); window.renderHistory(document.getElementById('app-content')); };
 
-        // --- CERTIFICATES SECTION ---
         window.renderCertificates = function(c) {
             const sId = sessionStorage.getItem('certSearchTerm') || ''; 
             const isS = sId.length > 0; 
@@ -1073,29 +1051,27 @@
                         processedEvents.add(eventName);
 
                         const act = appCache.activities.find(a => String(a.id) === eventId || String(a.title).trim() === eventName);
-                        const actId = act ? act.id : eventId; // Activities.ActivityID
+                        const actId = act ? act.id : eventId; 
 
-                        // ตรวจสอบสถานะเปิด/ปิด รับใบประกาศของกิจกรรม (เชื่อมโยงกับ toggle ฝั่งแอดมิน)
                         if (!window.isCertEventOpen(actId)) {
-                            return; // ข้ามกิจกรรมที่ปิดรับใบประกาศ
+                            return; 
                         }
 
-                        // ดึงข้อมูลจาก CheckIns: Name, Event(Title), Timestamp
                         let studentName = "นักศึกษา";
-                        let useEventName = eventName;     // ค่าเริ่มต้น Activities.Title
-                        let checkInTime = ev[0] || '';    // ค่าเริ่มต้น Evaluations.Timestamp
+                        let useEventName = eventName;     
+                        let checkInTime = ev[0] || '';    
                         const checkInRecord = appCache.checkIns.find(c => String(c[2]).trim() === sId || String(c[3]).trim() === sId);
                         if (checkInRecord) {
-                            if (checkInRecord[4]) studentName = checkInRecord[4];        // CheckIns.Name
-                            if (checkInRecord[1]) useEventName = checkInRecord[1];        // CheckIns.Title (Event)
-                            if (checkInRecord[0]) checkInTime = checkInRecord[0];         // CheckIns.Timestamp
+                            if (checkInRecord[4]) studentName = checkInRecord[4];        
+                            if (checkInRecord[1]) useEventName = checkInRecord[1];        
+                            if (checkInRecord[0]) checkInTime = checkInRecord[0];         
                         }
 
                         certs.push({
                             studentName: studentName,
                             eventName: useEventName,
-                            date: window.formatThaiGovDate(checkInTime), // รูปแบบราชการไทย
-                            actId: actId                                // Activities.ActivityID
+                            date: window.formatThaiGovDate(checkInTime), 
+                            actId: actId                                
                         });
                     }
                 });
@@ -1115,15 +1091,8 @@
 
         window.clearCertSearch = function() { sessionStorage.removeItem('certSearchTerm'); sessionStorage.removeItem('certData'); window.renderCertificates(document.getElementById('app-content')); };
 
-        // ==========================================
-        // ระบบสร้างใบประกาศนียบัตร (JPEG)
-        // ==========================================
-        const CERT_BG_URL = 'https://img1.pic.in.th/images/-268cba603e7a1b86a.png';
-        let _certBgCache = null; // cache data URL ของรูปพื้นหลัง
-
-        // โหลดรูปพื้นหลังล่วงหน้าเป็น data URL (same-origin → ไม่มีปัญหา timing/CORS ตอน html2canvas)
         window.loadCertBgAsDataURL = function() {
-            if (_certBgCache) return Promise.resolve(_certBgCache);
+            if (window._certBgCache) return Promise.resolve(window._certBgCache);
             return new Promise(resolve => {
                 const img = new Image();
                 img.crossOrigin = 'anonymous';
@@ -1133,81 +1102,55 @@
                         cv.width = img.naturalWidth;
                         cv.height = img.naturalHeight;
                         cv.getContext('2d').drawImage(img, 0, 0);
-                        _certBgCache = cv.toDataURL('image/png');
-                        resolve(_certBgCache);
+                        window._certBgCache = cv.toDataURL('image/png');
+                        resolve(window._certBgCache);
                     } catch (e) {
-                        console.warn('Cert bg dataURL failed, using raw URL', e);
-                        _certBgCache = CERT_BG_URL;
-                        resolve(_certBgCache);
+                        window._certBgCache = appSettings.certBgImage;
+                        resolve(window._certBgCache);
                     }
                 };
                 img.onerror = function() {
-                    console.warn('Cert bg load error, using raw URL');
-                    _certBgCache = CERT_BG_URL;
-                    resolve(_certBgCache);
+                    window._certBgCache = appSettings.certBgImage;
+                    resolve(window._certBgCache);
                 };
-                img.src = CERT_BG_URL;
+                img.src = appSettings.certBgImage;
             });
         };
 
-        // เทมเพลตใบประกาศ (ใช้ร่วมกันทั้งดาวน์โหลดเดี่ยวและเป็นชุด)
-        // d = { sName (CheckIns.Name), eName (CheckIns.Title), eDate (CheckIns.Timestamp รูปแบบไทย), actId (Activities.ActivityID) }
-        // เนื้อหาเริ่มหลัง Logo (~160px) จัดกึ่งกลางในพื้นที่สีขาว เลขกิจกรรมอยู่มุมขวาล่าง
         window.buildCertHTML = function(d, bgUrl) {
             const activityId = d.actId || '';
             return `
                 <div style="position:relative;width:1123px;height:794px;background:#fff;font-family:'Prompt',sans-serif;overflow:hidden;box-sizing:border-box;color:#0f172a;">
                     <img src="${bgUrl}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:fill;z-index:1;">
-
-                    <!-- เนื้อหาหลัก: เริ่มใต้ Logo/header band จัดกึ่งกลางในพื้นที่สีขาว -->
                     <div style="position:relative;z-index:10;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;box-sizing:border-box;padding:230px 0px 0px 0px;">
-
-                        <!-- หัวเรื่อง -->
                         <p style="font-size:30px;font-weight:600;color:#1e3a5f;margin:0 0 0px 0;letter-spacing:0.2px;">คณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย</p>
                         <p style="font-size:20px;font-weight:400;color:#94a3b8;margin:0 0 18px 0;">ขอมอบวุฒิบัตรบัตรฉบับนี้ให้ไว้เพื่อแสดงว่า</p>
-
-                        <!-- ชื่อผู้รับ (เด่นที่สุด) -->
                         <h2 style="font-size:38px;font-weight:400;color:#0f172a;margin:100 0 200px 0;line-height:1.2;letter-spacing:0.8px;">${d.sName}</h2>
                         <div style="width:400px;height:0px;background:linear-gradient(90deg,transparent 0%,#d97706 30%,#f59e0b 50%,#d97706 70%,transparent 100%);margin:0 0 40px 0;"></div>
-
-                        <!-- ชื่อกิจกรรม -->
                         <p style="font-size:20px;font-weight:450;color:#475569;margin:0 0 10px 0;">ได้ผ่านการฝึกอบรมเชิงปฏิบัติการ</p>
                         <h3 style="font-size:22px;font-weight:400;color:#b45309;margin:0 0 10px 0;max-width:78%;line-height:1.4;">“${d.eName}”</h3>
-
-                        <!-- คำอวยพร + วันที่ -->
                         <p style="font-size:16px;font-weight:400;color:#475569;margin:0 0 0px 0;">ขอให้ประสบความสุขสวัสดิ์ ความเจริญ และรักษาคุณความดีไว้ตลอดไป</p>
                         <p style="font-size:16px;font-weight:500;color:#1e3a5f;margin:0 0 0 0;">ให้ไว้ ณ วันที่ ${d.eDate}</p>
                     </div>
-
-                    <!-- เลขกิจกรรม: มุมขวาล่าง -->
                     <div style="position:absolute;z-index:10;bottom:34px;right:62px;text-align:right;">
                         <span style="font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:0.5px;"> ${activityId}</span>
                     </div>
                 </div>`;
         };
 
-        // เรนเดอร์ใบประกาศหนึ่งใบเป็น canvas (รอรูปพื้นหลัง + ฟอนต์โหลดเสร็จก่อน)
         window.renderCertToCanvas = async function(certData, scale = 2) {
-            console.log('[CERT] 1) start renderCertToCanvas', certData);
             const bgUrl = await window.loadCertBgAsDataURL();
-            console.log('[CERT] 2) bg loaded, type=', typeof bgUrl, bgUrl ? bgUrl.substring(0, 30) : 'null');
-            if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; console.log('[CERT] 3) fonts ready'); } catch (e) { console.warn('[CERT] fonts.ready error', e); } }
+            if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} }
 
-            // ตรวจสอบให้แน่ใจว่า html2canvas พร้อมใช้งาน
             const h2c = (typeof html2canvas !== 'undefined') ? html2canvas : (window.html2canvas || null);
             if (!h2c) {
-                console.error('[CERT] html2canvas ไม่พร้อมใช้งาน ลองโหลดใหม่...');
                 try {
                     await new Promise((resolve, reject) => {
                         const s = document.createElement('script');
                         s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-                        s.onload = resolve;
-                        s.onerror = reject;
-                        document.head.appendChild(s);
+                        s.onload = resolve; s.onerror = reject; document.head.appendChild(s);
                     });
-                } catch (loadErr) {
-                    throw new Error('ไม่สามารถโหลด html2canvas ได้ กรุณาลองใหม่อีกครั้ง');
-                }
+                } catch (loadErr) { throw new Error('ไม่สามารถโหลด html2canvas ได้'); }
             }
 
             const A4_W = 1123, A4_H = 794;
@@ -1218,92 +1161,52 @@
             const inner = wrap.firstElementChild;
 
             try {
-                console.log('[CERT] 5) calling html2canvas...');
                 const renderFn = (typeof html2canvas !== 'undefined') ? html2canvas : window.html2canvas;
-                const canvas = await renderFn(inner, {
-                    scale: scale,
-                    useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: '#ffffff',
-                    width: A4_W,
-                    height: A4_H,
-                    windowWidth: A4_W,
-                    windowHeight: A4_H,
-                    logging: false
-                });
-                console.log('[CERT] 6) html2canvas done, canvas size=', canvas.width, 'x', canvas.height);
+                const canvas = await renderFn(inner, { scale: scale, useCORS: true, allowTaint: true, backgroundColor: '#ffffff', width: A4_W, height: A4_H, windowWidth: A4_W, windowHeight: A4_H, logging: false });
                 return canvas;
-            } catch (err) {
-                console.error('[CERT] 7) html2canvas FAILED:', err);
-                throw err;
-            } finally {
-                document.body.removeChild(wrap);
-            }
+            } catch (err) { throw err; } finally { document.body.removeChild(wrap); }
         };
 
         window.downloadCertificatePDF = async function(sName, eName, eDate, actId) {
             window.showToast('กำลังเตรียมไฟล์เกียรติบัตร...', 'warning');
             try {
-                // แปลงวันที่ (CheckIns.Timestamp) เป็นรูปแบบราชการไทย
                 const formattedDate = window.formatThaiGovDate(eDate) || eDate;
                 const canvas = await window.renderCertToCanvas({ sName, eName, eDate: formattedDate, actId }, 2);
                 const safeFileName = (sName || 'Certificate').replace(/[^\u0E00-\u0E7Fa-zA-Z0-9_-]/g, '_');
                 canvas.toBlob((blob) => {
                     const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `Certificate_${safeFileName}.jpg`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
+                    const a = document.createElement('a'); a.href = url; a.download = `Certificate_${safeFileName}.jpg`;
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
                     window.showToast('ดาวน์โหลดเกียรติบัตรสำเร็จแล้ว!', 'success');
                 }, 'image/jpeg', 1.0);
-            } catch (err) {
-                console.error(err);
-                window.showToast('เกิดข้อผิดพลาดในการสร้างไฟล์รูปภาพ', 'error');
-            }
+            } catch (err) { window.showToast('เกิดข้อผิดพลาดในการสร้างไฟล์รูปภาพ', 'error'); }
         };
 
         window.exportEventCertificates = async function(eId) {
             window.showToast('กำลังรวบรวมรายชื่อผู้ผ่านประเมิน...', 'warning');
             const event = appCache.activities.find(x => String(x.id) === String(eId));
             if (!event) return window.showToast('ไม่พบกิจกรรม', 'error');
-            const eName = event.title;
-            const actId = event.id; // Activities.ActivityID
+            const eName = event.title; const actId = event.id;
 
             if (appCache.evaluations.length === 0) await window.fetchEvaluationsData(true);
             if (appCache.checkIns.length === 0) await window.fetchAllCheckInsData(true);
 
             const studentEvals = appCache.evaluations.filter(e => String(e[2]).trim() === String(eId) || String(e[3]).trim() === String(eName).trim());
-            if (studentEvals.length === 0) {
-                return window.showToast('ยังไม่มีผู้ผ่านการประเมิน', 'warning');
-            }
+            if (studentEvals.length === 0) return window.showToast('ยังไม่มีผู้ผ่านการประเมิน', 'warning');
 
-            const processedStudents = new Set();
-            const validStudents = [];
+            const processedStudents = new Set(); const validStudents = [];
             studentEvals.forEach(ev => {
                 const sId = String(ev[1]).trim();
                 if (!processedStudents.has(sId) && sId !== "") {
                     processedStudents.add(sId);
-                    let studentName = "นักศึกษา";
-                    let eventName = eName;     // ค่าเริ่มต้นจาก Activities.Title
-                    let checkInTime = ev[0] || ''; // ค่าเริ่มต้นจาก Evaluations.Timestamp
-
-                    // ดึงข้อมูลจาก CheckIns: Name, Event(Title), Timestamp
+                    let studentName = "นักศึกษา"; let eventName = eName; let checkInTime = ev[0] || ''; 
                     const checkInRecord = appCache.checkIns.find(c => String(c[2]).trim() === sId || String(c[3]).trim() === sId);
                     if (checkInRecord) {
-                        if (checkInRecord[4]) studentName = checkInRecord[4];          // CheckIns.Name
-                        if (checkInRecord[1]) eventName = checkInRecord[1];             // CheckIns.Title (Event)
-                        if (checkInRecord[0]) checkInTime = checkInRecord[0];           // CheckIns.Timestamp
+                        if (checkInRecord[4]) studentName = checkInRecord[4];          
+                        if (checkInRecord[1]) eventName = checkInRecord[1];             
+                        if (checkInRecord[0]) checkInTime = checkInRecord[0];           
                     }
-
-                    validStudents.push({
-                        sName: studentName,
-                        eName: eventName,
-                        eDate: window.formatThaiGovDate(checkInTime), // รูปแบบราชการไทย
-                        actId: actId                                  // Activities.ActivityID
-                    });
+                    validStudents.push({ sName: studentName, eName: eventName, eDate: window.formatThaiGovDate(checkInTime), actId: actId });
                 }
             });
 
@@ -1315,47 +1218,31 @@
             document.body.appendChild(loader);
 
             const safeEventName = (eName || 'Event').replace(/[^\u0E00-\u0E7Fa-zA-Z0-9_-]/g, '_');
-            let completed = 0;
-            const progEl = loader.querySelector('#cert-export-progress');
+            let completed = 0; const progEl = loader.querySelector('#cert-export-progress');
 
             try {
                 for (let i = 0; i < validStudents.length; i++) {
                     const cert = validStudents[i];
                     const canvas = await window.renderCertToCanvas(cert, 2);
-                    // รอให้ระบบประมวลผล blob และ trigger download แต่ละไฟล์
                     await new Promise((resolve, reject) => {
                         canvas.toBlob((blob) => {
                             const url = URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
+                            const a = document.createElement('a'); a.href = url;
                             const safeFileName = (cert.sName || 'Certificate_' + (i+1)).replace(/[^\u0E00-\u0E7Fa-zA-Z0-9_-]/g, '_');
                             a.download = `${safeEventName}_${safeFileName}.jpg`;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                            URL.revokeObjectURL(url);
-                            resolve();
+                            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); resolve();
                         }, 'image/jpeg', 1.0);
                     });
-                    completed++;
-                    if (progEl) progEl.innerText = `${completed} / ${validStudents.length}`;
-                    // รอเล็กน้อยระหว่างไฟล์เพื่อให้เบราว์เซอร์จัดการ download
+                    completed++; if (progEl) progEl.innerText = `${completed} / ${validStudents.length}`;
                     await new Promise(r => setTimeout(r, 350));
                 }
-                document.body.removeChild(loader);
-                window.showToast(`ดาวน์โหลดใบประกาศนียบัตร ${completed} ไฟล์เรียบร้อย!`, 'success');
-            } catch (err) {
-                console.error(err);
-                document.body.removeChild(loader);
-                window.showToast('เกิดข้อผิดพลาดในการสร้างไฟล์รูปภาพ', 'error');
-            }
+                document.body.removeChild(loader); window.showToast(`ดาวน์โหลดใบประกาศนียบัตร ${completed} ไฟล์เรียบร้อย!`, 'success');
+            } catch (err) { document.body.removeChild(loader); window.showToast('เกิดข้อผิดพลาดในการสร้างไฟล์รูปภาพ', 'error'); }
         };
 
-        // --- ฟังก์ชันสร้าง HTML pagination แบบใช้ซ้ำ ---
         window.buildPagination = function(page, totalPages, fnName) {
             if (totalPages <= 1) return '';
             let btns = '';
-            // prev
             btns += `<button onclick="${fnName}(${Math.max(1, page-1)})" class="w-10 h-10 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors" ${page <= 1 ? 'disabled' : ''}><i class="ph-bold ph-caret-left"></i></button>`;
             for (let i = 1; i <= totalPages; i++) {
                 if (i === 1 || i === totalPages || (i >= page - 1 && i <= page + 1)) {
@@ -1364,12 +1251,10 @@
                     btns += `<span class="w-10 h-10 flex items-center justify-center text-slate-400 font-bold">…</span>`;
                 }
             }
-            // next
             btns += `<button onclick="${fnName}(${Math.min(totalPages, page+1)})" class="w-10 h-10 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors" ${page >= totalPages ? 'disabled' : ''}><i class="ph-bold ph-caret-right"></i></button>`;
             return btns;
         };
 
-        // --- Toggle เปิด/ปิด รับใบประกาศนียบัตร ระดับกิจกรรม ---
         window.toggleCertEventStatus = function(eventId, checked) {
             certEventStatus[eventId] = checked;
             localStorage.setItem('CRRU_CertEventStatus', JSON.stringify(certEventStatus));
@@ -1382,29 +1267,16 @@
             window.apiCall('POST', { action: 'saveCertEventStatus', eventId: eventId, status: checked }).catch(e => console.log(e));
         };
 
-        // เช็คสถานะเปิด/ปิด ของกิจกรรม (default = เปิด)
-        window.isCertEventOpen = function(eventId) {
-            return certEventStatus[eventId] !== false;
-        };
+        window.isCertEventOpen = function(eventId) { return certEventStatus[eventId] !== false; };
 
-        window.goToAdminCertPage = function(page) {
-            adminCertPage = page;
-            window.renderAdminCertOverview(document.getElementById('app-content'));
-        };
+        window.goToAdminCertPage = function(page) { adminCertPage = page; window.renderAdminCertOverview(document.getElementById('app-content')); };
+        window.searchAdminCert = function() { adminCertSearch = (document.getElementById('admin-cert-search')?.value || '').trim().toLowerCase(); adminCertPage = 1; window.renderAdminCertOverview(document.getElementById('app-content')); };
 
-        window.searchAdminCert = function() {
-            adminCertSearch = (document.getElementById('admin-cert-search')?.value || '').trim().toLowerCase();
-            adminCertPage = 1;
-            window.renderAdminCertOverview(document.getElementById('app-content'));
-        };
-
-        // --- CERTIFICATE OVERVIEW (หน้าหลักเลือกกิจกรรม) ---
         window.renderAdminCertOverview = async function(c) {
             c.innerHTML = window.getGokuLoader('โปรดรอสักครู่');
             if (appCache.evaluations.length === 0) await window.fetchEvaluationsData(true);
             if (appCache.checkIns.length === 0) await window.fetchAllCheckInsData(true);
 
-            // นับจำนวนผู้ผ่านการประเมินต่อกิจกรรม
             const evalByEvent = {};
             appCache.evaluations.forEach(ev => {
                 const key = String(ev[2]).trim() || String(ev[3]).trim();
@@ -1415,7 +1287,6 @@
                 evalByEvent[key] = { students: Array.from(uniq), name: String(ev[3]).trim() };
             });
 
-            // กรองตามคำค้นหา
             const filtered = appCache.activities.filter(act => {
                 if (!adminCertSearch) return true;
                 return act.title.toLowerCase().includes(adminCertSearch) || String(act.id).toLowerCase().includes(adminCertSearch) || (act.date || '').toLowerCase().includes(adminCertSearch);
@@ -1428,193 +1299,72 @@
 
             let h = `
                 <div class="fade-in max-w-6xl mx-auto pb-10">
-                    <div class="mb-8">
-                        <h1 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">จัดการ<span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-primary">ใบประกาศนียบัตร</span></h1>
-                        <p class="text-slate-500 mt-2 font-medium">เปิด/ปิด รับใบประกาศนียบัตรของแต่ละกิจกรรม และจัดการการดาวน์โหลด</p>
-                    </div>
-
+                    <div class="mb-8"><h1 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">จัดการ<span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-primary">ใบประกาศนียบัตร</span></h1><p class="text-slate-500 mt-2 font-medium">เปิด/ปิด รับใบประกาศนียบัตรของแต่ละกิจกรรม และจัดการการดาวน์โหลด</p></div>
                     <div class="glass rounded-[32px] border border-white shadow-sm p-6 mb-6">
                         <div class="flex flex-col md:flex-row gap-4 md:items-center justify-between">
-                            <div class="relative w-full md:max-w-md">
-                                <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none"><i class="ph-fill ph-magnifying-glass text-slate-400"></i></div>
-                                <input type="text" id="admin-cert-search" class="w-full pl-11 pr-4 py-3 rounded-2xl border border-slate-200 bg-white text-sm font-medium outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all" placeholder="ค้นหากิจกรรม..." value="${adminCertSearch}" onkeypress="if(event.key==='Enter') searchAdminCert()">
-                            </div>
-                            <div class="flex items-center gap-2 shrink-0">
-                                <span class="text-sm font-bold text-slate-600">ทั้งหมด</span>
-                                <span class="px-3 py-1.5 bg-amber-50 text-amber-700 border border-amber-100 rounded-xl text-sm font-bold">${filtered.length}</span>
-                                <span class="text-sm text-slate-500 font-medium">กิจกรรม</span>
-                            </div>
+                            <div class="relative w-full md:max-w-md"><div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none"><i class="ph-fill ph-magnifying-glass text-slate-400"></i></div><input type="text" id="admin-cert-search" class="w-full pl-11 pr-4 py-3 rounded-2xl border border-slate-200 bg-white text-sm font-medium outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all" placeholder="ค้นหากิจกรรม..." value="${adminCertSearch}" onkeypress="if(event.key==='Enter') searchAdminCert()"></div>
+                            <div class="flex items-center gap-2 shrink-0"><span class="text-sm font-bold text-slate-600">ทั้งหมด</span><span class="px-3 py-1.5 bg-amber-50 text-amber-700 border border-amber-100 rounded-xl text-sm font-bold">${filtered.length}</span><span class="text-sm text-slate-500 font-medium">กิจกรรม</span></div>
                         </div>
                     </div>
+                    <div class="glass rounded-[32px] border border-white shadow-sm overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left min-w-[760px]"><thead class="bg-white/40 border-b border-white/80 text-slate-500 text-xs uppercase"><tr><th class="p-4 pl-6 w-16 text-center">#</th><th class="p-4">ชื่อกิจกรรม</th><th class="p-4 w-32 text-center hidden sm:table-cell">วันที่จัด</th><th class="p-4 w-24 text-center hidden md:table-cell">ผู้ผ่าน</th><th class="p-4 w-40 text-center">เปิด/ปิด รับ</th><th class="p-4 pr-6 w-32 text-center">จัดการ</th></tr></thead><tbody class="text-sm">`;
 
-                    <div class="glass rounded-[32px] border border-white shadow-sm overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left min-w-[760px]">
-                                <thead class="bg-white/40 border-b border-white/80 text-slate-500 text-xs uppercase">
-                                    <tr>
-                                        <th class="p-4 pl-6 w-16 text-center">#</th>
-                                        <th class="p-4">ชื่อกิจกรรม</th>
-                                        <th class="p-4 w-32 text-center hidden sm:table-cell">วันที่จัด</th>
-                                        <th class="p-4 w-24 text-center hidden md:table-cell">ผู้ผ่าน</th>
-                                        <th class="p-4 w-40 text-center">เปิด/ปิด รับ</th>
-                                        <th class="p-4 pr-6 w-32 text-center">จัดการ</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="text-sm">`;
-
-            if (pageItems.length === 0) {
-                h += `<tr><td colspan="6" class="p-12 text-center text-slate-500 font-medium"><i class="ph-fill ph-magnifying-glass text-5xl text-slate-300 mb-3 block mx-auto"></i>ไม่พบกิจกรรมที่ค้นหา</td></tr>`;
-            } else {
+            if (pageItems.length === 0) { h += `<tr><td colspan="6" class="p-12 text-center text-slate-500 font-medium"><i class="ph-fill ph-magnifying-glass text-5xl text-slate-300 mb-3 block mx-auto"></i>ไม่พบกิจกรรมที่ค้นหา</td></tr>`; } else {
                 pageItems.forEach((act, idx) => {
-                    const evKey = String(act.id).trim();
-                    const count = evalByEvent[evKey]?.students?.length || 0;
-                    const isOpen = window.isCertEventOpen(act.id);
-                    const num = startIdx + idx + 1;
+                    const evKey = String(act.id).trim(); const count = evalByEvent[evKey]?.students?.length || 0; const isOpen = window.isCertEventOpen(act.id); const num = startIdx + idx + 1;
                     h += `
                         <tr class="border-b border-white/50 hover:bg-white/60 transition-colors fade-in" style="animation-delay:${idx * 0.04}s">
                             <td class="p-4 pl-6 text-center text-slate-400 font-bold">${num}</td>
-                            <td class="p-4">
-                                <p class="font-bold text-slate-800 leading-snug line-clamp-1">${act.title}</p>
-                                <p class="text-xs text-slate-400 mt-1 sm:hidden"><i class="ph-fill ph-calendar-blank"></i> ${act.date || '-'}</p>
-                            </td>
+                            <td class="p-4"><p class="font-bold text-slate-800 leading-snug line-clamp-1">${act.title}</p><p class="text-xs text-slate-400 mt-1 sm:hidden"><i class="ph-fill ph-calendar-blank"></i> ${act.date || '-'}</p></td>
                             <td class="p-4 text-center text-slate-500 text-xs hidden sm:table-cell">${act.date || '-'}</td>
-                            <td class="p-4 text-center hidden md:table-cell">
-                                <span class="inline-flex items-center justify-center min-w-[2.5rem] px-2.5 py-1 rounded-lg text-xs font-bold ${count > 0 ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-slate-50 text-slate-400 border border-slate-100'}">${count}</span>
-                            </td>
-                            <td class="p-4 text-center">
-                                <div class="flex items-center justify-center">
-                                    <label class="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" class="sr-only peer" ${isOpen ? 'checked' : ''} onchange="toggleCertEventStatus('${act.id}', this.checked)">
-                                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                                        <span id="cert-event-toggle-text-${act.id}" class="${isOpen ? 'ml-2 text-xs font-bold text-emerald-600 w-8 text-center' : 'ml-2 text-xs font-bold text-slate-400 w-8 text-center'}">${isOpen ? 'เปิด' : 'ปิด'}</span>
-                                    </label>
-                                </div>
-                            </td>
-                            <td class="p-4 pr-6 text-center">
-                                <button onclick="navigate('admin-certificates','${act.id}')" class="px-3 py-2 bg-amber-50 text-amber-700 border border-amber-100 rounded-xl text-xs font-bold hover:bg-amber-500 hover:text-white transition-all hover-lift shadow-sm inline-flex items-center gap-1.5"><i class="ph-bold ph-certificate"></i> จัดการ</button>
-                            </td>
+                            <td class="p-4 text-center hidden md:table-cell"><span class="inline-flex items-center justify-center min-w-[2.5rem] px-2.5 py-1 rounded-lg text-xs font-bold ${count > 0 ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-slate-50 text-slate-400 border border-slate-100'}">${count}</span></td>
+                            <td class="p-4 text-center"><div class="flex items-center justify-center"><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" class="sr-only peer" ${isOpen ? 'checked' : ''} onchange="toggleCertEventStatus('${act.id}', this.checked)"><div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div><span id="cert-event-toggle-text-${act.id}" class="${isOpen ? 'ml-2 text-xs font-bold text-emerald-600 w-8 text-center' : 'ml-2 text-xs font-bold text-slate-400 w-8 text-center'}">${isOpen ? 'เปิด' : 'ปิด'}</span></label></div></td>
+                            <td class="p-4 pr-6 text-center"><button onclick="navigate('admin-certificates','${act.id}')" class="px-3 py-2 bg-amber-50 text-amber-700 border border-amber-100 rounded-xl text-xs font-bold hover:bg-amber-500 hover:text-white transition-all hover-lift shadow-sm inline-flex items-center gap-1.5"><i class="ph-bold ph-certificate"></i> จัดการ</button></td>
                         </tr>`;
                 });
             }
 
-            h += `</tbody></table></div>`;
-            // pagination
-            h += `
-                <div class="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-white/80 bg-white/40">
-                    <p class="text-xs text-slate-500 font-medium">หน้า ${adminCertPage} จาก ${totalPages} · แสดง ${pageItems.length} จาก ${filtered.length} กิจกรรม</p>
-                    <div class="flex items-center gap-2">${window.buildPagination(adminCertPage, totalPages, 'goToAdminCertPage')}</div>
-                </div>`;
-            h += `</div></div>`;
+            h += `</tbody></table></div><div class="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-white/80 bg-white/40"><p class="text-xs text-slate-500 font-medium">หน้า ${adminCertPage} จาก ${totalPages} · แสดง ${pageItems.length} จาก ${filtered.length} กิจกรรม</p><div class="flex items-center gap-2">${window.buildPagination(adminCertPage, totalPages, 'goToAdminCertPage')}</div></div></div></div>`;
             c.innerHTML = h;
         };
 
         window.renderAdminCertificates = async function(c, eId) {
-            // ถ้าไม่มี eId → หน้า Overview เลือกกิจกรรมทั้งหมด
             if (!eId) return window.renderAdminCertOverview(c);
             c.innerHTML = window.getGokuLoader('กำลังโหลดข้อมูลใบประกาศ...');
             const event = appCache.activities.find(x => String(x.id) === String(eId));
             if (!event) { window.showToast('ไม่พบกิจกรรม', 'error'); return window.navigate('admin-events'); }
-            
             if (appCache.evaluations.length === 0) await window.fetchEvaluationsData(true);
             if (appCache.checkIns.length === 0) await window.fetchAllCheckInsData(true);
-
-            const eName = event.title;
-            const eDate = event.date;
-
+            const eName = event.title; const eDate = event.date;
             const studentEvals = appCache.evaluations.filter(e => String(e[2]).trim() === String(eId) || String(e[3]).trim() === String(eName).trim());
-            
-            const processedStudents = new Set();
-            const validStudents = [];
-            studentEvals.forEach(ev => {
-                const sId = String(ev[1]).trim();
-                if (!processedStudents.has(sId) && sId !== "") {
-                    processedStudents.add(sId);
-                    let studentName = "นักศึกษา";
-                    const checkInRecord = appCache.checkIns.find(chk => String(chk[2]).trim() === sId || String(chk[3]).trim() === sId);
-                    if (checkInRecord && checkInRecord[4]) {
-                        studentName = checkInRecord[4];
-                    }
-                    validStudents.push({ sId: sId, sName: studentName });
-                }
-            });
+            const processedStudents = new Set(); const validStudents = [];
+            studentEvals.forEach(ev => { const sId = String(ev[1]).trim(); if (!processedStudents.has(sId) && sId !== "") { processedStudents.add(sId); let studentName = "นักศึกษา"; const checkInRecord = appCache.checkIns.find(chk => String(chk[2]).trim() === sId || String(chk[3]).trim() === sId); if (checkInRecord && checkInRecord[4]) { studentName = checkInRecord[4]; } validStudents.push({ sId: sId, sName: studentName }); } });
 
             let h = `
                 <div class="fade-in max-w-6xl mx-auto pb-10">
                     <div class="mb-8 flex flex-col md:flex-row justify-between md:items-end gap-4">
-                        <div>
-                            <h1 class="text-3xl font-black text-slate-800">จัดการใบประกาศนียบัตร</h1>
-                            <p class="text-primary font-bold text-lg mt-1">${eName}</p>
-                        </div>
-                        <div class="flex gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
-                            <button onclick="navigate('admin-certificates')" class="shrink-0 px-5 py-2.5 bg-white border border-white shadow-sm rounded-xl font-bold text-sm hover-lift flex items-center gap-2 text-slate-600 hover:text-primary"><i class="ph-bold ph-arrow-left"></i> ย้อนกลับ</button>
-                            ${validStudents.length > 0 ? `<button onclick="exportEventCertificates('${eId}')" class="shrink-0 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white shadow-md rounded-xl font-bold text-sm flex gap-2 items-center hover-lift transition-colors"><i class="ph-bold ph-file-pdf text-lg"></i> โหลด PDF ทั้งหมด (${validStudents.length})</button>` : ''}
-                        </div>
+                        <div><h1 class="text-3xl font-black text-slate-800">จัดการใบประกาศนียบัตร</h1><p class="text-primary font-bold text-lg mt-1">${eName}</p></div>
+                        <div class="flex gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0"><button onclick="navigate('admin-certificates')" class="shrink-0 px-5 py-2.5 bg-white border border-white shadow-sm rounded-xl font-bold text-sm hover-lift flex items-center gap-2 text-slate-600 hover:text-primary"><i class="ph-bold ph-arrow-left"></i> ย้อนกลับ</button>${validStudents.length > 0 ? `<button onclick="exportEventCertificates('${eId}')" class="shrink-0 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white shadow-md rounded-xl font-bold text-sm flex gap-2 items-center hover-lift transition-colors"><i class="ph-bold ph-file-pdf text-lg"></i> โหลด PDF ทั้งหมด (${validStudents.length})</button>` : ''}</div>
                     </div>
-                    <div class="glass rounded-3xl border border-white shadow-sm overflow-hidden">
-                        <div class="bg-white/60 p-4 border-b border-white text-sm font-bold flex justify-between px-6 items-center">
-                            <span>ผู้ผ่านประเมินและมีสิทธิ์ได้รับใบประกาศ: <span class="text-primary text-base">${validStudents.length}</span> คน</span>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left min-w-[700px]">
-                                <thead class="bg-white/40 border-b border-white text-slate-500 text-xs uppercase">
-                                    <th class="p-5 pl-6 w-20">ลำดับ</th>
-                                    <th class="p-5 w-48">รหัสนักศึกษา</th>
-                                    <th class="p-5">ชื่อ-นามสกุล</th>
-                                    <th class="p-5 text-center w-40">จัดการ</th>
-                                </thead>
-                                <tbody class="text-sm">`;
-            
-            if (validStudents.length === 0) {
-                h += `<tr><td colspan="4" class="p-12 text-center text-slate-500 font-medium"><i class="ph-fill ph-certificate text-5xl text-slate-300 mb-3 block mx-auto"></i>ยังไม่มีผู้ผ่านการประเมินผลสำหรับกิจกรรมนี้</td></tr>`;
-            } else {
+                    <div class="glass rounded-3xl border border-white shadow-sm overflow-hidden"><div class="bg-white/60 p-4 border-b border-white text-sm font-bold flex justify-between px-6 items-center"><span>ผู้ผ่านประเมินและมีสิทธิ์ได้รับใบประกาศ: <span class="text-primary text-base">${validStudents.length}</span> คน</span></div><div class="overflow-x-auto"><table class="w-full text-left min-w-[700px]"><thead class="bg-white/40 border-b border-white text-slate-500 text-xs uppercase"><th class="p-5 pl-6 w-20">ลำดับ</th><th class="p-5 w-48">รหัสนักศึกษา</th><th class="p-5">ชื่อ-นามสกุล</th><th class="p-5 text-center w-40">จัดการ</th></thead><tbody class="text-sm">`;
+            if (validStudents.length === 0) { h += `<tr><td colspan="4" class="p-12 text-center text-slate-500 font-medium"><i class="ph-fill ph-certificate text-5xl text-slate-300 mb-3 block mx-auto"></i>ยังไม่มีผู้ผ่านการประเมินผลสำหรับกิจกรรมนี้</td></tr>`; } else {
                 validStudents.forEach((s, idx) => {
-                    const safeName = s.sName.replace(/'/g, "\\'");
-                    const safeEvent = eName.replace(/'/g, "\\'");
-                    const safeDate = eDate.replace(/'/g, "\\'");
-                    h += `<tr class="border-b border-white/50 hover:bg-white/60 transition-colors">
-                        <td class="p-5 pl-6 text-slate-500 font-bold">${idx + 1}</td>
-                        <td class="p-5 font-bold font-mono">${s.sId}</td>
-                        <td class="p-5 font-bold text-slate-700">${s.sName}</td>
-                        <td class="p-5 text-center">
-                            <button onclick="downloadCertificatePDF('${safeName}', '${safeEvent}', '${safeDate}')" class="px-4 py-2 bg-white text-amber-600 border border-amber-200 rounded-xl text-xs font-bold hover:bg-amber-50 transition-colors hover-lift shadow-sm inline-flex items-center gap-2"><i class="ph-bold ph-download-simple"></i> โหลด PDF</button>
-                        </td>
-                    </tr>`;
+                    const safeName = s.sName.replace(/'/g, "\\'"); const safeEvent = eName.replace(/'/g, "\\'"); const safeDate = eDate.replace(/'/g, "\\'");
+                    h += `<tr class="border-b border-white/50 hover:bg-white/60 transition-colors"><td class="p-5 pl-6 text-slate-500 font-bold">${idx + 1}</td><td class="p-5 font-bold font-mono">${s.sId}</td><td class="p-5 font-bold text-slate-700">${s.sName}</td><td class="p-5 text-center"><button onclick="downloadCertificatePDF('${safeName}', '${safeEvent}', '${safeDate}')" class="px-4 py-2 bg-white text-amber-600 border border-amber-200 rounded-xl text-xs font-bold hover:bg-amber-50 transition-colors hover-lift shadow-sm inline-flex items-center gap-2"><i class="ph-bold ph-download-simple"></i> โหลด PDF</button></td></tr>`;
                 });
             }
-            
-            h += `</tbody></table></div></div></div>`;
-            c.innerHTML = h;
+            h += `</tbody></table></div></div></div>`; c.innerHTML = h;
         };
 
-        // --- SHOP SECTION ---
         window.applyShirtLogic = function() {
-            const sidInput = document.getElementById('order-student-id');
-            if(!sidInput) return;
-            const sid = sidInput.value.trim();
-            const isMan = sid.startsWith('69');
-            const noShirtOptions = document.querySelectorAll('.no-shirt-option');
-
-            if (isMan) {
-                noShirtOptions.forEach(el => el.style.display = 'none');
-                let pRadio = document.querySelector('input[name="poloSize"]:checked');
-                let aRadio = document.querySelector('input[name="actSize"]:checked');
-                if(pRadio && pRadio.value === 'ไม่รับ') document.querySelector('input[name="poloSize"][value="M"]').checked = true;
-                if(aRadio && aRadio.value === 'ไม่รับ') document.querySelector('input[name="actSize"][value="M"]').checked = true;
-            } else {
-                noShirtOptions.forEach(el => el.style.display = 'block');
-            }
+            const sidInput = document.getElementById('order-student-id'); if(!sidInput) return; const sid = sidInput.value.trim(); const isMan = sid.startsWith('69'); const noShirtOptions = document.querySelectorAll('.no-shirt-option');
+            if (isMan) { noShirtOptions.forEach(el => el.style.display = 'none'); let pRadio = document.querySelector('input[name="poloSize"]:checked'); let aRadio = document.querySelector('input[name="actSize"]:checked'); if(pRadio && pRadio.value === 'ไม่รับ') document.querySelector('input[name="poloSize"][value="M"]').checked = true; if(aRadio && aRadio.value === 'ไม่รับ') document.querySelector('input[name="actSize"][value="M"]').checked = true; } else { noShirtOptions.forEach(el => el.style.display = 'block'); }
             window.recalculatePrice();
         };
 
         window.renderShirtShop = async function(c) {
             c.innerHTML = window.getGokuLoader('ตรวจสอบสถานะร้านค้า...'); 
             try { await window.fetchSettingsData(); } catch (e) { isShirtShopOpen = localStorage.getItem('CRRU_ShopOpen') !== 'false'; }
-            
-            if (!isShirtShopOpen) { 
-                c.innerHTML = `<div class="fade-in max-w-4xl mx-auto px-4 py-10"><div class="glass rounded-[32px] p-12 text-center"><div class="w-24 h-24 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-8"><i class="ph-fill ph-lock-key text-5xl"></i></div><h2 class="text-3xl font-black text-slate-800 mb-3">ปิดให้บริการชั่วคราว</h2><button onclick="navigate('events')" class="mt-8 px-8 py-4 bg-slate-800 text-white font-bold rounded-2xl mx-auto flex items-center gap-2"><i class="ph-bold ph-arrow-left"></i> กลับไปหน้ากิจกรรม</button></div></div>`; 
-                return; 
-            }
-            
+            if (!isShirtShopOpen) { c.innerHTML = `<div class="fade-in max-w-4xl mx-auto px-4 py-10"><div class="glass rounded-[32px] p-12 text-center"><div class="w-24 h-24 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-8"><i class="ph-fill ph-lock-key text-5xl"></i></div><h2 class="text-3xl font-black text-slate-800 mb-3">ปิดให้บริการชั่วคราว</h2><button onclick="navigate('events')" class="mt-8 px-8 py-4 bg-slate-800 text-white font-bold rounded-2xl mx-auto flex items-center gap-2"><i class="ph-bold ph-arrow-left"></i> กลับไปหน้ากิจกรรม</button></div></div>`; return; }
             c.innerHTML = `
                 <div class="fade-in max-w-4xl mx-auto pb-24 sm:pb-10">
                     <div id="order-step-search" class="animate-fadeIn block">
@@ -1689,14 +1439,11 @@
             const proceedToStep2 = (data) => {
                 const idField = document.getElementById('order-student-id'), nameField = document.getElementById('order-student-name'), facField = document.getElementById('order-faculty'), majField = document.getElementById('order-major');
                 idField.value = data.studentId || searchId; nameField.value = data.name || ''; facField.value = data.faculty || ''; majField.value = data.major || '';
-                
                 idField.readOnly = true; idField.classList.add('opacity-70'); 
                 [nameField, facField, majField].forEach(x => { x.readOnly = false; x.classList.remove('opacity-70'); x.classList.replace('bg-white/60', 'bg-white/80'); });
-                
                 document.getElementById('order-step-search').classList.add('hidden'); 
                 document.getElementById('order-step-form').classList.remove('hidden'); 
                 window.scrollTo(0, 0); 
-                
                 window.applyShirtLogic();
                 setTimeout(window.recalculatePrice, 50);
             };
@@ -1721,9 +1468,7 @@
             setTimeout(window.recalculatePrice, 50); 
         };
         
-        window.resetOrderSearch = function() { 
-            document.getElementById('order-step-form').classList.add('hidden'); document.getElementById('order-step-search').classList.remove('hidden'); document.getElementById('search-order-feedback').classList.add('hidden'); document.getElementById('orderForm').reset(); window.scrollTo(0, 0); 
-        };
+        window.resetOrderSearch = function() { document.getElementById('order-step-form').classList.add('hidden'); document.getElementById('order-step-search').classList.remove('hidden'); document.getElementById('search-order-feedback').classList.add('hidden'); document.getElementById('orderForm').reset(); window.scrollTo(0, 0); };
         
         window.recalculatePrice = function() { 
             const f = document.getElementById('orderForm'); if(!f) return; 
@@ -1734,10 +1479,7 @@
             document.getElementById('priceDisplay').innerText = `฿ ${((pPr * pQty) + (aPr * aQty)).toLocaleString()}`; 
         };
         
-        window.updateQty = function(t, c) { 
-            const i = document.getElementById(t+'Qty'); if(!i) return; 
-            let v = parseInt(i.value)+c; if(v<1) v=1; if(v>10) v=10; i.value=v; window.recalculatePrice(); 
-        };
+        window.updateQty = function(t, c) { const i = document.getElementById(t+'Qty'); if(!i) return; let v = parseInt(i.value)+c; if(v<1) v=1; if(v>10) v=10; i.value=v; window.recalculatePrice(); };
 
         window.mockOrderSubmit = async function(e) { 
             e.preventDefault(); if(!isShirtShopOpen) { window.showToast('ปิดรับจองแล้ว', 'error'); return window.navigate('shirt'); } 
@@ -1749,7 +1491,6 @@
             
             if (pS === 'ไม่รับ') pQ = 0;
             if (aS === 'ไม่รับ') aQ = 0;
-
             const pP = pS === 'ไม่รับ' ? 0 : 250; const aP = aS === 'ไม่รับ' ? 0 : 250;
             
             const is69 = document.getElementById('order-student-id').value.trim().startsWith('69');
@@ -1775,7 +1516,6 @@
                 ], 
                 total: (pP * pQ) + (aP * aQ) 
             }; 
-            
             window.navigate('checkout', currentCheckoutOrder); 
         };
 
@@ -1788,9 +1528,7 @@
                     iH += `<div class="flex justify-between items-center py-4 border-b border-slate-200 border-dashed last:border-0"><div><p class="font-bold text-slate-800 text-base">${i.name}</p><p class="text-xs text-slate-500 mt-1">ไซส์ <span class="font-bold text-primary bg-orange-100 px-1.5 py-0.5 rounded">${i.size}</span> x ${i.qty} ตัว (@฿${i.price})</p></div><p class="font-bold text-slate-800 text-base">฿ ${i.subtotal}</p></div>`; 
                 }
             });
-            if(iH === '') {
-                iH = `<div class="py-4 text-center text-slate-500 font-medium border-b border-slate-200 border-dashed">ไม่ประสงค์รับเสื้อ (ยอดชำระ 0 บาท)</div>`;
-            }
+            if(iH === '') iH = `<div class="py-4 text-center text-slate-500 font-medium border-b border-slate-200 border-dashed">ไม่ประสงค์รับเสื้อ (ยอดชำระ 0 บาท)</div>`;
             c.innerHTML = `
                 <div class="fade-in max-w-5xl mx-auto pb-10">
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-8">
@@ -1805,31 +1543,17 @@
                                 
                                 <div class="w-full bg-white/80 border border-white rounded-[24px] p-6 text-left mb-8 shadow-sm">
                                     <div class="flex gap-4">
-                                        <div class="shrink-0 mt-0.5">
-                                            <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-primary">
-                                                <i class="ph-bold ph-info"></i>
-                                            </div>
-                                        </div>
+                                        <div class="shrink-0 mt-0.5"><div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-primary"><i class="ph-bold ph-info"></i></div></div>
                                         <div>
                                             <h4 class="font-bold text-slate-800 mb-3 text-lg">ขั้นตอนการชำระเงินสด:</h4>
                                             <ul class="space-y-3 text-slate-600 font-medium">
-                                                <li class="flex items-start gap-2">
-                                                    <span class="mt-2 w-1.5 h-1.5 bg-primary rounded-full shrink-0"></span>
-                                                    <span>กดยืนยันด้านล่าง เพื่อบันทึกและ <span class="font-bold border-b border-orange-300 pb-0.5 text-slate-800">รับใบเสร็จ (PDF)</span></span>
-                                                </li>
-                                                <li class="flex items-start gap-2">
-                                                    <span class="mt-2 w-1.5 h-1.5 bg-primary rounded-full shrink-0"></span>
-                                                    <span>นำใบเสร็จไปติดต่อชำระเงิน <span class="font-bold text-slate-800">ภายใน 3 วันทำการ</span></span>
-                                                </li>
-                                                <li class="flex items-start gap-2">
-                                                    <span class="mt-2 w-1.5 h-1.5 bg-primary rounded-full shrink-0"></span>
-                                                    <span>เวลาทำการ 09:00 - 16:30 น. <span class="text-slate-500/80">(ห้องฝ่ายกิจการนักศึกษา)</span></span>
-                                                </li>
+                                                <li class="flex items-start gap-2"><span class="mt-2 w-1.5 h-1.5 bg-primary rounded-full shrink-0"></span><span>กดยืนยันด้านล่าง เพื่อบันทึกและ <span class="font-bold border-b border-orange-300 pb-0.5 text-slate-800">รับใบเสร็จ (PDF)</span></span></li>
+                                                <li class="flex items-start gap-2"><span class="mt-2 w-1.5 h-1.5 bg-primary rounded-full shrink-0"></span><span>นำใบเสร็จไปติดต่อชำระเงิน <span class="font-bold text-slate-800">ภายใน 3 วันทำการ</span></span></li>
+                                                <li class="flex items-start gap-2"><span class="mt-2 w-1.5 h-1.5 bg-primary rounded-full shrink-0"></span><span>เวลาทำการ 09:00 - 16:30 น. <span class="text-slate-500/80">(ห้องฝ่ายกิจการนักศึกษา)</span></span></li>
                                             </ul>
                                         </div>
                                     </div>
                                 </div>
-
                                 <button type="button" onclick="submitPayment(event)" class="px-10 py-5 rounded-2xl font-bold text-white bg-slate-800 hover:bg-black w-full sm:w-auto flex items-center justify-center gap-3 transition-all hover-lift">
                                     <i class="ph-bold ph-receipt text-xl"></i> ยืนยันการสั่งจองและรับใบเสร็จ
                                 </button>
@@ -1892,25 +1616,12 @@
             let pSz = 'M', pQ = 0, aSz = 'M', aQ = 0, sZ = String(o.size || '');
             let pN = sZ.match(/โปโล\s*([A-Za-z0-9\u0e00-\u0e7f]+)\s*\[(\d+)\]/i), aN = sZ.match(/กิจกรรม\s*([A-Za-z0-9\u0e00-\u0e7f]+)\s*\[(\d+)\]/i);
             if (pN) { pSz = pN[1]; pQ = parseInt(pN[2]); } if (aN) { aSz = aN[1]; aQ = parseInt(aN[2]); }
-            
-            if (pSz === 'ไม่รับ') pQ = 0;
-            if (aSz === 'ไม่รับ') aQ = 0;
+            if (pSz === 'ไม่รับ') pQ = 0; if (aSz === 'ไม่รับ') aQ = 0;
 
-            let id = 1;
-            let sumTotal = 0;
-            
-            if (pQ > 0 && pSz !== 'ไม่รับ') {
-                let subP = 250 * pQ; sumTotal += subP;
-                iH += `<tr><td style="${tB} text-align: center;">${id++}</td><td style="${tB}"><b>1. เสื้อโปโลคณะ</b> <span style="font-size: 11px; color: #475569; margin-left: 8px;">(Size: ${pSz})</span></td><td style="${tB} text-align: center;">${pQ}</td><td style="${tB} text-align: right;">250</td><td style="${tB} text-align: right; font-weight: 700;">${subP.toLocaleString()}</td></tr>`;
-            }
-            if (aQ > 0 && aSz !== 'ไม่รับ') {
-                let subA = 250 * aQ; sumTotal += subA;
-                iH += `<tr><td style="${tB} text-align: center;">${id++}</td><td style="${tB}"><b>2. เสื้อกิจกรรม</b> <span style="font-size: 11px; color: #475569; margin-left: 8px;">(Size: ${aSz})</span></td><td style="${tB} text-align: center;">${aQ}</td><td style="${tB} text-align: right;">250</td><td style="${tB} text-align: right; font-weight: 700;">${subA.toLocaleString()}</td></tr>`;
-            }
-            
-            if (iH === '') {
-                iH = `<tr><td colspan="5" style="${tB} text-align: center; color: #64748b; padding: 15px;">ไม่มีรายการสั่งจองเสื้อ (ไม่ประสงค์รับเสื้อ)</td></tr>`;
-            }
+            let id = 1; let sumTotal = 0;
+            if (pQ > 0 && pSz !== 'ไม่รับ') { let subP = 250 * pQ; sumTotal += subP; iH += `<tr><td style="${tB} text-align: center;">${id++}</td><td style="${tB}"><b>1. เสื้อโปโลคณะ</b> <span style="font-size: 11px; color: #475569; margin-left: 8px;">(Size: ${pSz})</span></td><td style="${tB} text-align: center;">${pQ}</td><td style="${tB} text-align: right;">250</td><td style="${tB} text-align: right; font-weight: 700;">${subP.toLocaleString()}</td></tr>`; }
+            if (aQ > 0 && aSz !== 'ไม่รับ') { let subA = 250 * aQ; sumTotal += subA; iH += `<tr><td style="${tB} text-align: center;">${id++}</td><td style="${tB}"><b>2. เสื้อกิจกรรม</b> <span style="font-size: 11px; color: #475569; margin-left: 8px;">(Size: ${aSz})</span></td><td style="${tB} text-align: center;">${aQ}</td><td style="${tB} text-align: right;">250</td><td style="${tB} text-align: right; font-weight: 700;">${subA.toLocaleString()}</td></tr>`; }
+            if (iH === '') iH = `<tr><td colspan="5" style="${tB} text-align: center; color: #64748b; padding: 15px;">ไม่มีรายการสั่งจองเสื้อ (ไม่ประสงค์รับเสื้อ)</td></tr>`;
 
             let sI = appCache.students[o.studentId] || {}, dM = (o.major && o.major !== '-' && o.major !== 'undefined') ? o.major : (sI.major || 'ไม่ระบุสาขา'), dF = (o.faculty && o.faculty !== '-' && o.faculty !== 'undefined') ? o.faculty : (sI.faculty || 'ไม่ระบุคณะ');
 
@@ -1931,8 +1642,6 @@
                             <thead><tr style="background-color: #f1f5f9;"><th style="${tB} text-align: center;">ลำดับ</th><th style="${tB}">รายการสินค้า</th><th style="${tB} text-align: center;">จำนวน</th><th style="${tB} text-align: right;">หน่วยละ</th><th style="${tB} text-align: right;">จำนวนเงิน</th></tr></thead>
                             <tbody>${iH}<tr><td colspan="4" style="border: 1px solid #1e293b; padding: 10px; text-align: right; font-weight: 700;">รวมเงินสุทธิ</td><td style="border: 1px solid #1e293b; padding: 10px; text-align: right; font-weight: 900; font-size: 16px;">${sumTotal.toLocaleString()}</td></tr></tbody>
                         </table>
-
-                        <!-- ส่วนลายเซ็น ผู้จ่ายเงิน / ผู้รับเงิน -->
                         <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; padding: 0 40px;">
                             <div style="text-align: center; width: 40%;">
                                 <p style="margin: 0 0 10px 0; color: #94a3b8;">.......................................................</p>
@@ -1947,14 +1656,12 @@
                                 <p style="font-weight: 500; margin: 5px 0 0; font-size: 11px; color: #94a3b8;">วันที่: ....../....../......</p>
                             </div>
                         </div>
-
                         <p style="font-size: 10px; color: #64748b; margin: 25px 0 0 0; text-align: center; background-color: #f8fafc; padding: 6px; border-radius: 4px;">ชำระผ่าน: <b>เงินสด</b> | ใช้เป็นหลักฐานในการติดต่อรับชุดเสื้อคณะเท่านั้น</p>
                     </div>
                 </div>`;
 
             let h = `
                 <div class="glass rounded-[32px] shadow-xl p-8 sm:p-10 mb-8 overflow-hidden print:hidden text-center border border-white"><h2 class="text-2xl font-black text-slate-800 mb-8">สถานะการดำเนินการ</h2><div class="relative flex flex-col md:flex-row justify-between items-start md:items-center max-w-3xl mx-auto">
-                    <!-- Line connector -->
                     <div class="hidden md:block absolute top-6 left-[10%] right-[10%] h-1 bg-white z-0"></div>
                 `;
             
@@ -1993,29 +1700,8 @@
             const vM = document.querySelector('meta[name="viewport"]'), oV = vM ? vM.getAttribute('content') : ''; if (vM) vM.setAttribute('content', 'width=800, initial-scale=1.0');
             setTimeout(() => {
                 html2pdf().set({ 
-                    margin: 0, 
-                    filename: `Receipt_${oId}.pdf`, 
-                    image: { type: 'jpeg', quality: 1.0 }, 
-                    html2canvas: { 
-                        scale: 2, 
-                        useCORS: true, 
-                        width: 794,
-                        windowWidth: 800, 
-                        x: 0, 
-                        y: 0, 
-                        scrollX: 0, 
-                        scrollY: 0, 
-                        onclone: function(doc) { 
-                            const t = doc.getElementById('receipt-card-display'); 
-                            if (t) { 
-                                t.style.boxShadow = 'none'; 
-                                t.style.border = 'none'; 
-                                t.style.margin = '0'; 
-                                doc.body.style.width = '800px'; 
-                                doc.body.style.position = 'relative'; 
-                            } 
-                        } 
-                    }, 
+                    margin: 0, filename: `Receipt_${oId}.pdf`, image: { type: 'jpeg', quality: 1.0 }, 
+                    html2canvas: { scale: 2, useCORS: true, width: 794, windowWidth: 800, x: 0, y: 0, scrollX: 0, scrollY: 0, onclone: function(doc) { const t = doc.getElementById('receipt-card-display'); if (t) { t.style.boxShadow = 'none'; t.style.border = 'none'; t.style.margin = '0'; doc.body.style.width = '800px'; doc.body.style.position = 'relative'; } } }, 
                     pagebreak: { mode: ['css', 'legacy'], before: '.receipt-page-break' },
                     jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' } 
                 }).from(el).save().then(() => { if (vM) vM.setAttribute('content', oV); document.body.removeChild(o); b.innerHTML = oH; b.disabled = false; window.showToast('สำเร็จ!', 'success'); }).catch(err => { if (vM) vM.setAttribute('content', oV); document.body.removeChild(o); b.innerHTML = oH; b.disabled = false; window.showToast('เกิดข้อผิดพลาด', 'error'); });
@@ -2031,14 +1717,9 @@
         window.submitEditOrder = async function(e, id) {
             e.preventDefault(); const o = appCache.orders.find(x => String(x.id) === String(id));
             if(o) {
-                const pS = document.getElementById('editPoloSize').value;
-                const aS = document.getElementById('editActSize').value;
-                let pQ = parseInt(document.getElementById('editPoloQty').value);
-                let aQ = parseInt(document.getElementById('editActQty').value); 
-                
-                if (pS === 'ไม่รับ') pQ = 0;
-                if (aS === 'ไม่รับ') aQ = 0;
-                
+                const pS = document.getElementById('editPoloSize').value; const aS = document.getElementById('editActSize').value;
+                let pQ = parseInt(document.getElementById('editPoloQty').value); let aQ = parseInt(document.getElementById('editActQty').value); 
+                if (pS === 'ไม่รับ') pQ = 0; if (aS === 'ไม่รับ') aQ = 0;
                 const pPr = pS === 'ไม่รับ' ? 0 : 250; const aPr = aS === 'ไม่รับ' ? 0 : 250;
                 const nS = `โปโล ${pS} [${pQ}], กิจกรรม ${aS} [${aQ}]`, nQ = pQ + aQ, nT = (pPr * pQ) + (aPr * aQ); 
                 o.size = nS; o.qty = nQ; o.total = nT; o.hasEdited = true;
@@ -2065,7 +1746,6 @@
             });
             const tP = Object.values(sum.polo).reduce((a, b) => a + b, 0), tA = Object.values(sum.act).reduce((a, b) => a + b, 0);
 
-            // สรุปไซส์เสื้อเฉพาะสถานะ "กำลังผลิต" (status 3)
             let prodSum = { polo: {}, act: {} }; SIZE_LIST.forEach(s => { prodSum.polo[s] = 0; prodSum.act[s] = 0; });
             const prodOrders = oD.filter(o => parseInt(o.status) === 3);
             prodOrders.forEach(o => {
@@ -2092,72 +1772,23 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                    <div class="glass rounded-3xl border border-white shadow-sm overflow-hidden">
-                        <div class="p-6 bg-white/60 border-b border-white flex justify-between">
-                            <h2 class="text-lg font-bold flex items-center gap-3"><div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center"><i class="ph-fill ph-t-shirt text-xl"></i></div> โปโลคณะ</h2>
-                            <span class="bg-white text-blue-700 px-4 py-1.5 rounded-xl border font-bold text-xs shadow-sm">รวม ${tP} ตัว</span>
-                        </div>
-                        <table class="w-full text-left"><tbody class="text-sm font-bold text-slate-700">${poloTableBody}</tbody></table>
-                    </div>
-                    <div class="glass rounded-3xl border border-white shadow-sm overflow-hidden">
-                        <div class="p-6 bg-white/60 border-b border-white flex justify-between">
-                            <h2 class="text-lg font-bold flex items-center gap-3"><div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center"><i class="ph-fill ph-t-shirt text-xl"></i></div> เสื้อกิจกรรม</h2>
-                            <span class="bg-white text-amber-700 px-4 py-1.5 rounded-xl border font-bold text-xs shadow-sm">รวม ${tA} ตัว</span>
-                        </div>
-                        <table class="w-full text-left"><tbody class="text-sm font-bold text-slate-700">${actTableBody}</tbody></table>
-                    </div>
+                    <div class="glass rounded-3xl border border-white shadow-sm overflow-hidden"><div class="p-6 bg-white/60 border-b border-white flex justify-between"><h2 class="text-lg font-bold flex items-center gap-3"><div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center"><i class="ph-fill ph-t-shirt text-xl"></i></div> โปโลคณะ</h2><span class="bg-white text-blue-700 px-4 py-1.5 rounded-xl border font-bold text-xs shadow-sm">รวม ${tP} ตัว</span></div><table class="w-full text-left"><tbody class="text-sm font-bold text-slate-700">${poloTableBody}</tbody></table></div>
+                    <div class="glass rounded-3xl border border-white shadow-sm overflow-hidden"><div class="p-6 bg-white/60 border-b border-white flex justify-between"><h2 class="text-lg font-bold flex items-center gap-3"><div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center"><i class="ph-fill ph-t-shirt text-xl"></i></div> เสื้อกิจกรรม</h2><span class="bg-white text-amber-700 px-4 py-1.5 rounded-xl border font-bold text-xs shadow-sm">รวม ${tA} ตัว</span></div><table class="w-full text-left"><tbody class="text-sm font-bold text-slate-700">${actTableBody}</tbody></table></div>
                 </div>
 
-                <!-- สรุปไซส์เสื้อเฉพาะสถานะ "กำลังผลิต" (status 3) -->
                 <div class="mb-10">
-                    <div class="flex items-center gap-3 mb-5">
-                        <div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center shadow-sm"><i class="ph-fill ph-scissors text-xl"></i></div>
-                        <div>
-                            <h2 class="text-xl font-black text-slate-800">สรุปไซส์เสื้อ <span class="text-purple-600">กำลังผลิต</span></h2>
-                            <p class="text-xs text-slate-500 font-medium">เฉพาะออเดอร์ที่อยู่ในสถานะ "กำลังผลิต" — รวม ${prodOrders.length} รายการ</p>
-                        </div>
-                    </div>
+                    <div class="flex items-center gap-3 mb-5"><div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center shadow-sm"><i class="ph-fill ph-scissors text-xl"></i></div><div><h2 class="text-xl font-black text-slate-800">สรุปไซส์เสื้อ <span class="text-purple-600">กำลังผลิต</span></h2><p class="text-xs text-slate-500 font-medium">เฉพาะออเดอร์ที่อยู่ในสถานะ "กำลังผลิต" — รวม ${prodOrders.length} รายการ</p></div></div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="glass rounded-3xl border-2 border-purple-200/60 shadow-sm overflow-hidden relative">
-                            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-purple-400"></div>
-                            <div class="p-6 bg-purple-50/40 border-b border-purple-100/50 flex justify-between">
-                                <h3 class="text-lg font-bold flex items-center gap-3"><div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center"><i class="ph-fill ph-t-shirt text-xl"></i></div> โปโลคณะ</h3>
-                                <span class="bg-purple-100 text-purple-700 px-4 py-1.5 rounded-xl font-bold text-xs shadow-sm border border-purple-200">${prodTP} ตัว</span>
-                            </div>
-                            <table class="w-full text-left"><tbody class="text-sm font-bold text-slate-700">${prodPoloBody}</tbody></table>
-                        </div>
-                        <div class="glass rounded-3xl border-2 border-purple-200/60 shadow-sm overflow-hidden relative">
-                            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-purple-400"></div>
-                            <div class="p-6 bg-purple-50/40 border-b border-purple-100/50 flex justify-between">
-                                <h3 class="text-lg font-bold flex items-center gap-3"><div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center"><i class="ph-fill ph-t-shirt text-xl"></i></div> เสื้อกิจกรรม</h3>
-                                <span class="bg-purple-100 text-purple-700 px-4 py-1.5 rounded-xl font-bold text-xs shadow-sm border border-purple-200">${prodTA} ตัว</span>
-                            </div>
-                            <table class="w-full text-left"><tbody class="text-sm font-bold text-slate-700">${prodActBody}</tbody></table>
-                        </div>
+                        <div class="glass rounded-3xl border-2 border-purple-200/60 shadow-sm overflow-hidden relative"><div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-purple-400"></div><div class="p-6 bg-purple-50/40 border-b border-purple-100/50 flex justify-between"><h3 class="text-lg font-bold flex items-center gap-3"><div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center"><i class="ph-fill ph-t-shirt text-xl"></i></div> โปโลคณะ</h3><span class="bg-purple-100 text-purple-700 px-4 py-1.5 rounded-xl font-bold text-xs shadow-sm border border-purple-200">${prodTP} ตัว</span></div><table class="w-full text-left"><tbody class="text-sm font-bold text-slate-700">${prodPoloBody}</tbody></table></div>
+                        <div class="glass rounded-3xl border-2 border-purple-200/60 shadow-sm overflow-hidden relative"><div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-purple-400"></div><div class="p-6 bg-purple-50/40 border-b border-purple-100/50 flex justify-between"><h3 class="text-lg font-bold flex items-center gap-3"><div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center"><i class="ph-fill ph-t-shirt text-xl"></i></div> เสื้อกิจกรรม</h3><span class="bg-purple-100 text-purple-700 px-4 py-1.5 rounded-xl font-bold text-xs shadow-sm border border-purple-200">${prodTA} ตัว</span></div><table class="w-full text-left"><tbody class="text-sm font-bold text-slate-700">${prodActBody}</tbody></table></div>
                     </div>
                 </div>
 
                 <div class="flex flex-col sm:flex-row justify-between items-center mb-5 gap-4">
                     <h2 class="text-xl font-bold flex items-center gap-2"><i class="ph-fill ph-list-checks text-primary"></i> รายการคำสั่งซื้อทั้งหมด</h2>
-                    <div class="flex flex-col sm:flex-row w-full sm:w-auto gap-3">
-                        <div class="relative w-full sm:w-64">
-                            <i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                            <input type="text" id="adm-ord-search" oninput="admSearchOrders(this.value)" placeholder="ค้นหารหัส, ชื่อ, Order ID" class="w-full pl-12 pr-4 py-2.5 rounded-xl border border-white shadow-sm bg-white/80 font-medium text-sm outline-none focus:ring-2 focus:ring-primary/20" value="${adminOrdersSearch}">
-                        </div>
-                        <button onclick="exportAdminOrdersExcel()" class="px-5 py-2.5 bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-sm rounded-xl font-bold text-sm w-full sm:w-auto hover-lift whitespace-nowrap"><i class="ph-bold ph-file-xls"></i> โหลด Excel (แยกสาขา)</button>
-                    </div>
+                    <div class="flex flex-col sm:flex-row w-full sm:w-auto gap-3"><div class="relative w-full sm:w-64"><i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="text" id="adm-ord-search" oninput="admSearchOrders(this.value)" placeholder="ค้นหารหัส, ชื่อ, Order ID" class="w-full pl-12 pr-4 py-2.5 rounded-xl border border-white shadow-sm bg-white/80 font-medium text-sm outline-none focus:ring-2 focus:ring-primary/20" value="${adminOrdersSearch}"></div><button onclick="exportAdminOrdersExcel()" class="px-5 py-2.5 bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-sm rounded-xl font-bold text-sm w-full sm:w-auto hover-lift whitespace-nowrap"><i class="ph-bold ph-file-xls"></i> โหลด Excel (แยกสาขา)</button></div>
                 </div>
-                <div class="glass rounded-3xl border border-white shadow-sm overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left min-w-[1000px]">
-                            <thead class="bg-white/60 border-b border-white text-slate-500 text-xs uppercase">
-                                <th class="p-5">Order ID</th><th class="p-5">นักศึกษา</th><th class="p-5">สินค้า</th><th class="p-5">ยอดรวม</th><th class="p-5">สถานะ</th><th class="p-5 text-center">จัดการ</th>
-                            </thead>
-                            <tbody id="admin-orders-tbody" class="text-sm bg-white/40"></tbody>
-                        </table>
-                    </div>
-                    <div id="admin-orders-pagination" class="p-5 border-t border-white flex justify-between bg-white/60"></div>
-                </div>
+                <div class="glass rounded-3xl border border-white shadow-sm overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left min-w-[1000px]"><thead class="bg-white/60 border-b border-white text-slate-500 text-xs uppercase"><th class="p-5">Order ID</th><th class="p-5">นักศึกษา</th><th class="p-5">สินค้า</th><th class="p-5">ยอดรวม</th><th class="p-5">สถานะ</th><th class="p-5 text-center">จัดการ</th></thead><tbody id="admin-orders-tbody" class="text-sm bg-white/40"></tbody></table></div><div id="admin-orders-pagination" class="p-5 border-t border-white flex justify-between bg-white/60"></div></div>
             </div>`;
             window.updateAdminOrdersTable();
         };
@@ -2193,41 +1824,26 @@
 
             const groupedByMajor = orders.reduce((acc, o) => {
                 const major = (o.major && String(o.major).trim() !== '' && o.major !== '-') ? String(o.major).trim() : 'ไม่ระบุสาขา';
-                if (!acc[major]) {
-                    acc[major] = [];
-                }
+                if (!acc[major]) acc[major] = [];
                 acc[major].push(o);
                 return acc;
             }, {});
 
             for (const majorName in groupedByMajor) {
                 let majorSheetData = [["สาขาวิชา", "รหัสนักศึกษา", "ชื่อ-นามสกุล", "รายการ", "ยอดรวม", "วิธีการชำระเงิน", "สถานะ", "เวลา"]];
-                
                 groupedByMajor[majorName].forEach(o => {
                     const sTxt = STATUS_MAP[o.status] ? STATUS_MAP[o.status].text : o.status;
                     const pMeth = o.paymentMethod === 'cash' ? 'เงินสด' : o.paymentMethod;
-                    majorSheetData.push([
-                        majorName,         
-                        o.studentId,       
-                        o.name,            
-                        o.size,            
-                        o.total,           
-                        pMeth,             
-                        sTxt,              
-                        o.timestamp        
-                    ]);
+                    majorSheetData.push([majorName, o.studentId, o.name, o.size, o.total, pMeth, sTxt, o.timestamp]);
                 });
 
                 let safeSheetName = majorName.substring(0, 31);
-                
                 if (wb.SheetNames.includes(safeSheetName)) {
                      safeSheetName = safeSheetName.substring(0, 27) + "..." + Math.floor(Math.random() * 10);
                 }
-                
                 const ws = XLSX.utils.aoa_to_sheet(majorSheetData);
                 XLSX.utils.book_append_sheet(wb, ws, safeSheetName);
             }
-
             XLSX.writeFile(wb, `รายงานจองเสื้อ_แยกสาขา_${window.formatThaiDate(new Date()).replace(/ /g, '_')}.xlsx`);
         };
 
@@ -2252,14 +1868,8 @@
                                 <div class="mt-2 md:mt-0"><button type="submit" class="w-full px-6 py-3.5 bg-admin text-white font-bold rounded-2xl hover:bg-admin_hover transition-colors shadow-lg">บันทึก</button></div>
                             </div>
                             <div class="bg-white/50 border border-white shadow-sm rounded-2xl p-4 md:p-5 flex flex-col md:grid md:grid-cols-2 gap-4 mt-2">
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5"><i class="ph-fill ph-clock text-purple-500"></i> กำหนดเวลาเปิดรับสมัคร (ถ้ามี)</label>
-                                    <input type="datetime-local" id="new-event-open" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white/80 text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-slate-600">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5"><i class="ph-fill ph-clock text-purple-500"></i> กำหนดเวลาปิดรับสมัคร (ถ้ามี)</label>
-                                    <input type="datetime-local" id="new-event-close" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white/80 text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-slate-600">
-                                </div>
+                                <div><label class="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5"><i class="ph-fill ph-clock text-purple-500"></i> กำหนดเวลาเปิดรับสมัคร (ถ้ามี)</label><input type="datetime-local" id="new-event-open" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white/80 text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-slate-600"></div>
+                                <div><label class="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5"><i class="ph-fill ph-clock text-purple-500"></i> กำหนดเวลาปิดรับสมัคร (ถ้ามี)</label><input type="datetime-local" id="new-event-close" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white/80 text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-slate-600"></div>
                             </div>
                         </form>
                     </div>
@@ -2320,44 +1930,20 @@
 
                 if (openT && closeT && new Date(openT) >= new Date(closeT)) {
                     window.showToast('เวลาปิดต้องอยู่หลังเวลาเปิดครับ', 'error');
-                    submitBtn.innerHTML = originalTxt; 
-                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalTxt; submitBtn.disabled = false;
                     return;
                 }
 
                 const finalStatus = (openT || closeT) ? `open|${openT}|${closeT}` : 'open||';
 
-                const newEvent = { 
-                    action: 'createActivity', 
-                    id: 'ACT-' + Date.now().toString(), 
-                    timestamp: window.formatThaiDate(now, true), 
-                    title: document.getElementById('new-event-title').value, 
-                    date: formattedDate, 
-                    location: document.getElementById('new-event-location').value, 
-                    status: finalStatus, 
-                    spots: 100, 
-                    joined: 0 
-                };
+                const newEvent = { action: 'createActivity', id: 'ACT-' + Date.now().toString(), timestamp: window.formatThaiDate(now, true), title: document.getElementById('new-event-title').value, date: formattedDate, location: document.getElementById('new-event-location').value, status: finalStatus, spots: 100, joined: 0 };
                 
-                appCache.activities.unshift({
-                    ...newEvent,
-                    status: 'open',
-                    openTime: openT,
-                    closeTime: closeT,
-                    rawDate: rawDate
-                }); 
+                appCache.activities.unshift({ ...newEvent, status: 'open', openTime: openT, closeTime: closeT, rawDate: rawDate }); 
                 window.renderAdminEvents(document.getElementById('app-content')); 
                 window.showToast('สร้างกิจกรรมใหม่สำเร็จ', 'success'); 
                 e.target.reset(); 
-                
                 window.apiCall('POST', newEvent).catch(() => null);
-            } catch (error) {
-                console.error(error);
-                window.showToast('เกิดข้อผิดพลาด', 'error');
-            } finally {
-                submitBtn.innerHTML = originalTxt; 
-                submitBtn.disabled = false;
-            }
+            } catch (error) { window.showToast('เกิดข้อผิดพลาด', 'error'); } finally { submitBtn.innerHTML = originalTxt; submitBtn.disabled = false; }
         };
 
         window.toggleEventStatus = async function(id, cS) {
@@ -2366,7 +1952,6 @@
             const e = appCache.activities.find(x => String(x.id) === String(id)); 
             if (!e) return;
             e.status = nS;
-            
             const finalStatus = `${nS}|${e.openTime||''}|${e.closeTime||''}`;
             window.renderAdminEvents(document.getElementById('app-content')); 
             window.showToast(`อัปเดตสถานะเรียบร้อย`, 'success'); 
@@ -2375,10 +1960,8 @@
 
         window.submitEditEvent = async function(e) {
             e.preventDefault(); 
-            const submitBtn = e.target.querySelector('button[type="submit"]'); 
-            const originalTxt = submitBtn.innerHTML; 
-            submitBtn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-xl"></i>'; 
-            submitBtn.disabled = true;
+            const submitBtn = e.target.querySelector('button[type="submit"]'); const originalTxt = submitBtn.innerHTML; 
+            submitBtn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-xl"></i>'; submitBtn.disabled = true;
 
             try {
                 const id = document.getElementById('edit-event-id').value; 
@@ -2389,34 +1972,14 @@
                 
                 const event = appCache.activities.find(ev => String(ev.id) === String(id)); 
                 if (event) { 
-                    event.title = title; 
-                    event.rawDate = rawDate;
-                    event.date = date; 
-                    event.location = location; 
-                    
+                    event.title = title; event.rawDate = rawDate; event.date = date; event.location = location; 
                     const finalStatus = `${event.status || 'open'}|${event.openTime || ''}|${event.closeTime || ''}`;
-                    
-                    window.apiCall('POST', { 
-                        action: 'editActivity', 
-                        id: id, 
-                        title: title, 
-                        date: rawDate, 
-                        location: location, 
-                        status: finalStatus
-                    }).catch(()=>null);
+                    window.apiCall('POST', { action: 'editActivity', id: id, title: title, date: rawDate, location: location, status: finalStatus }).catch(()=>null);
                 }
-                
                 document.getElementById('editEventModal').classList.add('hidden'); 
-                
                 window.renderAdminEvents(document.getElementById('app-content'));
                 window.showToast('แก้ไขกิจกรรมสำเร็จ', 'success'); 
-            } catch (error) {
-                console.error(error);
-                window.showToast('เกิดข้อผิดพลาดในการแก้ไข', 'error');
-            } finally {
-                submitBtn.innerHTML = originalTxt; 
-                submitBtn.disabled = false;
-            }
+            } catch (error) { window.showToast('เกิดข้อผิดพลาดในการแก้ไข', 'error'); } finally { submitBtn.innerHTML = originalTxt; submitBtn.disabled = false; }
         };
 
         window.exportEventParticipants = async function(eN) {
@@ -2431,12 +1994,8 @@
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", fileName);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            link.setAttribute("href", url); link.setAttribute("download", fileName);
+            link.style.visibility = 'hidden'; document.body.appendChild(link); link.click(); document.body.removeChild(link);
         };
 
         window.renderAdminSPSS = function(c) {
@@ -2497,8 +2056,8 @@
             const pendingOrders = oD.filter(o=>o.status===1).length;
             let totalShirts = 0;
             let totalMoney = 0;
-            let paidMoney = 0;      // ยอดที่ชำระแล้ว (status >= 2: ชำระเงินแล้ว, กำลังผลิต, พร้อมรับ)
-            let unpaidMoney = 0;    // ยอดค้างชำระ/รอตรวจ (status === 1: รอตรวจสอบ)
+            let paidMoney = 0;      
+            let unpaidMoney = 0;    
             
             oD.forEach(o => {
                 let rawTotal = String(o.total || '0').replace(/,/g, '').replace(/[^\d.-]/g, '');
@@ -2506,7 +2065,6 @@
                 if (isNaN(parsedTotal)) parsedTotal = 0;
                 totalMoney += parsedTotal;
 
-                // แยกตามสถานะการชำระเงิน
                 if (parseInt(o.status) >= 2) {
                     paidMoney += parsedTotal;
                 } else {
