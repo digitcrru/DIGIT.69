@@ -1336,7 +1336,11 @@
             window.apiCall('POST', { action: 'saveCertEventStatus', eventId: eventId, status: checked }).catch(e => console.log(e));
         };
 
-        window.isCertEventOpen = function(eventId) { return certEventStatus[eventId] !== false; };
+        window.isCertEventOpen = function(eventId) { 
+            // ✅ default = false (ปิด) เมื่อยังไม่ได้ตั้งค่า หรือ backend ยังไม่ได้ sync มา
+            // ป้องกันกิจกรรมที่ไม่ได้เปิดรับใบประกาศจากแสดงในฝั่งผู้ใช้
+            return certEventStatus[eventId] === true; 
+        };
 
         window.goToAdminCertPage = function(page) { adminCertPage = page; window.renderAdminCertOverview(document.getElementById('app-content')); };
         window.searchAdminCert = function() { adminCertSearch = (document.getElementById('admin-cert-search')?.value || '').trim().toLowerCase(); adminCertPage = 1; window.renderAdminCertOverview(document.getElementById('app-content')); };
