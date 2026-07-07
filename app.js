@@ -1,4 +1,4 @@
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxGzJdUwRB7ObuKBnu6VEpWTeAoWuOtjNRP13LziFw4UCT5Pp41pmYNAzJuaJiCCK4z/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxlMWWkJHLKmhCaLSw64A_usymghmadFQVxiZOpAOny2XsCcuKMR8C1G6SDq626XPJy/exec';
         
         window.popupSlideIndex = 0; window.popupSlideInterval = null; window.currentPopupDescList = [];
         window.startPopupSlideshow = function() { clearInterval(window.popupSlideInterval); const c = document.getElementById('popup-banner-container'); if (!c || c.children.length <= 1) return; window.popupSlideInterval = setInterval(() => window.nextPopupSlide(), 4000); };
