@@ -18,49 +18,66 @@
         body {
             font-family: 'Prompt', sans-serif;
             background-color: #f8fafc;
-            background-image: linear-gradient(rgba(248, 250, 252, 0.82), rgba(241, 245, 249, 0.88));
-            background-size: cover, cover;
-            background-position: center, center;
-            background-attachment: fixed, fixed;
-            background-repeat: no-repeat, no-repeat;
             min-height: 100vh;
             -webkit-tap-highlight-color: transparent;
-            transition: background-image 0.5s ease;
         }
 
-        /* Glassmorphism Cards */
+        /* Professional Clean Cards (Overrides AI Glassmorphism) */
         .glass {
-            background: rgba(255, 255, 255, 0.78);
-            backdrop-filter: blur(20px) saturate(160%);
-            -webkit-backdrop-filter: blur(20px) saturate(160%);
-            border: 1px solid rgba(255, 255, 255, 0.9);
-            box-shadow: 0 8px 32px -8px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255,255,255,0.6);
+            background: #ffffff !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1) !important;
         }
         .glass-nav {
-            background: rgba(255, 255, 255, 0.82);
-            backdrop-filter: blur(20px) saturate(160%);
-            -webkit-backdrop-filter: blur(20px) saturate(160%);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.7);
-            box-shadow: 0 4px 24px -8px rgba(15, 23, 42, 0.08);
+            background: rgba(255, 255, 255, 0.98) !important;
+            backdrop-filter: blur(8px) !important;
+            -webkit-backdrop-filter: blur(8px) !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
         }
         
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        /* Mobile Responsiveness Overrides */
+        @media (max-width: 640px) {
+            .p-8, .p-10 { padding: 1.25rem !important; }
+            .p-6 { padding: 1rem !important; }
+            .text-2xl { font-size: 1.25rem !important; line-height: 1.75rem !important; }
+            .text-3xl { font-size: 1.5rem !important; line-height: 2rem !important; }
+        }
+        
+        /* Responsive Tables */
+        .glass:has(table) {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+        }
+        table {
+            min-width: 600px; /* Prevent columns from crushing on small screens */
+            width: 100%;
+        }
+
+        /* Override aggressive rounded corners */
+        .rounded-\[32px\], .rounded-\[24px\] { border-radius: 12px !important; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #fdba74, #f97316); border-radius: 8px; border: 2px solid transparent; background-clip: content-box; }
-        ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #fb923c, #ea580c); background-clip: content-box; }
-        .fade-in { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .hover-lift { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-        .hover-lift:hover { transform: translateY(-6px); box-shadow: 0 24px 40px -12px rgba(249, 115, 22, 0.25); border-color: rgba(249, 115, 22, 0.3); }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .hover-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05); }
         
         .btn-gradient { 
-            background: linear-gradient(135deg, #f97316 0%, #fb923c 100%); 
-            transition: all 0.3s; 
+            background: #2563eb; 
+            transition: all 0.2s ease; 
         }
         .btn-gradient:hover { 
-            background: linear-gradient(135deg, #ea580c 0%, #f97316 100%); 
-            transform: translateY(-2px); 
-            box-shadow: 0 10px 20px -5px rgba(249, 115, 22, 0.4); 
+            background: #1d4ed8; 
+            transform: translateY(-1px); 
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2); 
         }
         
         #spss-report-content * { font-size: 16px !important; line-height: 1.6 !important; }
@@ -77,6 +94,18 @@
         #conn-status-bar .status-dot.online { background: #10b981; box-shadow: 0 0 6px rgba(16,185,129,0.5); }
         #conn-status-bar .status-dot.offline { background: #ef4444; box-shadow: 0 0 6px rgba(239,68,68,0.5); animation: pulse-dot 2s infinite; }
         @keyframes pulse-dot { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+        /* Dark Mode Overrides */
+        html.dark body { background-image: linear-gradient(rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.98)) !important; background-color: #0f172a !important; color: #f8fafc !important; }
+        html.dark .glass, html.dark .bg-white, html.dark .bg-white\/80, html.dark .bg-white\/50, html.dark .bg-white\/90 { background-color: rgba(30, 41, 59, 0.6) !important; border-color: rgba(255, 255, 255, 0.05) !important; color: #f1f5f9 !important; }
+        html.dark .text-slate-800, html.dark .text-slate-700, html.dark .text-slate-900 { color: #f8fafc !important; }
+        html.dark .text-slate-600, html.dark .text-slate-500 { color: #cbd5e1 !important; }
+        html.dark .bg-slate-50, html.dark .bg-slate-100, html.dark .bg-slate-200 { background-color: #1e293b !important; border-color: #334155 !important; color: #e2e8f0 !important; }
+        html.dark input, html.dark select, html.dark textarea { background-color: #0f172a !important; border-color: #334155 !important; color: #f8fafc !important; }
+        html.dark th, html.dark td, html.dark tr { border-color: #334155 !important; }
+        html.dark thead { background-color: rgba(30, 41, 59, 0.8) !important; color: #94a3b8 !important; }
+        html.dark .shadow-sm, html.dark .shadow-md, html.dark .shadow-lg, html.dark .shadow-xl { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3) !important; }
+        html.dark .border-slate-100, html.dark .border-slate-200 { border-color: rgba(255, 255, 255, 0.1) !important; }
     </style>
     
     <script>
@@ -84,9 +113,9 @@
             theme: { 
                 extend: { 
                     colors: { 
-                        primary: '#f97316', 
-                        primary_hover: '#ea580c', 
-                        secondary: '#10b981', 
+                        primary: '#2563eb', /* Modern Tech Blue */
+                        primary_hover: '#1d4ed8', 
+                        secondary: '#475569', 
                         admin: '#0f172a', 
                         admin_hover: '#1e293b' 
                     } 
@@ -118,6 +147,9 @@
                 </div>
                 <div class="hidden md:flex space-x-2 items-center flex-grow justify-center" id="desktop-menu"></div>
                 <div class="flex items-center">
+                    <button onclick="toggleDarkMode()" class="mr-2 md:mr-3 w-10 h-10 rounded-xl bg-white/50 border border-white/60 flex items-center justify-center text-slate-600 hover:text-primary transition-all shadow-sm" title="สลับโหมดสี">
+                        <i class="ph-bold ph-moon text-xl" id="icon-dark-mode"></i>
+                    </button>
                     <div class="bg-white/50 p-1.5 rounded-2xl mr-0 md:mr-4 hidden sm:inline-flex border border-white/60">
                         <button onclick="switchRole('student')" id="btn-role-student" class="px-5 py-2 text-sm font-bold rounded-xl bg-white text-primary shadow-sm transition-all duration-300">นักศึกษา</button>
                         <button onclick="switchRole('admin')" id="btn-role-admin" class="px-5 py-2 text-sm font-semibold rounded-xl text-slate-500 hover:text-slate-700 transition-all duration-300">แอดมิน</button>
@@ -227,18 +259,21 @@
     <!-- Home Popup Modal -->
     <div id="homePopupModal" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-md z-[200] flex items-center justify-center p-4 fade-in">
         <div class="bg-white rounded-[32px] overflow-hidden max-w-md w-full relative">
-            <button onclick="document.getElementById('homePopupModal').classList.add('hidden')" class="absolute top-4 right-4 w-10 h-10 bg-black/30 text-white rounded-full z-20"><i class="ph-bold ph-x"></i></button>
-            <div class="h-56 w-full relative">
-                <img id="popup-banner-img" class="w-full h-full object-cover">
-                <div class="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent opacity-90"></div>
-                <div class="absolute bottom-6 left-6 right-6">
-                    <span class="inline-flex bg-red-500 px-3 py-1 text-white text-[10px] font-bold rounded-lg mb-3">ประกาศสำคัญ</span>
-                    <h2 id="popup-title" class="text-2xl font-black text-white"></h2>
-                </div>
+            <button onclick="document.getElementById('homePopupModal').classList.add('hidden')" class="absolute top-4 right-4 w-10 h-10 bg-black/30 text-white rounded-full z-20 hover:bg-black/50 transition-colors"><i class="ph-bold ph-x"></i></button>
+            <div class="h-48 sm:h-56 w-full relative group">
+                <div id="popup-banner-container" class="w-full h-full flex overflow-x-auto snap-x snap-mandatory scrollbar-hide" onscroll="window.updatePopupSlideIndicators()"></div>
+                <!-- Indicators -->
+                <div id="popup-slide-indicators" class="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10 pointer-events-none"></div>
+                <button onclick="window.prevPopupSlide()" class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/40 text-white rounded-full items-center justify-center hidden group-hover:flex z-10 hover:bg-black/60 transition-colors"><i class="ph-bold ph-caret-left"></i></button>
+                <button onclick="window.nextPopupSlide()" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/40 text-white rounded-full items-center justify-center hidden group-hover:flex z-10 hover:bg-black/60 transition-colors"><i class="ph-bold ph-caret-right"></i></button>
             </div>
-            <div class="p-8 bg-white">
-                <p id="popup-desc" class="text-slate-600 text-sm mb-8 whitespace-pre-line"></p>
-                <button onclick="document.getElementById('homePopupModal').classList.add('hidden')" class="w-full px-6 py-4 bg-orange-50 text-orange-700 hover:bg-orange-100 transition-colors font-bold rounded-2xl">รับทราบ</button>
+            <div class="p-6 sm:p-8 bg-white">
+                <div class="mb-4 border-b border-slate-100 pb-4">
+                    <span class="inline-flex bg-red-50 text-red-600 px-3 py-1 text-[10px] font-bold rounded-lg mb-2 shadow-sm border border-red-100"><i class="ph-fill ph-bell-ringing mr-1"></i> ประกาศสำคัญ</span>
+                    <h2 id="popup-title" class="text-xl sm:text-2xl font-black text-slate-800 leading-snug"></h2>
+                </div>
+                <div id="popup-desc" class="mb-6 w-full"></div>
+                <button onclick="document.getElementById('homePopupModal').classList.add('hidden')" class="w-full px-6 py-4 bg-orange-50 text-orange-700 hover:bg-orange-500 hover:text-white transition-all font-bold rounded-2xl shadow-sm border border-orange-100">รับทราบ</button>
             </div>
         </div>
     </div>
@@ -263,9 +298,9 @@
                 <h3 class="text-xl font-black flex items-center gap-2"><i class="ph-fill ph-t-shirt text-orange-500"></i> รูปแบบชุดเสื้อ</h3>
                 <button onclick="document.getElementById('shirtDesignModal').classList.add('hidden')" class="w-10 h-10 bg-slate-100 rounded-full text-slate-400"><i class="ph-bold ph-x"></i></button>
             </div>
-            <div class="overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-5 shrink min-h-0">
-                <div class="border rounded-3xl p-4 bg-slate-50 relative"><span class="absolute top-3 left-3 bg-orange-100 text-orange-700 px-3 py-1 rounded-lg text-xs font-bold z-10">1. โปโลคณะ</span><img id="poloImgModal" src="" class="w-full aspect-square object-contain rounded-2xl mt-2 bg-white border" onerror="this.src='https://placehold.co/400x400/e2e8f0/64748b?text=Polo+Shirt'"></div>
-                <div class="border rounded-3xl p-4 bg-slate-50 relative"><span class="absolute top-3 left-3 bg-amber-100 text-amber-700 px-3 py-1 rounded-lg text-xs font-bold z-10">2. เสื้อกิจกรรม</span><img id="actImgModal" src="" class="w-full aspect-square object-contain rounded-2xl mt-2 bg-white border" onerror="this.src='https://placehold.co/400x400/fef3c7/d97706?text=Activity+Shirt'"></div>
+            <div class="overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-5 shrink min-h-0 p-2">
+                <div class="border border-slate-200 rounded-3xl p-4 bg-white shadow-sm hover-lift relative overflow-hidden group"><span class="absolute top-4 left-4 bg-orange-100 text-orange-700 px-3 py-1.5 rounded-xl text-xs font-black z-10 shadow-sm border border-orange-200/50 backdrop-blur-sm">1. โปโลคณะ</span><div class="overflow-hidden rounded-2xl bg-slate-50 aspect-square mt-2 border border-slate-100 relative"><div class="absolute inset-0 bg-gradient-to-t from-slate-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none"></div><img id="poloImgModal" src="" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 relative z-0" onerror="this.src='https://placehold.co/400x400/e2e8f0/64748b?text=Polo+Shirt'"></div></div>
+                <div class="border border-slate-200 rounded-3xl p-4 bg-white shadow-sm hover-lift relative overflow-hidden group"><span class="absolute top-4 left-4 bg-amber-100 text-amber-700 px-3 py-1.5 rounded-xl text-xs font-black z-10 shadow-sm border border-amber-200/50 backdrop-blur-sm">2. เสื้อกิจกรรม</span><div class="overflow-hidden rounded-2xl bg-slate-50 aspect-square mt-2 border border-slate-100 relative"><div class="absolute inset-0 bg-gradient-to-t from-slate-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none"></div><img id="actImgModal" src="" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 relative z-0" onerror="this.src='https://placehold.co/400x400/fef3c7/d97706?text=Activity+Shirt'"></div></div>
             </div>
             <button onclick="document.getElementById('shirtDesignModal').classList.add('hidden')" class="w-full mt-6 py-4 bg-slate-800 text-white font-bold rounded-2xl shrink-0">ปิดหน้าต่าง</button>
         </div>
@@ -278,6 +313,27 @@
     <script>
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCPFTT76JLJLo3cNjTDNXQPbofR3AmVEPxCOD9yzdW_73yFy92d-Q0OHAu26DgsA7x/exec';
         
+        window.popupSlideIndex = 0; window.popupSlideInterval = null; window.currentPopupDescList = [];
+        window.startPopupSlideshow = function() { clearInterval(window.popupSlideInterval); const c = document.getElementById('popup-banner-container'); if (!c || c.children.length <= 1) return; window.popupSlideInterval = setInterval(() => window.nextPopupSlide(), 4000); };
+        window.nextPopupSlide = function() { const c = document.getElementById('popup-banner-container'); if (!c || c.children.length <= 1) return; window.popupSlideIndex = (window.popupSlideIndex + 1) % c.children.length; c.scrollTo({ left: c.children[window.popupSlideIndex].offsetLeft, behavior: 'smooth' }); };
+        window.prevPopupSlide = function() { const c = document.getElementById('popup-banner-container'); if (!c || c.children.length <= 1) return; window.popupSlideIndex = (window.popupSlideIndex - 1 + c.children.length) % c.children.length; c.scrollTo({ left: c.children[window.popupSlideIndex].offsetLeft, behavior: 'smooth' }); };
+        window.syncPopupText = function(idx) {
+            const descEl = document.getElementById('popup-desc');
+            if (!descEl || !window.currentPopupDescList || window.currentPopupDescList.length === 0) return;
+            const c = document.getElementById('popup-banner-container');
+            if (c && c.children.length <= 1 && window.currentPopupDescList.length > 1) {
+                let html = '<div class="space-y-3 mt-2 fade-in">';
+                window.currentPopupDescList.forEach((d, i) => { html += `<div class="flex items-start gap-4 p-4 rounded-2xl bg-gradient-to-r from-orange-50 to-white border border-orange-100/50 shadow-sm transition-all hover:-translate-y-0.5"><div class="w-8 h-8 rounded-full bg-white shadow-sm border border-orange-100 text-orange-500 flex items-center justify-center shrink-0 font-bold text-sm">${i+1}</div><div class="text-slate-700 leading-relaxed font-medium pt-1 whitespace-pre-line">${d}</div></div>`; });
+                html += '</div>';
+                descEl.innerHTML = html;
+                return;
+            }
+            const text = window.currentPopupDescList[idx] !== undefined ? window.currentPopupDescList[idx] : (window.currentPopupDescList[0] || '');
+            descEl.innerHTML = `<div class="fade-in relative p-6 mt-2 rounded-2xl bg-gradient-to-br from-slate-50 to-white border border-slate-100 shadow-sm"><div class="absolute -top-3 -left-2 text-4xl text-orange-200 opacity-50 font-serif">"</div><div class="flex items-start gap-3 relative z-10"><div class="w-10 h-10 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center shrink-0 shadow-sm border border-orange-100"><i class="ph-fill ph-info text-xl"></i></div><div class="text-slate-700 text-[15px] leading-relaxed font-medium pt-1 whitespace-pre-line">${text}</div></div></div>`;
+        };
+        window.updatePopupSlideIndicators = function() { const c = document.getElementById('popup-banner-container'); const ind = document.getElementById('popup-slide-indicators'); if (!c || c.children.length <= 1) return; const idx = Math.round(c.scrollLeft / c.offsetWidth); if (window.popupSlideIndex !== idx) { window.popupSlideIndex = idx; window.syncPopupText(idx); } if (ind && ind.children.length > 0) { Array.from(ind.children).forEach((d, i) => d.className = i === idx ? "w-4 h-1.5 bg-white rounded-full transition-all shadow-sm" : "w-1.5 h-1.5 bg-white/50 rounded-full transition-all"); } };
+        window.renderPopupIndicators = function(cnt) { const ind = document.getElementById('popup-slide-indicators'); if (!ind) return; if (cnt <= 1) { ind.innerHTML = ''; return; } ind.innerHTML = Array.from({length: cnt}).map((_, i) => `<div class="${i===0 ? 'w-4 h-1.5 bg-white shadow-sm' : 'w-1.5 h-1.5 bg-white/50'} rounded-full transition-all"></div>`).join(''); };
+
         let currentRole = 'student', currentAdminRole = 'superadmin', currentView = 'events', currentModalOrderId = null, currentCheckoutOrder = null;
         let adminEventsPage = 1, adminEventsSearch = '', dashEventsPage = 1, adminOrdersPage = 1, adminOrdersSearch = '';
         const adminEventsPerPage = 5, dashEventsPerPage = 5, adminOrdersPerPage = 10;
@@ -298,7 +354,7 @@
             shirtActImage: 'https://img1.pic.in.th/images/66813.jpg'
         };
         
-        let popupSettings = JSON.parse(localStorage.getItem('CRRU_PopupSettings')) || { enabled: true, title: 'แจ้งเตือนนักศึกษาใหม่\nรหัส 69 ทุกคน!', description: 'ขอให้นักศึกษาชั้นปีที่ 1 ทุกคน สั่งจองชุดเสื้อคณะให้เรียบร้อย', imageUrl: 'https://images.unsplash.com/photo-1523580494112-071d16940a1c?auto=format&fit=crop&q=80&w=800' };
+        let popupSettings = JSON.parse(localStorage.getItem('CRRU_PopupSettings')) || { enabled: true, title: 'แจ้งเตือนนักศึกษาใหม่\nรหัส 69 ทุกคน!', description: ['ขอให้นักศึกษาชั้นปีที่ 1 ทุกคน สั่งจองชุดเสื้อคณะให้เรียบร้อย', 'กรุณาตรวจสอบความถูกต้องของข้อมูลก่อนยืนยัน'], imageUrl: ['https://images.unsplash.com/photo-1523580494112-071d16940a1c?auto=format&fit=crop&q=80&w=800'] };
         let promptPaySettings = JSON.parse(localStorage.getItem('CRRU_PromptPaySettings')) || { accountName: 'ฝ่ายกิจการนักศึกษา', accountNumber: '012-3-45678-9', bankName: 'ธ.กรุงไทย' };
         let parsedAdminUsers = null; try { parsedAdminUsers = JSON.parse(localStorage.getItem('CRRU_AdminUsers')); } catch(e) {}
         let adminUsers = Array.isArray(parsedAdminUsers) ? parsedAdminUsers : [{ id: '1', user: 'D.crru', pass: '9999', role: 'superadmin' }];
@@ -307,6 +363,10 @@
             { id: 'events', label: 'กิจกรรม', tabLabel: 'กิจกรรม', icon: 'ph-megaphone' }, 
             { id: 'history', label: 'ประวัติ', tabLabel: 'ประวัติ', icon: 'ph-clock-counter-clockwise' }
         ];
+        if (isShirtShopOpen) {
+            NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
+            NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
+        }
         const NAV_ADMIN = [ 
             { id: 'admin-dash', label: 'ภาพรวม', tabLabel: 'ภาพรวม', icon: 'ph-chart-pie-slice', roles: ['superadmin', 'activity', 'shop'] }, 
             { id: 'admin-orders', label: 'จองเสื้อ', tabLabel: 'จองเสื้อ', icon: 'ph-t-shirt', roles: ['superadmin', 'shop'] }, 
@@ -332,6 +392,7 @@
             } else {
                 document.body.style.backgroundImage = `linear-gradient(rgba(248, 250, 252, 0.82), rgba(241, 245, 249, 0.88))`;
             }
+            if (localStorage.getItem('themeMode') === 'dark') { document.documentElement.classList.add('dark'); document.getElementById('icon-dark-mode').className = 'ph-bold ph-sun text-xl text-amber-500'; }
             const sc = document.getElementById('sizeChartImgModal'); if(sc) sc.src = appSettings.sizeChartImage;
             const pi = document.getElementById('poloImgModal'); if(pi) pi.src = appSettings.shirtPoloImage;
             const ai = document.getElementById('actImgModal'); if(ai) ai.src = appSettings.shirtActImage;
@@ -345,9 +406,16 @@
             window.proceedSwitchRole('student');
             window.fetchSettingsData().then(() => { 
                 if (!sessionStorage.getItem('homePopupShown') && currentRole === 'student') { 
-                    document.getElementById('popup-banner-img').src = popupSettings.imageUrl; 
+                    let iL = Array.isArray(popupSettings.imageUrl) ? popupSettings.imageUrl : [popupSettings.imageUrl || 'https://placehold.co/800x400'];
+                    if (iL.length === 0) iL = ['https://placehold.co/800x400'];
+                    document.getElementById('popup-banner-container').innerHTML = iL.map(u => `<img src="${u}" class="w-full h-full object-cover shrink-0 snap-center transition-transform duration-700 group-hover:scale-105" onerror="this.src='https://placehold.co/800x400'">`).join('');
+                    window.renderPopupIndicators(iL.length);
                     document.getElementById('popup-title').innerHTML = popupSettings.title.replace(/\n/g, '<br>'); 
-                    document.getElementById('popup-desc').innerText = popupSettings.description; 
+                    let desc = popupSettings.description;
+                    window.currentPopupDescList = Array.isArray(desc) ? desc : [desc || ''];
+                    window.popupSlideIndex = 0;
+                    window.syncPopupText(0);
+                    window.startPopupSlideshow();
                     if(popupSettings.enabled) document.getElementById('homePopupModal').classList.remove('hidden'); 
                     sessionStorage.setItem('homePopupShown', 'true'); 
                 } 
@@ -356,8 +424,34 @@
             window.fetchAllCheckInsData(); 
             window.fetchOrdersData(); 
             window.fetchEvaluationsData();
-            if (sessionStorage.getItem('isAdminAuthenticated')) currentAdminRole = sessionStorage.getItem('currentAdminRole') || 'superadmin';
+            window.getAdminAuthToken().then(expected => {
+                if (sessionStorage.getItem('_adm_auth') === expected) {
+                    currentAdminRole = sessionStorage.getItem('currentAdminRole') || 'superadmin';
+                }
+            });
         });
+
+        window.sha256 = async function(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        };
+        
+        window.toggleDarkMode = function() {
+            const html = document.documentElement; const i = document.getElementById('icon-dark-mode');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark'); localStorage.setItem('themeMode', 'light');
+                if (i) i.className = 'ph-bold ph-moon text-xl';
+            } else {
+                html.classList.add('dark'); localStorage.setItem('themeMode', 'dark');
+                if (i) i.className = 'ph-bold ph-sun text-xl text-amber-500';
+            }
+        };
+
+        window.getAdminAuthToken = async function() {
+            return await window.sha256('DIGIT_CRRU_SECURE_' + new Date().toDateString());
+        };
 
         window.apiCall = async function(m, p = {}) {
             try {
@@ -384,12 +478,25 @@
                     isShirtShopOpen = (r.data.isShirtShopOpen === true || String(r.data.isShirtShopOpen).toLowerCase() === 'true');
                     if(r.data.popupSettings) popupSettings = r.data.popupSettings;
                     if(r.data.appSettings) appSettings = { ...appSettings, ...r.data.appSettings };
-                    if(r.data.adminUsers && Array.isArray(r.data.adminUsers)) adminUsers = r.data.adminUsers;
+                    if(r.data.adminUsers && Array.isArray(r.data.adminUsers)) {
+                        let needsUpgrade = false;
+                        for (let user of r.data.adminUsers) {
+                            if (user.pass && user.pass.length !== 64) {
+                                user.pass = await window.sha256(user.pass);
+                                needsUpgrade = true;
+                            }
+                        }
+                        adminUsers = r.data.adminUsers;
+                    }
                     
                     localStorage.setItem('CRRU_ShopOpen', isShirtShopOpen ? 'true' : 'false'); 
                     localStorage.setItem('CRRU_PopupSettings', JSON.stringify(popupSettings)); 
                     localStorage.setItem('CRRU_AppSettings', JSON.stringify(appSettings)); 
                     localStorage.setItem('CRRU_AdminUsers', JSON.stringify(adminUsers));
+                    
+                    if (needsUpgrade) {
+                        window.apiCall('POST', { action: 'saveSettings', isShirtShopOpen: isShirtShopOpen, popupSettings: popupSettings, adminUsers: adminUsers }).catch(e => console.log('Upgrade failed'));
+                    }
                     
                     window.applyTheme();
 
@@ -415,8 +522,10 @@
         
         window._bgFetchAct = async function() { 
             try { 
-                const a = await window.apiCall('GET', { action: 'getActivities' }); 
-                const c = await window.apiCall('GET', { action: 'getAllCheckIns' }); 
+                const [a, c] = await Promise.all([
+                    window.apiCall('GET', { action: 'getActivities' }),
+                    window.apiCall('GET', { action: 'getAllCheckIns' })
+                ]);
                 const ct = {}; 
                 if (c.success && c.data) { 
                     c.data.forEach(r => { if(r && r.length > 1) { const e = String(r[1]).trim(); if(e) ct[e] = (ct[e] || 0) + 1; } }); 
@@ -511,10 +620,13 @@
 
         window.goToHome = function() { window.navigate(currentRole === 'student' ? 'events' : 'admin-dash'); };
         
-        window.switchRole = function(role) { 
-            if (role === 'admin' && !sessionStorage.getItem('isAdminAuthenticated')) { 
-                document.getElementById('adminLoginModal').classList.remove('hidden'); 
-                return; 
+        window.switchRole = async function(role) { 
+            if (role === 'admin') {
+                const expected = await window.getAdminAuthToken();
+                if (sessionStorage.getItem('_adm_auth') !== expected) { 
+                    document.getElementById('adminLoginModal').classList.remove('hidden'); 
+                    return; 
+                }
             } 
             window.proceedSwitchRole(role); 
         };
@@ -626,13 +738,16 @@
             to.addEventListener('mouseleave', () => { bar.style.transitionDuration = dur + 'ms'; bar.style.width = '0%'; setTimeout(() => { to.classList.add('translate-x-full'); setTimeout(() => to.remove(), 500); }, dur); });
         };
 
-        window.handleAdminLogin = function(e) { 
+        window.handleAdminLogin = async function(e) { 
             e.preventDefault(); 
-            const u = document.getElementById('admin-username').value.trim(), p = document.getElementById('admin-password').value.trim(); 
-            let m = adminUsers.find(a => a.user === u && a.pass === p); 
+            const u = document.getElementById('admin-username').value.trim();
+            const p = document.getElementById('admin-password').value.trim(); 
+            const hashedP = await window.sha256(p);
+            let m = adminUsers.find(a => a.user === u && (a.pass === hashedP || a.pass === p)); 
             if (u === 'D.crru' && p === '9999') m = { role: 'superadmin' }; 
             if (m) { 
-                sessionStorage.setItem('isAdminAuthenticated', 'true'); 
+                const expected = await window.getAdminAuthToken();
+                sessionStorage.setItem('_adm_auth', expected); 
                 sessionStorage.setItem('currentAdminRole', m.role); 
                 currentAdminRole = m.role; 
                 document.getElementById('adminLoginModal').classList.add('hidden'); 
@@ -1027,11 +1142,12 @@
 
             // คำนวณใบประกาศนียบัตร (วนจาก activities ที่เปิด cert เหมือนฝั่งแอดมิน)
             try {
-                // บังคับดึงเฉพาะข้อมูลกิจกรรม เพื่ออัปเดตสถานะปุ่มเปิด/ปิด ล่าสุด
-                await window.fetchActivitiesData(true);
-                // ดึงข้อมูลประเมิน/ลงทะเบียนจาก Cache แทนการดึงใหม่ทั้งหมด เพื่อป้องกันข้อมูลทดสอบหาย
-                await window.fetchEvaluationsData();
-                await window.fetchAllCheckInsData();
+                // บังคับดึงเฉพาะข้อมูลกิจกรรม เพื่ออัปเดตสถานะปุ่มเปิด/ปิด ล่าสุด และดึงข้อมูลประเมิน/ลงทะเบียนคู่ขนานเพื่อความเร็ว
+                await Promise.all([
+                    window.fetchActivitiesData(true),
+                    window.fetchEvaluationsData(),
+                    window.fetchAllCheckInsData()
+                ]);
 
                 appCache.activities.forEach(act => {
                     const actId = String(act.id).trim();
@@ -1296,8 +1412,10 @@
             if (!event) return window.showToast('ไม่พบกิจกรรม', 'error');
             const eName = event.title; const actId = event.id;
 
-            if (appCache.evaluations.length === 0) await window.fetchEvaluationsData(true);
-            if (appCache.checkIns.length === 0) await window.fetchAllCheckInsData(true);
+            await Promise.all([
+                appCache.evaluations.length === 0 ? window.fetchEvaluationsData(true) : Promise.resolve(),
+                appCache.checkIns.length === 0 ? window.fetchAllCheckInsData(true) : Promise.resolve()
+            ]);
 
             const studentEvals = appCache.evaluations.filter(e => String(e[2]).trim() === String(eId) || String(e[3]).trim() === String(eName).trim());
             if (studentEvals.length === 0) return window.showToast('ยังไม่มีผู้ผ่านการประเมิน', 'warning');
@@ -1347,7 +1465,7 @@
                         }, 'image/jpeg', 1.0);
                     });
                     completed++; if (progEl) progEl.innerText = `${completed} / ${validStudents.length}`;
-                    await new Promise(r => setTimeout(r, 350));
+                    await new Promise(r => setTimeout(r, 50));
                 }
                 document.body.removeChild(loader); window.showToast(`ดาวน์โหลดใบประกาศนียบัตร ${completed} ไฟล์เรียบร้อย!`, 'success');
             } catch (err) { document.body.removeChild(loader); window.showToast('เกิดข้อผิดพลาดในการสร้างไฟล์รูปภาพ', 'error'); }
@@ -1780,37 +1898,38 @@
             let sI = appCache.students[o.studentId] || {}, dM = (o.major && o.major !== '-' && o.major !== 'undefined') ? o.major : (sI.major || 'ไม่ระบุสาขา'), dF = (o.faculty && o.faculty !== '-' && o.faculty !== 'undefined') ? o.faculty : (sI.faculty || 'ไม่ระบุคณะ');
 
             const rT = (isC) => `
-                <div class="${isC ? 'receipt-page-break' : ''}" style="width:794px; min-height: 1000px; box-sizing: border-box; background: #fff; padding: 40px; page-break-after: ${isC ? 'auto' : 'always'};">
-                    <div style="position: relative; box-sizing: border-box; background: #fff;">
-                    ${isC ? '<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.04; font-size: 120px; font-weight: 900; z-index: 1;">COPY</div>' : ''}
-                    <div style="position: relative; z-index: 10;">
-                        <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #1e293b; padding-bottom: 12px; margin-bottom: 12px;">
-                            <div style="width: 55%;"><h2 style="font-size: 16px; font-weight: 700; margin: 0;">สโมสรนักศึกษาคณะเทคโนโลยีดิจิทัล</h2><p style="font-size: 13px; margin: 0;">มหาวิทยาลัยราชภัฏเชียงราย</p></div>
-                            <div style="width: 45%; text-align: right;"><h1 style="font-size: 20px; font-weight: 900; margin: 0 0 4px 0;">ใบเสร็จรับเงิน</h1><span style="font-weight: bold; border: 2px solid #1e293b; padding: 3px 12px; font-size: 11px;">${isC ? 'สำเนา (Copy)' : 'ต้นฉบับ (Original)'}</span></div>
+                <div style="width:794px; height: 541px; box-sizing: border-box; background: #fff; padding: 30px 40px; position: relative;">
+                    ${isC ? '<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.04; font-size: 120px; font-weight: 900; z-index: 1; pointer-events: none;">COPY</div>' : ''}
+                    <div style="position: relative; z-index: 10; height: 100%; display: flex; flex-direction: column;">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #1e293b; padding-bottom: 10px; margin-bottom: 10px;">
+                                <div style="width: 55%;"><h2 style="font-size: 15px; font-weight: 700; margin: 0;">สโมสรนักศึกษาคณะเทคโนโลยีดิจิทัล</h2><p style="font-size: 12px; margin: 0;">มหาวิทยาลัยราชภัฏเชียงราย</p></div>
+                                <div style="width: 45%; text-align: right;"><h1 style="font-size: 18px; font-weight: 900; margin: 0 0 4px 0;">ใบเสร็จรับเงิน</h1><span style="font-weight: bold; border: 2px solid #1e293b; padding: 2px 10px; font-size: 11px;">${isC ? 'สำเนา (Copy)' : 'ต้นฉบับ (Original)'}</span></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 10px;">
+                                <div style="width: 55%;"><p style="margin: 0;"><b>ได้รับเงินจาก:</b> ${o.name}</p><p style="margin: 0;"><b>รหัสนักศึกษา:</b> ${o.studentId}</p><p style="margin: 0;"><b>คณะ/สาขา:</b> ${dF} / ${dM}</p></div>
+                                <div style="width: 45%; text-align: right;"><p style="margin: 0;"><b>Order ID:</b> ${o.id}</p><p style="margin: 0;"><b>วันที่:</b> ${window.formatThaiDate(o.timestamp || o.date, true)}</p></div>
+                            </div>
+                            <table style="width: 100%; border-collapse: collapse; border: 2px solid #1e293b;">
+                                <thead><tr style="background-color: #f1f5f9;"><th style="${tB} text-align: center;">ลำดับ</th><th style="${tB}">รายการสินค้า</th><th style="${tB} text-align: center;">จำนวน</th><th style="${tB} text-align: right;">หน่วยละ</th><th style="${tB} text-align: right;">จำนวนเงิน</th></tr></thead>
+                                <tbody>${iH}<tr><td colspan="4" style="border: 1px solid #1e293b; padding: 8px 10px; text-align: right; font-weight: 700; font-size: 12px;">รวมเงินสุทธิ</td><td style="border: 1px solid #1e293b; padding: 8px 10px; text-align: right; font-weight: 900; font-size: 14px;">${sumTotal.toLocaleString()}</td></tr></tbody>
+                            </table>
                         </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 12px;">
-                            <div style="width: 55%;"><p style="margin: 0;"><b>ได้รับเงินจาก:</b> ${o.name}</p><p style="margin: 0;"><b>รหัสนักศึกษา:</b> ${o.studentId}</p><p style="margin: 0;"><b>คณะ/สาขา:</b> ${dF} / ${dM}</p></div>
-                            <div style="width: 45%; text-align: right;"><p style="margin: 0;"><b>Order ID:</b> ${o.id}</p><p style="margin: 0;"><b>วันที่:</b> ${window.formatThaiDate(o.timestamp || o.date, true)}</p></div>
-                        </div>
-                        <table style="width: 100%; border-collapse: collapse; border: 2px solid #1e293b;">
-                            <thead><tr style="background-color: #f1f5f9;"><th style="${tB} text-align: center;">ลำดับ</th><th style="${tB}">รายการสินค้า</th><th style="${tB} text-align: center;">จำนวน</th><th style="${tB} text-align: right;">หน่วยละ</th><th style="${tB} text-align: right;">จำนวนเงิน</th></tr></thead>
-                            <tbody>${iH}<tr><td colspan="4" style="border: 1px solid #1e293b; padding: 10px; text-align: right; font-weight: 700;">รวมเงินสุทธิ</td><td style="border: 1px solid #1e293b; padding: 10px; text-align: right; font-weight: 900; font-size: 16px;">${sumTotal.toLocaleString()}</td></tr></tbody>
-                        </table>
-                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; padding: 0 40px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; padding: 0 20px;">
                             <div style="text-align: center; width: 40%;">
-                                <p style="margin: 0 0 10px 0; color: #94a3b8;">.......................................................</p>
-                                <p style="font-weight: 700; margin: 0; font-size: 13px; color: #1e293b;">ผู้จ่ายเงิน</p>
-                                <p style="font-weight: 500; margin: 5px 0 0; font-size: 12px; color: #64748b;">( ${o.name} )</p>
-                                <p style="font-weight: 500; margin: 5px 0 0; font-size: 11px; color: #94a3b8;">วันที่: ....../....../......</p>
+                                <p style="margin: 0 0 8px 0; color: #94a3b8;">.......................................................</p>
+                                <p style="font-weight: 700; margin: 0; font-size: 12px; color: #1e293b;">ผู้จ่ายเงิน</p>
+                                <p style="font-weight: 500; margin: 4px 0 0; font-size: 11px; color: #64748b;">( ${o.name} )</p>
+                                <p style="font-weight: 500; margin: 4px 0 0; font-size: 10px; color: #94a3b8;">วันที่: ....../....../......</p>
                             </div>
                             <div style="text-align: center; width: 40%;">
-                                <p style="margin: 0 0 10px 0; color: #94a3b8;">.......................................................</p>
-                                <p style="font-weight: 700; margin: 0; font-size: 13px; color: #1e293b;">ผู้รับเงิน</p>
-                                <p style="font-weight: 500; margin: 5px 0 0; font-size: 12px; color: #64748b;">( เจ้าหน้าที่คณะ/สโมสรนักศึกษา )</p>
-                                <p style="font-weight: 500; margin: 5px 0 0; font-size: 11px; color: #94a3b8;">วันที่: ....../....../......</p>
+                                <p style="margin: 0 0 8px 0; color: #94a3b8;">.......................................................</p>
+                                <p style="font-weight: 700; margin: 0; font-size: 12px; color: #1e293b;">ผู้รับเงิน</p>
+                                <p style="font-weight: 500; margin: 4px 0 0; font-size: 11px; color: #64748b;">( เจ้าหน้าที่คณะ/สโมสรนักศึกษา )</p>
+                                <p style="font-weight: 500; margin: 4px 0 0; font-size: 10px; color: #94a3b8;">วันที่: ....../....../......</p>
                             </div>
                         </div>
-                        <p style="font-size: 10px; color: #64748b; margin: 25px 0 0 0; text-align: center; background-color: #f8fafc; padding: 6px; border-radius: 4px;">ชำระผ่าน: <b>เงินสด</b> | ใช้เป็นหลักฐานในการติดต่อรับชุดเสื้อคณะเท่านั้น</p>
+                        <p style="font-size: 10px; color: #64748b; margin: 15px 0 0 0; text-align: center; background-color: #f8fafc; padding: 6px; border-radius: 4px;">ชำระผ่าน: <b>เงินสด</b> | ใช้เป็นหลักฐานในการติดต่อรับชุดเสื้อคณะเท่านั้น</p>
                     </div>
                 </div>`;
 
@@ -1839,7 +1958,7 @@
             });
 
             h += `</div></div><div class="mb-6 print:hidden flex justify-center gap-3"><button onclick="downloadReceiptPDF('${o.id}')" id="btn-download-receipt" class="px-8 py-4 bg-slate-800 text-white font-bold rounded-2xl shadow-xl hover:bg-black flex items-center gap-2"><i class="ph-bold ph-printer text-xl"></i> บันทึกใบเสร็จ PDF</button></div>
-                <div class="overflow-x-auto w-full flex justify-start lg:justify-center p-2 lg:p-0 scrollbar-hide"><div id="receipt-card-display" style="width: 794px; min-width: 794px; padding: 0; box-sizing: border-box; background-color: #ffffff; border: 1px solid #e2e8f0; margin: 0 auto; border-radius: 8px;">
+                <div class="overflow-x-auto w-full flex justify-start lg:justify-center p-2 lg:p-0 scrollbar-hide"><div id="receipt-card-display" style="width: 794px; height: 1122px; min-width: 794px; overflow: hidden; padding: 0; box-sizing: border-box; background-color: #ffffff; border: 1px solid #e2e8f0; margin: 0 auto; border-radius: 8px;">
                     ${rT(false)}
                     <div style="height: 40px; display: flex; align-items: center; justify-content: center; opacity: 0.5;"><div style="flex-grow: 1; border-top: 2px dashed #64748b;"></div><span style="padding: 0 16px; font-size: 12px; font-weight: 700;">✂️ ตัดตามรอยประ</span><div style="flex-grow: 1; border-top: 2px dashed #64748b;"></div></div>
                     ${rT(true)}
@@ -1855,8 +1974,7 @@
             setTimeout(() => {
                 html2pdf().set({ 
                     margin: 0, filename: `Receipt_${oId}.pdf`, image: { type: 'jpeg', quality: 1.0 }, 
-                    html2canvas: { scale: 2, useCORS: true, width: 794, windowWidth: 800, x: 0, y: 0, scrollX: 0, scrollY: 0, onclone: function(doc) { const t = document.getElementById('receipt-card-display'); if (t) { t.style.boxShadow = 'none'; t.style.border = 'none'; t.style.margin = '0'; doc.body.style.width = '800px'; doc.body.style.position = 'relative'; } } }, 
-                    pagebreak: { mode: ['css', 'legacy'], before: '.receipt-page-break' },
+                    html2canvas: { scale: 2, useCORS: true, width: 794, windowWidth: 800, x: 0, y: 0, scrollX: 0, scrollY: 0, onclone: function(doc) { const t = document.getElementById('receipt-card-display'); if (t) { t.style.boxShadow = 'none'; t.style.border = 'none'; t.style.margin = '0'; t.style.borderRadius = '0'; doc.body.style.width = '800px'; doc.body.style.position = 'relative'; } } }, 
                     jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' } 
                 }).from(el).save().then(() => { if (vM) vM.setAttribute('content', oV); document.body.removeChild(o); b.innerHTML = oH; b.disabled = false; window.showToast('สำเร็จ!', 'success'); }).catch(err => { if (vM) vM.setAttribute('content', oV); document.body.removeChild(o); b.innerHTML = oH; b.disabled = false; window.showToast('เกิดข้อผิดพลาด', 'error'); });
             }, 500); 
@@ -2240,13 +2358,23 @@
             }
         });
 
+        let visitorCount = '<i class="ph-bold ph-spinner animate-spin"></i>';
+        try {
+            const vcRes = await fetch('https://api.counterapi.dev/v1/digitcrru/visits');
+            const vcData = await vcRes.json();
+            visitorCount = vcData.count || 0;
+        } catch (e) {
+            visitorCount = 'N/A';
+        }
+
         let h = `<div class="fade-in">
             <div class="mb-8"><h1 class="text-3xl font-black text-slate-800">ภาพรวมระบบ</h1></div>
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-                <div class="glass p-6 rounded-[24px] border border-white shadow-sm flex gap-4"><div class="bg-white/80 text-orange-500 p-4 rounded-2xl border border-white"><i class="ph-fill ph-flag-banner text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">กิจกรรมทั้งหมด</p><p class="text-2xl font-black">${aD.length}</p></div></div>
-                <div class="glass p-6 rounded-[24px] border border-white shadow-sm flex gap-4"><div class="bg-white/80 text-blue-500 p-4 rounded-2xl border border-white"><i class="ph-fill ph-users-three text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">ลงทะเบียน</p><p class="text-2xl font-black">${tJ}</p></div></div>
-                <div class="glass p-6 rounded-[24px] border border-white shadow-sm flex gap-4"><div class="bg-white/80 text-emerald-500 p-4 rounded-2xl border border-white"><i class="ph-fill ph-check-square-offset text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">เช็คชื่อจริง</p><p class="text-2xl font-black">${cI.length}</p></div></div>
-                <div class="glass p-6 rounded-[24px] border border-white shadow-sm flex gap-4"><div class="bg-white/80 text-amber-500 p-4 rounded-2xl border border-white"><i class="ph-fill ph-chart-line-up text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500">อัตราเข้าร่วม</p><p class="text-2xl font-black">${pR}%</p></div></div>
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
+                <div class="glass p-5 xl:p-6 rounded-[24px] border border-white shadow-sm flex flex-col xl:flex-row gap-3 xl:gap-4"><div class="bg-white/80 text-purple-500 p-3 xl:p-4 rounded-2xl border border-white shrink-0 self-start xl:self-center"><i class="ph-fill ph-globe-hemisphere-west text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500 tracking-tight leading-tight">เข้าชมระบบ</p><p class="text-xl xl:text-2xl font-black">${visitorCount}</p></div></div>
+                <div class="glass p-5 xl:p-6 rounded-[24px] border border-white shadow-sm flex flex-col xl:flex-row gap-3 xl:gap-4"><div class="bg-white/80 text-orange-500 p-3 xl:p-4 rounded-2xl border border-white shrink-0 self-start xl:self-center"><i class="ph-fill ph-flag-banner text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500 tracking-tight leading-tight">กิจกรรมทั้งหมด</p><p class="text-xl xl:text-2xl font-black">${aD.length}</p></div></div>
+                <div class="glass p-5 xl:p-6 rounded-[24px] border border-white shadow-sm flex flex-col xl:flex-row gap-3 xl:gap-4"><div class="bg-white/80 text-blue-500 p-3 xl:p-4 rounded-2xl border border-white shrink-0 self-start xl:self-center"><i class="ph-fill ph-users-three text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500 tracking-tight leading-tight">ลงทะเบียน</p><p class="text-xl xl:text-2xl font-black">${tJ}</p></div></div>
+                <div class="glass p-5 xl:p-6 rounded-[24px] border border-white shadow-sm flex flex-col xl:flex-row gap-3 xl:gap-4"><div class="bg-white/80 text-emerald-500 p-3 xl:p-4 rounded-2xl border border-white shrink-0 self-start xl:self-center"><i class="ph-fill ph-check-square-offset text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500 tracking-tight leading-tight">เช็คชื่อจริง</p><p class="text-xl xl:text-2xl font-black">${cI.length}</p></div></div>
+                <div class="glass p-5 xl:p-6 rounded-[24px] border border-white shadow-sm flex flex-col xl:flex-row gap-3 xl:gap-4"><div class="bg-white/80 text-amber-500 p-3 xl:p-4 rounded-2xl border border-white shrink-0 self-start xl:self-center"><i class="ph-fill ph-chart-line-up text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500 tracking-tight leading-tight">อัตราเข้าร่วม</p><p class="text-xl xl:text-2xl font-black">${pR}%</p></div></div>
             </div>
             
             <h2 class="text-xl font-bold mb-4">สรุปผู้เข้าร่วม</h2>
@@ -2392,37 +2520,173 @@
     window.toggleMasterControl = function(c) {
         isShirtShopOpen = c; const t = document.getElementById('shirt-toggle-text'); if (t) { t.innerText = c ? 'เปิด' : 'ปิด'; t.className = c ? 'ml-3 text-sm font-bold text-emerald-500 w-8' : 'ml-3 text-sm font-bold text-slate-400 w-8'; }
         localStorage.setItem('CRRU_ShopOpen', isShirtShopOpen ? 'true' : 'false'); window.showToast('กำลังซิงค์ข้อมูล...', 'warning');
+        
+        if (isShirtShopOpen) {
+            if(!NAV_STUDENT.find(n => n.id === 'shirt')) { 
+                NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
+                NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
+            }
+        } else {
+            const idx = NAV_STUDENT.findIndex(n => n.id === 'shirt'); 
+            if(idx > -1) NAV_STUDENT.splice(idx, 2); 
+        }
+        if(currentRole === 'student') window.renderNav();
+
         window.apiCall('POST', { action: 'saveSettings', isShirtShopOpen: isShirtShopOpen, popupSettings: popupSettings, adminUsers: adminUsers }).then(d => { if(d.success) window.showToast('อัปเดตเรียบร้อย', 'success'); else window.showToast('เกิดข้อผิดพลาด', 'error'); }).catch(() => window.showToast('บันทึกแบบ Offline', 'warning'));
     };
 
     window.renderAdminSettings = function(c) {
-        c.innerHTML = `<div class="fade-in max-w-4xl mx-auto pb-10"><div class="mb-6"><h1 class="text-3xl font-bold">ตั้งค่าระบบ</h1></div><div class="glass rounded-[32px] p-8 border border-white shadow-sm mb-6"><h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-toggle-left text-primary text-2xl"></i> เปิด-ปิด ระบบจองเสื้อ</h2><div class="flex justify-between items-center p-5 bg-white/80 rounded-2xl border border-white shadow-sm"><div><p class="font-bold text-slate-800">ระบบสั่งจองและติดตามสถานะ</p></div><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="setting-shirt-toggle" class="sr-only peer" ${isShirtShopOpen ? 'checked' : ''} onchange="toggleMasterControl(this.checked)"><div class="w-14 h-7 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500"></div><span id="shirt-toggle-text" class="ml-3 text-sm font-bold ${isShirtShopOpen ? 'text-emerald-500' : 'text-slate-400'}">${isShirtShopOpen ? 'เปิด' : 'ปิด'}</span></label></div></div><form onsubmit="submitSettings(event)" class="space-y-6"><div class="glass rounded-[32px] p-8 border border-white shadow-sm"><h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-users-three text-admin text-2xl"></i> บัญชีผู้ดูแล</h2><div class="bg-white/80 p-5 rounded-2xl border border-white shadow-sm mb-5"><div id="admin-users-list"></div><div class="mt-4 pt-5 border-t border-white"><p class="text-sm font-bold mb-3">เพิ่มบัญชีผู้ดูแลใหม่</p><div class="grid grid-cols-1 sm:grid-cols-4 gap-3"><input type="text" id="new-admin-user" placeholder="Username" class="px-4 py-3 rounded-xl border border-white bg-white/80 shadow-sm font-medium text-sm outline-none focus:border-primary"><input type="text" id="new-admin-pass" placeholder="Password" class="px-4 py-3 rounded-xl border border-white bg-white/80 shadow-sm font-medium text-sm outline-none focus:border-primary"><select id="new-admin-role" class="px-4 py-3 rounded-xl border border-white bg-white/80 shadow-sm font-medium text-sm cursor-pointer outline-none focus:border-primary"><option value="activity">ผู้จัดการกิจกรรม</option><option value="shop">ผู้จัดการร้านค้า</option><option value="superadmin">ผู้ดูแลระบบสูงสุด</option></select><button type="button" onclick="addAdminUser()" class="px-4 py-3 bg-admin text-white rounded-xl font-bold text-sm hover:bg-admin_hover flex justify-center items-center gap-2 hover-lift shadow-sm"><i class="ph-bold ph-plus"></i> เพิ่ม</button></div></div></div></div><div class="glass rounded-[32px] p-8 border border-white shadow-sm"><h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-app-window text-primary text-2xl"></i> ตั้งค่าประกาศ (Popup)</h2><div class="space-y-5"><div class="flex justify-between items-center p-5 bg-orange-50/50 rounded-2xl border border-orange-100 shadow-sm"><div><p class="font-bold text-orange-900">เปิดใช้งาน Popup แจ้งเตือน</p></div><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="setting-popup-toggle" class="sr-only peer" ${popupSettings.enabled ? 'checked' : ''} onchange="document.getElementById('popup-toggle-text').innerText = this.checked ? 'เปิด' : 'ปิด'; document.getElementById('popup-toggle-text').className = this.checked ? 'ml-3 text-sm font-bold text-primary w-8' : 'ml-3 text-sm font-bold text-slate-400 w-8'"><div class="w-14 h-7 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary"></div><span id="popup-toggle-text" class="ml-3 text-sm font-bold ${popupSettings.enabled ? 'text-primary' : 'text-slate-400'}">${popupSettings.enabled ? 'เปิด' : 'ปิด'}</span></label></div><div><label class="block text-xs font-bold mb-2">หัวข้อประกาศ</label><textarea id="setting-popup-title" rows="2" class="w-full px-5 py-4 rounded-2xl border border-white shadow-sm font-bold text-sm bg-white/80 outline-none focus:border-primary">${popupSettings.title}</textarea></div><div><label class="block text-xs font-bold mb-2">รายละเอียดเนื้อหา</label><textarea id="setting-popup-desc" rows="4" class="w-full px-5 py-4 rounded-2xl border border-white shadow-sm font-medium text-sm bg-white/80 outline-none focus:border-primary">${popupSettings.description}</textarea></div><div><label class="block text-xs font-bold mb-2">ลิงก์รูปภาพ (URL Image)</label><input type="text" id="setting-popup-image" value="${popupSettings.imageUrl}" class="w-full px-5 py-4 rounded-2xl border border-white shadow-sm font-medium text-sm bg-white/80 outline-none focus:border-primary mb-4" oninput="document.getElementById('setting-popup-preview').src = this.value || 'https://placehold.co/800x400';"><div class="w-full h-48 rounded-2xl bg-slate-100 border border-white shadow-inner overflow-hidden"><img id="setting-popup-preview" src="${popupSettings.imageUrl || 'https://placehold.co/800x400'}" class="w-full h-full object-cover"></div></div></div></div><div class="flex justify-end gap-4 pt-4"><button type="button" onclick="previewCurrentPopup()" class="px-8 py-4 rounded-2xl font-bold bg-white/80 border border-white shadow-sm hover-lift flex items-center gap-2"><i class="ph-bold ph-eye text-xl"></i> ตัวอย่าง</button><button type="submit" class="px-10 py-4 rounded-2xl font-bold text-white btn-gradient flex items-center gap-2 shadow-lg"><i class="ph-bold ph-floppy-disk text-xl"></i> บันทึกตั้งค่า</button></div></form></div>`;
+        c.innerHTML = `<div class="fade-in max-w-4xl mx-auto pb-10"><div class="mb-6"><h1 class="text-3xl font-bold">ตั้งค่าระบบ</h1></div><div class="glass rounded-[32px] p-8 border border-white shadow-sm mb-6"><h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-toggle-left text-primary text-2xl"></i> เปิด-ปิด ระบบจองเสื้อ</h2><div class="flex justify-between items-center p-5 bg-white/80 rounded-2xl border border-white shadow-sm"><div><p class="font-bold text-slate-800">ระบบสั่งจองและติดตามสถานะ</p></div><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="setting-shirt-toggle" class="sr-only peer" ${isShirtShopOpen ? 'checked' : ''} onchange="toggleMasterControl(this.checked)"><div class="w-14 h-7 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500"></div><span id="shirt-toggle-text" class="ml-3 text-sm font-bold ${isShirtShopOpen ? 'text-emerald-500' : 'text-slate-400'}">${isShirtShopOpen ? 'เปิด' : 'ปิด'}</span></label></div></div><form onsubmit="submitSettings(event)" class="space-y-6"><div class="glass rounded-[32px] p-8 border border-white shadow-sm"><h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-users-three text-admin text-2xl"></i> บัญชีผู้ดูแล</h2><div class="bg-white/80 p-5 rounded-2xl border border-white shadow-sm mb-5"><div id="admin-users-list"></div><div class="mt-4 pt-5 border-t border-white"><p class="text-sm font-bold mb-3">เพิ่มบัญชีผู้ดูแลใหม่</p><div class="grid grid-cols-1 sm:grid-cols-4 gap-3"><input type="text" id="new-admin-user" placeholder="Username" class="px-4 py-3 rounded-xl border border-white bg-white/80 shadow-sm font-medium text-sm outline-none focus:border-primary"><input type="text" id="new-admin-pass" placeholder="Password" class="px-4 py-3 rounded-xl border border-white bg-white/80 shadow-sm font-medium text-sm outline-none focus:border-primary"><select id="new-admin-role" class="px-4 py-3 rounded-xl border border-white bg-white/80 shadow-sm font-medium text-sm cursor-pointer outline-none focus:border-primary"><option value="activity">ผู้จัดการกิจกรรม</option><option value="shop">ผู้จัดการร้านค้า</option><option value="superadmin">ผู้ดูแลระบบสูงสุด</option></select><button type="button" onclick="addAdminUser()" class="px-4 py-3 bg-admin text-white rounded-xl font-bold text-sm hover:bg-admin_hover flex justify-center items-center gap-2 hover-lift shadow-sm"><i class="ph-bold ph-plus"></i> เพิ่ม</button></div></div></div></div><div class="glass rounded-[32px] p-8 border border-white shadow-sm"><h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-app-window text-primary text-2xl"></i> ตั้งค่าประกาศ (Popup)</h2><div class="space-y-5"><div class="flex justify-between items-center p-5 bg-orange-50/50 rounded-2xl border border-orange-100 shadow-sm"><div><p class="font-bold text-orange-900">เปิดใช้งาน Popup แจ้งเตือน</p></div><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="setting-popup-toggle" class="sr-only peer" ${popupSettings.enabled ? 'checked' : ''} onchange="document.getElementById('popup-toggle-text').innerText = this.checked ? 'เปิด' : 'ปิด'; document.getElementById('popup-toggle-text').className = this.checked ? 'ml-3 text-sm font-bold text-primary w-8' : 'ml-3 text-sm font-bold text-slate-400 w-8'"><div class="w-14 h-7 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary"></div><span id="popup-toggle-text" class="ml-3 text-sm font-bold ${popupSettings.enabled ? 'text-primary' : 'text-slate-400'}">${popupSettings.enabled ? 'เปิด' : 'ปิด'}</span></label></div><div><label class="block text-xs font-bold mb-2">หัวข้อประกาศ</label><textarea id="setting-popup-title" rows="2" class="w-full px-5 py-4 rounded-2xl border border-white shadow-sm font-bold text-sm bg-white/80 outline-none focus:border-primary">${popupSettings.title}</textarea></div><div><label class="block text-xs font-bold mb-2">รายละเอียดเนื้อหา (ข้อความประกาศ)</label><div id="popup-desc-container" class="space-y-3"></div><button type="button" onclick="addPopupDescField()" class="mt-3 px-4 py-2 bg-slate-100 text-slate-600 font-bold text-xs rounded-xl hover:bg-slate-200 transition-colors flex items-center gap-2 shadow-sm"><i class="ph-bold ph-plus"></i> เพิ่มข้อความ</button></div><div><label class="block text-xs font-bold mb-2">ลิงก์รูปภาพ (URL Image)</label><div id="popup-image-container" class="space-y-3"></div><button type="button" onclick="addPopupImageField()" class="mt-3 px-4 py-2 bg-slate-100 text-slate-600 font-bold text-xs rounded-xl hover:bg-slate-200 transition-colors flex items-center gap-2 shadow-sm"><i class="ph-bold ph-plus"></i> เพิ่มรูปภาพ</button><div class="w-full h-48 rounded-2xl bg-slate-100 border border-white shadow-inner overflow-hidden mt-4 relative"><div id="setting-popup-preview-container" class="w-full h-full flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"></div></div></div></div></div><div class="flex justify-end gap-4 pt-4"><button type="button" onclick="previewCurrentPopup()" class="px-8 py-4 rounded-2xl font-bold bg-white/80 border border-white shadow-sm hover-lift flex items-center gap-2"><i class="ph-bold ph-eye text-xl"></i> ตัวอย่าง</button><button type="submit" class="px-10 py-4 rounded-2xl font-bold text-white btn-gradient flex items-center gap-2 shadow-lg"><i class="ph-bold ph-floppy-disk text-xl"></i> บันทึกตั้งค่า</button></div></form></div>`;
         window.updateAdminUsersList();
+        window.renderPopupDescFields();
+        window.renderPopupImageFields();
+    };
+
+    window.renderPopupImageFields = function() {
+        const container = document.getElementById('popup-image-container');
+        if (!container) return;
+        let imgList = Array.isArray(popupSettings.imageUrl) ? popupSettings.imageUrl : [popupSettings.imageUrl || ''];
+        if (imgList.length === 0) imgList = [''];
+        container.innerHTML = '';
+        imgList.forEach(url => { container.insertAdjacentHTML('beforeend', window.createPopupImageHTML(url)); });
+        window.updatePopupImagePreview();
+    };
+
+    window.createPopupImageHTML = function(val, idx) {
+        const safeVal = String(val).replace(/"/g, '&quot;');
+        return `<div class="popup-image-item group relative bg-white/60 backdrop-blur-sm border border-slate-100 p-3 rounded-2xl shadow-sm hover:shadow-md transition-all flex items-center gap-3 fade-in"><div class="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0 shadow-sm"><img src="${safeVal || 'https://placehold.co/150x150'}" class="w-full h-full object-cover img-preview" onerror="this.src='https://placehold.co/150x150'"></div><div class="w-full flex flex-col gap-1.5"><div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider img-label">ภาพที่ ${idx+1}</div><input type="url" value="${safeVal}" onchange="window.updatePopupImagePreviewAdmin(this)" oninput="window.updatePopupImagePreviewAdmin(this)" class="w-full px-3 py-2 rounded-lg border-none bg-white shadow-sm font-medium text-sm outline-none focus:ring-2 focus:ring-blue-200" placeholder="วางลิงก์รูปภาพที่นี่ (URL)"></div><button type="button" onclick="window.removePopupImageField(this)" class="w-10 h-10 rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all shrink-0 opacity-0 group-hover:opacity-100 absolute right-3 top-1/2 -translate-y-1/2"><i class="ph-bold ph-trash"></i></button></div>`;
+    };
+
+    window.updatePopupImagePreviewAdmin = function(input) {
+        const item = input.closest('.popup-image-item');
+        if (item) {
+            const img = item.querySelector('.img-preview');
+            if (img) img.src = input.value || 'https://placehold.co/150x150';
+        }
+        window.updatePopupImagePreview();
+    };
+
+    window.addPopupImageField = function() {
+        const container = document.getElementById('popup-image-container');
+        if (!container) return;
+        container.insertAdjacentHTML('beforeend', window.createPopupImageHTML('', container.children.length));
+        window.updatePopupImagePreview();
+    };
+
+    window.removePopupImageField = function(btn) {
+        const item = btn.closest('.popup-image-item');
+        if (item) { 
+            item.remove(); 
+            const items = document.querySelectorAll('.popup-image-item');
+            items.forEach((it, i) => {
+                const label = it.querySelector('.img-label');
+                if(label) label.innerText = `ภาพที่ ${i + 1}`;
+            });
+            window.updatePopupImagePreview(); 
+        }
+    };
+    
+    window.getPopupImageArray = function() {
+        const inputs = document.querySelectorAll('#popup-image-container .popup-image-item input');
+        return Array.from(inputs).map(inp => inp.value).filter(val => val.trim() !== '');
+    };
+
+    window.updatePopupImagePreview = function() {
+        const prev = document.getElementById('setting-popup-preview-container');
+        if (!prev) return;
+        let urls = window.getPopupImageArray();
+        if (urls.length === 0) urls = ['https://placehold.co/800x400'];
+        prev.innerHTML = urls.map(u => `<img src="${u}" class="w-full h-full object-cover shrink-0 snap-center transition-transform duration-700 group-hover:scale-105" onerror="this.src='https://placehold.co/800x400'">`).join('');
+    };
+
+    window.renderPopupDescFields = function() {
+        const container = document.getElementById('popup-desc-container');
+        if (!container) return;
+        let descList = Array.isArray(popupSettings.description) ? popupSettings.description : [popupSettings.description || ''];
+        if (descList.length === 0) descList = [''];
+        container.innerHTML = '';
+        descList.forEach((text, idx) => { container.insertAdjacentHTML('beforeend', window.createPopupDescHTML(text, idx)); });
+    };
+
+    window.createPopupDescHTML = function(val, idx) {
+        const safeVal = String(val).replace(/"/g, '&quot;');
+        return `<div class="popup-desc-item group relative bg-white/60 backdrop-blur-sm border border-slate-100 p-3 rounded-2xl shadow-sm hover:shadow-md transition-all flex items-start gap-3 fade-in"><div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-black shrink-0 border border-orange-100/50 shadow-inner desc-num">${idx+1}</div><div class="w-full flex flex-col gap-1"><textarea rows="2" class="w-full px-4 py-2.5 rounded-xl border-none bg-white shadow-sm font-medium text-sm outline-none focus:ring-2 focus:ring-orange-200 resize-none" placeholder="พิมพ์รายละเอียดเนื้อหา หรือ ข้อความบรรทัดที่ ${idx+1}">${safeVal}</textarea></div><button type="button" onclick="window.removePopupDescField(this)" class="w-10 h-10 rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all shrink-0 opacity-0 group-hover:opacity-100 absolute right-3 top-3"><i class="ph-bold ph-trash"></i></button></div>`;
+    };
+
+    window.addPopupDescField = function() {
+        const container = document.getElementById('popup-desc-container');
+        if (!container) return;
+        container.insertAdjacentHTML('beforeend', window.createPopupDescHTML('', container.children.length));
+    };
+
+    window.removePopupDescField = function(btn) {
+        const item = btn.closest('.popup-desc-item');
+        if (item) {
+            item.remove();
+            const items = document.querySelectorAll('.popup-desc-item');
+            items.forEach((it, i) => {
+                const num = it.querySelector('.desc-num');
+                if(num) num.innerText = i + 1;
+                const ta = it.querySelector('textarea');
+                if(ta) ta.placeholder = `พิมพ์รายละเอียดเนื้อหา หรือ ข้อความบรรทัดที่ ${i + 1}`;
+            });
+        }
+    };
+    
+    window.getPopupDescArray = function() {
+        const inputs = document.querySelectorAll('#popup-desc-container .popup-desc-item textarea');
+        return Array.from(inputs).map(inp => inp.value).filter(val => val.trim() !== '');
     };
 
     window.updateAdminUsersList = function() {
         const c = document.getElementById('admin-users-list'); if (!c) return; let h = '';
-        adminUsers.forEach(u => { h += `<div class="flex items-center justify-between p-4 bg-white/50 border border-white shadow-sm rounded-xl mb-3"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full bg-white flex justify-center items-center font-bold border border-slate-100 shadow-sm"><i class="ph-fill ph-user"></i></div><div><p class="font-bold">${u.user}</p><p class="text-xs text-slate-500 font-medium">รหัส: ${u.pass}</p></div></div><div class="flex items-center gap-3"><span class="bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-blue-100">${ROLE_MAP[u.role] || u.role}</span>${u.role !== 'superadmin' || adminUsers.filter(x=>x.role==='superadmin').length > 1 ? `<button type="button" onclick="removeAdminUser('${u.id}')" class="w-8 h-8 rounded-full bg-white text-red-500 hover:bg-red-500 hover:text-white border border-red-100 flex items-center justify-center transition-colors shadow-sm"><i class="ph-bold ph-trash"></i></button>` : `<div class="w-8 h-8 flex justify-center items-center text-slate-400 bg-slate-100 rounded-full border border-slate-200 shadow-inner"><i class="ph-fill ph-lock-key"></i></div>`}</div></div>`; });
+        adminUsers.forEach(u => { 
+            const displayPass = (u.pass && u.pass.length === 64) ? '(เข้ารหัสความปลอดภัย)' : u.pass;
+            h += `<div class="flex items-center justify-between p-4 bg-white/50 border border-white shadow-sm rounded-xl mb-3"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full bg-white flex justify-center items-center font-bold border border-slate-100 shadow-sm"><i class="ph-fill ph-user"></i></div><div><p class="font-bold">${u.user}</p><p class="text-xs text-emerald-600 font-bold"><i class="ph-fill ph-lock-key"></i> ${displayPass}</p></div></div><div class="flex items-center gap-3"><span class="bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-blue-100">${ROLE_MAP[u.role] || u.role}</span>${u.role !== 'superadmin' || adminUsers.filter(x=>x.role==='superadmin').length > 1 ? `<button type="button" onclick="removeAdminUser('${u.id}')" class="w-8 h-8 rounded-full bg-white text-red-500 hover:bg-red-500 hover:text-white border border-red-100 flex items-center justify-center transition-colors shadow-sm"><i class="ph-bold ph-trash"></i></button>` : `<div class="w-8 h-8 flex justify-center items-center text-slate-400 bg-slate-100 rounded-full border border-slate-200 shadow-inner"><i class="ph-fill ph-lock-key"></i></div>`}</div></div>`; 
+        });
         c.innerHTML = h;
     };
 
-    window.addAdminUser = function() {
+    window.addAdminUser = async function() {
         const uE = document.getElementById('new-admin-user'), pE = document.getElementById('new-admin-pass'), rE = document.getElementById('new-admin-role');
         const u = uE.value.trim(), p = pE.value.trim(), r = rE.value;
         if(!u || !p) return window.showToast('กรอกให้ครบ', 'warning'); if(adminUsers.some(a => a.user === u)) return window.showToast('มีในระบบแล้ว', 'error');
-        adminUsers.push({ id: Date.now().toString(), user: u, pass: p, role: r }); uE.value = ''; pE.value = ''; rE.value = 'activity';
+        const hashedP = await window.sha256(p);
+        adminUsers.push({ id: Date.now().toString(), user: u, pass: hashedP, role: r }); uE.value = ''; pE.value = ''; rE.value = 'activity';
         window.updateAdminUsersList(); window.submitSettings(null); window.showToast('เพิ่มสำเร็จ', 'success');
     };
 
     window.removeAdminUser = function(id) { const i = adminUsers.findIndex(u => u.id === id); if(i > -1) { adminUsers.splice(i, 1); window.updateAdminUsersList(); window.submitSettings(null); window.showToast('ลบสำเร็จ', 'success'); } };
-    window.previewCurrentPopup = function() { document.getElementById('popup-banner-img').src = document.getElementById('setting-popup-image').value; document.getElementById('popup-title').innerHTML = document.getElementById('setting-popup-title').value.replace(/\n/g, '<br>'); document.getElementById('popup-desc').innerText = document.getElementById('setting-popup-desc').value; document.getElementById('homePopupModal').classList.remove('hidden'); };
+    window.previewCurrentPopup = function() { 
+        let iL = window.getPopupImageArray();
+        if (iL.length === 0) iL = ['https://placehold.co/800x400'];
+        document.getElementById('popup-banner-container').innerHTML = iL.map(u => `<img src="${u}" class="w-full h-full object-cover shrink-0 snap-center transition-transform duration-700 group-hover:scale-105" onerror="this.src='https://placehold.co/800x400'">`).join('');
+        window.renderPopupIndicators(iL.length);
+        document.getElementById('popup-title').innerHTML = document.getElementById('setting-popup-title').value.replace(/\n/g, '<br>'); 
+        let dV = window.getPopupDescArray();
+        if (dV.length === 0) dV = [''];
+        window.currentPopupDescList = dV;
+        window.popupSlideIndex = 0;
+        window.syncPopupText(0);
+        window.startPopupSlideshow();
+        document.getElementById('homePopupModal').classList.remove('hidden'); 
+    };
     
     window.submitSettings = function(e) { 
         if(e) e.preventDefault(); let btn = null, txt = ''; if(e && e.target) { btn = e.target.querySelector('button[type="submit"]'); if(btn) { txt = btn.innerHTML; btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> บันทึก...'; btn.disabled = true; } }
-        popupSettings.enabled = document.getElementById('setting-popup-toggle').checked; popupSettings.title = document.getElementById('setting-popup-title').value; popupSettings.description = document.getElementById('setting-popup-desc').value; popupSettings.imageUrl = document.getElementById('setting-popup-image').value; 
+        popupSettings.enabled = document.getElementById('setting-popup-toggle').checked; popupSettings.title = document.getElementById('setting-popup-title').value; popupSettings.description = window.getPopupDescArray(); popupSettings.imageUrl = window.getPopupImageArray(); 
         localStorage.setItem('CRRU_PopupSettings', JSON.stringify(popupSettings)); localStorage.setItem('CRRU_AdminUsers', JSON.stringify(adminUsers)); sessionStorage.removeItem('homePopupShown'); 
         window.apiCall('POST', { action: 'saveSettings', isShirtShopOpen: isShirtShopOpen, popupSettings: popupSettings, adminUsers: adminUsers }).then(() => { if(e) window.showToast('บันทึกสำเร็จ', 'success'); if(btn) { btn.innerHTML = txt; btn.disabled = false; } }).catch(() => { if(e) window.showToast('บันทึกสำเร็จ (Offline)', 'warning'); if(btn) { btn.innerHTML = txt; btn.disabled = false; } }); 
     };
+
+    // Tracker System (Real Hits counter API)
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!sessionStorage.getItem('digitcrru_visited')) {
+            fetch('https://api.counterapi.dev/v1/digitcrru/visits/up')
+                .then(() => sessionStorage.setItem('digitcrru_visited', 'true'))
+                .catch(e => console.log('Tracker skipped'));
+        }
+    });
 </script>
 </body>
 </html>
