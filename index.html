@@ -974,6 +974,25 @@
             const err = document.getElementById('reg-error-message'); 
             if (err) err.classList.add('hidden');
             
+
+            if (evO) {
+                const now = new Date();
+                if (evO.openTime) {
+                    const openT = new Date(evO.openTime);
+                    if (now < openT) { 
+                        if (err) { err.innerHTML = 'ยังไม่ถึงเวลาเปิดให้เช็คชื่อกิจกรรมนี้'; err.classList.remove('hidden'); }
+                        window.showToast('ยังไม่ถึงเวลาเปิดให้เช็คชื่อ', 'error'); return; 
+                    }
+                }
+                if (evO.closeTime) {
+                    const closeT = new Date(evO.closeTime);
+                    if (now > closeT) { 
+                        if (err) { err.innerHTML = 'หมดเวลาเช็คชื่อกิจกรรมนี้แล้ว'; err.classList.remove('hidden'); }
+                        window.showToast('หมดเวลาเช็คชื่อแล้ว', 'error'); return; 
+                    }
+                }
+            }
+
             const isDup = (cD) => { 
                 if (!Array.isArray(cD)) return false; 
                 const tE = String(evN).trim(), tS = String(fSid).trim(), tC = String(fCid).trim(); 
@@ -1294,7 +1313,7 @@
                         certs.push({
                             studentName: studentName,
                             eventName: useEventName,
-                            date: window.formatThaiGovDate(checkInTime), 
+                            date: window.formatThaiGovDate(checkInTime),
                             actId: actId                                
                         });
                     }
@@ -1837,7 +1856,7 @@
         };
 
         window.submitPayment = async function(e) {
-            if(e) e.preventDefault(); if(!isShirtShopOpen) { window.showToast('ปิดให้บริการแล้ว', 'error'); return window.navigate('shirt'); }
+            if(e) e.preventDefault(); if(!isShirtShopOpen) { window.showToast('ปิดรับจองแล้ว', 'error'); return window.navigate('shirt'); }
             const b = e.currentTarget || e.target; b.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> บันทึกข้อมูล...'; b.disabled = true;
             const t = window.formatThaiDate(new Date(), true); 
             currentCheckoutOrder.status = 1; currentCheckoutOrder.paymentMethod = 'cash'; currentCheckoutOrder.timestamp = t; currentCheckoutOrder.date = t; currentCheckoutOrder.slipTime = ''; currentCheckoutOrder.slipImage = '';
@@ -2177,7 +2196,7 @@
                 else if (e.openTime) timerDisplay = `เปิด: ${window.formatThaiDate(e.openTime, true)}`;
                 else if (e.closeTime) timerDisplay = `ปิด: ${window.formatThaiDate(e.closeTime, true)}`;
 
-                h += `<tr class="border-b border-white/50 hover:bg-white/80 transition-colors"><td class="p-5 text-slate-400 text-[10px]">${e.timestamp||'-'}</td><td class="p-5 font-bold">${e.title}${hasTimer ? `<br><div class="inline-block mt-2 text-[10px] font-bold text-purple-600 bg-white/80 px-2.5 py-1.5 rounded-lg border border-purple-100 shadow-sm leading-relaxed"><i class="ph-fill ph-clock mb-0.5"></i> ตั้งเวลาไว้:<br><span class="font-medium">${timerDisplay}</span></div>` : ''}</td><td class="p-5">${e.date}</td><td class="p-5">${e.location}</td><td class="p-5 text-center"><div class="flex items-center justify-center gap-4"><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" class="sr-only peer" ${iO ? 'checked' : ''} onchange="toggleEventStatus('${e.id}', '${e.status}')"><div class="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-200 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500 shadow-inner"></div></label><button onclick="openTimerEventModal('${e.id}')" class="w-8 h-8 rounded-xl bg-purple-50 border border-purple-100 shadow-sm text-purple-600 flex items-center justify-center hover:bg-purple-100 transition-colors hover-lift" title="ตั้งเวลาอัตโนมัติ"><i class="ph-bold ph-clock"></i></button><button onclick="openEditEventModal('${e.id}')" class="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 shadow-sm text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors hover-lift" title="แก้ไข"><i class="ph-bold ph-pencil-simple"></i></button><button onclick="navigate('admin-certificates', '${e.id}')" class="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100 shadow-sm text-amber-600 flex items-center justify-center hover:bg-amber-100 transition-colors hover-lift" title="จัดการใบประกาศ"><i class="ph-bold ph-certificate"></i></button><button onclick="exportEventParticipants('${e.title}')" class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition-colors" title="โหลด Excel"><i class="ph-bold ph-microsoft-excel-logo"></i></button></div></td></tr>`; 
+                h += `<tr class="border-b border-white/50 hover:bg-white/80 transition-colors"><td class="p-5 text-slate-400 text-[10px]">${e.timestamp||'-'}</td><td class="p-5 font-bold">${e.title}${hasTimer ? `<br><div class="inline-block mt-2 text-[10px] font-bold text-purple-600 bg-white/80 px-2.5 py-1.5 rounded-lg border border-purple-100 shadow-sm leading-relaxed"><i class="ph-fill ph-clock mb-0.5"></i> ตั้งเวลาไว้:<br><span class="font-medium">${timerDisplay}</span></div>` : ''}</td><td class="p-5">${e.date}</td><td class="p-5">${e.location}</td><td class="p-5 text-center"><div class="flex items-center justify-center gap-4"><button onclick="showQRCode('${e.id}')" title="QR Code" class="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 shadow-sm text-indigo-600 flex items-center justify-center hover:bg-indigo-100 transition-colors hover-lift"><i class="ph-bold ph-qr-code"></i></button><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" class="sr-only peer" ${iO ? 'checked' : ''} onchange="toggleEventStatus('${e.id}', '${e.status}')"><div class="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-200 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500 shadow-inner"></div></label><button onclick="openTimerEventModal('${e.id}')" class="w-8 h-8 rounded-xl bg-purple-50 border border-purple-100 shadow-sm text-purple-600 flex items-center justify-center hover:bg-purple-100 transition-colors hover-lift" title="ตั้งเวลาอัตโนมัติ"><i class="ph-bold ph-clock"></i></button><button onclick="openEditEventModal('${e.id}')" class="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 shadow-sm text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors hover-lift" title="แก้ไข"><i class="ph-bold ph-pencil-simple"></i></button><button onclick="navigate('admin-certificates', '${e.id}')" class="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100 shadow-sm text-amber-600 flex items-center justify-center hover:bg-amber-100 transition-colors hover-lift" title="จัดการใบประกาศ"><i class="ph-bold ph-certificate"></i></button><button onclick="exportEventParticipants('${e.title}')" class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition-colors" title="โหลด Excel"><i class="ph-bold ph-microsoft-excel-logo"></i></button></div></td></tr>`; 
             }); }
             tb.innerHTML = h; const sD = tI === 0 ? 0 : ((adminEventsPage - 1) * adminEventsPerPage) + 1, eD = Math.min(adminEventsPage * adminEventsPerPage, tI);
             pg.innerHTML = `<span class="text-sm bg-white/80 border border-white shadow-sm px-4 py-2 rounded-xl font-medium">แสดง <b class="font-black text-primary">${sD}-${eD}</b> จาก <b>${tI}</b></span><div class="flex gap-2"><button onclick="changeAdminEventPage(${adminEventsPage - 1})" ${adminEventsPage <= 1 ? 'disabled' : ''} class="w-10 h-10 rounded-xl bg-white border disabled:opacity-40 hover-lift"><i class="ph-bold ph-caret-left"></i></button><button onclick="changeAdminEventPage(${adminEventsPage + 1})" ${adminEventsPage >= tP ? 'disabled' : ''} class="w-10 h-10 rounded-xl bg-white border disabled:opacity-40 hover-lift"><i class="ph-bold ph-caret-right"></i></button></div>`;
@@ -2218,7 +2237,30 @@
             } catch (error) { window.showToast('เกิดข้อผิดพลาด', 'error'); } finally { submitBtn.innerHTML = originalTxt; submitBtn.disabled = false; }
         };
 
-        window.toggleEventStatus = async function(id, cS) {
+    window.showQRCode = function(id) {
+        const act = appCache.activities.find(a => String(a.id) === String(id));
+        if(!act) return;
+        const currentUrl = window.location.href.split('?')[0];
+        const checkInUrl = currentUrl + '?event_id=' + id;
+        const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(checkInUrl);
+        
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[999] flex items-center justify-center p-4 fade-in';
+        modal.innerHTML = 
+            '<div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center relative border-4 border-primary shadow-2xl">' +
+                '<button onclick="this.closest(\'.fixed\').remove()" class="absolute top-4 right-4 w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="ph-bold ph-x"></i></button>' +
+                '<h3 class="text-xl font-bold mb-2 text-slate-800">QR Code สำหรับเช็คชื่อ</h3>' +
+                '<p class="text-sm font-bold text-slate-500 mb-6 truncate px-4">' + act.title + '</p>' +
+                '<div class="bg-white p-4 rounded-2xl shadow-inner border border-slate-100 mb-6 flex justify-center">' +
+                    '<img src="' + qrUrl + '" class="w-48 h-48 rounded-xl object-contain">' +
+                '</div>' +
+                '<p class="text-xs font-bold text-slate-400">ให้นักศึกษาสแกนด้วยกล้องมือถือ<br>เพื่อเข้าสู่หน้าเช็คชื่อกิจกรรมนี้โดยอัตโนมัติ</p>' +
+                '<button onclick="window.open(\'' + qrUrl + '\', \'_blank\')" class="mt-4 px-4 py-2 bg-primary/10 text-primary font-bold rounded-xl text-xs hover:bg-primary/20 transition">เปิดรูปภาพเต็ม</button>' +
+            '</div>';
+        document.body.appendChild(modal);
+    };
+
+    window.toggleEventStatus = async function(id, cS) {
             const currentStatus = cS || 'open'; 
             const nS = currentStatus === 'open' ? 'closed' : 'open';
             const e = appCache.activities.find(x => String(x.id) === String(id)); 
