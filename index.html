@@ -1728,8 +1728,16 @@
             }
 
             const proceedToStep2 = (data) => {
+                const resolvedId = data.studentId || searchId;
+                const existingOrder2 = appCache.orders.find(o => String(o.studentId).trim() === resolvedId);
+                if (existingOrder2) { 
+                    appCache.orders = [existingOrder2, ...appCache.orders.filter(o => o.id !== existingOrder2.id)]; 
+                    window.showToast('พบข้อมูลการสั่งจองเดิม นำคุณไปยังหน้าหลักฐาน...', 'success'); 
+                    setTimeout(() => { window.navigate('tracking'); }, 1000); 
+                    return; 
+                }
                 const idField = document.getElementById('order-student-id'), nameField = document.getElementById('order-student-name'), facField = document.getElementById('order-faculty'), majField = document.getElementById('order-major');
-                idField.value = data.studentId || searchId; nameField.value = data.name || ''; facField.value = data.faculty || ''; majField.value = data.major || '';
+                idField.value = resolvedId; nameField.value = data.name || ''; facField.value = data.faculty || ''; majField.value = data.major || '';
                 idField.readOnly = true; idField.classList.add('opacity-70'); 
                 [nameField, facField, majField].forEach(x => { x.readOnly = false; x.classList.remove('opacity-70'); x.classList.replace('bg-white/60', 'bg-white/80'); });
                 document.getElementById('order-step-search').classList.add('hidden'); 
@@ -1784,7 +1792,15 @@
             if (aS === 'ไม่รับ') aQ = 0;
             const pP = pS === 'ไม่รับ' ? 0 : 250; const aP = aS === 'ไม่รับ' ? 0 : 250;
             
-            const is69 = document.getElementById('order-student-id').value.trim().startsWith('69');
+            const studentId = document.getElementById('order-student-id').value.trim();
+            if (appCache.orders.find(o => String(o.studentId).trim() === studentId)) {
+                window.showToast('คุณได้ทำการสั่งจองไปแล้ว ไม่สามารถสั่งจองซ้ำได้', 'warning');
+                btn.innerHTML = 'ยืนยันการสั่งจอง <i class="ph-bold ph-arrow-right"></i>';
+                btn.disabled = false;
+                return;
+            }
+
+            const is69 = studentId.startsWith('69');
             if (is69 && (pS === 'ไม่รับ' || aS === 'ไม่รับ')) {
                 window.showToast('รหัส 69 จำเป็นต้องสั่งจองชุดเสื้อคณะ', 'error');
                 btn.innerHTML = 'ยืนยันการสั่งจอง <i class="ph-bold ph-arrow-right"></i>';
