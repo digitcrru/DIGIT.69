@@ -661,14 +661,6 @@
             return `à¸§à¸±à¸™à¸—à¸µà¹ˆ ${d.getDate()} à¹€à¸”à¸·à¸­à¸™ ${fullMonths[d.getMonth()]} à¸ž.à¸¨. ${y}`;
         };
 
-        window.escapeHTML = function(str) {
-            if (!str) return '';
-            return String(str).replace(/[&<>"']/g, function(match) {
-                const escapeMap = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-                return escapeMap[match];
-            });
-        };
-
         window.showToast = function(m, t = 'success', opts = {}) { 
             const c = document.getElementById('toast-container');
             const existing = Array.from(c.querySelectorAll('.toast-card')).find(el => el.querySelector('span') && el.querySelector('span').innerText === m);
