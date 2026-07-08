@@ -1,4 +1,4 @@
-        tailwind.config = { 
+﻿        tailwind.config = { 
             theme: { 
                 extend: { 
                     colors: { 
@@ -213,20 +213,7 @@
             
             // Initiate batched fetch
             window.fetchInitialData().then(() => {
-                if (!sessionStorage.getItem('homePopupShown') && currentRole === 'student') { 
-                    let iL = Array.isArray(popupSettings.imageUrl) ? popupSettings.imageUrl : [popupSettings.imageUrl || 'https://placehold.co/800x400'];
-                    if (iL.length === 0) iL = ['https://placehold.co/800x400'];
-                    document.getElementById('popup-banner-container').innerHTML = iL.map(u => `<img src="${u}" class="w-full h-full object-cover shrink-0 snap-center transition-transform duration-700 group-hover:scale-105" onerror="this.src='https://placehold.co/800x400'">`).join('');
-                    window.renderPopupIndicators(iL.length);
-                    document.getElementById('popup-title').innerHTML = popupSettings.title.replace(/\n/g, '<br>'); 
-                    let desc = popupSettings.description;
-                    window.currentPopupDescList = Array.isArray(desc) ? desc : [desc || ''];
-                    window.popupSlideIndex = 0;
-                    window.syncPopupText(0);
-                    window.startPopupSlideshow();
-                    if(popupSettings.enabled) document.getElementById('homePopupModal').classList.remove('hidden'); 
-                    sessionStorage.setItem('homePopupShown', 'true'); 
-                } 
+
             });
 
             window.getAdminAuthToken().then(expected => {
@@ -300,7 +287,7 @@
                     localStorage.setItem('CRRU_AdminUsers', JSON.stringify(adminUsers));
                     
                     if (needsUpgrade) {
-                        window.apiCall('POST', { action: 'saveSettings', isShirtShopOpen: isShirtShopOpen, popupSettings: popupSettings, adminUsers: adminUsers }).catch(e => console.log('Upgrade failed'));
+                        window.apiCall('POST', { action: 'saveSettings', isShirtShopOpen: isShirtShopOpen, adminUsers: adminUsers }).catch(e => console.log('Upgrade failed'));
                     }
                     
                     window.applyTheme();
@@ -1951,7 +1938,9 @@
             if(!sId) { f.textContent = 'กรุณากรอกรหัส'; f.classList.remove('hidden'); return; }
             const b = document.getElementById('btn-fetch-tracking'), txt = b.innerHTML; b.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i>'; b.disabled = true; f.classList.add('hidden'); rS.classList.add('hidden');
             try {
-                // ใช้ข้อมูลจาก appCache ทันที
+                // โหลดข้อมูลเข้า appCache ก่อนค้นหา
+                if (appCache.orders.length === 0) await window.fetchOrdersData();
+                if (appCache.checkIns.length === 0) await window.fetchAllCheckInsData();
                 let tS = sId;
                 let mO = appCache.orders.find(o => String(o.studentId).trim() === tS || String(o.citizenId).trim() === tS);
                 
@@ -1986,7 +1975,7 @@
         window.renderTrackingReceipt = function(c, o) {
             const cS = o.status; let iH = ''; const tB = "border: 1px solid #1e293b; padding: 10px; font-size: 13px;";
             let pSz = 'M', pQ = 0, aSz = 'M', aQ = 0, sZ = String(o.size || '');
-            let pN = sZ.match(/โปโล\s*([A-Za-z0-9\u0e00-\u0e7f]+)\s*\[(\d+)\]/i), aN = sZ.match(/กิจกรรม\s*([A-Za-z0-9\u0e00-\u0e7f]+)\s*\[(\d+)\]/i);
+            let pN = sZ.match(/(?:โปโล)\s*([A-Za-z0-9\u0e00-\u0e7f]+)\s*\[(\d+)\]/i), aN = sZ.match(/(?:กิจกรรม)\s*([A-Za-z0-9\u0e00-\u0e7f]+)\s*\[(\d+)\]/i);
             if (pN) { pSz = pN[1]; pQ = parseInt(pN[2]); } if (aN) { aSz = aN[1]; aQ = parseInt(aN[2]); }
             if (pSz === 'ไม่รับ') pQ = 0; if (aSz === 'ไม่รับ') aQ = 0;
 
@@ -2785,7 +2774,7 @@
         }
         if(currentRole === 'student') window.renderNav();
 
-        window.apiCall('POST', { action: 'saveSettings', isShirtShopOpen: isShirtShopOpen, popupSettings: popupSettings, adminUsers: adminUsers }).then(d => { if(d.success) window.showToast('อัปเดตเรียบร้อย', 'success'); else window.showToast('เกิดข้อผิดพลาด', 'error'); }).catch(() => window.showToast('บันทึกแบบ Offline', 'warning'));
+        window.apiCall('POST', { action: 'saveSettings', isShirtShopOpen: isShirtShopOpen, adminUsers: adminUsers }).then(d => { if(d.success) window.showToast('อัปเดตเรียบร้อย', 'success'); else window.showToast('เกิดข้อผิดพลาด', 'error'); }).catch(() => window.showToast('บันทึกแบบ Offline', 'warning'));
     };
 
     window.renderAdminSettings = function(c) {
@@ -2927,9 +2916,8 @@
     
     window.submitSettings = function(e) { 
         if(e) e.preventDefault(); let btn = null, txt = ''; if(e && e.target) { btn = e.target.querySelector('button[type="submit"]'); if(btn) { txt = btn.innerHTML; btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> บันทึก...'; btn.disabled = true; } }
-        popupSettings.enabled = document.getElementById('setting-popup-toggle').checked; popupSettings.title = document.getElementById('setting-popup-title').value; popupSettings.description = window.getPopupDescArray(); popupSettings.imageUrl = window.getPopupImageArray(); 
-        localStorage.setItem('CRRU_PopupSettings', JSON.stringify(popupSettings)); localStorage.setItem('CRRU_AdminUsers', JSON.stringify(adminUsers)); sessionStorage.removeItem('homePopupShown'); 
-        window.apiCall('POST', { action: 'saveSettings', isShirtShopOpen: isShirtShopOpen, popupSettings: popupSettings, adminUsers: adminUsers }).then(() => { if(e) window.showToast('บันทึกสำเร็จ', 'success'); if(btn) { btn.innerHTML = txt; btn.disabled = false; } }).catch(() => { if(e) window.showToast('บันทึกสำเร็จ (Offline)', 'warning'); if(btn) { btn.innerHTML = txt; btn.disabled = false; } }); 
+        localStorage.setItem('CRRU_AdminUsers', JSON.stringify(adminUsers)); sessionStorage.removeItem('homePopupShown'); 
+        window.apiCall('POST', { action: 'saveSettings', isShirtShopOpen: isShirtShopOpen, adminUsers: adminUsers }).then(() => { if(e) window.showToast('บันทึกสำเร็จ', 'success'); if(btn) { btn.innerHTML = txt; btn.disabled = false; } }).catch(() => { if(e) window.showToast('บันทึกสำเร็จ (Offline)', 'warning'); if(btn) { btn.innerHTML = txt; btn.disabled = false; } }); 
     };
 
     // Tracker System (Real Hits counter API)
@@ -2940,6 +2928,8 @@
                 .catch(e => console.log('Tracker skipped'));
         }
     });
+
+
 
 
 
