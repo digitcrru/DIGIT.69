@@ -1,0 +1,1 @@
+Get-ChildItem -Path 'C:\$Recycle.Bin' -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { $_.Name -like '*app.js*' -or $_.Name -like '*digit_crru*' } | Select-Object FullName, Length, LastWriteTime
