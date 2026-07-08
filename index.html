@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
@@ -2111,7 +2111,11 @@
                                         <input type="text" id="search-order-id" class="w-full pl-12 pr-4 py-4 bg-white/80 border border-white rounded-2xl font-bold shadow-sm outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-primary transition-all" placeholder="ระบุรหัสนักศึกษา หรือ บัตรประชาชน" onkeypress="if(event.key === 'Enter') fetchStudentForOrder()">
                                     </div>
                                     <p id="search-order-feedback" class="text-sm text-orange-600 font-bold hidden bg-orange-50 p-4 rounded-xl border border-orange-200 text-center"></p>
-                                    <button onclick="fetchStudentForOrder()" id="btn-fetch-order" class="w-full py-4 bg-slate-800 text-white font-bold rounded-2xl flex justify-center items-center gap-2 hover:bg-black transition-all shadow-lg shadow-slate-800/20"><i class="ph-bold ph-arrow-right text-lg"></i> ดำเนแอดมแอดมินการต่อ</button>
+                                    <button onclick="fetchStudentForOrder()" id="btn-fetch-order" class="w-full py-4 bg-slate-800 text-white font-bold rounded-2xl flex justify-center items-center gap-2 hover:bg-black transition-all shadow-lg shadow-slate-800/20"><i class="ph-bold ph-arrow-right text-lg"></i> ดำเนินการต่อ</button>
+                                    <div class="text-center mt-3">
+                                        <button type="button" onclick="window.skipOrderSearch()" class="text-sm text-slate-500 hover:text-primary font-bold underline transition-colors">ไม่มีข้อมูลในระบบ? กรอกข้อมูลเอง</button>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
