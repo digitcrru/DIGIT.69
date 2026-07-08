@@ -661,6 +661,14 @@
             return `à¸§à¸±à¸™à¸—à¸µà¹ˆ ${d.getDate()} à¹€à¸”à¸·à¸­à¸™ ${fullMonths[d.getMonth()]} à¸ž.à¸¨. ${y}`;
         };
 
+        window.escapeHTML = function(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>"']/g, function(match) {
+                const escapeMap = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+                return escapeMap[match];
+            });
+        };
+
         window.showToast = function(m, t = 'success', opts = {}) { 
             const c = document.getElementById('toast-container');
             const existing = Array.from(c.querySelectorAll('.toast-card')).find(el => el.querySelector('span') && el.querySelector('span').innerText === m);
@@ -1090,7 +1098,7 @@
             }
 
             const pL = { action: 'submitSurvey', timestamp: new Date().toLocaleString('th-TH'), studentId: fSid || fCid, eventId: sD.eventId || '', eventName: eT, q1_1: sD.q1_1||'', q1_2: sD.q1_2||'', q1_3: sD.q1_3||'', q1_4: sD.q1_4||'', q1_5: sD.q1_5||'', q1_6: sD.q1_6||'', q2_1: sD.q2_1||'', q2_2: sD.q2_2||'', q2_3: sD.q2_3||'', q2_4: sD.q2_4||'', q3_1: sD.q3_1||'', q3_2: sD.q3_2||'', q4_1: sD.q4_1||'', q4_2: sD.q4_2||'', q4_3: sD.q4_3||'', comment: sD.suggestions||'' };
-            appCache.evaluations.push([pL.timestamp, pL.studentId, pL.eventId, pL.eventName, pL.q1_1, pL.q1_2, pL.q1_3, pL.q1_4, pL.q1_5, pL.q1_6, pL.q2_1, pL.q2_2, pL.q2_3, pL.q2_4, pL.q3_1, pL.q3_2, pL.q4_1, pL.q4_2, pL.q4_3, pL.q1_comment]);
+            appCache.evaluations.push([pL.timestamp, pL.studentId, pL.eventId, pL.eventName, pL.q1_1, pL.q1_2, pL.q1_3, pL.q1_4, pL.q1_5, pL.q1_6, pL.q2_1, pL.q2_2, pL.q2_3, pL.q2_4, pL.q3_1, pL.q3_2, pL.q4_1, pL.q4_2, pL.q4_3, pL.comment]);
             window.apiCall('POST', pL).then(() => { window.showToast('แต้งกิ้วนะ ถ้าไม่มีเธอ...ก็คงต้องหาคนอื่นช่วย 😜', 'success'); window.navigate('events'); }).catch(() => { window.showToast('แต้งกิ้วนะ ถ้าไม่มีเธอ...ก็คงต้องหาคนอื่นช่วย 😜 (Offline)', 'success'); window.navigate('events'); });
         };
 
@@ -1459,7 +1467,6 @@
                     window.showToast('à¸”à¸²à¸§à¸™à¹Œà¹‚à¸«à¸¥à¸”à¹€à¸ à¸µà¸¢à¸£à¸•à¸´à¸šà¸±à¸•à¸£à¸ªà¸³à¹€à¸£à¹‡à¸ˆà¹ à¸¥à¹‰à¸§!', 'success');
                 }, 'image/jpeg', 1.0);
             } catch (err) { window.showToast('à¹€à¸ à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”à¹ƒà¸™à¸ à¸²à¸£à¸ªà¸£à¹‰à¸²à¸‡à¹„à¸Ÿà¸¥à¹Œà¸£à¸¹à¸›à¸ à¸²à¸ž', 'error'); }
-            } catch (err) { window.showToast('เกิดข้อผิดพลาดในการสร้างไฟล์รูปภาพ', 'error'); }
         };
 
         window.exportEventCertificates = async function(eId) {
