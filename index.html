@@ -1185,7 +1185,7 @@
             }); 
             document.getElementById('step-search').classList.add('hidden'); 
             document.getElementById('step-form').classList.remove('hidden'); 
-            window.showToast('ดึงข้อมูลสำเร็จ', 'success'); 
+            window.showToast('ดดึงข้อมูลสำเร็จ...ความลับแตกเรียบร้อย 😂', 'success'); 
         };
 
         window.showManualForm = function(pid = '') { 
@@ -1385,7 +1385,7 @@
 
             const pL = { action: 'submitSurvey', timestamp: new Date().toLocaleString('th-TH'), studentId: fSid || fCid, eventId: sD.eventId || '', eventName: eT, q1_1: sD.q1_1||'', q1_2: sD.q1_2||'', q1_3: sD.q1_3||'', q1_4: sD.q1_4||'', q1_5: sD.q1_5||'', q1_6: sD.q1_6||'', q2_1: sD.q2_1||'', q2_2: sD.q2_2||'', q2_3: sD.q2_3||'', q2_4: sD.q2_4||'', q3_1: sD.q3_1||'', q3_2: sD.q3_2||'', q4_1: sD.q4_1||'', q4_2: sD.q4_2||'', q4_3: sD.q4_3||'', comment: sD.suggestions||'' };
             appCache.evaluations.push([pL.timestamp, pL.studentId, pL.eventId, pL.eventName, pL.q1_1, pL.q1_2, pL.q1_3, pL.q1_4, pL.q1_5, pL.q1_6, pL.q2_1, pL.q2_2, pL.q2_3, pL.q2_4, pL.q3_1, pL.q3_2, pL.q4_1, pL.q4_2, pL.q4_3, pL.comment]);
-            window.apiCall('POST', pL).then(() => { window.showToast('ขอบคุณที่ร่วมประเมิน!', 'success'); window.navigate('events'); }).catch(() => { window.showToast('บันทึกสำเร็จ (Offline)', 'success'); window.navigate('events'); });
+            window.apiCall('POST', pL).then(() => { window.showToast('แต้งกิ้วนะ ถ้าไม่มีเธอ...ก็คงต้องหาคนอื่นช่วย 😜!', 'success'); window.navigate('events'); }).catch(() => { window.showToast('บันทึกสำเร็จ (Offline)', 'success'); window.navigate('events'); });
         };
 
         window.renderHistory = function(c) {
@@ -1443,7 +1443,7 @@
 
                 // Section 1: ตารางประวัติกิจกรรม
                 h += `<div class="fade-in"><h2 class="text-xl font-bold mb-5 flex items-center gap-2"><i class="ph-fill ph-list-dashes text-primary"></i> ประวัติการเข้าร่วมกิจกรรม</h2><div class="glass rounded-[24px] overflow-hidden border border-white/50"><table class="w-full text-left border-collapse"><thead class="bg-white/50 text-slate-500 text-xs uppercase border-b border-white"><th class="p-5 w-1/2">ชื่อกิจกรรม</th><th class="p-5 text-center">วันที่จัด</th><th class="p-5 text-center">สถานะ / แต้ม</th></thead><tbody class="text-sm bg-white/60">`;
-                if (hD.length > 0) { hD.forEach(x => { h += `<tr class="border-b border-white/50"><td class="p-5 font-bold">${x.eventName}</td><td class="p-5 text-center text-slate-600">${x.date}</td><td class="p-5 text-center"><span class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-bold border border-emerald-100 inline-flex items-center gap-1.5"><i class="ph-fill ph-check-circle"></i> ผ่าน <span class="bg-emerald-200/50 text-emerald-800 px-1.5 rounded-md ml-1">+10 แต้ม</span></span></td></tr>`; }); } else { h += `<tr><td colspan="3" class="p-12 text-center text-slate-500 font-medium">ไม่พบประวัติ</td></tr>`; }
+                if (hD.length > 0) { hD.forEach(x => { h += `<tr class="border-b border-white/50"><td class="p-5 font-bold">${x.eventName}</td><td class="p-5 text-center text-slate-600">${x.date}</td><td class="p-5 text-center"><span class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-bold border border-emerald-100 inline-flex items-center gap-1.5"><i class="ph-fill ph-check-circle"></i> ผ่าน <span class="bg-emerald-200/50 text-emerald-800 px-1.5 rounded-md ml-1">+10 แต้ม</span></span></td></tr>`; }); } else { h += `<tr><td colspan="3" class="p-12 text-center text-slate-500 font-medium">❌ ไม่พบประวัติ...โปรดลองจีบใหม่อีกครั้ง 😜</td></tr>`; }
                 h += `</tbody></table></div></div>`;
 
                 // Section 2: ใบประกาศนียบัตร (ดึงจากฝั่งแอดมิน — activities ที่เปิด cert + นักศึกษาผ่านประเมิน)
@@ -1484,10 +1484,10 @@
                 if (r.success && r.data && r.data.length > 0) { 
                     r.data.forEach(x => x.date = window.formatThaiDate(x.date)); 
                     history = r.data;
-                    window.showToast('ค้นหาสำเร็จ', 'success'); 
+                    window.showToast('ค้นหาสำเร็จ ภารกิจล่าเป้าหมายเสร็จสิ้น! 🎯', 'success'); 
                 } else { 
                     history = [];
-                    window.showToast('ไม่พบประวัติ', 'warning'); 
+                    window.showToast('ไม่พบประวัติ... สงสัยลบหลักฐานเก่ง 😏', 'warning'); 
                 } 
             } catch (err) { 
                 history = [];
@@ -1656,7 +1656,7 @@
 
                 sessionStorage.setItem('certSearchTerm', sId); 
                 sessionStorage.setItem('certData', JSON.stringify({ certs: certs })); 
-                window.showToast('ค้นหาสำเร็จ', 'success'); 
+                window.showToast('ค้นหาสำเร็จ ระบบตาดี... ไม่มีพลาด 👀', 'success'); 
             } catch (err) { 
                 console.error(err);
                 sessionStorage.setItem('certSearchTerm', sId); 
