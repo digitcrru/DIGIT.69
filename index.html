@@ -455,7 +455,19 @@
                     // Update CheckIns
                     appCache.checkIns = (r.data.checkIns || []).map(c => Array.isArray(c) ? c : Object.values(c));
                     const ct = {};
-                    appCache.checkIns.forEach(row => { if(row && row.length > 1) { const e = String(row[1]).trim(); if(e) ct[e] = (ct[e] || 0) + 1; } }); 
+                    const seenS = new Set(), seenC = new Set();
+                    appCache.checkIns.forEach(row => { 
+                        if(row && row.length > 3) { 
+                            const e = String(row[1]).trim(), sId = String(row[2]).trim(), cId = String(row[3]).trim(); 
+                            if (!e) return;
+                            const kS = (sId && sId !== '-') ? (e + '|S|' + sId) : null;
+                            const kC = (cId && cId !== '-') ? (e + '|C|' + cId) : null;
+                            if ((kS && seenS.has(kS)) || (kC && seenC.has(kC))) return;
+                            ct[e] = (ct[e] || 0) + 1;
+                            if (kS) seenS.add(kS);
+                            if (kC) seenC.add(kC);
+                        } 
+                    });
 
                     // Update Activities
                     const acts = r.data.activities || [];
@@ -631,8 +643,20 @@
                     window.apiCall('GET', { action: 'getAllCheckIns' })
                 ]);
                 const ct = {}; 
+                const seenS = new Set(), seenC = new Set();
                 if (c.success && c.data) { 
-                    c.data.forEach(r => { if(r && r.length > 1) { const e = String(r[1]).trim(); if(e) ct[e] = (ct[e] || 0) + 1; } }); 
+                    c.data.forEach(r => { 
+                        if(r && r.length > 3) { 
+                            const e = String(r[1]).trim(), sId = String(r[2]).trim(), cId = String(r[3]).trim(); 
+                            if (!e) return;
+                            const kS = (sId && sId !== '-') ? (e + '|S|' + sId) : null;
+                            const kC = (cId && cId !== '-') ? (e + '|C|' + cId) : null;
+                            if ((kS && seenS.has(kS)) || (kC && seenC.has(kC))) return;
+                            ct[e] = (ct[e] || 0) + 1;
+                            if (kS) seenS.add(kS);
+                            if (kC) seenC.add(kC);
+                        } 
+                    });
                     appCache.checkIns = c.data; 
                 } 
                 if (a.success && a.data) { 
@@ -1249,7 +1273,9 @@
                     if (!r || r.length < 4) return false; 
                     const rE = String(r[1]).trim(), rS = String(r[2]).trim(), rC = String(r[3]).trim(); 
                     if (rE !== tE) return false; 
-                    return (tS !== '' && tS !== '-' && rS === tS) || (tC !== '' && tC !== '-' && rC === tC); 
+                    const matchS = tS !== '' && tS !== '-' && (rS === tS || rC === tS);
+                    const matchC = tC !== '' && tC !== '-' && (rS === tC || rC === tC);
+                    return matchS || matchC;
                 }); 
             };
             
@@ -1345,7 +1371,9 @@
                 const rS = String(r[1]).trim();
                 const rE = String(r[3]).trim();
                 if (rE !== eT) return false;
-                return (fSid !== '' && rS === fSid) || (fCid !== '' && rS === fCid);
+                const matchS = fSid !== '' && fSid !== '-' && rS === fSid;
+                const matchC = fCid !== '' && fCid !== '-' && rS === fCid;
+                return matchS || matchC;
             });
 
             if (isDup) {
@@ -1378,9 +1406,9 @@
             
             if (isS) {
                 const pts = hD.length * 10;
-                let badge = { icon: '🥉', name: 'ระดับเริ่มต้น (Bronze)', color: 'from-amber-600 to-amber-800', text: 'text-amber-800' };
-                if (pts >= 100) badge = { icon: '🥇', name: 'เด็กกิจกรรมตัวยง (Gold)', color: 'from-yellow-400 to-orange-500', text: 'text-yellow-700' };
-                else if (pts >= 50) badge = { icon: '🥈', name: 'นักกิจกรรมระดับเงิน (Silver)', color: 'from-slate-300 to-slate-500', text: 'text-slate-700' };
+                let badge = { icon: '🥉', name: 'พลทหาร', color: 'from-amber-600 to-amber-800', text: 'text-amber-800' };
+                if (pts >= 100) badge = { icon: '🥇', name: 'นายร้อย', color: 'from-yellow-400 to-orange-500', text: 'text-yellow-700' };
+                else if (pts >= 50) badge = { icon: '🥈', name: 'นายสิบ', color: 'from-slate-300 to-slate-500', text: 'text-slate-700' };
 
                 h += `
                 <div class="fade-in mb-8">
