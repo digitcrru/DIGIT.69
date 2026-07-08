@@ -1,0 +1,3 @@
+$content = Get-Content C:\Users\Jenn1817\.gemini\antigravity\brain\5bfc2a01-1949-4bc1-905f-ba767ed379aa\Code.gs -Encoding UTF8 -Raw
+$md = "# โค้ด Google Apps Script (เวอร์ชันอัปเดตระบบ Popup)`n`nเพื่อแก้ปัญหาที่ตั้งค่า Popup แล้วไม่แสดงผลในฝั่งผู้ใช้งาน (ฝั่งนักศึกษา) สาเหตุเกิดจากโค้ดบน Google Apps Script ของคุณเป็นเวอร์ชันเก่า (ซึ่งยังไม่มีระบบบันทึก Popup ลงฐานข้อมูล)`n`n👉 **วิธีแก้ไข:**`nโปรดคัดลอกโค้ดด้านล่างนี้ทั้งหมด ไปวางทับโค้ดเดิมใน Google Apps Script ของคุณ จากนั้นกด **Deploy > Manage deployments > Edit (ไอคอนดินสอ) > เลือก New version > กด Deploy** ครับ`n`n````javascript`n" + $content + "`n````"
+Set-Content C:\Users\Jenn1817\.gemini\antigravity\brain\5bfc2a01-1949-4bc1-905f-ba767ed379aa\backend_code.md $md -Encoding UTF8
