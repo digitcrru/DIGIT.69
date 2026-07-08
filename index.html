@@ -123,6 +123,102 @@
             } 
         }
     </script>
+<style>
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800;900&display=swap');
+        
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #f8fafc;
+            min-height: 100vh;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Professional Clean Cards (Overrides AI Glassmorphism) */
+        .glass {
+            background: #ffffff !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1) !important;
+        }
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.98) !important;
+            backdrop-filter: blur(8px) !important;
+            -webkit-backdrop-filter: blur(8px) !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+        }
+        
+        /* Mobile Responsiveness Overrides */
+        @media (max-width: 640px) {
+            .p-8, .p-10 { padding: 1.25rem !important; }
+            .p-6 { padding: 1rem !important; }
+            .text-2xl { font-size: 1.25rem !important; line-height: 1.75rem !important; }
+            .text-3xl { font-size: 1.5rem !important; line-height: 2rem !important; }
+        }
+        
+        /* Responsive Tables */
+        .glass:has(table) {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+        }
+        table {
+            min-width: 600px; /* Prevent columns from crushing on small screens */
+            width: 100%;
+        }
+
+        /* Override aggressive rounded corners */
+        .rounded-\[32px\], .rounded-\[24px\] { border-radius: 12px !important; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .hover-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05); }
+        
+        .btn-gradient { 
+            background: #2563eb; 
+            transition: all 0.2s ease; 
+        }
+        .btn-gradient:hover { 
+            background: #1d4ed8; 
+            transform: translateY(-1px); 
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2); 
+        }
+        
+        #spss-report-content * { font-size: 16px !important; line-height: 1.6 !important; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        @media print { body { background: white !important; } .print\:hidden { display: none !important; } }
+        
+        /* Connection Status Bar */
+        #conn-status-bar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+            transform: translateY(-100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #conn-status-bar.show { transform: translateY(0); }
+        #conn-status-bar .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        #conn-status-bar .status-dot.online { background: #10b981; box-shadow: 0 0 6px rgba(16,185,129,0.5); }
+        #conn-status-bar .status-dot.offline { background: #ef4444; box-shadow: 0 0 6px rgba(239,68,68,0.5); animation: pulse-dot 2s infinite; }
+        @keyframes pulse-dot { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+        /* Dark Mode Overrides */
+        html.dark body { background-image: linear-gradient(rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.98)) !important; background-color: #0f172a !important; color: #f8fafc !important; }
+        html.dark .glass, html.dark .bg-white, html.dark .bg-white\/80, html.dark .bg-white\/50, html.dark .bg-white\/90 { background-color: rgba(30, 41, 59, 0.6) !important; border-color: rgba(255, 255, 255, 0.05) !important; color: #f1f5f9 !important; }
+        html.dark .text-slate-800, html.dark .text-slate-700, html.dark .text-slate-900 { color: #f8fafc !important; }
+        html.dark .text-slate-600, html.dark .text-slate-500 { color: #cbd5e1 !important; }
+        html.dark .bg-slate-50, html.dark .bg-slate-100, html.dark .bg-slate-200 { background-color: #1e293b !important; border-color: #334155 !important; color: #e2e8f0 !important; }
+        html.dark input, html.dark select, html.dark textarea { background-color: #0f172a !important; border-color: #334155 !important; color: #f8fafc !important; }
+        html.dark th, html.dark td, html.dark tr { border-color: #334155 !important; }
+        html.dark thead { background-color: rgba(30, 41, 59, 0.8) !important; color: #94a3b8 !important; }
+        html.dark .shadow-sm, html.dark .shadow-md, html.dark .shadow-lg, html.dark .shadow-xl { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3) !important; }
+        html.dark .border-slate-100, html.dark .border-slate-200 { border-color: rgba(255, 255, 255, 0.1) !important; }
+
+</style>
 </head>
 <body class="text-slate-800 antialiased flex flex-col">
 
@@ -331,7 +427,20 @@
     <div id="toast-container" class="fixed bottom-24 md:bottom-8 right-4 md:right-8 z-[160] flex flex-col gap-3 w-auto max-w-[90%] pointer-events-none"></div>
 
     <!-- MAIN SCRIPT -->
-    <script>
+<script>
+        tailwind.config = { 
+            theme: { 
+                extend: { 
+                    colors: { 
+                        primary: '#2563eb', /* Modern Tech Blue */
+                        primary_hover: '#1d4ed8', 
+                        secondary: '#475569', 
+                        admin: '#0f172a', 
+                        admin_hover: '#1e293b' 
+                    } 
+                } 
+            } 
+        }
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCPFTT76JLJLo3cNjTDNXQPbofR3AmVEPxCOD9yzdW_73yFy92d-Q0OHAu26DgsA7x/exec';
         
         window.popupSlideIndex = 0; window.popupSlideInterval = null; window.currentPopupDescList = [];
@@ -399,7 +508,7 @@
         
         const STATUS_MAP = { 
             1: { text: 'รอตรวจสอบ', color: 'bg-amber-100 text-amber-700', icon: 'ph-hourglass-high' }, 
-            2: { text: 'ชำระเงินแล้ว', color: 'bg-emerald-100 text-emerald-700', icon: 'ph-check-circle' }, 
+            2: { text: 'ชำระเงแอดมแอดมินแล้ว', color: 'bg-emerald-100 text-emerald-700', icon: 'ph-check-circle' }, 
             3: { text: 'กำลังผลิต', color: 'bg-purple-100 text-purple-700', icon: 'ph-scissors' }, 
             4: { text: 'พร้อมรับ', color: 'bg-blue-100 text-blue-700', icon: 'ph-package' } 
         };
@@ -467,7 +576,7 @@
                             if (kS) seenS.add(kS);
                             if (kC) seenC.add(kC);
                         } 
-                    });
+                    }); 
 
                     // Update Activities
                     const acts = r.data.activities || [];
@@ -475,13 +584,12 @@
                         i.rawDate = i.date; 
                         i.date = window.formatThaiDate(i.date); 
                         i.timestamp = window.formatThaiDate(i.timestamp, true); 
-                        i.joined = ct[i.title.trim()] || 0; 
+                        i.joined = ct[i.title.trim()] !== undefined ? ct[i.title.trim()] : (i.joined || 0); 
                         let stParts = String(i.status || 'open').split('|');
                         i.status = stParts[0] === 'closed' ? 'closed' : 'open';
                         i.openTime = stParts[1] || ''; i.closeTime = stParts[2] || '';
                         if (stParts.length > 3) { i.certEnabled = stParts[3] === 'true'; } else if (i.certEnabled !== undefined && i.certEnabled !== null && i.certEnabled !== "") { i.certEnabled = (i.certEnabled === true || String(i.certEnabled).toLowerCase() === 'true'); } else { i.certEnabled = certEventStatus[i.id] === true; }
                         i.lat = stParts.length > 4 ? stParts[4] : ''; i.lng = stParts.length > 5 ? stParts[5] : '';
-                        if (i.lat && i.lng) { i.status = 'closed'; i.location = `GPS: ${i.lat}, ${i.lng}`; }
                         certEventStatus[i.id] = i.certEnabled;
                     });
                     localStorage.setItem('CRRU_CertEventStatus', JSON.stringify(certEventStatus));
@@ -494,11 +602,22 @@
                     }); 
                     
                     // Update Orders
-                    appCache.orders = r.data.orders || [];
-                    appCache.orders.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    let rawOrders = r.data.orders || [];
+                    rawOrders.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    let seenO = new Set();
+                    appCache.orders = [];
+                    for(let o of rawOrders) {
+                        const sid = String(o.studentId).trim();
+                        if (sid && !seenO.has(sid)) {
+                            seenO.add(sid);
+                            appCache.orders.push(o);
+                        } else if (!sid) {
+                            appCache.orders.push(o);
+                        }
+                    }
                     
                     // Update Evaluations
-                    appCache.evaluations = r.data.evaluations || [];
+                    appCache.evaluations = (r.data.evaluations || []).map(e => Array.isArray(e) ? e : Object.values(e));
                     appCache.evaluations.sort((a,b) => new Date(b[0]) - new Date(a[0]));
                     
                     // Render current view again to reflect populated data
@@ -507,7 +626,7 @@
                 }
             } catch(e) {
                 console.error(e);
-                window.showToast('โหลดข้อมูลล้มเหลว หรือใช้งานออฟไลน์', 'warning');
+                window.showToast('โหลดข้อมูลลแตแตแต้มเหลว หรือใช้งานออฟไลน์', 'warning');
             } finally {
                 // Hide loader
                 const loader = document.getElementById('global-app-loader');
@@ -683,7 +802,7 @@
                         i.lat = stParts.length > 4 ? stParts[4] : '';
                         i.lng = stParts.length > 5 ? stParts[5] : '';
                         
-                        // อัปเดต Object หลักเพื่อใช้แสดงผลในส่วนอื่นๆ โดยไม่ต้องกลัวโดนทับ
+                        // อัปเดต Object หลักเพื่อใช้แสดงผลในส่วนอื่นๆ โดยไม่ต้องกลัวโดนทกลกลกลับ
                         certEventStatus[i.id] = i.certEnabled;
                     }); 
                     localStorage.setItem('CRRU_CertEventStatus', JSON.stringify(certEventStatus));
@@ -708,8 +827,7 @@
             try { 
                 const r = await window.apiCall('GET', { action: 'getAllCheckIns' }); 
                 if(r.success) {
-                    // เก็บรักษารายการ Check-In ทดสอบที่เราเพิ่งกดลงทะเบียนไป (เพื่อไม่ให้หายตอนดึงข้อมูลใหม่)
-                    const serverData = r.data || [];
+                    const serverData = (r.data || []).map(c => Array.isArray(c) ? c : Object.values(c));
                     const localMocks = (appCache.checkIns || []).filter(local => 
                         !serverData.some(server => (server[2] === local[2] || server[3] === local[3]) && server[1] === local[1])
                     );
@@ -725,7 +843,25 @@
             return await window._bgFetchOrd(); 
         };
         window._bgFetchOrd = async function() { 
-            try { const r = await window.apiCall('GET', { action: 'getOrders' }); if(r.success) { appCache.orders = r.data; appCache.orders.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)); } return appCache.orders; } 
+            try { 
+                const r = await window.apiCall('GET', { action: 'getOrders' }); 
+                if(r.success) { 
+                    let rawOrders = r.data || [];
+                    rawOrders.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    let seenO = new Set();
+                    appCache.orders = [];
+                    for(let o of rawOrders) {
+                        const sid = String(o.studentId).trim();
+                        if (sid && !seenO.has(sid)) {
+                            seenO.add(sid);
+                            appCache.orders.push(o);
+                        } else if (!sid) {
+                            appCache.orders.push(o);
+                        }
+                    }
+                } 
+                return appCache.orders; 
+            } 
             catch (e) { return appCache.orders || []; } 
         };
 
@@ -898,7 +1034,7 @@
                 // Fallback: CRRU default coordinates
                 setCoords('19.9846947', '99.8488944', 'ใช้พิกัดกลาง มร.ชร. (ไม่มีในฐานข้อมูลแผนที่สาธารณะ)');
             } catch (e) {
-                setCoords('19.9846947', '99.8488944', 'ใช้พิกัดกลาง มร.ชร. (ค้นหาล้มเหลว)');
+                setCoords('19.9846947', '99.8488944', 'ใช้พิกัดกลาง มร.ชร. (ค้นหาลแตแตแต้มเหลว)');
             }
         };
         
@@ -953,6 +1089,14 @@
             const fullMonths = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
             let y = d.getFullYear(); if (y < 2500) y += 543;
             return `วันที่ ${d.getDate()} เดือน ${fullMonths[d.getMonth()]} พ.ศ. ${y}`;
+        };
+
+        window.escapeHTML = function(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>"']/g, function(match) {
+                const escapeMap = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+                return escapeMap[match];
+            });
         };
 
         window.showToast = function(m, t = 'success', opts = {}) { 
@@ -1011,8 +1155,8 @@
             const iC = document.getElementById('modal-slip-image-container'), inf = document.getElementById('modal-slip-info');
             if (o) {
                 if (o.paymentMethod === 'cash') { 
-                    inf.innerHTML = `ชำระแบบ: <span class="font-bold text-amber-600">เงินสด</span><br>ยอดที่ต้องรับ: <span class="font-bold text-lg">฿${o.total}</span>`; 
-                    iC.innerHTML = `<div class="flex flex-col items-center justify-center text-amber-500"><i class="ph-fill ph-wallet text-7xl mb-4"></i><h2 class="text-2xl font-black">ชำระด้วยเงินสด</h2></div>`; 
+                    inf.innerHTML = `ชำระแบบ: <span class="font-bold text-amber-600">เงแอดมแอดมินสด</span><br>ยอดที่ต้องรับ: <span class="font-bold text-lg">฿${o.total}</span>`; 
+                    iC.innerHTML = `<div class="flex flex-col items-center justify-center text-amber-500"><i class="ph-fill ph-wallet text-7xl mb-4"></i><h2 class="text-2xl font-black">ชำระด้วยเงแอดมแอดมินสด</h2></div>`; 
                 } 
                 else if (o.slipImage) { 
                     inf.innerHTML = `เวลาโอน: <span class="font-bold text-primary">${o.slipTime || '-'}</span> น. | ยอด: <span class="font-bold text-primary">฿${o.total}</span>`; 
@@ -1145,12 +1289,12 @@
             if (e.status === 'closed') { window.showToast('กิจกรรมนี้ถูกปิดรับสมัครชั่วคราว', 'error'); return window.navigate('events'); }
 
             c.innerHTML = `
-                <div class="fade-in max-w-2xl mx-auto"><button onclick="navigate('events')" class="flex items-center gap-2 text-slate-600 hover:text-primary mb-6 font-bold text-sm bg-white/50 border border-white px-4 py-2 rounded-xl shadow-sm hover-lift"><i class="ph-bold ph-arrow-left text-lg"></i> กลับไปหน้ากิจกรรม</button><div class="glass rounded-[32px] shadow-xl overflow-hidden"><div class="bg-gradient-to-br from-orange-50 to-transparent p-8 sm:p-10 border-b border-white/50"><div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-primary text-3xl mb-5"><i class="ph-fill ph-calendar-check"></i></div><h2 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">ลงทะเบียนกิจกรรม</h2><p class="text-primary font-bold mt-2 leading-snug">${e.title}</p></div><div class="p-8 sm:p-10 bg-white/20"><div id="step-search" class="mb-2"><label class="block text-sm font-bold text-slate-700 mb-3">ระบุรหัสนักศึกษา หรือ หมายเลขบัตรประชาชน</label>
+                <div class="fade-in max-w-2xl mx-auto"><button onclick="navigate('events')" class="flex items-center gap-2 text-slate-600 hover:text-primary mb-6 font-bold text-sm bg-white/50 border border-white px-4 py-2 rounded-xl shadow-sm hover-lift"><i class="ph-bold ph-arrow-left text-lg"></i> กลกลกลกลับไปหน้ากิจกรรม</button><div class="glass rounded-[32px] shadow-xl overflow-hidden"><div class="bg-gradient-to-br from-orange-50 to-transparent p-8 sm:p-10 border-b border-white/50"><div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-primary text-3xl mb-5"><i class="ph-fill ph-calendar-check"></i></div><h2 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">ลงทะเบียนกิจกรรม</h2><p class="text-primary font-bold mt-2 leading-snug">${e.title}</p></div><div class="p-8 sm:p-10 bg-white/20"><div id="step-search" class="mb-2"><label class="block text-sm font-bold text-slate-700 mb-3">ระบุรหัสนักศึกษา หรือ หมายเลขบัตรประชาชน</label>
                 <div class="flex flex-col gap-4">
                     <div class="relative w-full"><div class="absolute inset-y-0 left-0 flex items-center pl-5 pointer-events-none"><i class="ph-fill ph-identification-card text-slate-400 text-xl"></i></div><input type="text" id="search-student-id" class="w-full pl-12 pr-4 py-4 rounded-2xl border border-white bg-white/80 font-bold shadow-sm outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-primary transition-all" placeholder="กรอกรหัส หรือ บัตรปชช." onkeypress="if(event.key === 'Enter') fetchStudentData()"></div>
                     <button onclick="fetchStudentData()" id="btn-fetch-student" class="w-full px-8 py-4 bg-slate-800 text-white text-base font-bold rounded-2xl hover:bg-black transition-colors shadow-lg shadow-slate-800/20 flex items-center justify-center gap-2 shrink-0"><i class="ph-bold ph-magnifying-glass text-lg"></i> ค้นหา</button>
                 </div>
-                <p id="search-feedback" class="text-sm font-bold text-orange-600 hidden bg-orange-50 p-4 rounded-xl border border-orange-200 mt-3"></p><div class="text-center mt-6 pt-6 border-t border-white"><button type="button" onclick="showManualForm()" class="text-sm font-bold text-slate-500 hover:text-primary flex items-center justify-center gap-2 w-full"><i class="ph-bold ph-pencil-simple text-lg"></i> ไม่มีข้อมูลในระบบ? กรอกข้อมูลเอง</button></div></div><form id="step-form" class="space-y-6 hidden" onsubmit="handleRegistrationSubmit(event, '${id}')"><input type="hidden" id="reg-hidden-student-id"><input type="hidden" id="reg-hidden-citizen-id"><div class="space-y-5 bg-white/80 p-6 rounded-[24px] shadow-sm border border-white"><div><label class="block text-xs font-bold text-slate-500 mb-2">รหัสนักศึกษา/บัตรประชาชน</label><input type="text" id="reg-student-id" required readonly class="w-full px-5 py-3.5 rounded-xl border-none bg-slate-100/50 text-slate-500 text-sm font-bold shadow-inner"></div><div><label class="block text-xs font-bold text-slate-500 mb-2">ชื่อ-นามสกุล *</label><input type="text" id="reg-name" required class="w-full px-5 py-3.5 rounded-xl border border-slate-200 font-bold text-sm bg-white focus:border-primary focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-5"><div><label class="block text-xs font-bold text-slate-500 mb-2">คณะ *</label><input type="text" id="reg-faculty" required class="w-full px-5 py-3.5 rounded-xl border border-slate-200 font-bold text-sm bg-white focus:border-primary focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"></div><div><label class="block text-xs font-bold text-slate-500 mb-2">สาขาวิชา *</label><input type="text" id="reg-major" required class="w-full px-5 py-3.5 rounded-xl border border-slate-200 font-bold text-sm bg-white focus:border-primary focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"></div></div><div><label class="block text-xs font-bold text-slate-500 mb-2">เลขบัตรประชาชน</label><input type="text" id="reg-citizen-id" class="w-full px-5 py-3.5 rounded-xl border border-slate-200 font-bold text-sm bg-white focus:border-primary focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"></div></div><p id="reg-error-message" class="text-sm font-bold text-orange-600 hidden bg-orange-50 p-4 rounded-xl border border-orange-200"></p><div class="flex gap-3 justify-end mt-4"><button type="button" onclick="resetSearchForm()" class="px-6 py-4 rounded-2xl font-bold text-slate-600 border border-white bg-white/50 hover:bg-white transition-colors">ค้นหาใหม่</button><button type="submit" class="px-8 py-4 rounded-2xl font-bold text-white btn-gradient shadow-lg">ยืนยันลงทะเบียน</button></div></form></div></div></div>
+                <p id="search-feedback" class="text-sm font-bold text-orange-600 hidden bg-orange-50 p-4 rounded-xl border border-orange-200 mt-3"></p></div><form id="step-form" class="space-y-6 hidden" onsubmit="handleRegistrationSubmit(event, '${id}')"><input type="hidden" id="reg-hidden-student-id"><input type="hidden" id="reg-hidden-citizen-id"><div class="space-y-5 bg-white/80 p-6 rounded-[24px] shadow-sm border border-white"><div><label class="block text-xs font-bold text-slate-500 mb-2">รหัสนักศึกษา/บัตรประชาชน</label><input type="text" id="reg-student-id" required readonly class="w-full px-5 py-3.5 rounded-xl border-none bg-slate-100/50 text-slate-500 text-sm font-bold shadow-inner"></div><div><label class="block text-xs font-bold text-slate-500 mb-2">ชื่อ-นามสกุล *</label><input type="text" id="reg-name" required class="w-full px-5 py-3.5 rounded-xl border border-slate-200 font-bold text-sm bg-white focus:border-primary focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-5"><div><label class="block text-xs font-bold text-slate-500 mb-2">คณะ *</label><input type="text" id="reg-faculty" required class="w-full px-5 py-3.5 rounded-xl border border-slate-200 font-bold text-sm bg-white focus:border-primary focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"></div><div><label class="block text-xs font-bold text-slate-500 mb-2">สาขาวิชา *</label><input type="text" id="reg-major" required class="w-full px-5 py-3.5 rounded-xl border border-slate-200 font-bold text-sm bg-white focus:border-primary focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"></div></div><div><label class="block text-xs font-bold text-slate-500 mb-2">เลขบัตรประชาชน</label><input type="text" id="reg-citizen-id" class="w-full px-5 py-3.5 rounded-xl border border-slate-200 font-bold text-sm bg-white focus:border-primary focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"></div></div><p id="reg-error-message" class="text-sm font-bold text-orange-600 hidden bg-orange-50 p-4 rounded-xl border border-orange-200"></p><div class="flex gap-3 justify-end mt-4"><button type="button" onclick="resetSearchForm()" class="px-6 py-4 rounded-2xl font-bold text-slate-600 border border-white bg-white/50 hover:bg-white transition-colors">ค้นหาใหม่</button><button type="submit" class="px-8 py-4 rounded-2xl font-bold text-white btn-gradient shadow-lg">ยืนยันลงทะเบียน</button></div></form></div></div></div>
             `;
         };
 
@@ -1165,7 +1309,7 @@
                 const r = await window.apiCall('GET', { action: 'search', id: encodeURIComponent(sId) }); 
                 if (r.success && r.data) { appCache.students[sId] = r.data; window.fillStudentForm(r.data, sId); } 
                 else { f.innerHTML = 'ไม่พบข้อมูล กรุณาลองใหม่'; f.classList.remove('hidden'); } 
-            } catch (e) { f.innerHTML = 'เชื่อมต่อล้มเหลว'; f.classList.remove('hidden'); window.showManualForm(sId); } 
+            } catch (e) { f.innerHTML = 'เชื่อมต่อลแตแตแต้มเหลว'; f.classList.remove('hidden'); window.showManualForm(sId); } 
             finally { b.innerHTML = oH; b.disabled = false; }
         };
 
@@ -1185,7 +1329,7 @@
             }); 
             document.getElementById('step-search').classList.add('hidden'); 
             document.getElementById('step-form').classList.remove('hidden'); 
-            window.showToast('ดึงข้อมูลสำเร็จ...ความลับแตกเรียบร้อย 😂', 'success'); 
+            window.showToast('ดึงข้อมูลสำเร็จ', 'success'); 
         };
 
         window.showManualForm = function(pid = '') { 
@@ -1352,7 +1496,7 @@
                 }); 
             });
             
-            h += `<p id="survey-error-message" class="text-sm font-bold text-orange-600 hidden bg-orange-50 p-4 rounded-xl border border-orange-200 mb-4"></p><h3 class="font-bold text-lg text-slate-800 mt-8 mb-4">ข้อเสนอแนะเพิ่มเติม</h3><textarea name="suggestions" rows="4" class="w-full px-5 py-4 rounded-2xl border border-white bg-white/80 focus:border-primary focus:ring-2 focus:ring-orange-500/20 outline-none transition-all mb-8"></textarea><button type="submit" class="w-full py-5 rounded-2xl font-bold text-white btn-gradient flex items-center justify-center gap-2 shadow-lg"><i class="ph-bold ph-paper-plane-right"></i> ส่งแบบประเมิน</button></form></div></div>`;
+            h += `<p id="survey-error-message" class="text-sm font-bold text-orange-600 hidden bg-orange-50 p-4 rounded-xl border border-orange-200 mb-4"></p><h3 class="font-bold text-lg text-slate-800 mt-8 mb-4">ข้อเสนอแนะเพิ่มเติม</h3><textarea name="suggestions" rows="4" class="w-full px-5 py-4 rounded-2xl border border-white bg-white/80 focus:border-primary focus:ring-2 focus:ring-orange-500/20 outline-none transition-all mb-8"></textarea><button type="submit" class="w-full py-5 rounded-2xl font-bold text-white btn-gradient flex items-center justify-center gap-2 shadow-lg"><i class="ph-bold ph-paper-plane-right"></i> ส่งแบบประเมแอดมิน</button></form></div></div>`;
             c.innerHTML = h;
         };
 
@@ -1378,14 +1522,14 @@
 
             if (isDup) {
                 b.innerHTML = txt; b.disabled = false;
-                if (err) { err.innerHTML = 'ระบบตรวจพบว่าคุณทำแบบประเมินสำหรับกิจกรรมนี้ไปแล้ว!'; err.classList.remove('hidden'); }
+                if (err) { err.innerHTML = 'ระบบตรวจพบว่าคุณทำแบบประเมแอดมินสำหรกลับกิจกรรมนี้ไปแล้ว!'; err.classList.remove('hidden'); }
                 window.showToast('พบข้อมูลซ้ำ!', 'warning');
                 return;
             }
 
             const pL = { action: 'submitSurvey', timestamp: new Date().toLocaleString('th-TH'), studentId: fSid || fCid, eventId: sD.eventId || '', eventName: eT, q1_1: sD.q1_1||'', q1_2: sD.q1_2||'', q1_3: sD.q1_3||'', q1_4: sD.q1_4||'', q1_5: sD.q1_5||'', q1_6: sD.q1_6||'', q2_1: sD.q2_1||'', q2_2: sD.q2_2||'', q2_3: sD.q2_3||'', q2_4: sD.q2_4||'', q3_1: sD.q3_1||'', q3_2: sD.q3_2||'', q4_1: sD.q4_1||'', q4_2: sD.q4_2||'', q4_3: sD.q4_3||'', comment: sD.suggestions||'' };
             appCache.evaluations.push([pL.timestamp, pL.studentId, pL.eventId, pL.eventName, pL.q1_1, pL.q1_2, pL.q1_3, pL.q1_4, pL.q1_5, pL.q1_6, pL.q2_1, pL.q2_2, pL.q2_3, pL.q2_4, pL.q3_1, pL.q3_2, pL.q4_1, pL.q4_2, pL.q4_3, pL.comment]);
-            window.apiCall('POST', pL).then(() => { window.showToast('แต้งกิ้วนะ ถ้าไม่มีเธอ...ก็คงต้องหาคนอื่นช่วย 😜!', 'success'); window.navigate('events'); }).catch(() => { window.showToast('บันทึกสำเร็จ (Offline)', 'success'); window.navigate('events'); });
+            window.apiCall('POST', pL).then(() => { window.showToast('?????????? ???????????...???????????????????? ??', 'success'); window.navigate('events'); }).catch(() => { window.showToast('?????????? ???????????...???????????????????? ?? (Offline)', 'success'); window.navigate('events'); });
         };
 
         window.renderHistory = function(c) {
@@ -1429,24 +1573,27 @@
                             </div>
                         </div>
                         <div class="px-8 pb-8 sm:px-10 sm:pb-10 relative z-10">
-                            <div class="flex justify-between text-sm font-bold text-slate-500 mb-2">
-                                <span>ความคืบหน้าสู่ระดับถัดไป</span>
-                                <span>${pts >= 100 ? 'ระดับสูงสุด' : pts + ' / ' + (pts >= 50 ? 100 : 50)}</span>
+                            <div class="flex justify-between items-center text-sm font-bold text-slate-500 mb-2">
+                                <span class="flex items-center gap-2"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/133.gif" class="w-7 h-7 object-contain" alt="eevee">ความคืบหน้าสู่ระดกลกลกลับถัดไป</span>
+                                <span>${pts >= 100 ? 'ระดกลกลกลับสูงสุด' : pts + ' / ' + (pts >= 50 ? 100 : 50)}</span>
                             </div>
-                            <div class="w-full bg-white/60 rounded-full h-4 border border-white overflow-hidden shadow-inner">
-                                <div class="bg-gradient-to-r ${badge.color} h-4 rounded-full transition-all duration-1000" style="width: ${pts >= 100 ? 100 : (pts >= 50 ? (pts-50)/50*100 : pts/50*100)}%"></div>
+                            <div class="relative mt-10">
+                                <div class="absolute -top-10 transition-all duration-1000 z-10" style="left: calc(${pts >= 100 ? 100 : (pts >= 50 ? (pts-50)/50*100 : pts/50*100)}% - 24px);">
+                                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" alt="runner" class="w-12 h-12 object-contain drop-shadow-md" style="transform: scaleX(-1);">
+                                </div>
+                                <div class="w-full bg-white/60 rounded-full h-4 border border-white overflow-hidden shadow-inner relative z-0">
+                                    <div class="bg-gradient-to-r ${badge.color} h-4 rounded-full transition-all duration-1000" style="width: ${pts >= 100 ? 100 : (pts >= 50 ? (pts-50)/50*100 : pts/50*100)}%"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 `;
 
-                // Section 1: ตารางประวัติกิจกรรม
-                h += `<div class="fade-in"><h2 class="text-xl font-bold mb-5 flex items-center gap-2"><i class="ph-fill ph-list-dashes text-primary"></i> ประวัติการเข้าร่วมกิจกรรม</h2><div class="glass rounded-[24px] overflow-hidden border border-white/50"><table class="w-full text-left border-collapse"><thead class="bg-white/50 text-slate-500 text-xs uppercase border-b border-white"><th class="p-5 w-1/2">ชื่อกิจกรรม</th><th class="p-5 text-center">วันที่จัด</th><th class="p-5 text-center">สถานะ / แต้ม</th></thead><tbody class="text-sm bg-white/60">`;
-                if (hD.length > 0) { hD.forEach(x => { h += `<tr class="border-b border-white/50"><td class="p-5 font-bold">${x.eventName}</td><td class="p-5 text-center text-slate-600">${x.date}</td><td class="p-5 text-center"><span class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-bold border border-emerald-100 inline-flex items-center gap-1.5"><i class="ph-fill ph-check-circle"></i> ผ่าน <span class="bg-emerald-200/50 text-emerald-800 px-1.5 rounded-md ml-1">+10 แต้ม</span></span></td></tr>`; }); } else { h += `<tr><td colspan="3" class="p-12 text-center text-slate-500 font-medium">❌ ไม่พบประวัติ...โปรดลองจีบใหม่อีกครั้ง 😜</td></tr>`; }
+                h += `<div class="fade-in"><h2 class="text-xl font-bold mb-5 flex items-center gap-2"><i class="ph-fill ph-list-dashes text-primary"></i> ประวัติ�การเข้าร่วมกิจกรรม</h2><div class="glass rounded-[24px] overflow-hidden border border-white/50"><table class="w-full text-left border-collapse"><thead class="bg-white/50 text-slate-500 text-xs uppercase border-b border-white"><th class="p-5 w-1/2">ชื่อกิจกรรม</th><th class="p-5 text-center">วันที่จัด</th><th class="p-5 text-center">สถานะ / แต้ม</th></thead><tbody class="text-sm bg-white/60">`;
+                if (hD.length > 0) { hD.forEach(x => { h += `<tr class="border-b border-white/50"><td class="p-5 font-bold">${x.eventName}</td><td class="p-5 text-center text-slate-600">${x.date}</td><td class="p-5 text-center"><span class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-bold border border-emerald-100 inline-flex items-center gap-1.5"><i class="ph-fill ph-check-circle"></i> ผ่าน <span class="bg-emerald-200/50 text-emerald-800 px-1.5 rounded-md ml-1">+10 แต้ม</span></span></td></tr>`; }); } else { h += `<tr><td colspan="3" class="p-12 text-center text-slate-500 font-medium"><div class="flex flex-col items-center justify-center"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" class="w-16 h-16 object-contain mb-3 drop-shadow-sm"><span>ไม่พบประวัติ</span></div></td></tr>`; }
                 h += `</tbody></table></div></div>`;
 
-                // Section 2: ใบประกาศนียบัตร (ดึงจากฝั่งแอดมิน — activities ที่เปิด cert + นักศึกษาผ่านประเมิน)
                 h += `<div class="fade-in mt-10"><h2 class="text-xl font-bold mb-5 flex items-center gap-2"><i class="ph-fill ph-certificate text-amber-500"></i> ใบประกาศนียบัตร</h2>`;
                 if (cD.length > 0) {
                     h += `<div class="grid grid-cols-1 md:grid-cols-2 gap-5">`;
@@ -1467,7 +1614,7 @@
                     });
                     h += `</div>`;
                 } else {
-                    h += `<div class="glass rounded-[32px] border border-white shadow-sm py-12 text-center"><i class="ph-fill ph-warning-circle text-5xl text-slate-300 mb-4 block mx-auto"></i><p class="text-slate-600 font-black text-lg">ยังไม่มีใบประกาศนียบัตรที่ดาวน์โหลดได้</p><p class="text-sm font-medium text-slate-500 mt-2">ต้องผ่านการประเมินกิจกรรมที่เปิดรับใบประกาศ</p></div>`;
+                    h += `<div class="glass rounded-[32px] border border-white shadow-sm py-12 text-center"><div class="flex flex-col items-center justify-center"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" class="w-16 h-16 object-contain mb-3 drop-shadow-sm"></div><p class="text-slate-600 font-black text-lg">ยังไม่มีใบประกาศนียบัตรที่ดาวน์โหลดได้</p><p class="text-sm font-medium text-slate-500 mt-2">ต้องผ่าน�การประเมินกิจกรรมที่เปิดรับใบประกาศ</p></div>`;
                 }
                 h += `</div>`;
             }
@@ -1484,19 +1631,17 @@
                 if (r.success && r.data && r.data.length > 0) { 
                     r.data.forEach(x => x.date = window.formatThaiDate(x.date)); 
                     history = r.data;
-                    window.showToast('ค้นหาสำเร็จ ภารกิจล่าเป้าหมายเสร็จสิ้น! 🎯', 'success'); 
+                    window.showToast('ค้นหาสำเร็จ', 'success'); 
                 } else { 
                     history = [];
-                    window.showToast('ไม่พบประวัติ... สงสัยลบหลักฐานเก่ง 😏', 'warning'); 
+                    window.showToast('ไม่พบประวัติ', 'warning'); 
                 } 
             } catch (err) { 
                 history = [];
                 window.showToast('Offline Mode', 'warning'); 
             }
 
-            // คำนวณใบประกาศนียบัตร (วนจาก activities ที่เปิด cert เหมือนฝั่งแอดมิน)
             try {
-                // บังคับดึงเฉพาะข้อมูลกิจกรรม เพื่ออัปเดตสถานะปุ่มเปิด/ปิด ล่าสุด และดึงข้อมูลประเมิน/ลงทะเบียนคู่ขนานเพื่อความเร็ว
                 await Promise.all([
                     window.fetchActivitiesData(true),
                     window.fetchEvaluationsData(),
@@ -1507,17 +1652,14 @@
                     const actId = String(act.id).trim();
                     const actTitle = String(act.title).trim();
 
-                    // เช็คสถานะเปิด/ปิด รับใบประกาศ 
                     if (!window.isCertEventOpen(actId)) return;
 
-                    // นักศึกษาผ่านการประเมินกิจกรรมนี้หรือไม่
                     const hasEval = appCache.evaluations.some(ev =>
                         String(ev[1]).trim() === sId &&
                         (String(ev[2]).trim() === actId || String(ev[3]).trim() === actTitle)
                     );
                     if (!hasEval) return;
 
-                    // ดึง check-in match sId + ชื่อกิจกรรม
                     const checkInRecord = appCache.checkIns.find(c =>
                         (String(c[2]).trim() === sId || String(c[3]).trim() === sId) &&
                         String(c[1]).trim() === actTitle
@@ -1557,7 +1699,7 @@
                 <div class="fade-in max-w-4xl mx-auto pb-10">
                     <div class="mb-8 text-center sm:text-left">
                         <h1 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">ดาวน์โหลดวุฒิบัตร</h1>
-                        <p class="text-base text-slate-500 mt-2 font-medium">เฉพาะกิจกรรมที่คุณเข้าร่วมและ <span class="font-bold text-primary">ผ่านการประเมินผลแล้ว</span> เท่านั้น</p>
+                        <p class="text-base text-slate-500 mt-2 font-medium">เฉพาะกิจกรรมที่คุณเข้าร่วมและ <span class="font-bold text-primary">ผ่าน�การประเมินผลแล้ว</span> เท่านั้น</p>
                     </div>
                     <div class="glass rounded-[32px] shadow-sm border border-white/60 p-8 sm:p-10 mb-8">
                         <label class="block text-sm font-bold text-slate-700 mb-3">รหัสนักศึกษา หรือ หมายเลขบัตรประชาชน</label>
@@ -1592,7 +1734,7 @@
                         </div>`; 
                     }); 
                 } else { 
-                    h += `<div class="col-span-full py-16 text-center glass rounded-[32px] border border-white shadow-sm"><i class="ph-fill ph-warning-circle text-6xl text-slate-300 mb-4 block mx-auto"></i><p class="text-slate-600 font-black text-xl">ยังไม่มีใบประกาศนียบัตร</p><p class="text-sm font-medium text-slate-500 mt-2">กรุณาเข้าร่วมกิจกรรมและทำแบบประเมินให้เสร็จสิ้นก่อนนะครับ</p></div>`; 
+                    h += `<div class="col-span-full py-16 text-center glass rounded-[32px] border border-white shadow-sm"><div class="flex flex-col items-center justify-center"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" class="w-20 h-20 object-contain mb-3 drop-shadow-sm"></div><p class="text-slate-600 font-black text-xl">ยังไม่มีใบประกาศนียบัตร</p><p class="text-sm font-medium text-slate-500 mt-2">� รุณาเข้าร่วมกิจกรรม� ละทำ�แบบประเมินให้เสร็จสิ้น� ่อนนะครับ</p></div>`; 
                 }
                 h += `</div></div>`;
             }
@@ -1604,9 +1746,7 @@
             const btn = document.getElementById('btn-fetch-cert'), txt = btn.innerHTML; btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i>'; btn.disabled = true;
             
             try { 
-                // บังคับดึงข้อมูลล่าสุดเฉพาะกิจกรรม
                 await window.fetchActivitiesData(true);
-                // ข้อมูลนักศึกษาใช้จาก Cache เพื่อให้รองรับการทดสอบแบบไม่ระบุตัวตน (Mock Data)
                 await window.fetchEvaluationsData();
                 await window.fetchAllCheckInsData();
 
@@ -1633,7 +1773,6 @@
                         let useEventName = eventName;     
                         let checkInTime = ev[0] || '';    
                         
-                        // ป้องกันดึงชื่อผิดกิจกรรม โดยการเช็คให้ตรงกับชื่อกิจกรรมปัจจุบันด้วย
                         const checkInRecord = appCache.checkIns.find(c => 
                             (String(c[2]).trim() === sId || String(c[3]).trim() === sId) && 
                             String(c[1]).trim() === useEventName
@@ -1656,7 +1795,7 @@
 
                 sessionStorage.setItem('certSearchTerm', sId); 
                 sessionStorage.setItem('certData', JSON.stringify({ certs: certs })); 
-                window.showToast('ค้นหาสำเร็จ ระบบตาดี... ไม่มีพลาด 👀', 'success'); 
+                window.showToast('ค้นหาสำเร็จ', 'success'); 
             } catch (err) { 
                 console.error(err);
                 sessionStorage.setItem('certSearchTerm', sId); 
@@ -1702,11 +1841,11 @@
                     <img src="${bgUrl}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:fill;z-index:1;">
                     <div style="position:relative;z-index:10;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;box-sizing:border-box;padding:230px 0px 0px 0px;">
                         <p style="font-size:30px;font-weight:600;color:#1e3a5f;margin:0 0 0px 0;letter-spacing:0.2px;">คณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย</p>
-                        <p style="font-size:20px;font-weight:400;color:#94a3b8;margin:0 0 18px 0;">ขอมอบวุฒิบัตรบัตรฉบับนี้ให้ไว้เพื่อแสดงว่า</p>
+                        <p style="font-size:20px;font-weight:400;color:#94a3b8;margin:0 0 18px 0;">ขอมอบวุฒิบัตรฉบับนี้ให้ไว้เพื่อ�แสดงว่า</p>
                         <h2 style="font-size:38px;font-weight:400;color:#0f172a;margin:100 0 200px 0;line-height:1.2;letter-spacing:0.8px;">${d.sName}</h2>
                         <div style="width:400px;height:0px;background:linear-gradient(90deg,transparent 0%,#d97706 30%,#f59e0b 50%,#d97706 70%,transparent 100%);margin:0 0 40px 0;"></div>
-                        <p style="font-size:20px;font-weight:450;color:#475569;margin:0 0 10px 0;">ได้ผ่านการฝึกอบรมเชิงปฏิบัติการ</p>
-                        <h3 style="font-size:22px;font-weight:400;color:#b45309;margin:0 0 10px 0;max-width:78%;line-height:1.4;">“${d.eName}”</h3>
+                        <p style="font-size:20px;font-weight:450;color:#475569;margin:0 0 10px 0;">ได้ผ่าน�การ� ึ� อบรมเชิงป� ิบัติ�การ</p>
+                        <h3 style="font-size:22px;font-weight:400;color:#b45309;margin:0 0 10px 0;max-width:78%;line-height:1.4;">“${d.eName}� </h3>
                         <p style="font-size:16px;font-weight:400;color:#475569;margin:0 0 0px 0;">ขอให้ประสบความสุขสวัสดิ์ ความเจริญ และรักษาคุณความดีไว้ตลอดไป</p>
                         <p style="font-size:16px;font-weight:500;color:#1e3a5f;margin:0 0 0 0;">ให้ไว้ ณ วันที่ ${d.eDate}</p>
                     </div>
@@ -1757,13 +1896,13 @@
                     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
                     window.showToast('ดาวน์โหลดเกียรติบัตรสำเร็จแล้ว!', 'success');
                 }, 'image/jpeg', 1.0);
-            } catch (err) { window.showToast('เกิดข้อผิดพลาดในการสร้างไฟล์รูปภาพ', 'error'); }
+            } catch (err) { window.showToast('เกิดข้อผิดพลาดใน�การสร้างไฟล์รูปภาพ', 'error'); }
         };
 
         window.exportEventCertificates = async function(eId) {
-            window.showToast('กำลังรวบรวมรายชื่อผู้ผ่านประเมิน...', 'warning');
+            window.showToast('????????????????????????????????...', 'warning');
             const event = appCache.activities.find(x => String(x.id) === String(eId));
-            if (!event) return window.showToast('ไม่พบกิจกรรม', 'error');
+            if (!event) return window.showToast('????????????', 'error');
             const eName = event.title; const actId = event.id;
 
             await Promise.all([
@@ -1772,7 +1911,7 @@
             ]);
 
             const studentEvals = appCache.evaluations.filter(e => String(e[2]).trim() === String(eId) || String(e[3]).trim() === String(eName).trim());
-            if (studentEvals.length === 0) return window.showToast('ยังไม่มีผู้ผ่านการประเมิน', 'warning');
+            if (studentEvals.length === 0) return window.showToast('?????????????????????????', 'warning');
 
             const processedStudents = new Set(); const validStudents = [];
             studentEvals.forEach(ev => {
@@ -1920,7 +2059,7 @@
                     </div>
                     <div class="glass rounded-[32px] border border-white shadow-sm overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left min-w-[760px]"><thead class="bg-white/40 border-b border-white/80 text-slate-500 text-xs uppercase"><tr><th class="p-4 pl-6 w-16 text-center">#</th><th class="p-4">ชื่อกิจกรรม</th><th class="p-4 w-32 text-center hidden sm:table-cell">วันที่จัด</th><th class="p-4 w-24 text-center hidden md:table-cell">ผู้ผ่าน</th><th class="p-4 w-40 text-center">เปิด/ปิด รับ</th><th class="p-4 pr-6 w-32 text-center">จัดการ</th></tr></thead><tbody class="text-sm">`;
 
-            if (pageItems.length === 0) { h += `<tr><td colspan="6" class="p-12 text-center text-slate-500 font-medium"><i class="ph-fill ph-magnifying-glass text-5xl text-slate-300 mb-3 block mx-auto"></i>ไม่พบกิจกรรมที่ค้นหา</td></tr>`; } else {
+            if (pageItems.length === 0) { h += `<tr><td colspan="6" class="p-12 text-center text-slate-500 font-medium"><div class="flex flex-col items-center justify-center"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" class="w-16 h-16 object-contain mb-3 drop-shadow-sm"><span>ไม่พบกิจกรรมที่ค้นหา</span></div></td></tr>`; } else {
                 pageItems.forEach((act, idx) => {
                     const evKey = String(act.id).trim(); const count = evalByEvent[evKey]?.students?.length || 0; const isOpen = window.isCertEventOpen(evKey); const num = startIdx + idx + 1;
                     h += `
@@ -1969,10 +2108,10 @@
                 <div class="fade-in max-w-6xl mx-auto pb-10">
                     <div class="mb-8 flex flex-col md:flex-row justify-between md:items-end gap-4">
                         <div><h1 class="text-3xl font-black text-slate-800">จัดการใบประกาศนียบัตร</h1><p class="text-primary font-bold text-lg mt-1">${eName}</p></div>
-                        <div class="flex gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0"><button onclick="navigate('admin-certificates')" class="shrink-0 px-5 py-2.5 bg-white border border-white shadow-sm rounded-xl font-bold text-sm hover-lift flex items-center gap-2 text-slate-600 hover:text-primary"><i class="ph-bold ph-arrow-left"></i> ย้อนกลับ</button>${validStudents.length > 0 ? `<button onclick="exportEventCertificates('${eId}')" class="shrink-0 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white shadow-md rounded-xl font-bold text-sm flex gap-2 items-center hover-lift transition-colors"><i class="ph-bold ph-file-pdf text-lg"></i> โหลด PDF ทั้งหมด (${validStudents.length})</button>` : ''}</div>
+                        <div class="flex gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0"><button onclick="navigate('admin-certificates')" class="shrink-0 px-5 py-2.5 bg-white border border-white shadow-sm rounded-xl font-bold text-sm hover-lift flex items-center gap-2 text-slate-600 hover:text-primary"><i class="ph-bold ph-arrow-left"></i> ย้อนกลกลกลกลับ</button>${validStudents.length > 0 ? `<button onclick="exportEventCertificates('${eId}')" class="shrink-0 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white shadow-md rounded-xl font-bold text-sm flex gap-2 items-center hover-lift transition-colors"><i class="ph-bold ph-file-pdf text-lg"></i> โหลด PDF ทั้งหมด (${validStudents.length})</button>` : ''}</div>
                     </div>
-                    <div class="glass rounded-3xl border border-white shadow-sm overflow-hidden"><div class="bg-white/60 p-4 border-b border-white text-sm font-bold flex justify-between px-6 items-center"><span>ผู้ผ่านประเมินและมีสิทธิ์ได้รับใบประกาศ: <span class="text-primary text-base">${validStudents.length}</span> คน</span></div><div class="overflow-x-auto"><table class="w-full text-left min-w-[700px]"><thead class="bg-white/40 border-b border-white text-slate-500 text-xs uppercase"><th class="p-5 pl-6 w-20">ลำดับ</th><th class="p-5 w-48">รหัสนักศึกษา</th><th class="p-5">ชื่อ-นามสกุล</th><th class="p-5 text-center w-40">จัดการ</th></thead><tbody class="text-sm">`;
-            if (validStudents.length === 0) { h += `<tr><td colspan="4" class="p-12 text-center text-slate-500 font-medium"><i class="ph-fill ph-certificate text-5xl text-slate-300 mb-3 block mx-auto"></i>ยังไม่มีผู้ผ่านการประเมินผลสำหรับกิจกรรมนี้</td></tr>`; } else {
+                    <div class="glass rounded-3xl border border-white shadow-sm overflow-hidden"><div class="bg-white/60 p-4 border-b border-white text-sm font-bold flex justify-between px-6 items-center"><span>ผู้ผ่านประเมินและมีสิทธิ์ได้รับใบประกาศ: <span class="text-primary text-base">${validStudents.length}</span> คน</span></div><div class="overflow-x-auto"><table class="w-full text-left min-w-[700px]"><thead class="bg-white/40 border-b border-white text-slate-500 text-xs uppercase"><th class="p-5 pl-6 w-20">ลำดกลกลกลับ</th><th class="p-5 w-48">รหัสนักศึกษา</th><th class="p-5">ชื่อ-นามสกุล</th><th class="p-5 text-center w-40">จัดการ</th></thead><tbody class="text-sm">`;
+            if (validStudents.length === 0) { h += `<tr><td colspan="4" class="p-12 text-center text-slate-500 font-medium"><i class="ph-fill ph-certificate text-5xl text-slate-300 mb-3 block mx-auto"></i>ยังไม่มีผู้ผ่านการประเมินผลสำหรับกิจกรรมนี้</span></div></td></tr>`; } else {
                 validStudents.forEach((s, idx) => {
                     const safeName = s.sName.replace(/'/g, "\\'"); const safeEvent = eName.replace(/'/g, "\\'"); const safeDate = eDate.replace(/'/g, "\\'");
                     h += `<tr class="border-b border-white/50 hover:bg-white/60 transition-colors"><td class="p-5 pl-6 text-slate-500 font-bold">${idx + 1}</td><td class="p-5 font-bold font-mono">${s.sId}</td><td class="p-5 font-bold text-slate-700">${s.sName}</td><td class="p-5 text-center"><button onclick="downloadCertificatePDF('${safeName}', '${safeEvent}', '${safeDate}', '${eId}')" class="px-4 py-2 bg-white text-amber-600 border border-amber-200 rounded-xl text-xs font-bold hover:bg-amber-50 transition-colors hover-lift shadow-sm inline-flex items-center gap-2"><i class="ph-bold ph-download-simple"></i> โหลด PDF</button></td></tr>`;
@@ -1988,9 +2127,8 @@
         };
 
         window.renderShirtShop = async function(c) {
-            c.innerHTML = window.getGokuLoader('ตรวจสอบสถานะร้านค้า...'); 
-            try { await window.fetchSettingsData(); } catch (e) { isShirtShopOpen = localStorage.getItem('CRRU_ShopOpen') !== 'false'; }
-            if (!isShirtShopOpen) { c.innerHTML = `<div class="fade-in max-w-4xl mx-auto px-4 py-10"><div class="glass rounded-[32px] p-12 text-center"><div class="w-24 h-24 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-8"><i class="ph-fill ph-lock-key text-5xl"></i></div><h2 class="text-3xl font-black text-slate-800 mb-3">ปิดให้บริการชั่วคราว</h2><button onclick="navigate('events')" class="mt-8 px-8 py-4 bg-slate-800 text-white font-bold rounded-2xl mx-auto flex items-center gap-2"><i class="ph-bold ph-arrow-left"></i> กลับไปหน้ากิจกรรม</button></div></div>`; return; }
+            window.fetchSettingsData().catch(e=>console.log(e)); // fetch in background
+            if (!isShirtShopOpen) { c.innerHTML = `<div class="fade-in max-w-4xl mx-auto px-4 py-10"><div class="glass rounded-[32px] p-12 text-center"><div class="w-24 h-24 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-8"><i class="ph-fill ph-lock-key text-5xl"></i></div><h2 class="text-3xl font-black text-slate-800 mb-3">ปิดให้บริการชั่วคราว</h2><button onclick="navigate('events')" class="mt-8 px-8 py-4 bg-slate-800 text-white font-bold rounded-2xl mx-auto flex items-center gap-2"><i class="ph-bold ph-arrow-left"></i> กลกลกลกลับไปหน้ากิจกรรม</button></div></div>`; return; }
             c.innerHTML = `
                 <div class="fade-in max-w-4xl mx-auto pb-24 sm:pb-10">
                     <div id="order-step-search" class="animate-fadeIn block">
@@ -2008,17 +2146,16 @@
                                         <input type="text" id="search-order-id" class="w-full pl-12 pr-4 py-4 bg-white/80 border border-white rounded-2xl font-bold shadow-sm outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-primary transition-all" placeholder="ระบุรหัสนักศึกษา หรือ บัตรประชาชน" onkeypress="if(event.key === 'Enter') fetchStudentForOrder()">
                                     </div>
                                     <p id="search-order-feedback" class="text-sm text-orange-600 font-bold hidden bg-orange-50 p-4 rounded-xl border border-orange-200 text-center"></p>
-                                    <button onclick="fetchStudentForOrder()" id="btn-fetch-order" class="w-full py-4 bg-slate-800 text-white font-bold rounded-2xl flex justify-center items-center gap-2 hover:bg-black transition-all shadow-lg shadow-slate-800/20"><i class="ph-bold ph-arrow-right text-lg"></i> ดำเนินการต่อ</button>
+                                    <button onclick="fetchStudentForOrder()" id="btn-fetch-order" class="w-full py-4 bg-slate-800 text-white font-bold rounded-2xl flex justify-center items-center gap-2 hover:bg-black transition-all shadow-lg shadow-slate-800/20"><i class="ph-bold ph-arrow-right text-lg"></i> ดำเนแอดมแอดมินการต่อ</button>
                                 </div>
-                                <div class="mt-8 text-center"><button onclick="skipOrderSearch()" class="mt-6 text-sm font-bold text-slate-500 hover:text-primary flex items-center justify-center gap-2 w-full"><i class="ph-bold ph-pencil-simple text-lg"></i> ไม่มีข้อมูลในระบบ? กรอกข้อมูลเอง</button></div>
                             </div>
                         </div>
                     </div>
                     
                     <div id="order-step-form" class="hidden animate-fadeIn">
-                        <div class="text-center mb-8"><h2 class="text-3xl font-black text-slate-800">ระบุรายละเอียดสั่งจอง</h2></div>
+                        <div class="text-center mb-8"><h2 class="text-3xl font-black text-slate-800">ระบุรายละเอกสารกสารกสารียดสั่งจอง</h2></div>
                         <form id="orderForm" onsubmit="mockOrderSubmit(event)">
-                            <div class="bg-gradient-to-br from-orange-50 to-white/50 border border-white p-6 rounded-[32px] mb-8 flex flex-col md:flex-row gap-5 relative overflow-hidden shadow-sm"><div class="w-full flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10"><div><label class="block text-[10px] font-bold text-primary uppercase mb-1.5">รหัส นศ.</label><input type="text" id="order-student-id" required class="w-full px-5 py-3 rounded-2xl border border-white bg-white/80 font-bold text-sm outline-none" oninput="window.applyShirtLogic()"></div><div><label class="block text-[10px] font-bold text-primary uppercase mb-1.5">ชื่อ-นามสกุล</label><input type="text" id="order-student-name" required class="w-full px-5 py-3 rounded-2xl border border-white bg-white/80 font-bold text-sm outline-none focus:border-primary"></div><div><label class="block text-[10px] font-bold text-primary uppercase mb-1.5">คณะ</label><input type="text" id="order-faculty" required class="w-full px-5 py-3 rounded-2xl border border-white bg-white/80 font-bold text-sm outline-none focus:border-primary"></div><div><label class="block text-[10px] font-bold text-primary uppercase mb-1.5">สาขา</label><input type="text" id="order-major" required class="w-full px-5 py-3 rounded-2xl border border-white bg-white/80 font-bold text-sm outline-none focus:border-primary"></div></div><button type="button" onclick="resetOrderSearch()" class="relative z-10 h-[46px] mt-auto mb-0.5 text-xs font-bold text-slate-500 hover:text-red-500 bg-white px-5 rounded-2xl border shadow-sm w-full md:w-auto flex justify-center items-center gap-2 shrink-0">เปลี่ยน</button></div>
+                            <div class="bg-gradient-to-br from-orange-50 to-white/50 border border-white p-6 rounded-[32px] mb-8 flex flex-col md:flex-row gap-5 relative overflow-hidden shadow-sm"><div class="w-full flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10"><div><label class="block text-[10px] font-bold text-primary uppercase mb-1.5">รหัส นศ.</label><input type="text" id="order-student-id" required class="w-full px-5 py-3 rounded-2xl border border-white bg-white/80 font-bold text-sm outline-none" oninput="window.applyShirtLogic()"></div><div><label class="block text-[10px] font-bold text-primary uppercase mb-1.5">ชื่อ-นามสกุล</label><input type="text" id="order-student-name" required class="w-full px-5 py-3 rounded-2xl border border-white bg-white/80 font-bold text-sm outline-none focus:border-primary"></div><div><label class="block text-[10px] font-bold text-primary uppercase mb-1.5">คณะ</label><input type="text" id="order-faculty" required class="w-full px-5 py-3 rounded-2xl border border-white bg-white/80 font-bold text-sm outline-none focus:border-primary"></div><div><label class="block text-[10px] font-bold text-primary uppercase mb-1.5">สาขา</label><input type="text" id="order-major" required class="w-full px-5 py-3 rounded-2xl border border-white bg-white/80 font-bold text-sm outline-none focus:border-primary"></div></div></div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                                 <div class="glass hover-lift rounded-[32px] flex flex-col overflow-hidden"><div class="bg-white/50 p-5 border-b border-white flex justify-between items-center"><div class="flex items-center gap-4"><div class="w-12 h-12 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center"><i class="ph-fill ph-t-shirt text-2xl"></i></div><div><h3 class="font-bold text-slate-800 text-lg">1. โปโลคณะ</h3></div></div><button type="button" onclick="document.getElementById('sizeChartModal').classList.remove('hidden')" class="text-xs font-bold text-primary bg-white border px-3 py-1.5 rounded-xl shadow-sm">ตารางไซส์</button></div><div class="p-6 flex-grow space-y-6"><div>
                                 <div class="grid grid-cols-4 sm:grid-cols-5 gap-2">
@@ -2088,7 +2225,7 @@
             try { 
                 const r = await window.apiCall('GET', { action: 'search', id: encodeURIComponent(searchId) }); 
                 if (r.success && r.data) { appCache.students[searchId] = r.data; proceedToStep2(r.data); } 
-                else { feedback.innerHTML = 'ไม่พบข้อมูลสิทธิ์นักศึกษา กรุณาตรวจสอบรหัส หรือเลือกกรอกข้อมูลเอง'; feedback.classList.remove('hidden'); } 
+                else { feedback.innerHTML = 'ไม่พบข้อมูลในระบบ หรือเกิดข้อผิดพลาด? <button type="button" onclick="window.skipOrderSearch(\'' + searchId + '\')" class="text-primary font-bold underline ml-1 hover:text-orange-500">คลิกที่นี่เพื่อกรอกข้อมูลเอง</button>'; feedback.classList.remove('hidden'); } 
             } catch (err) { window.skipOrderSearch(searchId); } 
             finally { b.innerHTML = t; b.disabled = false; }
         };
@@ -2180,17 +2317,17 @@
                                 <div class="w-24 h-24 bg-white text-orange-500 rounded-[28px] flex items-center justify-center mb-8 shadow-sm border border-orange-100">
                                     <i class="ph-fill ph-wallet text-5xl"></i>
                                 </div>
-                                <h3 class="text-3xl font-black mb-4 text-slate-800">ชำระด้วยเงินสด</h3>
-                                <p class="text-slate-600 mb-8 font-medium">เมื่อกดยืนยัน ระบบจะออก <span class="bg-white px-2 py-1 rounded font-bold text-primary border shadow-sm">"ใบเสร็จรับเงิน"</span> ให้ทันที<br>เพื่อใช้เป็นหลักฐานนำไปชำระเงินที่ห้องฝ่ายกิจการนักศึกษา</p>
+                                <h3 class="text-3xl font-black mb-4 text-slate-800">ชำระด้วยเงแอดมแอดมินสด</h3>
+                                <p class="text-slate-600 mb-8 font-medium">เมื่อกดยืนยัน ระบบจะออก <span class="bg-white px-2 py-1 rounded font-bold text-primary border shadow-sm">"ใบเสร็จรับเงแอดมแอดมิน"</span> ให้ทันที<br>เพื่อใช้เป็นหลักฐานนำไปชำระเงแอดมแอดมินที่ห้องฝ่ายกิจการนักศึกษา</p>
                                 
                                 <div class="w-full bg-white/80 border border-white rounded-[24px] p-6 text-left mb-8 shadow-sm">
                                     <div class="flex gap-4">
                                         <div class="shrink-0 mt-0.5"><div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-primary"><i class="ph-bold ph-info"></i></div></div>
                                         <div>
-                                            <h4 class="font-bold text-slate-800 mb-3 text-lg">ขั้นตอนการชำระเงินสด:</h4>
+                                            <h4 class="font-bold text-slate-800 mb-3 text-lg">ขั้นตอนการชำระเงแอดมแอดมินสด:</h4>
                                             <ul class="space-y-3 text-slate-600 font-medium">
                                                 <li class="flex items-start gap-2"><span class="mt-2 w-1.5 h-1.5 bg-primary rounded-full shrink-0"></span><span>กดยืนยันด้านล่าง เพื่อบันทึกและ <span class="font-bold border-b border-orange-300 pb-0.5 text-slate-800">รับใบเสร็จ (PDF)</span></span></li>
-                                                <li class="flex items-start gap-2"><span class="mt-2 w-1.5 h-1.5 bg-primary rounded-full shrink-0"></span><span>นำใบเสร็จไปติดต่อชำระเงิน <span class="font-bold text-slate-800">ภายใน 3 วันทำการ</span></span></li>
+                                                <li class="flex items-start gap-2"><span class="mt-2 w-1.5 h-1.5 bg-primary rounded-full shrink-0"></span><span>นำใบเสร็จไปติดต่อชำระเงแอดมแอดมิน <span class="font-bold text-slate-800">ภายใน 3 วันทำการ</span></span></li>
                                                 <li class="flex items-start gap-2"><span class="mt-2 w-1.5 h-1.5 bg-primary rounded-full shrink-0"></span><span>เวลาทำการ 09:00 - 16:30 น. <span class="text-slate-500/80">(ห้องฝ่ายกิจการนักศึกษา)</span></span></li>
                                             </ul>
                                         </div>
@@ -2217,8 +2354,7 @@
         };
 
         window.renderTracking = async function(c) {
-            c.innerHTML = window.getGokuLoader('เตรียมหน้าค้นหา...'); try { await window.fetchSettingsData(); } catch (e) {}
-            if (!isShirtShopOpen) { c.innerHTML = `<div class="fade-in max-w-4xl mx-auto px-4 py-10"><div class="glass rounded-[32px] p-12 text-center"><i class="ph-fill ph-lock-key text-5xl text-red-500 mb-4 block"></i><h2 class="text-3xl font-black mb-3">ปิดให้บริการชั่วคราว</h2><button onclick="navigate('events')" class="px-8 py-4 bg-slate-800 text-white font-bold rounded-2xl mt-6 mx-auto"><i class="ph-bold ph-arrow-left"></i> กลับไปหน้ากิจกรรม</button></div></div>`; return; }
+            if (!isShirtShopOpen) { c.innerHTML = `<div class="fade-in max-w-4xl mx-auto px-4 py-10"><div class="glass rounded-[32px] p-12 text-center"><i class="ph-fill ph-lock-key text-5xl text-red-500 mb-4 block"></i><h2 class="text-3xl font-black mb-3">ปิดให้บริการชั่วคราว</h2><button onclick="navigate('events')" class="px-8 py-4 bg-slate-800 text-white font-bold rounded-2xl mt-6 mx-auto"><i class="ph-bold ph-arrow-left"></i> กลกลกลกลับไปหน้ากิจกรรม</button></div></div>`; return; }
             c.innerHTML = `
                 <div class="fade-in max-w-4xl mx-auto pb-10">
                     <div class="mb-8 text-center sm:text-left"><h1 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">ติดตามสถานะการจอง</h1></div>
@@ -2245,10 +2381,36 @@
             if(!sId) { f.textContent = 'กรุณากรอกรหัส'; f.classList.remove('hidden'); return; }
             const b = document.getElementById('btn-fetch-tracking'), txt = b.innerHTML; b.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i>'; b.disabled = true; f.classList.add('hidden'); rS.classList.add('hidden');
             try {
-                await window.fetchOrdersData(true); let tS = sId, mO = appCache.orders.find(o => String(o.studentId).trim() === tS);
-                if (!mO && sId.length >= 10) { const r = await window.apiCall('GET', { action: 'search', id: encodeURIComponent(sId) }); if (r.success && r.data && r.data.studentId) { tS = r.data.studentId; mO = appCache.orders.find(o => String(o.studentId).trim() === tS); } }
-                if (mO) { window.showToast('พบข้อมูล', 'success'); document.getElementById('btn-clear-tracking').classList.remove('hidden'); window.renderTrackingReceipt(rS, mO); rS.classList.remove('hidden'); } else { f.innerHTML = 'ไม่พบประวัติการสั่งจอง'; f.classList.remove('hidden'); }
-            } catch (error) { f.innerHTML = 'ระบบออฟไลน์'; f.classList.remove('hidden'); } finally { b.innerHTML = txt; b.disabled = false; }
+                // โหลดข้อมูลเข้า appCache ก่อนค้นหา
+                if (appCache.orders.length === 0) await window.fetchOrdersData();
+                if (appCache.checkIns.length === 0) await window.fetchAllCheckInsData();
+                let tS = sId;
+                let mO = appCache.orders.find(o => String(o.studentId).trim() === tS || String(o.citizenId).trim() === tS);
+                
+                // ถ้าค้นจากออเดอร์ไม่เจอ ลองเอกสารกสารกสาราไปเทียบกกลกลกลับประวัติเช็คอแอดมแอดมินเผื่อพิมพ์บัตรประชาชนมา
+                if (!mO && sId.length >= 10) { 
+                    const studentRecord = appCache.checkIns.find(c => String(c[3]).trim() === sId);
+                    if (studentRecord) {
+                        tS = String(studentRecord[2]).trim(); 
+                        mO = appCache.orders.find(o => String(o.studentId).trim() === tS);
+                    }
+                }
+                
+                if (mO) { 
+                    window.showToast('พบข้อมูล', 'success'); 
+                    document.getElementById('btn-clear-tracking').classList.remove('hidden'); 
+                    window.renderTrackingReceipt(rS, mO); 
+                    rS.classList.remove('hidden'); 
+                } else { 
+                    f.innerHTML = 'ไม่พบประวัติการสั่งจอง'; 
+                    f.classList.remove('hidden'); 
+                }
+            } catch (error) { 
+                f.innerHTML = 'ระบบออฟไลน์'; 
+                f.classList.remove('hidden'); 
+            } finally { 
+                b.innerHTML = txt; b.disabled = false; 
+            }
         };
 
         window.clearTrackingSearch = function() { document.getElementById('search-tracking-id').value = ''; document.getElementById('tracking-result-section').classList.add('hidden'); document.getElementById('tracking-result-section').innerHTML = ''; document.getElementById('btn-clear-tracking').classList.add('hidden'); document.getElementById('search-tracking-feedback').classList.add('hidden'); };
@@ -2256,7 +2418,7 @@
         window.renderTrackingReceipt = function(c, o) {
             const cS = o.status; let iH = ''; const tB = "border: 1px solid #1e293b; padding: 10px; font-size: 13px;";
             let pSz = 'M', pQ = 0, aSz = 'M', aQ = 0, sZ = String(o.size || '');
-            let pN = sZ.match(/โปโล\s*([A-Za-z0-9\u0e00-\u0e7f]+)\s*\[(\d+)\]/i), aN = sZ.match(/กิจกรรม\s*([A-Za-z0-9\u0e00-\u0e7f]+)\s*\[(\d+)\]/i);
+            let pN = sZ.match(/(?:โปโล)\s*([A-Za-z0-9\u0e00-\u0e7f]+)\s*\[(\d+)\]/i), aN = sZ.match(/(?:กิจกรรม)\s*([A-Za-z0-9\u0e00-\u0e7f]+)\s*\[(\d+)\]/i);
             if (pN) { pSz = pN[1]; pQ = parseInt(pN[2]); } if (aN) { aSz = aN[1]; aQ = parseInt(aN[2]); }
             if (pSz === 'ไม่รับ') pQ = 0; if (aSz === 'ไม่รับ') aQ = 0;
 
@@ -2274,37 +2436,37 @@
                         <div>
                             <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #1e293b; padding-bottom: 10px; margin-bottom: 10px;">
                                 <div style="width: 55%;"><h2 style="font-size: 15px; font-weight: 700; margin: 0;">สโมสรนักศึกษาคณะเทคโนโลยีดิจิทัล</h2><p style="font-size: 12px; margin: 0;">มหาวิทยาลัยราชภัฏเชียงราย</p></div>
-                                <div style="width: 45%; text-align: right;"><h1 style="font-size: 18px; font-weight: 900; margin: 0 0 4px 0;">ใบเสร็จรับเงิน</h1><span style="font-weight: bold; border: 2px solid #1e293b; padding: 2px 10px; font-size: 11px;">${isC ? 'สำเนา (Copy)' : 'ต้นฉบับ (Original)'}</span></div>
+                                <div style="width: 45%; text-align: right;"><h1 style="font-size: 18px; font-weight: 900; margin: 0 0 4px 0;">ใบเสร็จรับเงแอดมแอดมิน</h1><span style="font-weight: bold; border: 2px solid #1e293b; padding: 2px 10px; font-size: 11px;">${isC ? 'สำเนา (Copy)' : 'ต้นฉบกลกลกลับ (Original)'}</span></div>
                             </div>
                             <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 10px;">
-                                <div style="width: 55%;"><p style="margin: 0;"><b>ได้รับเงินจาก:</b> ${o.name}</p><p style="margin: 0;"><b>รหัสนักศึกษา:</b> ${o.studentId}</p><p style="margin: 0;"><b>คณะ/สาขา:</b> ${dF} / ${dM}</p></div>
+                                <div style="width: 55%;"><p style="margin: 0;"><b>ได้รับเงแอดมแอดมินจาก:</b> ${o.name}</p><p style="margin: 0;"><b>รหัสนักศึกษา:</b> ${o.studentId}</p><p style="margin: 0;"><b>คณะ/สาขา:</b> ${dF} / ${dM}</p></div>
                                 <div style="width: 45%; text-align: right;"><p style="margin: 0;"><b>Order ID:</b> ${o.id}</p><p style="margin: 0;"><b>วันที่:</b> ${window.formatThaiDate(o.timestamp || o.date, true)}</p></div>
                             </div>
                             <table style="width: 100%; border-collapse: collapse; border: 2px solid #1e293b;">
-                                <thead><tr style="background-color: #f1f5f9;"><th style="${tB} text-align: center;">ลำดับ</th><th style="${tB}">รายการสินค้า</th><th style="${tB} text-align: center;">จำนวน</th><th style="${tB} text-align: right;">หน่วยละ</th><th style="${tB} text-align: right;">จำนวนเงิน</th></tr></thead>
-                                <tbody>${iH}<tr><td colspan="4" style="border: 1px solid #1e293b; padding: 8px 10px; text-align: right; font-weight: 700; font-size: 12px;">รวมเงินสุทธิ</td><td style="border: 1px solid #1e293b; padding: 8px 10px; text-align: right; font-weight: 900; font-size: 14px;">${sumTotal.toLocaleString()}</td></tr></tbody>
+                                <thead><tr style="background-color: #f1f5f9;"><th style="${tB} text-align: center;">ลำดกลกลกลับ</th><th style="${tB}">รายการสแอดมแอดมินค้า</th><th style="${tB} text-align: center;">จำนวน</th><th style="${tB} text-align: right;">หน่วยละ</th><th style="${tB} text-align: right;">จำนวนเงแอดมแอดมิน</th></tr></thead>
+                                <tbody>${iH}<tr><td colspan="4" style="border: 1px solid #1e293b; padding: 8px 10px; text-align: right; font-weight: 700; font-size: 12px;">รวมเงแอดมแอดมินสุทธิ</td><td style="border: 1px solid #1e293b; padding: 8px 10px; text-align: right; font-weight: 900; font-size: 14px;">${sumTotal.toLocaleString()}</td></tr></tbody>
                             </table>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; padding: 0 20px;">
                             <div style="text-align: center; width: 40%;">
                                 <p style="margin: 0 0 8px 0; color: #94a3b8;">.......................................................</p>
-                                <p style="font-weight: 700; margin: 0; font-size: 12px; color: #1e293b;">ผู้จ่ายเงิน</p>
+                                <p style="font-weight: 700; margin: 0; font-size: 12px; color: #1e293b;">ผู้จ่ายเงแอดมแอดมิน</p>
                                 <p style="font-weight: 500; margin: 4px 0 0; font-size: 11px; color: #64748b;">( ${o.name} )</p>
                                 <p style="font-weight: 500; margin: 4px 0 0; font-size: 10px; color: #94a3b8;">วันที่: ....../....../......</p>
                             </div>
                             <div style="text-align: center; width: 40%;">
                                 <p style="margin: 0 0 8px 0; color: #94a3b8;">.......................................................</p>
-                                <p style="font-weight: 700; margin: 0; font-size: 12px; color: #1e293b;">ผู้รับเงิน</p>
+                                <p style="font-weight: 700; margin: 0; font-size: 12px; color: #1e293b;">ผู้รับเงแอดมแอดมิน</p>
                                 <p style="font-weight: 500; margin: 4px 0 0; font-size: 11px; color: #64748b;">( เจ้าหน้าที่คณะ/สโมสรนักศึกษา )</p>
                                 <p style="font-weight: 500; margin: 4px 0 0; font-size: 10px; color: #94a3b8;">วันที่: ....../....../......</p>
                             </div>
                         </div>
-                        <p style="font-size: 10px; color: #64748b; margin: 15px 0 0 0; text-align: center; background-color: #f8fafc; padding: 6px; border-radius: 4px;">ชำระผ่าน: <b>เงินสด</b> | ใช้เป็นหลักฐานในการติดต่อรับชุดเสื้อคณะเท่านั้น</p>
+                        <p style="font-size: 10px; color: #64748b; margin: 15px 0 0 0; text-align: center; background-color: #f8fafc; padding: 6px; border-radius: 4px;">ชำระผ่าน: <b>เงแอดมแอดมินสด</b> | ใช้เป็นหลักฐานในการติดต่อรับชุดเสื้อคณะเท่านั้น</p>
                     </div>
                 </div>`;
 
             let h = `
-                <div class="glass rounded-[32px] shadow-xl p-8 sm:p-10 mb-8 overflow-hidden print:hidden text-center border border-white"><h2 class="text-2xl font-black text-slate-800 mb-8">สถานะการดำเนินการ</h2><div class="relative flex flex-col md:flex-row justify-between items-start md:items-center max-w-3xl mx-auto">
+                <div class="glass rounded-[32px] shadow-xl p-8 sm:p-10 mb-8 overflow-hidden print:hidden text-center border border-white"><h2 class="text-2xl font-black text-slate-800 mb-8">สถานะการดำเนแอดมแอดมินการ</h2><div class="relative flex flex-col md:flex-row justify-between items-start md:items-center max-w-3xl mx-auto">
                     <div class="hidden md:block absolute top-6 left-[10%] right-[10%] h-1 bg-white z-0"></div>
                 `;
             
@@ -2404,7 +2566,7 @@
             let poloTableBody = SIZE_LIST.filter(s => sum.polo[s] > 0).length ? SIZE_LIST.filter(s => sum.polo[s] > 0).map(s => `<tr class="border-b border-white/50 hover:bg-white/40"><td class="py-4 px-6 w-1/2">ไซส์ ${s}</td><td class="py-4 px-6 text-right ${s==='ไม่รับ'?'text-red-500':''}">${sum.polo[s]} ตัว</td></tr>`).join('') : `<tr><td colspan="2" class="py-4 px-6 text-center text-slate-400 font-medium">ยังไม่มีข้อมูล</td></tr>`;
             let actTableBody = SIZE_LIST.filter(s => sum.act[s] > 0).length ? SIZE_LIST.filter(s => sum.act[s] > 0).map(s => `<tr class="border-b border-white/50 hover:bg-white/40"><td class="py-4 px-6 w-1/2">ไซส์ ${s}</td><td class="py-4 px-6 text-right ${s==='ไม่รับ'?'text-red-500':''}">${sum.act[s]} ตัว</td></tr>`).join('') : `<tr><td colspan="2" class="py-4 px-6 text-center text-slate-400 font-medium">ยังไม่มีข้อมูล</td></tr>`;
 
-            c.innerHTML = `<div class="fade-in max-w-7xl mx-auto">
+            c.innerHTML = `<div class="fade-in max-w-7xl mx-auto pb-32 sm:pb-10">
                 <div class="mb-8 flex justify-between items-end">
                     <h1 class="text-3xl font-black text-slate-800">จัดการจองเสื้อ</h1>
                     <div class="flex gap-3">
@@ -2430,7 +2592,7 @@
                     <h2 class="text-xl font-bold flex items-center gap-2"><i class="ph-fill ph-list-checks text-primary"></i> รายการคำสั่งซื้อทั้งหมด</h2>
                     <div class="flex flex-col sm:flex-row w-full sm:w-auto gap-3"><div class="relative w-full sm:w-64"><i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="text" id="adm-ord-search" oninput="admSearchOrders(this.value)" placeholder="ค้นหารหัส, ชื่อ, Order ID" class="w-full pl-12 pr-4 py-2.5 rounded-xl border border-white shadow-sm bg-white/80 font-medium text-sm outline-none focus:ring-2 focus:ring-primary/20" value="${adminOrdersSearch}"></div><button onclick="exportAdminOrdersExcel()" class="px-5 py-2.5 bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-sm rounded-xl font-bold text-sm w-full sm:w-auto hover-lift whitespace-nowrap"><i class="ph-bold ph-file-xls"></i> โหลด Excel (แยกสาขา)</button></div>
                 </div>
-                <div class="glass rounded-3xl border border-white shadow-sm overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left min-w-[1000px]"><thead class="bg-white/60 border-b border-white text-slate-500 text-xs uppercase"><th class="p-5">Order ID</th><th class="p-5">นักศึกษา</th><th class="p-5">สินค้า</th><th class="p-5">ยอดรวม</th><th class="p-5">สถานะ</th><th class="p-5 text-center">จัดการ</th></thead><tbody id="admin-orders-tbody" class="text-sm bg-white/40"></tbody></table></div><div id="admin-orders-pagination" class="p-5 border-t border-white flex justify-between bg-white/60"></div></div>
+                <div class="glass rounded-3xl border border-white shadow-sm overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left min-w-[1000px]"><thead class="bg-white/60 border-b border-white text-slate-500 text-xs uppercase"><th class="p-5">Order ID</th><th class="p-5">นักศึกษา</th><th class="p-5">สแอดมแอดมินค้า</th><th class="p-5">ยอดรวม</th><th class="p-5">สถานะ</th><th class="p-5 text-center">จัดการ</th></thead><tbody id="admin-orders-tbody" class="text-sm bg-white/40"></tbody></table></div><div id="admin-orders-pagination" class="p-5 border-t border-white flex justify-between bg-white/60"></div></div>
             </div>`;
             window.updateAdminOrdersTable();
         };
@@ -2443,7 +2605,7 @@
             const pO = ods.slice((adminOrdersPage - 1) * adminOrdersPerPage, adminOrdersPage * adminOrdersPerPage);
             let h = '';
             if (pO.length === 0) { h = `<tr><td colspan="6" class="p-12 text-center text-slate-400">ไม่มีรายการ</td></tr>`; } 
-            else { pO.forEach(o => { const s = STATUS_MAP[o.status], pB = `<span class="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg text-[10px] font-bold border border-amber-200 inline-flex mx-auto">เงินสด</span>`; let op = ''; for(let i=1; i<=4; i++) op += `<option value="${i}" ${o.status===i?'selected':''}>${STATUS_MAP[i].text}</option>`; h += `<tr class="border-b border-white/50 hover:bg-white/80 transition-colors"><td class="p-5"><p class="font-bold font-mono">${o.id}</p><p class="text-[10px] text-slate-400">${o.timestamp}</p></td><td class="p-5"><p class="font-bold">${o.name}</p><p class="text-xs text-slate-500">${o.studentId}</p></td><td class="p-5"><p class="font-bold bg-white/60 border border-white shadow-sm px-2 py-1 rounded inline-block mb-1">${o.type}</p><p class="text-xs">${o.size}</p></td><td class="p-5 font-bold text-primary text-base">฿${Number(o.total || 0).toLocaleString('th-TH')}</td><td class="p-5"><span class="${s.color} px-4 py-2 rounded-xl text-xs font-bold border border-white/50 shadow-sm inline-flex items-center gap-1.5"><i class="ph-bold ${s.icon}"></i> ${s.text}</span></td><td class="p-5 text-center"><div class="flex flex-col items-center gap-2">${pB}<select onchange="updateOrderStatus('${o.id}', this.value)" class="text-xs font-bold border border-slate-200 rounded-xl px-3 py-2.5 cursor-pointer outline-none focus:border-primary">${op}</select></div></td></tr>`; }); }
+            else { pO.forEach(o => { const s = STATUS_MAP[o.status], pB = `<span class="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg text-[10px] font-bold border border-amber-200 inline-flex mx-auto">เงแอดมแอดมินสด</span>`; let op = ''; for(let i=1; i<=4; i++) op += `<option value="${i}" ${o.status===i?'selected':''}>${STATUS_MAP[i].text}</option>`; h += `<tr class="border-b border-white/50 hover:bg-white/80 transition-colors"><td class="p-5"><p class="font-bold font-mono">${o.id}</p><p class="text-[10px] text-slate-400">${o.timestamp}</p></td><td class="p-5"><p class="font-bold">${o.name}</p><p class="text-xs text-slate-500">${o.studentId}</p></td><td class="p-5"><p class="font-bold bg-white/60 border border-white shadow-sm px-2 py-1 rounded inline-block mb-1">${o.type}</p><p class="text-xs">${o.size}</p></td><td class="p-5 font-bold text-primary text-base">฿${Number(o.total || 0).toLocaleString('th-TH')}</td><td class="p-5"><span class="${s.color} px-4 py-2 rounded-xl text-xs font-bold border border-white/50 shadow-sm inline-flex items-center gap-1.5"><i class="ph-bold ${s.icon}"></i> ${s.text}</span></td><td class="p-5 text-center"><div class="flex flex-col items-center gap-2">${pB}<select onchange="updateOrderStatus('${o.id}', this.value)" class="text-xs font-bold border border-slate-200 rounded-xl px-3 py-2.5 cursor-pointer outline-none focus:border-primary">${op}</select></div></td></tr>`; }); }
             tb.innerHTML = h; const sD = tI === 0 ? 0 : ((adminOrdersPage - 1) * adminOrdersPerPage) + 1, eD = Math.min(adminOrdersPage * adminOrdersPerPage, tI);
             pg.innerHTML = `<span class="text-sm font-medium bg-white px-4 py-2 rounded-xl border border-white shadow-sm">แสดง <b>${sD}-${eD}</b> จาก <b>${tI}</b></span><div class="flex gap-2"><button onclick="changeAdminOrdersPage(${adminOrdersPage - 1})" ${adminOrdersPage <= 1 ? 'disabled' : ''} class="w-10 h-10 flex justify-center items-center rounded-xl border border-white shadow-sm bg-white disabled:opacity-40 hover-lift"><i class="ph-bold ph-caret-left"></i></button><button onclick="changeAdminOrdersPage(${adminOrdersPage + 1})" ${adminOrdersPage >= tP ? 'disabled' : ''} class="w-10 h-10 flex justify-center items-center rounded-xl border border-white shadow-sm bg-white disabled:opacity-40 hover-lift"><i class="ph-bold ph-caret-right"></i></button></div>`;
         };
@@ -2456,10 +2618,10 @@
             
             const wb = XLSX.utils.book_new();
 
-            let allSheet = [["เวลา", "สาขาวิชา", "รหัสนักศึกษา", "ชื่อ-นามสกุล", "รายการ", "ยอดรวม", "วิธีการชำระเงิน", "สถานะ"]];
+            let allSheet = [["เวลา", "สาขาวิชา", "รหัสนักศึกษา", "ชื่อ-นามสกุล", "รายการ", "ยอดรวม", "วิธีการชำระเงแอดมแอดมิน", "สถานะ"]];
             orders.forEach(o => {
                 const sTxt = STATUS_MAP[o.status] ? STATUS_MAP[o.status].text : o.status;
-                const pMeth = o.paymentMethod === 'cash' ? 'เงินสด' : o.paymentMethod;
+                const pMeth = o.paymentMethod === 'cash' ? 'เงแอดมแอดมินสด' : o.paymentMethod;
                 allSheet.push([o.timestamp, o.major, o.studentId, o.name, o.size, o.total, pMeth, sTxt]);
             });
             XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(allSheet), "รวมทั้งหมด");
@@ -2472,10 +2634,10 @@
             }, {});
 
             for (const majorName in groupedByMajor) {
-                let majorSheetData = [["สาขาวิชา", "รหัสนักศึกษา", "ชื่อ-นามสกุล", "รายการ", "ยอดรวม", "วิธีการชำระเงิน", "สถานะ", "เวลา"]];
+                let majorSheetData = [["สาขาวิชา", "รหัสนักศึกษา", "ชื่อ-นามสกุล", "รายการ", "ยอดรวม", "วิธีการชำระเงแอดมแอดมิน", "สถานะ", "เวลา"]];
                 groupedByMajor[majorName].forEach(o => {
                     const sTxt = STATUS_MAP[o.status] ? STATUS_MAP[o.status].text : o.status;
-                    const pMeth = o.paymentMethod === 'cash' ? 'เงินสด' : o.paymentMethod;
+                    const pMeth = o.paymentMethod === 'cash' ? 'เงแอดมแอดมินสด' : o.paymentMethod;
                     majorSheetData.push([majorName, o.studentId, o.name, o.size, o.total, pMeth, sTxt, o.timestamp]);
                 });
 
@@ -2494,7 +2656,7 @@
         window.renderAdminEvents = async function(c) {
             c.innerHTML = window.getGokuLoader('กำลังโหลด...'); await window.fetchActivitiesData(); 
             c.innerHTML = `
-                <div class="fade-in max-w-7xl mx-auto">
+                <div class="fade-in max-w-7xl mx-auto pb-32 sm:pb-10">
                     <div class="mb-8 flex flex-col md:flex-row justify-between md:items-end gap-4"><h1 class="text-3xl font-black text-slate-800">จัดการกิจกรรม</h1>
                         <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
                             <div class="relative flex-grow md:w-64"><i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="text" id="admin-event-search" placeholder="ค้นหา..." class="w-full pl-12 pr-4 py-3 rounded-xl border border-white shadow-sm bg-white/80 text-sm outline-none focus:ring-2 focus:ring-primary/20" oninput="handleAdminEventSearch(event)"></div>
@@ -2513,10 +2675,31 @@
                                 <div><label class="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5"><i class="ph-fill ph-clock text-purple-500"></i> กำหนดเวลาเปิดรับสมัคร (ถ้ามี)</label><input type="datetime-local" id="new-event-open" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white/80 text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-slate-600"></div>
                                 <div><label class="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5"><i class="ph-fill ph-clock text-purple-500"></i> กำหนดเวลาปิดรับสมัคร (ถ้ามี)</label><input type="datetime-local" id="new-event-close" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white/80 text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-slate-600"></div>
                             </div>
-                            <div class="bg-white/50 border border-white shadow-sm rounded-2xl p-4 md:p-5 flex flex-col md:grid md:grid-cols-3 gap-4 mt-2 items-end">
-                                <div><label class="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5"><i class="ph-fill ph-map-pin text-red-500"></i> ละติจูด (Latitude)</label><input type="text" id="new-event-lat" placeholder="เช่น 19.967812" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white/80 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all text-slate-600"></div>
-                                <div><label class="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5"><i class="ph-fill ph-map-pin text-red-500"></i> ลองจิจูด (Longitude)</label><input type="text" id="new-event-lng" placeholder="เช่น 99.851934" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white/80 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all text-slate-600"></div>
-                                <div><button type="button" onclick="getCurrentLocation('new-event-lat', 'new-event-lng')" class="w-full px-4 py-3 bg-red-50 text-red-600 font-bold rounded-xl border border-red-100 hover:bg-red-100 transition-colors flex items-center justify-center gap-2"><i class="ph-bold ph-crosshair"></i> ดึงพิกัดปัจจุบัน</button></div>
+                            <div class="bg-gradient-to-br from-red-50/80 to-white border border-red-100 shadow-sm rounded-3xl p-5 md:p-6 mt-4 relative overflow-hidden group/loc">
+                                <div class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover/loc:opacity-10 transition-opacity duration-500 pointer-events-none"><i class="ph-fill ph-map-pin text-9xl text-red-600"></i></div>
+                                <div class="relative z-10">
+                                    <div class="flex items-center justify-between mb-5">
+                                        <h3 class="text-sm font-black text-red-800 flex items-center gap-3"><div class="w-10 h-10 rounded-2xl bg-red-100 flex items-center justify-center text-red-600 shadow-sm"><i class="ph-fill ph-map-pin-line text-xl"></i></div> พิกัดสถานที่ (GPS)</h3>
+                                        <button type="button" onclick="getCurrentLocation('new-event-lat', 'new-event-lng')" class="hidden md:flex px-5 py-2.5 bg-red-600 text-white font-bold text-xs rounded-xl hover:bg-red-700 transition-colors shadow-md items-center gap-2 hover-lift"><i class="ph-bold ph-crosshair text-sm animate-pulse"></i> ดึงพิกัดจุดนี้</button>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="relative">
+                                            <label class="block text-[10px] font-bold text-red-600/70 uppercase mb-1.5 ml-1 tracking-wider">Latitude (ละติจูด)</label>
+                                            <div class="flex items-center bg-white rounded-2xl border border-red-100 shadow-inner overflow-hidden focus-within:border-red-400 focus-within:ring-4 focus-within:ring-red-100 transition-all">
+                                                <div class="pl-4 pr-2 text-red-300"><i class="ph-fill ph-caret-right"></i></div>
+                                                <input type="text" id="new-event-lat" placeholder="เช่น 19.967812" class="w-full py-3 pr-4 bg-transparent text-sm font-bold outline-none text-slate-700">
+                                            </div>
+                                        </div>
+                                        <div class="relative">
+                                            <label class="block text-[10px] font-bold text-red-600/70 uppercase mb-1.5 ml-1 tracking-wider">Longitude (ลองจิจูด)</label>
+                                            <div class="flex items-center bg-white rounded-2xl border border-red-100 shadow-inner overflow-hidden focus-within:border-red-400 focus-within:ring-4 focus-within:ring-red-100 transition-all">
+                                                <div class="pl-4 pr-2 text-red-300"><i class="ph-fill ph-caret-down"></i></div>
+                                                <input type="text" id="new-event-lng" placeholder="เช่น 99.851934" class="w-full py-3 pr-4 bg-transparent text-sm font-bold outline-none text-slate-700">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="button" onclick="getCurrentLocation('new-event-lat', 'new-event-lng')" class="md:hidden mt-5 w-full px-4 py-3.5 bg-red-600 text-white font-bold rounded-2xl hover:bg-red-700 transition-colors shadow-lg flex items-center justify-center gap-2 active:scale-[0.98]"><i class="ph-bold ph-crosshair text-lg"></i> ดึงพิกัดปัจจุบัน</button>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -2528,7 +2711,7 @@
         window.renderAdminEventParticipants = function(c, eN) {
             c.innerHTML = window.getGokuLoader('โหลดรายชื่อ...'); window.fetchAllCheckInsData().then(cI => {
                 const p = cI.filter(r => String(r[1]).trim() === String(eN).trim());
-                let h = `<div class="fade-in max-w-6xl mx-auto"><div class="mb-8 flex justify-between items-end"><div><h1 class="text-3xl font-black">รายชื่อผู้เข้าร่วม</h1><p class="text-primary font-bold text-lg mt-1">${eN}</p></div><div class="flex gap-3"><button onclick="navigate('admin-dash')" class="px-5 py-2.5 bg-white border border-white shadow-sm rounded-xl font-bold text-sm hover-lift">ย้อนกลับ</button><button onclick="exportEventParticipants('${eN}')" class="px-5 py-2.5 bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-sm rounded-xl font-bold text-sm flex gap-2 items-center hover-lift"><i class="ph-bold ph-microsoft-excel-logo"></i> โหลด Excel</button></div></div><div class="glass rounded-3xl border border-white shadow-sm overflow-hidden"><div class="bg-white/60 p-4 border-b border-white text-sm font-bold flex justify-between px-6"><span>ทั้งหมด: <span class="text-primary text-base">${p.length}</span> คน</span></div><div class="overflow-x-auto"><table class="w-full text-left min-w-[700px]"><thead class="bg-white/40 border-b border-white text-slate-500 text-xs uppercase"><th class="p-5 pl-6">เวลา</th><th class="p-5">รหัสนักศึกษา</th><th class="p-5">ชื่อ-นามสกุล</th><th class="p-5">คณะ/สาขาวิชา</th></thead><tbody class="text-sm">`;
+                let h = `<div class="fade-in max-w-6xl mx-auto"><div class="mb-8 flex justify-between items-end"><div><h1 class="text-3xl font-black">รายชื่อผู้เข้าร่วม</h1><p class="text-primary font-bold text-lg mt-1">${eN}</p></div><div class="flex gap-3"><button onclick="navigate('admin-dash')" class="px-5 py-2.5 bg-white border border-white shadow-sm rounded-xl font-bold text-sm hover-lift">ย้อนกลกลกลกลับ</button><button onclick="exportEventParticipants('${eN}')" class="px-5 py-2.5 bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-sm rounded-xl font-bold text-sm flex gap-2 items-center hover-lift"><i class="ph-bold ph-microsoft-excel-logo"></i> โหลด Excel</button></div></div><div class="glass rounded-3xl border border-white shadow-sm overflow-hidden"><div class="bg-white/60 p-4 border-b border-white text-sm font-bold flex justify-between px-6"><span>ทั้งหมด: <span class="text-primary text-base">${p.length}</span> คน</span></div><div class="overflow-x-auto"><table class="w-full text-left min-w-[700px]"><thead class="bg-white/40 border-b border-white text-slate-500 text-xs uppercase"><th class="p-5 pl-6">เวลา</th><th class="p-5">รหัสนักศึกษา</th><th class="p-5">ชื่อ-นามสกุล</th><th class="p-5">คณะ/สาขาวิชา</th></thead><tbody class="text-sm">`;
                 if (p.length === 0) h += `<tr><td colspan="4" class="p-12 text-center text-slate-400">ยังไม่มีผู้ลงทะเบียน</td></tr>`; else { p.forEach(x => { h += `<tr class="border-b border-white/50 hover:bg-white/60 transition-colors"><td class="p-5 pl-6 text-xs text-slate-500">${x[0]||'-'}</td><td class="p-5 font-bold font-mono">${x[2]}<br><span class="text-[10px] text-slate-400">${x[3]||'-'}</span></td><td class="p-5 font-bold">${x[4]}</td><td class="p-5 text-slate-600">${x[5]}<br><span class="text-xs text-slate-400">${x[6]}</span></td></tr>`; }); } h += `</tbody></table></div></div></div>`; c.innerHTML = h;
             });
         };
@@ -2678,7 +2861,7 @@
             c.innerHTML = window.getGokuLoader('กำลังประมวลผล SPSS...');
             Promise.all([window.fetchEvaluationsData(true), window.fetchAllCheckInsData(true), window.fetchActivitiesData(true)]).then(([evals, cI, acts]) => {
                 let opts = '<option value="">-- เลือกกิจกรรม --</option>'; const uE = [...new Set(evals.map(e => String(e[3] || '').trim()))].filter(Boolean); uE.forEach(e => { opts += `<option value="${String(e).replace(/"/g, '&quot;')}">${e}</option>`; });
-                c.innerHTML = `<div class="fade-in max-w-6xl mx-auto pb-10"><div class="mb-8 flex justify-between items-end"><div><h1 class="text-3xl font-black">รายงานผลประเมิน (SPSS)</h1></div><div class="flex gap-3"><button onclick="window.print()" class="px-5 py-3 bg-white border border-white shadow-sm rounded-xl font-bold flex items-center gap-2 hover-lift"><i class="ph-bold ph-printer"></i> พิมพ์</button><button onclick="exportToPDF()" id="btn-export-pdf" class="hidden px-5 py-3 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl font-bold flex items-center gap-2 hover-lift"><i class="ph-fill ph-file-pdf"></i> โหลด PDF</button><button onclick="exportToWord()" id="btn-export-word" class="hidden px-5 py-3 bg-blue-50 text-blue-600 border border-blue-200 rounded-xl font-bold flex items-center gap-2 hover-lift"><i class="ph-fill ph-file-doc"></i> โหลด Word</button></div></div><div class="glass rounded-3xl p-8 border border-white shadow-sm mb-8 print:hidden flex items-center gap-5"><div class="w-16 h-16 bg-white border border-white shadow-sm text-primary rounded-2xl flex items-center justify-center text-3xl shrink-0"><i class="ph-fill ph-chart-line-up"></i></div><div class="flex-grow w-full"><label class="block text-xs font-bold mb-2">เลือกกิจกรรมที่ต้องการดูรายงาน</label><select id="spss-event-selector" onchange="generateSPSSReport(this.value)" class="w-full p-4 rounded-2xl border border-white shadow-sm font-bold bg-white/80 outline-none focus:ring-2 focus:ring-primary/20 transition-all">${opts}</select></div></div><div id="spss-report-content" class="hidden"></div></div>`;
+                c.innerHTML = `<div class="fade-in max-w-6xl mx-auto pb-32 sm:pb-10"><div class="mb-8 flex justify-between items-end"><div><h1 class="text-3xl font-black">รายงานผลประเมิน (SPSS)</h1></div><div class="flex gap-3"><button onclick="window.print()" class="px-5 py-3 bg-white border border-white shadow-sm rounded-xl font-bold flex items-center gap-2 hover-lift"><i class="ph-bold ph-printer"></i> พิมพ์</button><button onclick="exportToPDF()" id="btn-export-pdf" class="hidden px-5 py-3 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl font-bold flex items-center gap-2 hover-lift"><i class="ph-fill ph-file-pdf"></i> โหลด PDF</button><button onclick="exportToWord()" id="btn-export-word" class="hidden px-5 py-3 bg-blue-50 text-blue-600 border border-blue-200 rounded-xl font-bold flex items-center gap-2 hover-lift"><i class="ph-fill ph-file-doc"></i> โหลด Word</button></div></div><div class="glass rounded-3xl p-8 border border-white shadow-sm mb-8 print:hidden flex items-center gap-5"><div class="w-16 h-16 bg-white border border-white shadow-sm text-primary rounded-2xl flex items-center justify-center text-3xl shrink-0"><i class="ph-fill ph-chart-line-up"></i></div><div class="flex-grow w-full"><label class="block text-xs font-bold mb-2">เลือกกิจกรรมที่ต้องการดูรายงาน</label><select id="spss-event-selector" onchange="generateSPSSReport(this.value)" class="w-full p-4 rounded-2xl border border-white shadow-sm font-bold bg-white/80 outline-none focus:ring-2 focus:ring-primary/20 transition-all">${opts}</select></div></div><div id="spss-report-content" class="hidden"></div></div>`;
             }).catch(e => { c.innerHTML = `<div class="p-8 text-center text-red-500 font-bold bg-red-50 border mt-10">เกิดข้อผิดพลาด</div>`; });
         };
 
@@ -2712,7 +2895,7 @@
                 const sMns = [...qMs].sort((a,b) => b.mean - a.mean); const t1 = sMns[0], t2 = sMns[1], t3 = sMns[2];
                 const gBUI = (m) => { const v = parseFloat(m); if (v >= 4.51) return `<span class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-[10px] font-bold border">มากที่สุด</span>`; if (v >= 3.51) return `<span class="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-[10px] font-bold border">มาก</span>`; if (v >= 2.51) return `<span class="bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg text-[10px] font-bold border">ปานกลาง</span>`; if (v >= 1.51) return `<span class="bg-orange-50 text-orange-700 px-3 py-1.5 rounded-lg text-[10px] font-bold border">น้อย</span>`; return `<span class="bg-rose-50 text-rose-700 px-3 py-1.5 rounded-lg text-[10px] font-bold border">น้อยที่สุด</span>`; };
                 
-                let h = `<div class="bg-white/90 backdrop-blur-md rounded-[32px] p-8 sm:p-12 shadow-xl border border-white font-['Prompt']"><div class="relative bg-orange-50 border border-orange-100 rounded-[24px] p-8 text-center mb-10"><h2 class="text-3xl font-black text-slate-800">รายงานผลประเมิน</h2><p class="text-primary text-xl font-bold">${eN}</p><p class="mt-4 text-slate-600 font-medium">ผู้ตอบแบบสอบถามทั้งหมด <span class="font-black">${evs.length}</span> คน</p></div><div class="mb-12"><h3 class="font-black text-xl text-slate-800 mb-5">ส่วนที่ 1: ข้อมูลผู้ตอบ</h3><table class="w-full text-left border-collapse border border-slate-200"><thead class="bg-slate-50 border-b border-slate-200"><th class="p-5">เพศ</th><th class="p-5 text-center">จำนวน (คน)</th><th class="p-5 text-center">ร้อยละ (%)</th></thead><tbody class="text-sm bg-white"><tr class="border-b border-slate-100"><td class="p-5 font-bold pl-8">ชาย</td><td class="p-5 text-center font-bold">${mC}</td><td class="p-5 text-center">${mP}%</td></tr><tr class="border-b border-slate-100"><td class="p-5 font-bold pl-8">หญิง</td><td class="p-5 text-center font-bold">${fC}</td><td class="p-5 text-center">${fP}%</td></tr><tr class="bg-slate-50 font-black"><td class="p-5 text-center">รวม</td><td class="p-5 text-center">${tG}</td><td class="p-5 text-center">100.00%</td></tr></tbody></table></div><div class="mb-12 print:hidden"><h3 class="font-black text-xl mb-5">สรุป 3 อันดับแรก</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-5"><div class="bg-amber-50 p-6 rounded-[24px] border border-amber-100"><span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-lg text-xs font-bold mb-2 inline-block">อันดับ 1</span><br><span class="font-black text-amber-600 text-2xl">${Number(t1.mean).toFixed(2)}</span><p class="text-sm font-bold mt-2">${t1.qText}</p></div><div class="bg-slate-50 p-6 rounded-[24px] border border-slate-200"><span class="bg-slate-200 text-slate-700 px-3 py-1 rounded-lg text-xs font-bold mb-2 inline-block">อันดับ 2</span><br><span class="font-black text-slate-600 text-2xl">${Number(t2.mean).toFixed(2)}</span><p class="text-sm font-bold mt-2">${t2.qText}</p></div><div class="bg-orange-50 p-6 rounded-[24px] border border-orange-100"><span class="bg-orange-100 text-orange-700 px-3 py-1 rounded-lg text-xs font-bold mb-2 inline-block">อันดับ 3</span><br><span class="font-black text-orange-600 text-2xl">${Number(t3.mean).toFixed(2)}</span><p class="text-sm font-bold mt-2">${t3.qText}</p></div></div></div><div class="mb-12"><h3 class="font-black text-xl mb-5">ส่วนที่ 2: ผลการสำรวจ</h3><table class="w-full text-left border-collapse border border-slate-200"><thead class="bg-slate-50 border-b border-slate-200"><th class="p-5 text-center">ข้อ</th><th class="p-5">รายการประเมิน</th><th class="p-5 text-center">x̄</th><th class="p-5 text-center">S.D.</th><th class="p-5 text-center">ระดับ</th></thead><tbody class="text-sm bg-white">`;
+                let h = `<div class="bg-white/90 backdrop-blur-md rounded-[32px] p-8 sm:p-12 shadow-xl border border-white font-['Prompt']"><div class="relative bg-orange-50 border border-orange-100 rounded-[24px] p-8 text-center mb-10"><h2 class="text-3xl font-black text-slate-800">รายงานผลประเมิน</h2><p class="text-primary text-xl font-bold">${eN}</p><p class="mt-4 text-slate-600 font-medium">ผู้ตอบแบบสอบถามทั้งหมด <span class="font-black">${evs.length}</span> คน</p></div><div class="mb-12"><h3 class="font-black text-xl text-slate-800 mb-5">ส่วนที่ 1: ข้อมูลผู้ตอบ</h3><table class="w-full text-left border-collapse border border-slate-200"><thead class="bg-slate-50 border-b border-slate-200"><th class="p-5">เพศ</th><th class="p-5 text-center">จำนวน (คน)</th><th class="p-5 text-center">ร้อยละ (%)</th></thead><tbody class="text-sm bg-white"><tr class="border-b border-slate-100"><td class="p-5 font-bold pl-8">ชาย</td><td class="p-5 text-center font-bold">${mC}</td><td class="p-5 text-center">${mP}%</td></tr><tr class="border-b border-slate-100"><td class="p-5 font-bold pl-8">หญิง</td><td class="p-5 text-center font-bold">${fC}</td><td class="p-5 text-center">${fP}%</td></tr><tr class="bg-slate-50 font-black"><td class="p-5 text-center">รวม</td><td class="p-5 text-center">${tG}</td><td class="p-5 text-center">100.00%</td></tr></tbody></table></div><div class="mb-12 print:hidden"><h3 class="font-black text-xl mb-5">สรุป 3 อันดกลกลกลับแรก</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-5"><div class="bg-amber-50 p-6 rounded-[24px] border border-amber-100"><span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-lg text-xs font-bold mb-2 inline-block">อันดกลกลกลับ 1</span><br><span class="font-black text-amber-600 text-2xl">${Number(t1.mean).toFixed(2)}</span><p class="text-sm font-bold mt-2">${t1.qText}</p></div><div class="bg-slate-50 p-6 rounded-[24px] border border-slate-200"><span class="bg-slate-200 text-slate-700 px-3 py-1 rounded-lg text-xs font-bold mb-2 inline-block">อันดกลกลกลับ 2</span><br><span class="font-black text-slate-600 text-2xl">${Number(t2.mean).toFixed(2)}</span><p class="text-sm font-bold mt-2">${t2.qText}</p></div><div class="bg-orange-50 p-6 rounded-[24px] border border-orange-100"><span class="bg-orange-100 text-orange-700 px-3 py-1 rounded-lg text-xs font-bold mb-2 inline-block">อันดกลกลกลับ 3</span><br><span class="font-black text-orange-600 text-2xl">${Number(t3.mean).toFixed(2)}</span><p class="text-sm font-bold mt-2">${t3.qText}</p></div></div></div><div class="mb-12"><h3 class="font-black text-xl mb-5">ส่วนที่ 2: ผลการสำรวจ</h3><table class="w-full text-left border-collapse border border-slate-200"><thead class="bg-slate-50 border-b border-slate-200"><th class="p-5 text-center">ข้อ</th><th class="p-5">รายการประเมิน</th><th class="p-5 text-center">x̄</th><th class="p-5 text-center">S.D.</th><th class="p-5 text-center">ระดกลกลกลับ</th></thead><tbody class="text-sm bg-white">`;
             qMs.forEach((q, i) => { h += `<tr class="border-b border-slate-100 hover:bg-slate-50"><td class="p-4 text-center font-bold">${i + 1}</td><td class="p-4 font-medium">${q.qText}</td><td class="p-4 text-center font-bold">${Number(q.mean).toFixed(2)}</td><td class="p-4 text-center font-bold text-slate-500">${Number(q.sd).toFixed(2)}</td><td class="p-4 text-center">${gBUI(q.mean)}</td></tr>`; });
             h += `<tr class="bg-orange-50/50 font-black border-t-2 border-orange-200"><td colspan="2" class="p-5 text-right text-primary">รวมเฉลี่ย</td><td class="p-5 text-center text-primary text-xl">${oMn}</td><td class="p-5 text-center text-slate-700 text-lg">${oSd}</td><td class="p-5 text-center">${gBUI(oMn)}</td></tr></tbody></table></div>`;
             const cmm = evs.map(e => String(e[4 + nQ] || '').trim()).filter(c => c !== '');
@@ -2770,7 +2953,7 @@
             visitorCount = 1520 + Math.floor((appCache.checkIns || []).length * 2.5);
         }
 
-        let h = `<div class="fade-in">
+        let h = `<div class="fade-in pb-32 sm:pb-10">
             <div class="mb-8"><h1 class="text-3xl font-black text-slate-800">ภาพรวมระบบ</h1></div>
             <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
                 <div class="glass p-5 xl:p-6 rounded-[24px] border border-white shadow-sm flex flex-col xl:flex-row gap-3 xl:gap-4"><div class="bg-white/80 text-purple-500 p-3 xl:p-4 rounded-2xl border border-white shrink-0 self-start xl:self-center"><i class="ph-fill ph-globe-hemisphere-west text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500 tracking-tight leading-tight">เข้าชมระบบ</p><p class="text-xl xl:text-2xl font-black">${visitorCount}</p></div></div>
@@ -2810,20 +2993,20 @@
                 <div class="glass p-5 rounded-[24px] border border-white shadow-sm flex flex-col justify-center">
                     <div class="flex items-center gap-3 mb-2">
                         <div class="bg-gradient-to-br from-orange-400 to-orange-500 text-white p-2.5 rounded-xl shadow-md"><i class="ph-fill ph-money text-xl"></i></div>
-                        <p class="text-xs font-bold text-slate-500">ยอดเงินรวม</p>
+                        <p class="text-xs font-bold text-slate-500">ยอดเงแอดมแอดมินรวม</p>
                     </div>
                     <p class="text-xl sm:text-2xl font-black text-primary truncate" title="฿${totalMoney.toLocaleString('th-TH')}">฿${totalMoney.toLocaleString('th-TH')}</p>
                 </div>
             </div>
             
-            <h2 class="text-xl font-bold mb-4">สรุปยอดเงิน</h2>
+            <h2 class="text-xl font-bold mb-4">สรุปยอดเงแอดมแอดมิน</h2>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-10">
                 <div class="glass p-6 rounded-[24px] border border-white shadow-sm relative overflow-hidden hover-lift">
                     <div class="absolute -top-8 -right-8 w-32 h-32 bg-emerald-400/10 rounded-full blur-2xl"></div>
                     <div class="relative z-10 flex items-center gap-4">
                         <div class="bg-gradient-to-br from-emerald-400 to-emerald-500 text-white p-4 rounded-2xl shadow-lg shadow-emerald-500/20"><i class="ph-fill ph-check-circle text-2xl"></i></div>
                         <div class="flex-grow">
-                            <p class="text-xs font-bold text-emerald-700 uppercase tracking-wide">ชำระเงินแล้ว</p>
+                            <p class="text-xs font-bold text-emerald-700 uppercase tracking-wide">ชำระเงแอดมแอดมินแล้ว</p>
                             <p class="text-3xl font-black text-emerald-600 mt-1">฿${paidMoney.toLocaleString('th-TH')}</p>
                         </div>
                         <div class="text-right shrink-0">
@@ -2854,7 +3037,7 @@
                     <div class="relative h-56 w-full"><canvas id="statusChart"></canvas></div>
                 </div>
                 <div class="glass rounded-[32px] border border-white shadow-sm overflow-hidden lg:col-span-2">
-                    <div class="p-6 border-b border-white/50 bg-white/40 flex justify-between"><h3 class="font-black text-lg">รอดำเนินการล่าสุด</h3><button onclick="navigate('admin-orders')" class="text-sm text-primary font-bold hover:underline">ดูทั้งหมด</button></div>
+                    <div class="p-6 border-b border-white/50 bg-white/40 flex justify-between"><h3 class="font-black text-lg">รอดำเนแอดมแอดมินการล่าสุด</h3><button onclick="navigate('admin-orders')" class="text-sm text-primary font-bold hover:underline">ดูทั้งหมด</button></div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left">
                             <thead class="bg-white/30 text-slate-500 text-xs uppercase border-b border-white/50"><th class="p-4">Order ID</th><th class="p-4">นักศึกษา</th><th class="p-4">ยอดรวม</th><th class="p-4">สถานะ</th><th class="p-4 text-right">จัดการ</th></thead>
@@ -2892,10 +3075,15 @@
         setTimeout(() => { 
             const ctx = document.getElementById('statusChart'); 
             if (ctx) { 
+                const g1 = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400); g1.addColorStop(0, '#fde68a'); g1.addColorStop(1, '#f59e0b');
+                const g2 = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400); g2.addColorStop(0, '#6ee7b7'); g2.addColorStop(1, '#10b981');
+                const g3 = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400); g3.addColorStop(0, '#c084fc'); g3.addColorStop(1, '#9333ea');
+                const g4 = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400); g4.addColorStop(0, '#93c5fd'); g4.addColorStop(1, '#3b82f6');
+                Chart.defaults.font.family = "'Prompt', sans-serif";
                 new Chart(ctx.getContext('2d'), { 
                     type: 'doughnut', 
                     data: { 
-                        labels: ['รอตรวจสอบ', 'ชำระเงินแล้ว', 'กำลังผลิต', 'พร้อมรับ'], 
+                        labels: ['รอตรวจสอบ', 'ชำระเงแอดมแอดมินแล้ว', 'กำลังผลิต', 'พร้อมรับ'], 
                         datasets: [{ 
                             data: [
                                 oD.filter(o=>o.status===1).length, 
@@ -2903,16 +3091,20 @@
                                 oD.filter(o=>o.status===3).length, 
                                 oD.filter(o=>o.status===4).length
                             ], 
-                            backgroundColor: ['#fbbf24', '#34d399', '#a855f7', '#60a5fa'], 
-                            borderWidth: 2,
-                            borderColor: '#ffffff'
+                            backgroundColor: [g1, g2, g3, g4], 
+                            borderWidth: 4,
+                            borderColor: '#ffffff',
+                            hoverOffset: 8
                         }] 
                     }, 
                     options: { 
                         responsive: true, 
                         maintainAspectRatio: false, 
-                        cutout: '75%', 
-                        plugins: { legend: { position: 'bottom' } } 
+                        cutout: '70%', 
+                        plugins: { 
+                            legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true, pointStyle: 'circle' } },
+                            tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { size: 14 }, bodyFont: { size: 14, weight: 'bold' }, padding: 12, cornerRadius: 12, usePointStyle: true }
+                        } 
                     } 
                 }); 
             } 
@@ -2929,13 +3121,27 @@
             const ctxFac = document.getElementById('facultyChart');
             if (ctxFac && window.myFacultyChart) window.myFacultyChart.destroy();
             if (ctxFac && facLabels.length > 0) {
+                const gradientFac = ctxFac.getContext('2d').createLinearGradient(0, 0, 0, 400);
+                gradientFac.addColorStop(0, '#f97316');
+                gradientFac.addColorStop(1, '#fed7aa');
                 window.myFacultyChart = new Chart(ctxFac.getContext('2d'), {
                     type: 'bar',
                     data: {
                         labels: facLabels,
-                        datasets: [{ label: 'จำนวน (คน)', data: facData, backgroundColor: '#f97316', borderRadius: 8 }]
+                        datasets: [{ label: 'จำนวนผู้เข้าร่วม', data: facData, backgroundColor: gradientFac, borderRadius: 8, maxBarThickness: 50, borderSkipped: false }]
                     },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        plugins: { 
+                            legend: { display: false },
+                            tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { size: 14 }, bodyFont: { size: 14, weight: 'bold' }, padding: 12, cornerRadius: 12, displayColors: false }
+                        },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { maxRotation: 45, minRotation: 45, color: '#64748b' } },
+                            y: { grid: { color: '#f1f5f9', borderDash: [5, 5] }, ticks: { padding: 10, color: '#94a3b8' }, border: { dash: [5, 5] } }
+                        }
+                    }
                 });
             }
 
@@ -2956,13 +3162,29 @@
             const ctxSize = document.getElementById('shirtSizeChart');
             if (ctxSize && window.myShirtChart) window.myShirtChart.destroy();
             if (ctxSize && sizeLabels.length > 0) {
+                const colors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef'];
+                const gradients = colors.map((c, i) => {
+                    if (!ctxSize.getContext) return c;
+                    const g = ctxSize.getContext('2d').createLinearGradient(0, 0, 0, 400);
+                    g.addColorStop(0, colors[i % colors.length]); 
+                    g.addColorStop(1, colors[(i+1) % colors.length]);
+                    return g;
+                });
                 window.myShirtChart = new Chart(ctxSize.getContext('2d'), {
                     type: 'doughnut',
                     data: {
                         labels: sizeLabels,
-                        datasets: [{ data: sizeData, backgroundColor: ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef'] }]
+                        datasets: [{ data: sizeData, backgroundColor: gradients, borderWidth: 4, borderColor: '#ffffff', hoverOffset: 8 }]
                     },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        cutout: '65%',
+                        plugins: { 
+                            legend: { position: 'right', labels: { padding: 15, usePointStyle: true, pointStyle: 'circle' } },
+                            tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { size: 14 }, bodyFont: { size: 14, weight: 'bold' }, padding: 12, cornerRadius: 12, usePointStyle: true }
+                        } 
+                    }
                 });
             }
         }, 100);
@@ -2999,7 +3221,7 @@
     };
 
     window.renderAdminSettings = function(c) {
-        c.innerHTML = `<div class="fade-in max-w-4xl mx-auto pb-10"><div class="mb-6"><h1 class="text-3xl font-bold">ตั้งค่าระบบ</h1></div><div class="glass rounded-[32px] p-8 border border-white shadow-sm mb-6"><h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-toggle-left text-primary text-2xl"></i> เปิด-ปิด ระบบจองเสื้อ</h2><div class="flex justify-between items-center p-5 bg-white/80 rounded-2xl border border-white shadow-sm"><div><p class="font-bold text-slate-800">ระบบสั่งจองและติดตามสถานะ</p></div><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="setting-shirt-toggle" class="sr-only peer" ${isShirtShopOpen ? 'checked' : ''} onchange="toggleMasterControl(this.checked)"><div class="w-14 h-7 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500"></div><span id="shirt-toggle-text" class="ml-3 text-sm font-bold ${isShirtShopOpen ? 'text-emerald-500' : 'text-slate-400'}">${isShirtShopOpen ? 'เปิด' : 'ปิด'}</span></label></div></div><form onsubmit="submitSettings(event)" class="space-y-6"><div class="glass rounded-[32px] p-8 border border-white shadow-sm"><h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-users-three text-admin text-2xl"></i> บัญชีผู้ดูแล</h2><div class="bg-white/80 p-5 rounded-2xl border border-white shadow-sm mb-5"><div id="admin-users-list"></div><div class="mt-4 pt-5 border-t border-white"><p class="text-sm font-bold mb-3">เพิ่มบัญชีผู้ดูแลใหม่</p><div class="grid grid-cols-1 sm:grid-cols-4 gap-3"><input type="text" id="new-admin-user" placeholder="Username" class="px-4 py-3 rounded-xl border border-white bg-white/80 shadow-sm font-medium text-sm outline-none focus:border-primary"><input type="text" id="new-admin-pass" placeholder="Password" class="px-4 py-3 rounded-xl border border-white bg-white/80 shadow-sm font-medium text-sm outline-none focus:border-primary"><select id="new-admin-role" class="px-4 py-3 rounded-xl border border-white bg-white/80 shadow-sm font-medium text-sm cursor-pointer outline-none focus:border-primary"><option value="activity">ผู้จัดการกิจกรรม</option><option value="shop">ผู้จัดการร้านค้า</option><option value="superadmin">ผู้ดูแลระบบสูงสุด</option></select><button type="button" onclick="addAdminUser()" class="px-4 py-3 bg-admin text-white rounded-xl font-bold text-sm hover:bg-admin_hover flex justify-center items-center gap-2 hover-lift shadow-sm"><i class="ph-bold ph-plus"></i> เพิ่ม</button></div></div></div></div><div class="glass rounded-[32px] p-8 border border-white shadow-sm"><h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-app-window text-primary text-2xl"></i> ตั้งค่าประกาศ (Popup)</h2><div class="space-y-5"><div class="flex justify-between items-center p-5 bg-orange-50/50 rounded-2xl border border-orange-100 shadow-sm"><div><p class="font-bold text-orange-900">เปิดใช้งาน Popup แจ้งเตือน</p></div><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="setting-popup-toggle" class="sr-only peer" ${popupSettings.enabled ? 'checked' : ''} onchange="document.getElementById('popup-toggle-text').innerText = this.checked ? 'เปิด' : 'ปิด'; document.getElementById('popup-toggle-text').className = this.checked ? 'ml-3 text-sm font-bold text-primary w-8' : 'ml-3 text-sm font-bold text-slate-400 w-8'"><div class="w-14 h-7 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary"></div><span id="popup-toggle-text" class="ml-3 text-sm font-bold ${popupSettings.enabled ? 'text-primary' : 'text-slate-400'}">${popupSettings.enabled ? 'เปิด' : 'ปิด'}</span></label></div><div><label class="block text-xs font-bold mb-2">หัวข้อประกาศ</label><textarea id="setting-popup-title" rows="2" class="w-full px-5 py-4 rounded-2xl border border-white shadow-sm font-bold text-sm bg-white/80 outline-none focus:border-primary">${popupSettings.title}</textarea></div><div><label class="block text-xs font-bold mb-2">รายละเอียดเนื้อหา (ข้อความประกาศ)</label><div id="popup-desc-container" class="space-y-3"></div><button type="button" onclick="addPopupDescField()" class="mt-3 px-4 py-2 bg-slate-100 text-slate-600 font-bold text-xs rounded-xl hover:bg-slate-200 transition-colors flex items-center gap-2 shadow-sm"><i class="ph-bold ph-plus"></i> เพิ่มข้อความ</button></div><div><label class="block text-xs font-bold mb-2">ลิงก์รูปภาพ (URL Image)</label><div id="popup-image-container" class="space-y-3"></div><button type="button" onclick="addPopupImageField()" class="mt-3 px-4 py-2 bg-slate-100 text-slate-600 font-bold text-xs rounded-xl hover:bg-slate-200 transition-colors flex items-center gap-2 shadow-sm"><i class="ph-bold ph-plus"></i> เพิ่มรูปภาพ</button><div class="w-full h-48 rounded-2xl bg-slate-100 border border-white shadow-inner overflow-hidden mt-4 relative"><div id="setting-popup-preview-container" class="w-full h-full flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"></div></div></div></div></div><div class="flex justify-end gap-4 pt-4"><button type="button" onclick="previewCurrentPopup()" class="px-8 py-4 rounded-2xl font-bold bg-white/80 border border-white shadow-sm hover-lift flex items-center gap-2"><i class="ph-bold ph-eye text-xl"></i> ตัวอย่าง</button><button type="submit" class="px-10 py-4 rounded-2xl font-bold text-white btn-gradient flex items-center gap-2 shadow-lg"><i class="ph-bold ph-floppy-disk text-xl"></i> บันทึกตั้งค่า</button></div></form></div>`;
+        c.innerHTML = `<div class="fade-in max-w-4xl mx-auto pb-10"><div class="mb-6"><h1 class="text-3xl font-bold">ตั้งค่าระบบ</h1></div><div class="glass rounded-[32px] p-8 border border-white shadow-sm mb-6"><h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-toggle-left text-primary text-2xl"></i> เปิด-ปิด ระบบจองเสื้อ</h2><div class="flex justify-between items-center p-5 bg-white/80 rounded-2xl border border-white shadow-sm"><div><p class="font-bold text-slate-800">ระบบสั่งจองและติดตามสถานะ</p></div><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="setting-shirt-toggle" class="sr-only peer" ${isShirtShopOpen ? 'checked' : ''} onchange="toggleMasterControl(this.checked)"><div class="w-14 h-7 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500"></div><span id="shirt-toggle-text" class="ml-3 text-sm font-bold ${isShirtShopOpen ? 'text-emerald-500' : 'text-slate-400'}">${isShirtShopOpen ? 'เปิด' : 'ปิด'}</span></label></div></div><form onsubmit="submitSettings(event)" class="space-y-6"><div class="glass rounded-[32px] p-8 border border-white shadow-sm"><h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-users-three text-admin text-2xl"></i> บัญชีผู้ดูแล</h2><div class="bg-white/80 p-5 rounded-2xl border border-white shadow-sm mb-5"><div id="admin-users-list"></div><div class="mt-4 pt-5 border-t border-white"><p class="text-sm font-bold mb-3">เพิ่มบัญชีผู้ดูแลใหม่</p><div class="grid grid-cols-1 sm:grid-cols-4 gap-3"><input type="text" id="new-admin-user" placeholder="Username" class="px-4 py-3 rounded-xl border border-white bg-white/80 shadow-sm font-medium text-sm outline-none focus:border-primary"><input type="text" id="new-admin-pass" placeholder="Password" class="px-4 py-3 rounded-xl border border-white bg-white/80 shadow-sm font-medium text-sm outline-none focus:border-primary"><select id="new-admin-role" class="px-4 py-3 rounded-xl border border-white bg-white/80 shadow-sm font-medium text-sm cursor-pointer outline-none focus:border-primary"><option value="activity">ผู้จัดการกิจกรรม</option><option value="shop">ผู้จัดการร้านค้า</option><option value="superadmin">ผู้ดูแลระบบสูงสุด</option></select><button type="button" onclick="addAdminUser()" class="px-4 py-3 bg-admin text-white rounded-xl font-bold text-sm hover:bg-admin_hover flex justify-center items-center gap-2 hover-lift shadow-sm"><i class="ph-bold ph-plus"></i> เพิ่ม</button></div></div></div></div><div class="glass rounded-[32px] p-8 border border-white shadow-sm"><h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-app-window text-primary text-2xl"></i> ตั้งค่าประกาศ (Popup)</h2><div class="space-y-5"><div class="flex justify-between items-center p-5 bg-orange-50/50 rounded-2xl border border-orange-100 shadow-sm"><div><p class="font-bold text-orange-900">เปิดใช้งาน Popup แจ้งเตือน</p></div><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="setting-popup-toggle" class="sr-only peer" ${popupSettings.enabled ? 'checked' : ''} onchange="document.getElementById('popup-toggle-text').innerText = this.checked ? 'เปิด' : 'ปิด'; document.getElementById('popup-toggle-text').className = this.checked ? 'ml-3 text-sm font-bold text-primary w-8' : 'ml-3 text-sm font-bold text-slate-400 w-8'"><div class="w-14 h-7 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary"></div><span id="popup-toggle-text" class="ml-3 text-sm font-bold ${popupSettings.enabled ? 'text-primary' : 'text-slate-400'}">${popupSettings.enabled ? 'เปิด' : 'ปิด'}</span></label></div><div><label class="block text-xs font-bold mb-2">หัวข้อประกาศ</label><textarea id="setting-popup-title" rows="2" class="w-full px-5 py-4 rounded-2xl border border-white shadow-sm font-bold text-sm bg-white/80 outline-none focus:border-primary">${popupSettings.title}</textarea></div><div><label class="block text-xs font-bold mb-2">รายละเอกสารกสารกสารียดเนื้อหา (ข้อความประกาศ)</label><div id="popup-desc-container" class="space-y-3"></div><button type="button" onclick="addPopupDescField()" class="mt-3 px-4 py-2 bg-slate-100 text-slate-600 font-bold text-xs rounded-xl hover:bg-slate-200 transition-colors flex items-center gap-2 shadow-sm"><i class="ph-bold ph-plus"></i> เพิ่มข้อความ</button></div><div><label class="block text-xs font-bold mb-2">ลิงก์รูปภาพ (URL Image)</label><div id="popup-image-container" class="space-y-3"></div><button type="button" onclick="addPopupImageField()" class="mt-3 px-4 py-2 bg-slate-100 text-slate-600 font-bold text-xs rounded-xl hover:bg-slate-200 transition-colors flex items-center gap-2 shadow-sm"><i class="ph-bold ph-plus"></i> เพิ่มรูปภาพ</button><div class="w-full h-48 rounded-2xl bg-slate-100 border border-white shadow-inner overflow-hidden mt-4 relative"><div id="setting-popup-preview-container" class="w-full h-full flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"></div></div></div></div></div><div class="flex justify-end gap-4 pt-4"><button type="button" onclick="previewCurrentPopup()" class="px-8 py-4 rounded-2xl font-bold bg-white/80 border border-white shadow-sm hover-lift flex items-center gap-2"><i class="ph-bold ph-eye text-xl"></i> ตัวอย่าง</button><button type="submit" class="px-10 py-4 rounded-2xl font-bold text-white btn-gradient flex items-center gap-2 shadow-lg"><i class="ph-bold ph-floppy-disk text-xl"></i> บันทึกตั้งค่า</button></div></form></div>`;
         window.updateAdminUsersList();
         window.renderPopupDescFields();
         window.renderPopupImageFields();
@@ -3073,7 +3295,7 @@
 
     window.createPopupDescHTML = function(val, idx) {
         const safeVal = String(val).replace(/"/g, '&quot;');
-        return `<div class="popup-desc-item group relative bg-white/60 backdrop-blur-sm border border-slate-100 p-3 rounded-2xl shadow-sm hover:shadow-md transition-all flex items-start gap-3 fade-in"><div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-black shrink-0 border border-orange-100/50 shadow-inner desc-num">${idx+1}</div><div class="w-full flex flex-col gap-1"><textarea rows="2" class="w-full px-4 py-2.5 rounded-xl border-none bg-white shadow-sm font-medium text-sm outline-none focus:ring-2 focus:ring-orange-200 resize-none" placeholder="พิมพ์รายละเอียดเนื้อหา หรือ ข้อความบรรทัดที่ ${idx+1}">${safeVal}</textarea></div><button type="button" onclick="window.removePopupDescField(this)" class="w-10 h-10 rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all shrink-0 opacity-0 group-hover:opacity-100 absolute right-3 top-3"><i class="ph-bold ph-trash"></i></button></div>`;
+        return `<div class="popup-desc-item group relative bg-white/60 backdrop-blur-sm border border-slate-100 p-3 rounded-2xl shadow-sm hover:shadow-md transition-all flex items-start gap-3 fade-in"><div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-black shrink-0 border border-orange-100/50 shadow-inner desc-num">${idx+1}</div><div class="w-full flex flex-col gap-1"><textarea rows="2" class="w-full px-4 py-2.5 rounded-xl border-none bg-white shadow-sm font-medium text-sm outline-none focus:ring-2 focus:ring-orange-200 resize-none" placeholder="พิมพ์รายละเอกสารกสารกสารียดเนื้อหา หรือ ข้อความบรรทัดที่ ${idx+1}">${safeVal}</textarea></div><button type="button" onclick="window.removePopupDescField(this)" class="w-10 h-10 rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all shrink-0 opacity-0 group-hover:opacity-100 absolute right-3 top-3"><i class="ph-bold ph-trash"></i></button></div>`;
     };
 
     window.addPopupDescField = function() {
@@ -3091,7 +3313,7 @@
                 const num = it.querySelector('.desc-num');
                 if(num) num.innerText = i + 1;
                 const ta = it.querySelector('textarea');
-                if(ta) ta.placeholder = `พิมพ์รายละเอียดเนื้อหา หรือ ข้อความบรรทัดที่ ${i + 1}`;
+                if(ta) ta.placeholder = `พิมพ์รายละเอกสารกสารกสารียดเนื้อหา หรือ ข้อความบรรทัดที่ ${i + 1}`;
             });
         }
     };
@@ -3150,6 +3372,12 @@
                 .catch(e => console.log('Tracker skipped'));
         }
     });
+
+
+
+
+
+
 </script>
 </body>
 </html>
