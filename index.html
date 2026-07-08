@@ -14,7 +14,7 @@
     
 <link rel="stylesheet" href="styles.css">
     
-<script src="app.js?v=20260708"></script>
+<script src="app.js?v=fixed2"></script>
 </head>
 <body class="text-slate-800 antialiased flex flex-col">
 
@@ -55,12 +55,12 @@
                 </div>
                 <div class="hidden md:flex space-x-2 items-center flex-grow justify-center" id="desktop-menu"></div>
                 <div class="flex items-center">
-                    <button onclick="toggleDarkMode()" class="mr-2 md:mr-3 w-10 h-10 rounded-xl bg-white/50 border border-white/60 flex items-center justify-center text-slate-600 hover:text-primary transition-all shadow-sm" title="สลับโหมดสี">
+                    <button onclick="toggleDarkMode()" class="mr-2 md:mr-3 w-10 h-10 rounded-xl bg-white/50 border border-white/60 flex items-center justify-center text-slate-600 hover:text-primary transition-all shadow-sm" title="สลกลกลับโหมดสี">
                         <i class="ph-bold ph-moon text-xl" id="icon-dark-mode"></i>
                     </button>
                     <div class="bg-white/50 p-1.5 rounded-2xl mr-0 md:mr-4 hidden sm:inline-flex border border-white/60">
                         <button onclick="switchRole('student')" id="btn-role-student" class="px-5 py-2 text-sm font-bold rounded-xl bg-white text-primary shadow-sm transition-all duration-300">นักศึกษา</button>
-                        <button onclick="switchRole('admin')" id="btn-role-admin" class="px-5 py-2 text-sm font-semibold rounded-xl text-slate-500 hover:text-slate-700 transition-all duration-300">แอดมิน</button>
+                        <button onclick="switchRole('admin')" id="btn-role-admin" class="px-5 py-2 text-sm font-semibold rounded-xl text-slate-500 hover:text-slate-700 transition-all duration-300">แอดมแอดมแอดมิน</button>
                     </div>
                     <button onclick="toggleMobileMenu()" class="sm:hidden text-slate-600 p-2.5 rounded-xl bg-white/50 border border-white/60 ml-2">
                         <i class="ph ph-list text-2xl"></i>
@@ -71,7 +71,7 @@
         <div id="mobile-menu" class="hidden sm:hidden bg-white/95 backdrop-blur-xl border-t border-orange-100 px-5 py-6 absolute w-full z-40">
             <div class="flex bg-orange-50/80 p-1.5 rounded-2xl border border-orange-100/50">
                  <button onclick="switchRole('student'); toggleMobileMenu();" id="btn-role-student-mob" class="flex-1 py-3 text-sm font-bold rounded-xl bg-white text-primary shadow-sm">นักศึกษา</button>
-                 <button onclick="switchRole('admin'); toggleMobileMenu();" id="btn-role-admin-mob" class="flex-1 py-3 text-sm font-semibold rounded-xl text-slate-500">แอดมิน</button>
+                 <button onclick="switchRole('admin'); toggleMobileMenu();" id="btn-role-admin-mob" class="flex-1 py-3 text-sm font-semibold rounded-xl text-slate-500">แอดมแอดมแอดมิน</button>
             </div>
         </div>
     </nav>
@@ -109,7 +109,7 @@
 
     <div id="slipModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4 fade-in">
         <div class="bg-white rounded-[32px] p-6 max-w-md w-full flex flex-col max-h-[90vh]">
-            <div class="flex justify-between items-center mb-5 shrink-0"><h3 class="text-xl font-black">ตรวจสอบการชำระเงิน</h3><button onclick="closeModal()" class="w-10 h-10 bg-slate-100 rounded-full text-slate-400 hover:text-red-500"><i class="ph-bold ph-x"></i></button></div>
+            <div class="flex justify-between items-center mb-5 shrink-0"><h3 class="text-xl font-black">ตรวจสอบการชำระเงแอดมแอดมิน</h3><button onclick="closeModal()" class="w-10 h-10 bg-slate-100 rounded-full text-slate-400 hover:text-red-500"><i class="ph-bold ph-x"></i></button></div>
             <div id="modal-slip-image-container" class="bg-slate-50 rounded-3xl flex-grow overflow-auto flex flex-col items-center justify-center border-2 border-dashed p-2 min-h-[350px]"></div>
             <div id="modal-slip-info" class="text-sm font-medium text-slate-600 mt-5 text-center bg-slate-50 py-3 rounded-xl"></div>
             <div class="flex gap-3 justify-center mt-5 shrink-0">
@@ -154,11 +154,11 @@
                     <p class="text-sm font-bold text-purple-800 text-center" id="timer-event-name"></p>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold mb-2 text-slate-700">เวลาเปิดรับสมัคร</label>
+                    <label class="block text-sm font-bold mb-2 text-slate-700">เวลาเปิดรกลกลับสมัคร</label>
                     <input type="datetime-local" id="timer-open" class="w-full px-5 py-3.5 rounded-2xl border border-slate-200 bg-white shadow-sm font-medium outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold mb-2 text-slate-700">เวลาปิดรับสมัคร</label>
+                    <label class="block text-sm font-bold mb-2 text-slate-700">เวลาปิดรกลกลับสมัคร</label>
                     <input type="datetime-local" id="timer-close" class="w-full px-5 py-3.5 rounded-2xl border border-slate-200 bg-white shadow-sm font-medium outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all">
                 </div>
                 <div class="flex gap-3 mt-8">
@@ -186,7 +186,7 @@
                     <h2 id="popup-title" class="text-xl sm:text-2xl font-black text-slate-800 leading-snug"></h2>
                 </div>
                 <div id="popup-desc" class="mb-6 w-full"></div>
-                <button onclick="document.getElementById('homePopupModal').classList.add('hidden')" class="w-full px-6 py-4 bg-orange-50 text-orange-700 hover:bg-orange-500 hover:text-white transition-all font-bold rounded-2xl shadow-sm border border-orange-100">รับทราบ</button>
+                <button onclick="document.getElementById('homePopupModal').classList.add('hidden')" class="w-full px-6 py-4 bg-orange-50 text-orange-700 hover:bg-orange-500 hover:text-white transition-all font-bold rounded-2xl shadow-sm border border-orange-100">รกลกลับทราบ</button>
             </div>
         </div>
     </div>
@@ -223,6 +223,6 @@
     <div id="toast-container" class="fixed bottom-24 md:bottom-8 right-4 md:right-8 z-[160] flex flex-col gap-3 w-auto max-w-[90%] pointer-events-none"></div>
 
     <!-- MAIN SCRIPT -->
-<script src="app.js"></script>
+<script src="app.js?v=fixed2"></script>
 </body>
 </html>
