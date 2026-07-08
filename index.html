@@ -126,6 +126,22 @@
 </head>
 <body class="text-slate-800 antialiased flex flex-col">
 
+    <!-- Global App Loader -->
+    <div id="global-app-loader" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[9999] flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="bg-white p-8 rounded-[32px] shadow-2xl flex flex-col items-center max-w-sm text-center">
+            <div class="relative w-24 h-24 mb-6 flex items-center justify-center">
+                <div class="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse"></div>
+                <div class="absolute inset-1 border-[4px] border-slate-100 rounded-full"></div>
+                <div class="absolute inset-1 border-[4px] border-primary border-t-transparent rounded-full animate-spin"></div>
+                <div class="relative w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-sm">
+                    <i class="ph-fill ph-student text-3xl text-primary animate-pulse"></i>
+                </div>
+            </div>
+            <h2 class="text-xl font-black text-slate-800 mb-2">⚠️ โปรดรอสักครู่...</h2>
+            <p class="text-sm font-medium text-slate-500">ผู้ใช้กำลังคิดว่าจะตอบหรือไม่ตอบดี 😄</p>
+        </div>
+    </div>
+
     <!-- Connection Status Bar -->
     <div id="conn-status-bar">
         <div id="conn-status-offline" class="bg-red-500 text-white text-center text-xs font-bold py-1.5 px-4 flex items-center justify-center gap-2 hidden">
@@ -406,10 +422,95 @@
             if (window._certBgCache) window._certBgCache = null; 
         };
 
+        window.fetchInitialData = async function() {
+            try {
+                const r = await window.apiCall('GET', { action: 'getInitialData' });
+                if (r.success && r.data) {
+                    // Update Settings
+                    const setObj = r.data.settings;
+                    isShirtShopOpen = (setObj.isShirtShopOpen === true || String(setObj.isShirtShopOpen).toLowerCase() === 'true');
+                    if(setObj.popupSettings) popupSettings = setObj.popupSettings;
+                    if(setObj.appSettings) appSettings = { ...appSettings, ...setObj.appSettings };
+                    if(setObj.adminUsers && Array.isArray(setObj.adminUsers)) adminUsers = setObj.adminUsers;
+                    
+                    localStorage.setItem('CRRU_ShopOpen', isShirtShopOpen ? 'true' : 'false'); 
+                    localStorage.setItem('CRRU_PopupSettings', JSON.stringify(popupSettings)); 
+                    localStorage.setItem('CRRU_AppSettings', JSON.stringify(appSettings)); 
+                    localStorage.setItem('CRRU_AdminUsers', JSON.stringify(adminUsers));
+                    
+                    window.applyTheme();
+
+                    if(isShirtShopOpen) { 
+                        if(!NAV_STUDENT.find(n => n.id === 'shirt')) { 
+                            NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
+                            NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
+                            if(currentRole === 'student') window.renderNav(); 
+                        } 
+                    } else { 
+                        const idx = NAV_STUDENT.findIndex(n => n.id === 'shirt'); 
+                        if(idx > -1) NAV_STUDENT.splice(idx, 2); 
+                        if(currentRole === 'student') window.renderNav(); 
+                    }
+                    
+                    // Update CheckIns
+                    appCache.checkIns = r.data.checkIns || [];
+                    const ct = {};
+                    appCache.checkIns.forEach(row => { if(row && row.length > 1) { const e = String(row[1]).trim(); if(e) ct[e] = (ct[e] || 0) + 1; } }); 
+
+                    // Update Activities
+                    const acts = r.data.activities || [];
+                    acts.forEach(i => {
+                        i.rawDate = i.date; 
+                        i.date = window.formatThaiDate(i.date); 
+                        i.timestamp = window.formatThaiDate(i.timestamp, true); 
+                        i.joined = ct[i.title.trim()] || 0; 
+                        let stParts = String(i.status || 'open').split('|');
+                        i.status = stParts[0] === 'closed' ? 'closed' : 'open';
+                        i.openTime = stParts[1] || ''; i.closeTime = stParts[2] || '';
+                        if (stParts.length > 3) { i.certEnabled = stParts[3] === 'true'; } else if (i.certEnabled !== undefined && i.certEnabled !== null && i.certEnabled !== "") { i.certEnabled = (i.certEnabled === true || String(i.certEnabled).toLowerCase() === 'true'); } else { i.certEnabled = certEventStatus[i.id] === true; }
+                        i.lat = stParts.length > 4 ? stParts[4] : ''; i.lng = stParts.length > 5 ? stParts[5] : '';
+                        certEventStatus[i.id] = i.certEnabled;
+                    });
+                    localStorage.setItem('CRRU_CertEventStatus', JSON.stringify(certEventStatus));
+                    appCache.activities = acts.sort((a, b) => {
+                        const dateA = new Date(a.rawDate); const dateB = new Date(b.rawDate);
+                        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+                        else if (isNaN(dateA.getTime())) return 1;
+                        else if (isNaN(dateB.getTime())) return -1;
+                        return dateB.getTime() - dateA.getTime();
+                    }); 
+                    
+                    // Update Orders
+                    appCache.orders = r.data.orders || [];
+                    appCache.orders.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    
+                    // Update Evaluations
+                    appCache.evaluations = r.data.evaluations || [];
+                    appCache.evaluations.sort((a,b) => new Date(b[0]) - new Date(a[0]));
+                    
+                    // Render current view again to reflect populated data
+                    if (currentRole === 'student' && currentView === 'events') window.renderStudentEvents(document.getElementById('app-content'));
+                    if (currentRole === 'admin') window.switchAdminTab(currentView.replace('admin-',''));
+                }
+            } catch(e) {
+                console.error(e);
+                window.showToast('โหลดข้อมูลล้มเหลว หรือใช้งานออฟไลน์', 'warning');
+            } finally {
+                // Hide loader
+                const loader = document.getElementById('global-app-loader');
+                if(loader) {
+                    loader.style.opacity = '0';
+                    setTimeout(() => loader.remove(), 500);
+                }
+            }
+        };
+
         document.addEventListener('DOMContentLoaded', () => {
             window.applyTheme();
             window.proceedSwitchRole('student');
-            window.fetchSettingsData().then(() => { 
+            
+            // Initiate batched fetch
+            window.fetchInitialData().then(() => {
                 if (!sessionStorage.getItem('homePopupShown') && currentRole === 'student') { 
                     let iL = Array.isArray(popupSettings.imageUrl) ? popupSettings.imageUrl : [popupSettings.imageUrl || 'https://placehold.co/800x400'];
                     if (iL.length === 0) iL = ['https://placehold.co/800x400'];
@@ -425,10 +526,7 @@
                     sessionStorage.setItem('homePopupShown', 'true'); 
                 } 
             });
-            window.fetchActivitiesData(); 
-            window.fetchAllCheckInsData(); 
-            window.fetchOrdersData(); 
-            window.fetchEvaluationsData();
+
             window.getAdminAuthToken().then(expected => {
                 if (sessionStorage.getItem('_adm_auth') === expected) {
                     currentAdminRole = sessionStorage.getItem('currentAdminRole') || 'superadmin';
@@ -833,7 +931,10 @@
         };
 
         window.showToast = function(m, t = 'success', opts = {}) { 
-            const c = document.getElementById('toast-container'), to = document.createElement('div'); 
+            const c = document.getElementById('toast-container');
+            const existing = Array.from(c.querySelectorAll('.toast-card')).find(el => el.querySelector('span') && el.querySelector('span').innerText === m);
+            if (existing) return;
+            const to = document.createElement('div');
             const bgC = t === 'success' ? 'bg-white border-l-[5px] border-emerald-500' : t === 'error' ? 'bg-white border-l-[5px] border-red-500' : 'bg-white border-l-[5px] border-amber-500'; 
             const ic = t === 'success' ? '<div class="p-2 bg-emerald-50 rounded-full"><i class="ph-fill ph-check-circle text-emerald-500 text-xl"></i></div>' : t === 'error' ? '<div class="p-2 bg-red-50 rounded-full"><i class="ph-fill ph-x-circle text-red-500 text-xl"></i></div>' : '<div class="p-2 bg-amber-50 rounded-full"><i class="ph-fill ph-warning-circle text-amber-500 text-xl"></i></div>'; 
             const dur = opts.duration || 5000;
@@ -1113,13 +1214,13 @@
                             position.coords.latitude, position.coords.longitude
                         );
                         if (dist > 150) { 
-                            if (err) { err.innerHTML = 'อยู่นอกพื้นที่ให้บริการ'; err.classList.remove('hidden'); }
-                            window.showToast('อยู่นอกพื้นที่ให้บริการ', 'error');
+                            if (err) { err.innerHTML = '📵 อยู่นอกพื้นที่ให้บริการ...แต่ยังอยู่ในใจเธอ'; err.classList.remove('hidden'); }
+                            window.showToast('📵 อยู่นอกพื้นที่ให้บริการ...แต่ยังอยู่ในใจเธอ', 'error');
                             b.innerHTML = oH; b.disabled = false; return;
                         }
                     } catch(geoErr) {
-                        if (err) { err.innerHTML = 'อยู่นอกพื้นที่ให้บริการ'; err.classList.remove('hidden'); }
-                        window.showToast('อยู่นอกพื้นที่ให้บริการ', 'error');
+                        if (err) { err.innerHTML = '📵 อยู่นอกพื้นที่ให้บริการ...แต่ยังอยู่ในใจเธอ'; err.classList.remove('hidden'); }
+                        window.showToast('📵 อยู่นอกพื้นที่ให้บริการ...แต่ยังอยู่ในใจเธอ', 'error');
                         b.innerHTML = oH; b.disabled = false; return;
                     }
                 }
