@@ -481,8 +481,19 @@
                     }); 
                     
                     // Update Orders
-                    appCache.orders = r.data.orders || [];
-                    appCache.orders.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    let rawOrders = r.data.orders || [];
+                    rawOrders.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    let seenO = new Set();
+                    appCache.orders = [];
+                    for(let o of rawOrders) {
+                        const sid = String(o.studentId).trim();
+                        if (sid && !seenO.has(sid)) {
+                            seenO.add(sid);
+                            appCache.orders.push(o);
+                        } else if (!sid) {
+                            appCache.orders.push(o);
+                        }
+                    }
                     
                     // Update Evaluations
                     appCache.evaluations = r.data.evaluations || [];
@@ -700,7 +711,25 @@
             return await window._bgFetchOrd(); 
         };
         window._bgFetchOrd = async function() { 
-            try { const r = await window.apiCall('GET', { action: 'getOrders' }); if(r.success) { appCache.orders = r.data; appCache.orders.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)); } return appCache.orders; } 
+            try { 
+                const r = await window.apiCall('GET', { action: 'getOrders' }); 
+                if(r.success) { 
+                    let rawOrders = r.data || [];
+                    rawOrders.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    let seenO = new Set();
+                    appCache.orders = [];
+                    for(let o of rawOrders) {
+                        const sid = String(o.studentId).trim();
+                        if (sid && !seenO.has(sid)) {
+                            seenO.add(sid);
+                            appCache.orders.push(o);
+                        } else if (!sid) {
+                            appCache.orders.push(o);
+                        }
+                    }
+                } 
+                return appCache.orders; 
+            } 
             catch (e) { return appCache.orders || []; } 
         };
 
@@ -2188,7 +2217,6 @@
         };
 
         window.renderTracking = async function(c) {
-            c.innerHTML = window.getGokuLoader('เตรียมหน้าค้นหา...'); try { await window.fetchSettingsData(); } catch (e) {}
             if (!isShirtShopOpen) { c.innerHTML = `<div class="fade-in max-w-4xl mx-auto px-4 py-10"><div class="glass rounded-[32px] p-12 text-center"><i class="ph-fill ph-lock-key text-5xl text-red-500 mb-4 block"></i><h2 class="text-3xl font-black mb-3">ปิดให้บริการชั่วคราว</h2><button onclick="navigate('events')" class="px-8 py-4 bg-slate-800 text-white font-bold rounded-2xl mt-6 mx-auto"><i class="ph-bold ph-arrow-left"></i> กลับไปหน้ากิจกรรม</button></div></div>`; return; }
             c.innerHTML = `
                 <div class="fade-in max-w-4xl mx-auto pb-10">
@@ -2216,10 +2244,34 @@
             if(!sId) { f.textContent = 'กรุณากรอกรหัส'; f.classList.remove('hidden'); return; }
             const b = document.getElementById('btn-fetch-tracking'), txt = b.innerHTML; b.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i>'; b.disabled = true; f.classList.add('hidden'); rS.classList.add('hidden');
             try {
-                await window.fetchOrdersData(true); let tS = sId, mO = appCache.orders.find(o => String(o.studentId).trim() === tS);
-                if (!mO && sId.length >= 10) { const r = await window.apiCall('GET', { action: 'search', id: encodeURIComponent(sId) }); if (r.success && r.data && r.data.studentId) { tS = r.data.studentId; mO = appCache.orders.find(o => String(o.studentId).trim() === tS); } }
-                if (mO) { window.showToast('พบข้อมูล', 'success'); document.getElementById('btn-clear-tracking').classList.remove('hidden'); window.renderTrackingReceipt(rS, mO); rS.classList.remove('hidden'); } else { f.innerHTML = 'ไม่พบประวัติการสั่งจอง'; f.classList.remove('hidden'); }
-            } catch (error) { f.innerHTML = 'ระบบออฟไลน์'; f.classList.remove('hidden'); } finally { b.innerHTML = txt; b.disabled = false; }
+                // ใช้ข้อมูลจาก appCache ทันที
+                let tS = sId;
+                let mO = appCache.orders.find(o => String(o.studentId).trim() === tS || String(o.citizenId).trim() === tS);
+                
+                // ถ้าค้นจากออเดอร์ไม่เจอ ลองเอาไปเทียบกับประวัติเช็คอินเผื่อพิมพ์บัตรประชาชนมา
+                if (!mO && sId.length >= 10) { 
+                    const studentRecord = appCache.checkIns.find(c => String(c[3]).trim() === sId);
+                    if (studentRecord) {
+                        tS = String(studentRecord[2]).trim(); 
+                        mO = appCache.orders.find(o => String(o.studentId).trim() === tS);
+                    }
+                }
+                
+                if (mO) { 
+                    window.showToast('พบข้อมูล', 'success'); 
+                    document.getElementById('btn-clear-tracking').classList.remove('hidden'); 
+                    window.renderTrackingReceipt(rS, mO); 
+                    rS.classList.remove('hidden'); 
+                } else { 
+                    f.innerHTML = 'ไม่พบประวัติการสั่งจอง'; 
+                    f.classList.remove('hidden'); 
+                }
+            } catch (error) { 
+                f.innerHTML = 'ระบบออฟไลน์'; 
+                f.classList.remove('hidden'); 
+            } finally { 
+                b.innerHTML = txt; b.disabled = false; 
+            }
         };
 
         window.clearTrackingSearch = function() { document.getElementById('search-tracking-id').value = ''; document.getElementById('tracking-result-section').classList.add('hidden'); document.getElementById('tracking-result-section').innerHTML = ''; document.getElementById('btn-clear-tracking').classList.add('hidden'); document.getElementById('search-tracking-feedback').classList.add('hidden'); };
@@ -2862,6 +2914,11 @@
         setTimeout(() => { 
             const ctx = document.getElementById('statusChart'); 
             if (ctx) { 
+                const g1 = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400); g1.addColorStop(0, '#fde68a'); g1.addColorStop(1, '#f59e0b');
+                const g2 = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400); g2.addColorStop(0, '#6ee7b7'); g2.addColorStop(1, '#10b981');
+                const g3 = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400); g3.addColorStop(0, '#c084fc'); g3.addColorStop(1, '#9333ea');
+                const g4 = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400); g4.addColorStop(0, '#93c5fd'); g4.addColorStop(1, '#3b82f6');
+                Chart.defaults.font.family = "'Prompt', sans-serif";
                 new Chart(ctx.getContext('2d'), { 
                     type: 'doughnut', 
                     data: { 
@@ -2873,16 +2930,20 @@
                                 oD.filter(o=>o.status===3).length, 
                                 oD.filter(o=>o.status===4).length
                             ], 
-                            backgroundColor: ['#fbbf24', '#34d399', '#a855f7', '#60a5fa'], 
-                            borderWidth: 2,
-                            borderColor: '#ffffff'
+                            backgroundColor: [g1, g2, g3, g4], 
+                            borderWidth: 4,
+                            borderColor: '#ffffff',
+                            hoverOffset: 8
                         }] 
                     }, 
                     options: { 
                         responsive: true, 
                         maintainAspectRatio: false, 
-                        cutout: '75%', 
-                        plugins: { legend: { position: 'bottom' } } 
+                        cutout: '70%', 
+                        plugins: { 
+                            legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true, pointStyle: 'circle' } },
+                            tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { size: 14 }, bodyFont: { size: 14, weight: 'bold' }, padding: 12, cornerRadius: 12, usePointStyle: true }
+                        } 
                     } 
                 }); 
             } 
@@ -2899,13 +2960,27 @@
             const ctxFac = document.getElementById('facultyChart');
             if (ctxFac && window.myFacultyChart) window.myFacultyChart.destroy();
             if (ctxFac && facLabels.length > 0) {
+                const gradientFac = ctxFac.getContext('2d').createLinearGradient(0, 0, 0, 400);
+                gradientFac.addColorStop(0, '#f97316');
+                gradientFac.addColorStop(1, '#fed7aa');
                 window.myFacultyChart = new Chart(ctxFac.getContext('2d'), {
                     type: 'bar',
                     data: {
                         labels: facLabels,
-                        datasets: [{ label: 'จำนวน (คน)', data: facData, backgroundColor: '#f97316', borderRadius: 8 }]
+                        datasets: [{ label: 'จำนวนผู้เข้าร่วม', data: facData, backgroundColor: gradientFac, borderRadius: 8, maxBarThickness: 50, borderSkipped: false }]
                     },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        plugins: { 
+                            legend: { display: false },
+                            tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { size: 14 }, bodyFont: { size: 14, weight: 'bold' }, padding: 12, cornerRadius: 12, displayColors: false }
+                        },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { maxRotation: 45, minRotation: 45, color: '#64748b' } },
+                            y: { grid: { color: '#f1f5f9', borderDash: [5, 5] }, ticks: { padding: 10, color: '#94a3b8' }, border: { dash: [5, 5] } }
+                        }
+                    }
                 });
             }
 
@@ -2926,13 +3001,29 @@
             const ctxSize = document.getElementById('shirtSizeChart');
             if (ctxSize && window.myShirtChart) window.myShirtChart.destroy();
             if (ctxSize && sizeLabels.length > 0) {
+                const colors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef'];
+                const gradients = colors.map((c, i) => {
+                    if (!ctxSize.getContext) return c;
+                    const g = ctxSize.getContext('2d').createLinearGradient(0, 0, 0, 400);
+                    g.addColorStop(0, colors[i % colors.length]); 
+                    g.addColorStop(1, colors[(i+1) % colors.length]);
+                    return g;
+                });
                 window.myShirtChart = new Chart(ctxSize.getContext('2d'), {
                     type: 'doughnut',
                     data: {
                         labels: sizeLabels,
-                        datasets: [{ data: sizeData, backgroundColor: ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef'] }]
+                        datasets: [{ data: sizeData, backgroundColor: gradients, borderWidth: 4, borderColor: '#ffffff', hoverOffset: 8 }]
                     },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        cutout: '65%',
+                        plugins: { 
+                            legend: { position: 'right', labels: { padding: 15, usePointStyle: true, pointStyle: 'circle' } },
+                            tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { size: 14 }, bodyFont: { size: 14, weight: 'bold' }, padding: 12, cornerRadius: 12, usePointStyle: true }
+                        } 
+                    }
                 });
             }
         }, 100);
