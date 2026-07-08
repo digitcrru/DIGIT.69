@@ -1,25 +1,45 @@
-$ErrorActionPreference = "Stop"
 $htmlPath = "C:\Users\Jenn1817\.gemini\antigravity\scratch\digit_crru\index.html"
-$cssPath = "C:\Users\Jenn1817\.gemini\antigravity\scratch\digit_crru\styles.css"
-$jsPath = "C:\Users\Jenn1817\.gemini\antigravity\scratch\digit_crru\app.js"
+$outDir = "C:\Users\Jenn1817\Downloads\digit_crru_frontend"
+if (!(Test-Path $outDir)) { New-Item -ItemType Directory -Force -Path $outDir | Out-Null }
 
-$content = Get-Content -Path $htmlPath -Raw
+$lines = Get-Content $htmlPath -Encoding UTF8
+$css = @()
+$js = @()
+$newHtml = @()
 
-# Extract CSS
-$cssPattern = '(?s)<style>(.*?)</style>'
-if ($content -match $cssPattern) {
-    $css = $matches[1].Trim()
-    Set-Content -Path $cssPath -Value $css -Encoding UTF8
-    $content = $content -replace $cssPattern, '<link rel="stylesheet" href="styles.css">'
+$inStyle = $false
+$inScript = $false
+
+foreach ($line in $lines) {
+    if ($line -match "<style>") {
+        $inStyle = $true
+        $newHtml += '<link rel="stylesheet" href="styles.css">'
+        continue
+    }
+    if ($line -match "</style>") {
+        $inStyle = $false
+        continue
+    }
+    if ($line -match "<script>" -and $line -notmatch "src=") {
+        $inScript = $true
+        $newHtml += '<script src="app.js"></script>'
+        continue
+    }
+    if ($inScript -and $line -match "</script>") {
+        $inScript = $false
+        continue
+    }
+    
+    if ($inStyle) {
+        $css += $line
+    } elseif ($inScript) {
+        $js += $line
+    } else {
+        $newHtml += $line
+    }
 }
 
-# Extract JS
-$jsPattern = '(?s)<script>\s*const GOOGLE_SCRIPT_URL(.*?)<\/script>'
-if ($content -match $jsPattern) {
-    $js = "const GOOGLE_SCRIPT_URL" + $matches[1]
-    Set-Content -Path $jsPath -Value $js -Encoding UTF8
-    $content = $content -replace $jsPattern, '<script src="app.js"></script>'
-}
-
-Set-Content -Path $htmlPath -Value $content -Encoding UTF8
-Write-Host "Extraction completed successfully!"
+Set-Content -Path "$outDir\styles.css" -Value ($css -join "`n") -Encoding UTF8
+Set-Content -Path "$outDir\app.js" -Value ($js -join "`n") -Encoding UTF8
+Set-Content -Path "$outDir\index.html" -Value ($newHtml -join "`n") -Encoding UTF8
+Write-Host "Done"
