@@ -487,7 +487,7 @@
         
         const STATUS_MAP = { 
             1: { text: 'รอตรวจสอบ', color: 'bg-amber-100 text-amber-700', icon: 'ph-hourglass-high' }, 
-            2: { text: 'ชำระเงแอดมแอดมินแล้ว', color: 'bg-emerald-100 text-emerald-700', icon: 'ph-check-circle' }, 
+            2: { text: 'ชำระเงินแล้ว', color: 'bg-emerald-100 text-emerald-700', icon: 'ph-check-circle' }, 
             3: { text: 'กำลังผลิต', color: 'bg-purple-100 text-purple-700', icon: 'ph-scissors' }, 
             4: { text: 'พร้อมรับ', color: 'bg-blue-100 text-blue-700', icon: 'ph-package' } 
         };
@@ -605,7 +605,7 @@
                 }
             } catch(e) {
                 console.error(e);
-                window.showToast('โหลดข้อมูลลแตแตแต้มเหลว หรือใช้งานออฟไลน์', 'warning');
+                window.showToast('โหลดข้อมูลล้มเหลว หรือใช้งานออฟไลน์', 'warning');
             } finally {
                 // Hide loader
                 const loader = document.getElementById('global-app-loader');
@@ -1004,7 +1004,7 @@
                 // Fallback: CRRU default coordinates
                 setCoords('19.9846947', '99.8488944', 'ใช้พิกัดกลาง มร.ชร. (ไม่มีในฐานข้อมูลแผนที่สาธารณะ)');
             } catch (e) {
-                setCoords('19.9846947', '99.8488944', 'ใช้พิกัดกลาง มร.ชร. (ค้นหาลแตแตแต้มเหลว)');
+                setCoords('19.9846947', '99.8488944', 'ใช้พิกัดกลาง มร.ชร. (ค้นหาล้มเหลว)');
             }
         };
         
@@ -1133,8 +1133,8 @@
             const iC = document.getElementById('modal-slip-image-container'), inf = document.getElementById('modal-slip-info');
             if (o) {
                 if (o.paymentMethod === 'cash') { 
-                    inf.innerHTML = `ชำระแบบ: <span class="font-bold text-amber-600">เงแอดมแอดมินสด</span><br>ยอดที่ต้องรับ: <span class="font-bold text-lg">฿${o.total}</span>`; 
-                    iC.innerHTML = `<div class="flex flex-col items-center justify-center text-amber-500"><i class="ph-fill ph-wallet text-7xl mb-4"></i><h2 class="text-2xl font-black">ชำระด้วยเงแอดมแอดมินสด</h2></div>`; 
+                    inf.innerHTML = `ชำระแบบ: <span class="font-bold text-amber-600">เงินสด</span><br>ยอดที่ต้องรับ: <span class="font-bold text-lg">฿${o.total}</span>`; 
+                    iC.innerHTML = `<div class="flex flex-col items-center justify-center text-amber-500"><i class="ph-fill ph-wallet text-7xl mb-4"></i><h2 class="text-2xl font-black">ชำระด้วยเงินสด</h2></div>`; 
                 } 
                 else if (o.slipImage) { 
                     inf.innerHTML = `เวลาโอน: <span class="font-bold text-primary">${o.slipTime || '-'}</span> น. | ยอด: <span class="font-bold text-primary">฿${o.total}</span>`; 
@@ -1458,7 +1458,7 @@
                 const r = await window.apiCall('GET', { action: 'search', id: encodeURIComponent(sId) }); 
                 if (r.success && r.data) { appCache.students[sId] = r.data; window.fillStudentForm(r.data, sId); } 
                 else { f.innerHTML = 'ไม่พบข้อมูล กรุณาลองใหม่'; f.classList.remove('hidden'); } 
-            } catch (e) { f.innerHTML = 'เชื่อมต่อลแตแตแต้มเหลว'; f.classList.remove('hidden'); window.showManualForm(sId); } 
+            } catch (e) { f.innerHTML = 'เชื่อมต่อล้มเหลว'; f.classList.remove('hidden'); window.showManualForm(sId); } 
             finally { b.innerHTML = oH; b.disabled = false; }
         };
 
@@ -2301,7 +2301,7 @@
                         <div><h1 class="text-3xl font-black text-slate-800">จัดการใบประกาศนียบัตร</h1><p class="text-primary font-bold text-lg mt-1">${eName}</p></div>
                         <div class="flex gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0"><button onclick="navigate('admin-certificates')" class="shrink-0 px-5 py-2.5 bg-white border border-white shadow-sm rounded-xl font-bold text-sm hover-lift flex items-center gap-2 text-slate-600 hover:text-primary"><i class="ph-bold ph-arrow-left"></i> ย้อนกลกลกลกลับ</button>${validStudents.length > 0 ? `<button onclick="exportEventCertificates('${eId}')" class="shrink-0 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white shadow-md rounded-xl font-bold text-sm flex gap-2 items-center hover-lift transition-colors"><i class="ph-bold ph-file-pdf text-lg"></i> โหลด PDF ทั้งหมด (${validStudents.length})</button>` : ''}</div>
                     </div>
-                    <div class="glass rounded-3xl border border-white shadow-sm overflow-hidden"><div class="bg-white/60 p-4 border-b border-white text-sm font-bold flex justify-between px-6 items-center"><span>ผู้ผ่านประเมินและมีสิทธิ์ได้รับใบประกาศ: <span class="text-primary text-base">${validStudents.length}</span> คน</span></div><div class="overflow-x-auto"><table class="w-full text-left min-w-[700px]"><thead class="bg-white/40 border-b border-white text-slate-500 text-xs uppercase"><th class="p-5 pl-6 w-20">ลำดกลกลกลับ</th><th class="p-5 w-48">รหัสนักศึกษา</th><th class="p-5">ชื่อ-นามสกุล</th><th class="p-5 text-center w-40">จัดการ</th></thead><tbody class="text-sm">`;
+                    <div class="glass rounded-3xl border border-white shadow-sm overflow-hidden"><div class="bg-white/60 p-4 border-b border-white text-sm font-bold flex justify-between px-6 items-center"><span>ผู้ผ่านประเมินและมีสิทธิ์ได้รับใบประกาศ: <span class="text-primary text-base">${validStudents.length}</span> คน</span></div><div class="overflow-x-auto"><table class="w-full text-left min-w-[700px]"><thead class="bg-white/40 border-b border-white text-slate-500 text-xs uppercase"><th class="p-5 pl-6 w-20">ลำดับ</th><th class="p-5 w-48">รหัสนักศึกษา</th><th class="p-5">ชื่อ-นามสกุล</th><th class="p-5 text-center w-40">จัดการ</th></thead><tbody class="text-sm">`;
             if (validStudents.length === 0) { h += `<tr><td colspan="4" class="p-12 text-center text-slate-500 font-medium"><i class="ph-fill ph-certificate text-5xl text-slate-300 mb-3 block mx-auto"></i>ยังไม่มีผู้ผ่านการประเมินผลสำหรับกิจกรรมนี้</span></div></td></tr>`; } else {
                 validStudents.forEach((s, idx) => {
                     const safeName = s.sName.replace(/'/g, "\\'"); const safeEvent = eName.replace(/'/g, "\\'"); const safeDate = eDate.replace(/'/g, "\\'");
@@ -2512,17 +2512,17 @@
                                 <div class="w-24 h-24 bg-white text-orange-500 rounded-[28px] flex items-center justify-center mb-8 shadow-sm border border-orange-100">
                                     <i class="ph-fill ph-wallet text-5xl"></i>
                                 </div>
-                                <h3 class="text-3xl font-black mb-4 text-slate-800">ชำระด้วยเงแอดมแอดมินสด</h3>
-                                <p class="text-slate-600 mb-8 font-medium">เมื่อกดยืนยัน ระบบจะออก <span class="bg-white px-2 py-1 rounded font-bold text-primary border shadow-sm">"ใบเสร็จรับเงแอดมแอดมิน"</span> ให้ทันที<br>เพื่อใช้เป็นหลักฐานนำไปชำระเงแอดมแอดมินที่ห้องฝ่ายกิจการนักศึกษา</p>
+                                <h3 class="text-3xl font-black mb-4 text-slate-800">ชำระด้วยเงินสด</h3>
+                                <p class="text-slate-600 mb-8 font-medium">เมื่อกดยืนยัน ระบบจะออก <span class="bg-white px-2 py-1 rounded font-bold text-primary border shadow-sm">"ใบเสร็จรับเงิน"</span> ให้ทันที<br>เพื่อใช้เป็นหลักฐานนำไปชำระเงินที่ห้องฝ่ายกิจการนักศึกษา</p>
                                 
                                 <div class="w-full bg-white/80 border border-white rounded-[24px] p-6 text-left mb-8 shadow-sm">
                                     <div class="flex gap-4">
                                         <div class="shrink-0 mt-0.5"><div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-primary"><i class="ph-bold ph-info"></i></div></div>
                                         <div>
-                                            <h4 class="font-bold text-slate-800 mb-3 text-lg">ขั้นตอนการชำระเงแอดมแอดมินสด:</h4>
+                                            <h4 class="font-bold text-slate-800 mb-3 text-lg">ขั้นตอนการชำระเงินสด:</h4>
                                             <ul class="space-y-3 text-slate-600 font-medium">
                                                 <li class="flex items-start gap-2"><span class="mt-2 w-1.5 h-1.5 bg-primary rounded-full shrink-0"></span><span>กดยืนยันด้านล่าง เพื่อบันทึกและ <span class="font-bold border-b border-orange-300 pb-0.5 text-slate-800">รับใบเสร็จ (PDF)</span></span></li>
-                                                <li class="flex items-start gap-2"><span class="mt-2 w-1.5 h-1.5 bg-primary rounded-full shrink-0"></span><span>นำใบเสร็จไปติดต่อชำระเงแอดมแอดมิน <span class="font-bold text-slate-800">ภายใน 3 วันทำการ</span></span></li>
+                                                <li class="flex items-start gap-2"><span class="mt-2 w-1.5 h-1.5 bg-primary rounded-full shrink-0"></span><span>นำใบเสร็จไปติดต่อชำระเงิน <span class="font-bold text-slate-800">ภายใน 3 วันทำการ</span></span></li>
                                                 <li class="flex items-start gap-2"><span class="mt-2 w-1.5 h-1.5 bg-primary rounded-full shrink-0"></span><span>เวลาทำการ 09:00 - 16:30 น. <span class="text-slate-500/80">(ห้องฝ่ายกิจการนักศึกษา)</span></span></li>
                                             </ul>
                                         </div>
@@ -2582,7 +2582,7 @@
                 let tS = sId;
                 let mO = appCache.orders.find(o => String(o.studentId).trim() === tS || String(o.citizenId).trim() === tS);
                 
-                // ถ้าค้นจากออเดอร์ไม่เจอ ลองเอกสารกสารกสาราไปเทียบกกลกลกลับประวัติเช็คอแอดมแอดมินเผื่อพิมพ์บัตรประชาชนมา
+                // ถ้าค้นจากออเดอร์ไม่เจอ ลองเอกสารกสารกสาราไปเทียบกกลกลกลับประวัติเช็คอินเผื่อพิมพ์บัตรประชาชนมา
                 if (!mO && sId.length >= 10) { 
                     const studentRecord = appCache.checkIns.find(c => String(c[3]).trim() === sId);
                     if (studentRecord) {
@@ -2631,37 +2631,37 @@
                         <div>
                             <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #1e293b; padding-bottom: 10px; margin-bottom: 10px;">
                                 <div style="width: 55%;"><h2 style="font-size: 15px; font-weight: 700; margin: 0;">สโมสรนักศึกษาคณะเทคโนโลยีดิจิทัล</h2><p style="font-size: 12px; margin: 0;">มหาวิทยาลัยราชภัฏเชียงราย</p></div>
-                                <div style="width: 45%; text-align: right;"><h1 style="font-size: 18px; font-weight: 900; margin: 0 0 4px 0;">ใบเสร็จรับเงแอดมแอดมิน</h1><span style="font-weight: bold; border: 2px solid #1e293b; padding: 2px 10px; font-size: 11px;">${isC ? 'สำเนา (Copy)' : 'ต้นฉบกลกลกลับ (Original)'}</span></div>
+                                <div style="width: 45%; text-align: right;"><h1 style="font-size: 18px; font-weight: 900; margin: 0 0 4px 0;">ใบเสร็จรับเงิน</h1><span style="font-weight: bold; border: 2px solid #1e293b; padding: 2px 10px; font-size: 11px;">${isC ? 'สำเนา (Copy)' : 'ต้นฉบกลกลกลับ (Original)'}</span></div>
                             </div>
                             <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 10px;">
-                                <div style="width: 55%;"><p style="margin: 0;"><b>ได้รับเงแอดมแอดมินจาก:</b> ${o.name}</p><p style="margin: 0;"><b>รหัสนักศึกษา:</b> ${o.studentId}</p><p style="margin: 0;"><b>คณะ/สาขา:</b> ${dF} / ${dM}</p></div>
+                                <div style="width: 55%;"><p style="margin: 0;"><b>ได้รับเงินจาก:</b> ${o.name}</p><p style="margin: 0;"><b>รหัสนักศึกษา:</b> ${o.studentId}</p><p style="margin: 0;"><b>คณะ/สาขา:</b> ${dF} / ${dM}</p></div>
                                 <div style="width: 45%; text-align: right;"><p style="margin: 0;"><b>Order ID:</b> ${o.id}</p><p style="margin: 0;"><b>วันที่:</b> ${window.formatThaiDate(o.timestamp || o.date, true)}</p></div>
                             </div>
                             <table style="width: 100%; border-collapse: collapse; border: 2px solid #1e293b;">
-                                <thead><tr style="background-color: #f1f5f9;"><th style="${tB} text-align: center;">ลำดกลกลกลับ</th><th style="${tB}">รายการสแอดมแอดมินค้า</th><th style="${tB} text-align: center;">จำนวน</th><th style="${tB} text-align: right;">หน่วยละ</th><th style="${tB} text-align: right;">จำนวนเงแอดมแอดมิน</th></tr></thead>
-                                <tbody>${iH}<tr><td colspan="4" style="border: 1px solid #1e293b; padding: 8px 10px; text-align: right; font-weight: 700; font-size: 12px;">รวมเงแอดมแอดมินสุทธิ</td><td style="border: 1px solid #1e293b; padding: 8px 10px; text-align: right; font-weight: 900; font-size: 14px;">${sumTotal.toLocaleString()}</td></tr></tbody>
+                                <thead><tr style="background-color: #f1f5f9;"><th style="${tB} text-align: center;">ลำดับ</th><th style="${tB}">รายการสินค้า</th><th style="${tB} text-align: center;">จำนวน</th><th style="${tB} text-align: right;">หน่วยละ</th><th style="${tB} text-align: right;">จำนวนเงิน</th></tr></thead>
+                                <tbody>${iH}<tr><td colspan="4" style="border: 1px solid #1e293b; padding: 8px 10px; text-align: right; font-weight: 700; font-size: 12px;">รวมเงินสุทธิ</td><td style="border: 1px solid #1e293b; padding: 8px 10px; text-align: right; font-weight: 900; font-size: 14px;">${sumTotal.toLocaleString()}</td></tr></tbody>
                             </table>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; padding: 0 20px;">
                             <div style="text-align: center; width: 40%;">
                                 <p style="margin: 0 0 8px 0; color: #94a3b8;">.......................................................</p>
-                                <p style="font-weight: 700; margin: 0; font-size: 12px; color: #1e293b;">ผู้จ่ายเงแอดมแอดมิน</p>
+                                <p style="font-weight: 700; margin: 0; font-size: 12px; color: #1e293b;">ผู้จ่ายเงิน</p>
                                 <p style="font-weight: 500; margin: 4px 0 0; font-size: 11px; color: #64748b;">( ${o.name} )</p>
                                 <p style="font-weight: 500; margin: 4px 0 0; font-size: 10px; color: #94a3b8;">วันที่: ....../....../......</p>
                             </div>
                             <div style="text-align: center; width: 40%;">
                                 <p style="margin: 0 0 8px 0; color: #94a3b8;">.......................................................</p>
-                                <p style="font-weight: 700; margin: 0; font-size: 12px; color: #1e293b;">ผู้รับเงแอดมแอดมิน</p>
+                                <p style="font-weight: 700; margin: 0; font-size: 12px; color: #1e293b;">ผู้รับเงิน</p>
                                 <p style="font-weight: 500; margin: 4px 0 0; font-size: 11px; color: #64748b;">( เจ้าหน้าที่คณะ/สโมสรนักศึกษา )</p>
                                 <p style="font-weight: 500; margin: 4px 0 0; font-size: 10px; color: #94a3b8;">วันที่: ....../....../......</p>
                             </div>
                         </div>
-                        <p style="font-size: 10px; color: #64748b; margin: 15px 0 0 0; text-align: center; background-color: #f8fafc; padding: 6px; border-radius: 4px;">ชำระผ่าน: <b>เงแอดมแอดมินสด</b> | ใช้เป็นหลักฐานในการติดต่อรับชุดเสื้อคณะเท่านั้น</p>
+                        <p style="font-size: 10px; color: #64748b; margin: 15px 0 0 0; text-align: center; background-color: #f8fafc; padding: 6px; border-radius: 4px;">ชำระผ่าน: <b>เงินสด</b> | ใช้เป็นหลักฐานในการติดต่อรับชุดเสื้อคณะเท่านั้น</p>
                     </div>
                 </div>`;
 
             let h = `
-                <div class="glass rounded-[32px] shadow-xl p-8 sm:p-10 mb-8 overflow-hidden print:hidden text-center border border-white"><h2 class="text-2xl font-black text-slate-800 mb-8">สถานะการดำเนแอดมแอดมินการ</h2><div class="relative flex flex-col md:flex-row justify-between items-start md:items-center max-w-3xl mx-auto">
+                <div class="glass rounded-[32px] shadow-xl p-8 sm:p-10 mb-8 overflow-hidden print:hidden text-center border border-white"><h2 class="text-2xl font-black text-slate-800 mb-8">สถานะการดำเนินการ</h2><div class="relative flex flex-col md:flex-row justify-between items-start md:items-center max-w-3xl mx-auto">
                     <div class="hidden md:block absolute top-6 left-[10%] right-[10%] h-1 bg-white z-0"></div>
                 `;
             
@@ -2755,11 +2755,11 @@
                 if (prodSum.act[aSz.toUpperCase()] !== undefined) prodSum.act[aSz.toUpperCase()] += aQ;
             });
             const prodTP = Object.values(prodSum.polo).reduce((a, b) => a + b, 0), prodTA = Object.values(prodSum.act).reduce((a, b) => a + b, 0);
-            let prodPoloBody = SIZE_LIST.filter(s => prodSum.polo[s] > 0).length ? SIZE_LIST.filter(s => prodSum.polo[s] > 0).map(s => `<tr class="border-b border-purple-100/50 hover:bg-purple-50/40"><td class="py-3 px-5 w-1/2 text-sm">ไซส์ ${s}</td><td class="py-3 px-5 text-right text-sm font-black text-purple-700">${prodSum.polo[s]} ตัว</td></tr>`).join('') : `<tr><td colspan="2" class="py-4 px-5 text-center text-slate-400 font-medium text-sm">ยังไม่มีข้อมูล</td></tr>`;
-            let prodActBody = SIZE_LIST.filter(s => prodSum.act[s] > 0).length ? SIZE_LIST.filter(s => prodSum.act[s] > 0).map(s => `<tr class="border-b border-purple-100/50 hover:bg-purple-50/40"><td class="py-3 px-5 w-1/2 text-sm">ไซส์ ${s}</td><td class="py-3 px-5 text-right text-sm font-black text-purple-700">${prodSum.act[s]} ตัว</td></tr>`).join('') : `<tr><td colspan="2" class="py-4 px-5 text-center text-slate-400 font-medium text-sm">ยังไม่มีข้อมูล</td></tr>`;
+            let prodPoloBody = SIZE_LIST.filter(s => prodSum.polo[s] > 0).length ? SIZE_LIST.filter(s => prodSum.polo[s] > 0).map(s => `<tr class="border-b border-purple-100/50 hover:bg-purple-50/40 cursor-pointer transition-colors" onclick="window.showSizeDetails('polo', '${s}', 3)"><td class="py-3 px-5 w-1/2 text-sm">ไซส์ ${s}</td><td class="py-3 px-5 text-right text-sm font-black text-purple-700">${prodSum.polo[s]} ตัว</td></tr>`).join('') : `<tr><td colspan="2" class="py-4 px-5 text-center text-slate-400 font-medium text-sm">ยังไม่มีข้อมูล</td></tr>`;
+            let prodActBody = SIZE_LIST.filter(s => prodSum.act[s] > 0).length ? SIZE_LIST.filter(s => prodSum.act[s] > 0).map(s => `<tr class="border-b border-purple-100/50 hover:bg-purple-50/40 cursor-pointer transition-colors" onclick="window.showSizeDetails('act', '${s}', 3)"><td class="py-3 px-5 w-1/2 text-sm">ไซส์ ${s}</td><td class="py-3 px-5 text-right text-sm font-black text-purple-700">${prodSum.act[s]} ตัว</td></tr>`).join('') : `<tr><td colspan="2" class="py-4 px-5 text-center text-slate-400 font-medium text-sm">ยังไม่มีข้อมูล</td></tr>`;
 
-            let poloTableBody = SIZE_LIST.filter(s => sum.polo[s] > 0).length ? SIZE_LIST.filter(s => sum.polo[s] > 0).map(s => `<tr class="border-b border-white/50 hover:bg-white/40"><td class="py-4 px-6 w-1/2">ไซส์ ${s}</td><td class="py-4 px-6 text-right ${s==='ไม่รับ'?'text-red-500':''}">${sum.polo[s]} ตัว</td></tr>`).join('') : `<tr><td colspan="2" class="py-4 px-6 text-center text-slate-400 font-medium">ยังไม่มีข้อมูล</td></tr>`;
-            let actTableBody = SIZE_LIST.filter(s => sum.act[s] > 0).length ? SIZE_LIST.filter(s => sum.act[s] > 0).map(s => `<tr class="border-b border-white/50 hover:bg-white/40"><td class="py-4 px-6 w-1/2">ไซส์ ${s}</td><td class="py-4 px-6 text-right ${s==='ไม่รับ'?'text-red-500':''}">${sum.act[s]} ตัว</td></tr>`).join('') : `<tr><td colspan="2" class="py-4 px-6 text-center text-slate-400 font-medium">ยังไม่มีข้อมูล</td></tr>`;
+            let poloTableBody = SIZE_LIST.filter(s => sum.polo[s] > 0).length ? SIZE_LIST.filter(s => sum.polo[s] > 0).map(s => `<tr class="border-b border-white/50 hover:bg-white/40 cursor-pointer transition-colors" onclick="window.showSizeDetails('polo', '${s}', null)"><td class="py-4 px-6 w-1/2">ไซส์ ${s}</td><td class="py-4 px-6 text-right ${s==='ไม่รับ'?'text-red-500':''}">${sum.polo[s]} ตัว</td></tr>`).join('') : `<tr><td colspan="2" class="py-4 px-6 text-center text-slate-400 font-medium">ยังไม่มีข้อมูล</td></tr>`;
+            let actTableBody = SIZE_LIST.filter(s => sum.act[s] > 0).length ? SIZE_LIST.filter(s => sum.act[s] > 0).map(s => `<tr class="border-b border-white/50 hover:bg-white/40 cursor-pointer transition-colors" onclick="window.showSizeDetails('act', '${s}', null)"><td class="py-4 px-6 w-1/2">ไซส์ ${s}</td><td class="py-4 px-6 text-right ${s==='ไม่รับ'?'text-red-500':''}">${sum.act[s]} ตัว</td></tr>`).join('') : `<tr><td colspan="2" class="py-4 px-6 text-center text-slate-400 font-medium">ยังไม่มีข้อมูล</td></tr>`;
 
             c.innerHTML = `<div class="fade-in max-w-7xl mx-auto pb-32 sm:pb-10">
                 <div class="mb-8 flex justify-between items-end">
@@ -2787,7 +2787,7 @@
                     <h2 class="text-xl font-bold flex items-center gap-2"><i class="ph-fill ph-list-checks text-primary"></i> รายการคำสั่งซื้อทั้งหมด</h2>
                     <div class="flex flex-col sm:flex-row w-full sm:w-auto gap-3"><div class="relative w-full sm:w-64"><i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="text" id="adm-ord-search" oninput="admSearchOrders(this.value)" placeholder="ค้นหารหัส, ชื่อ, Order ID" class="w-full pl-12 pr-4 py-2.5 rounded-xl border border-white shadow-sm bg-white/80 font-medium text-sm outline-none focus:ring-2 focus:ring-primary/20" value="${adminOrdersSearch}"></div><button onclick="exportAdminOrdersExcel()" class="px-5 py-2.5 bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-sm rounded-xl font-bold text-sm w-full sm:w-auto hover-lift whitespace-nowrap"><i class="ph-bold ph-file-xls"></i> โหลด Excel (แยกสาขา)</button></div>
                 </div>
-                <div class="glass rounded-3xl border border-white shadow-sm overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left min-w-[1000px]"><thead class="bg-white/60 border-b border-white text-slate-500 text-xs uppercase"><th class="p-5">Order ID</th><th class="p-5">นักศึกษา</th><th class="p-5">สแอดมแอดมินค้า</th><th class="p-5">ยอดรวม</th><th class="p-5">สถานะ</th><th class="p-5 text-center">จัดการ</th></thead><tbody id="admin-orders-tbody" class="text-sm bg-white/40"></tbody></table></div><div id="admin-orders-pagination" class="p-5 border-t border-white flex justify-between bg-white/60"></div></div>
+                <div class="glass rounded-3xl border border-white shadow-sm overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left min-w-[1000px]"><thead class="bg-white/60 border-b border-white text-slate-500 text-xs uppercase"><th class="p-5">Order ID</th><th class="p-5">นักศึกษา</th><th class="p-5">สินค้า</th><th class="p-5">ยอดรวม</th><th class="p-5">สถานะ</th><th class="p-5 text-center">จัดการ</th></thead><tbody id="admin-orders-tbody" class="text-sm bg-white/40"></tbody></table></div><div id="admin-orders-pagination" class="p-5 border-t border-white flex justify-between bg-white/60"></div></div>
             </div>`;
             window.updateAdminOrdersTable();
         };
@@ -2800,7 +2800,7 @@
             const pO = ods.slice((adminOrdersPage - 1) * adminOrdersPerPage, adminOrdersPage * adminOrdersPerPage);
             let h = '';
             if (pO.length === 0) { h = `<tr><td colspan="6" class="p-12 text-center text-slate-400">ไม่มีรายการ</td></tr>`; } 
-            else { pO.forEach(o => { const s = STATUS_MAP[o.status], pB = `<span class="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg text-[10px] font-bold border border-amber-200 inline-flex mx-auto">เงแอดมแอดมินสด</span>`; let op = ''; for(let i=1; i<=4; i++) op += `<option value="${i}" ${o.status===i?'selected':''}>${STATUS_MAP[i].text}</option>`; h += `<tr class="border-b border-white/50 hover:bg-white/80 transition-colors"><td class="p-5"><p class="font-bold font-mono">${o.id}</p><p class="text-[10px] text-slate-400">${o.timestamp}</p></td><td class="p-5"><p class="font-bold">${o.name}</p><p class="text-xs text-slate-500">${o.studentId}</p></td><td class="p-5"><p class="font-bold bg-white/60 border border-white shadow-sm px-2 py-1 rounded inline-block mb-1">${o.type}</p><p class="text-xs">${o.size}</p></td><td class="p-5 font-bold text-primary text-base">฿${Number(o.total || 0).toLocaleString('th-TH')}</td><td class="p-5"><span class="${s.color} px-4 py-2 rounded-xl text-xs font-bold border border-white/50 shadow-sm inline-flex items-center gap-1.5"><i class="ph-bold ${s.icon}"></i> ${s.text}</span></td><td class="p-5 text-center"><div class="flex flex-col items-center gap-2">${pB}<select onchange="updateOrderStatus('${o.id}', this.value)" class="text-xs font-bold border border-slate-200 rounded-xl px-3 py-2.5 cursor-pointer outline-none focus:border-primary">${op}</select></div></td></tr>`; }); }
+            else { pO.forEach(o => { const s = STATUS_MAP[o.status], pB = `<span class="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg text-[10px] font-bold border border-amber-200 inline-flex mx-auto">เงินสด</span>`; let op = ''; for(let i=1; i<=4; i++) op += `<option value="${i}" ${o.status===i?'selected':''}>${STATUS_MAP[i].text}</option>`; h += `<tr class="border-b border-white/50 hover:bg-white/80 transition-colors"><td class="p-5"><p class="font-bold font-mono">${o.id}</p><p class="text-[10px] text-slate-400">${o.timestamp}</p></td><td class="p-5"><p class="font-bold">${o.name}</p><p class="text-xs text-slate-500">${o.studentId}</p></td><td class="p-5"><p class="font-bold bg-white/60 border border-white shadow-sm px-2 py-1 rounded inline-block mb-1">${o.type}</p><p class="text-xs">${o.size}</p></td><td class="p-5 font-bold text-primary text-base">฿${Number(o.total || 0).toLocaleString('th-TH')}</td><td class="p-5"><span class="${s.color} px-4 py-2 rounded-xl text-xs font-bold border border-white/50 shadow-sm inline-flex items-center gap-1.5"><i class="ph-bold ${s.icon}"></i> ${s.text}</span></td><td class="p-5 text-center"><div class="flex flex-col items-center gap-2">${pB}<select onchange="updateOrderStatus('${o.id}', this.value)" class="text-xs font-bold border border-slate-200 rounded-xl px-3 py-2.5 cursor-pointer outline-none focus:border-primary">${op}</select></div></td></tr>`; }); }
             tb.innerHTML = h; const sD = tI === 0 ? 0 : ((adminOrdersPage - 1) * adminOrdersPerPage) + 1, eD = Math.min(adminOrdersPage * adminOrdersPerPage, tI);
             pg.innerHTML = `<span class="text-sm font-medium bg-white px-4 py-2 rounded-xl border border-white shadow-sm">แสดง <b>${sD}-${eD}</b> จาก <b>${tI}</b></span><div class="flex gap-2"><button onclick="changeAdminOrdersPage(${adminOrdersPage - 1})" ${adminOrdersPage <= 1 ? 'disabled' : ''} class="w-10 h-10 flex justify-center items-center rounded-xl border border-white shadow-sm bg-white disabled:opacity-40 hover-lift"><i class="ph-bold ph-caret-left"></i></button><button onclick="changeAdminOrdersPage(${adminOrdersPage + 1})" ${adminOrdersPage >= tP ? 'disabled' : ''} class="w-10 h-10 flex justify-center items-center rounded-xl border border-white shadow-sm bg-white disabled:opacity-40 hover-lift"><i class="ph-bold ph-caret-right"></i></button></div>`;
         };
@@ -2813,10 +2813,10 @@
             
             const wb = XLSX.utils.book_new();
 
-            let allSheet = [["เวลา", "สาขาวิชา", "รหัสนักศึกษา", "ชื่อ-นามสกุล", "รายการ", "ยอดรวม", "วิธีการชำระเงแอดมแอดมิน", "สถานะ"]];
+            let allSheet = [["เวลา", "สาขาวิชา", "รหัสนักศึกษา", "ชื่อ-นามสกุล", "รายการ", "ยอดรวม", "วิธีการชำระเงิน", "สถานะ"]];
             orders.forEach(o => {
                 const sTxt = STATUS_MAP[o.status] ? STATUS_MAP[o.status].text : o.status;
-                const pMeth = o.paymentMethod === 'cash' ? 'เงแอดมแอดมินสด' : o.paymentMethod;
+                const pMeth = o.paymentMethod === 'cash' ? 'เงินสด' : o.paymentMethod;
                 allSheet.push([o.timestamp, o.major, o.studentId, o.name, o.size, o.total, pMeth, sTxt]);
             });
             XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(allSheet), "รวมทั้งหมด");
@@ -2829,10 +2829,10 @@
             }, {});
 
             for (const majorName in groupedByMajor) {
-                let majorSheetData = [["สาขาวิชา", "รหัสนักศึกษา", "ชื่อ-นามสกุล", "รายการ", "ยอดรวม", "วิธีการชำระเงแอดมแอดมิน", "สถานะ", "เวลา"]];
+                let majorSheetData = [["สาขาวิชา", "รหัสนักศึกษา", "ชื่อ-นามสกุล", "รายการ", "ยอดรวม", "วิธีการชำระเงิน", "สถานะ", "เวลา"]];
                 groupedByMajor[majorName].forEach(o => {
                     const sTxt = STATUS_MAP[o.status] ? STATUS_MAP[o.status].text : o.status;
-                    const pMeth = o.paymentMethod === 'cash' ? 'เงแอดมแอดมินสด' : o.paymentMethod;
+                    const pMeth = o.paymentMethod === 'cash' ? 'เงินสด' : o.paymentMethod;
                     majorSheetData.push([majorName, o.studentId, o.name, o.size, o.total, pMeth, sTxt, o.timestamp]);
                 });
 
@@ -2848,6 +2848,88 @@
 
         window.refreshAdminOrders = async function(btn) { const ic = btn.querySelector('i'); if(ic) ic.classList.add('animate-spin'); await window.fetchOrdersData(true); window.renderAdminOrders(document.getElementById('app-content'), true); if(ic) ic.classList.remove('animate-spin'); window.showToast('อัปเดตแล้ว', 'success'); };
 
+        window.showSizeDetails = function(type, size, status) {
+            let orders = appCache.orders;
+            let totalOrders = orders.length;
+            if (status) {
+                orders = orders.filter(o => parseInt(o.status) === parseInt(status));
+            }
+            let statusOrders = orders.length;
+            
+            let matchedOrders = orders.filter(o => {
+                let sZ = String(o.size || ''), 
+                    pM = sZ.match(/โปโล\s*([A-Za-z0-9\u0e00-\u0e7f]+)\s*\[(\d+)\]/i), 
+                    aM = sZ.match(/กิจกรรม\s*([A-Za-z0-9\u0e00-\u0e7f]+)\s*\[(\d+)\]/i), 
+                    pO = sZ.match(/โปโล\s*([A-Za-z0-9\u0e00-\u0e7f]+)/i), 
+                    aO = sZ.match(/กิจกรรม\s*([A-Za-z0-9\u0e00-\u0e7f]+)/i);
+                    
+                let pSz = (pM ? pM[1] : (pO ? pO[1] : 'M')).toUpperCase().trim();
+                let aSz = (aM ? aM[1] : (aO ? aO[1] : 'M')).toUpperCase().trim();
+                let pQ = pM ? parseInt(pM[2]) : Math.ceil((o.qty || 2) / 2);
+                let aQ = aM ? parseInt(aM[2]) : Math.floor((o.qty || 2) / 2);
+                
+                let targetSize = String(size).toUpperCase().trim();
+                
+                if (type === 'polo' && pSz === targetSize && pQ > 0) return true;
+                if (type === 'act' && aSz === targetSize && aQ > 0) return true;
+                return false;
+            });
+
+            let modalId = 'sizeDetailsModal';
+            let existingModal = document.getElementById(modalId);
+            if (existingModal) existingModal.remove();
+
+            let typeStr = type === 'polo' ? 'โปโลคณะ' : 'เสื้อกิจกรรม';
+            let statusStr = status ? (STATUS_MAP[status] ? STATUS_MAP[status].text : 'ทั้งหมด') : 'ทั้งหมด';
+
+            let debugInfo = `(Debug: Cache=${totalOrders}, Status=${statusOrders}, Matched=${matchedOrders.length})`;
+
+            let tbody = matchedOrders.length ? matchedOrders.map((o, idx) => `
+                <tr class="border-b border-slate-100 hover:bg-slate-50">
+                    <td class="py-3 px-4 text-sm text-center">${idx + 1}</td>
+                    <td class="py-3 px-4 text-sm font-medium text-slate-700">${o.studentId || '-'}</td>
+                    <td class="py-3 px-4 text-sm text-slate-600">${o.name || '-'}</td>
+                    <td class="py-3 px-4 text-sm text-slate-500">${o.major || '-'}</td>
+                    <td class="py-3 px-4 text-sm text-center">${STATUS_MAP[parseInt(o.status)] ? `<span class="${STATUS_MAP[parseInt(o.status)].color} px-2 py-1 rounded-lg text-xs font-bold">${STATUS_MAP[parseInt(o.status)].text}</span>` : '-'}</td>
+                </tr>
+            `).join('') : `<tr><td colspan="5" class="py-4 text-center text-slate-400">ไม่พบข้อมูล ${debugInfo}<br><span class="text-xs">ตัวอย่าง Size: ${orders.slice(0,3).map(o=>o.size).join(', ')}</span></td></tr>`;
+
+            let modalHTML = `
+            <div id="${modalId}" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4 fade-in">
+                <div class="bg-white rounded-[32px] p-8 max-w-4xl w-full relative max-h-[90vh] flex flex-col shadow-2xl border border-slate-200">
+                    <div class="flex justify-between items-center mb-6 shrink-0">
+                        <div>
+                            <h3 class="text-2xl font-black text-slate-800 flex items-center gap-3"><div class="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center"><i class="ph-fill ph-users-three text-xl"></i></div> รายชื่อผู้สั่งจอง</h3>
+                            <p class="text-sm text-slate-500 mt-2 font-medium bg-slate-50 inline-flex px-3 py-1.5 rounded-lg border border-slate-100">ประเภท: <span class="text-primary font-bold ml-1">${typeStr}</span> <span class="mx-2 text-slate-300">|</span> ไซส์: <span class="text-primary font-bold ml-1">${size}</span> <span class="mx-2 text-slate-300">|</span> สถานะ: <span class="text-primary font-bold ml-1">${statusStr}</span> <span class="mx-2 text-slate-300">|</span> รวม: <span class="text-emerald-600 font-bold ml-1">${matchedOrders.length} คน</span></p>
+                        </div>
+                        <button onclick="document.getElementById('${modalId}').remove()" class="w-10 h-10 bg-slate-50 border border-slate-200 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 hover:border-red-100 transition-all flex items-center justify-center shrink-0 shadow-sm"><i class="ph-bold ph-x"></i></button>
+                    </div>
+                    
+                    <div class="overflow-auto border border-slate-200 rounded-2xl flex-grow shadow-inner bg-slate-50/50">
+                        <table class="w-full text-left whitespace-nowrap min-w-[600px] bg-white">
+                            <thead class="bg-slate-100/80 sticky top-0 border-b border-slate-200 shadow-sm z-10 backdrop-blur-md">
+                                <tr>
+                                    <th class="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center w-16">ลำดับ</th>
+                                    <th class="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">รหัสนักศึกษา</th>
+                                    <th class="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">ชื่อ-นามสกุล</th>
+                                    <th class="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">สาขาวิชา</th>
+                                    <th class="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">สถานะ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tbody}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-end shrink-0 pt-4 border-t border-slate-100">
+                        <button onclick="document.getElementById('${modalId}').remove()" class="px-8 py-3.5 bg-slate-800 text-white font-bold rounded-xl shadow-lg shadow-slate-200 hover:bg-slate-700 hover:-translate-y-0.5 transition-all w-full sm:w-auto">ปิดหน้าต่าง</button>
+                    </div>
+                </div>
+            </div>`;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        };
         window.renderAdminEvents = async function(c) {
             c.innerHTML = window.getGokuLoader('กำลังโหลด...'); await window.fetchActivitiesData(); 
             c.innerHTML = `
@@ -3191,20 +3273,20 @@
                 <div class="glass p-5 rounded-[24px] border border-white shadow-sm flex flex-col justify-center">
                     <div class="flex items-center gap-3 mb-2">
                         <div class="bg-gradient-to-br from-orange-400 to-orange-500 text-white p-2.5 rounded-xl shadow-md"><i class="ph-fill ph-money text-xl"></i></div>
-                        <p class="text-xs font-bold text-slate-500">ยอดเงแอดมแอดมินรวม</p>
+                        <p class="text-xs font-bold text-slate-500">ยอดเงินรวม</p>
                     </div>
                     <p class="text-xl sm:text-2xl font-black text-primary truncate" title="฿${totalMoney.toLocaleString('th-TH')}">฿${totalMoney.toLocaleString('th-TH')}</p>
                 </div>
             </div>
             
-            <h2 class="text-xl font-bold mb-4">สรุปยอดเงแอดมแอดมิน</h2>
+            <h2 class="text-xl font-bold mb-4">สรุปยอดเงิน</h2>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-10">
                 <div class="glass p-6 rounded-[24px] border border-white shadow-sm relative overflow-hidden hover-lift">
                     <div class="absolute -top-8 -right-8 w-32 h-32 bg-emerald-400/10 rounded-full blur-2xl"></div>
                     <div class="relative z-10 flex items-center gap-4">
                         <div class="bg-gradient-to-br from-emerald-400 to-emerald-500 text-white p-4 rounded-2xl shadow-lg shadow-emerald-500/20"><i class="ph-fill ph-check-circle text-2xl"></i></div>
                         <div class="flex-grow">
-                            <p class="text-xs font-bold text-emerald-700 uppercase tracking-wide">ชำระเงแอดมแอดมินแล้ว</p>
+                            <p class="text-xs font-bold text-emerald-700 uppercase tracking-wide">ชำระเงินแล้ว</p>
                             <p class="text-3xl font-black text-emerald-600 mt-1">฿${paidMoney.toLocaleString('th-TH')}</p>
                         </div>
                         <div class="text-right shrink-0">
@@ -3235,7 +3317,7 @@
                     <div class="relative h-56 w-full"><canvas id="statusChart"></canvas></div>
                 </div>
                 <div class="glass rounded-[32px] border border-white shadow-sm overflow-hidden lg:col-span-2">
-                    <div class="p-6 border-b border-white/50 bg-white/40 flex justify-between"><h3 class="font-black text-lg">รอดำเนแอดมแอดมินการล่าสุด</h3><button onclick="navigate('admin-orders')" class="text-sm text-primary font-bold hover:underline">ดูทั้งหมด</button></div>
+                    <div class="p-6 border-b border-white/50 bg-white/40 flex justify-between"><h3 class="font-black text-lg">รอดำเนินการล่าสุด</h3><button onclick="navigate('admin-orders')" class="text-sm text-primary font-bold hover:underline">ดูทั้งหมด</button></div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left">
                             <thead class="bg-white/30 text-slate-500 text-xs uppercase border-b border-white/50"><th class="p-4">Order ID</th><th class="p-4">นักศึกษา</th><th class="p-4">ยอดรวม</th><th class="p-4">สถานะ</th><th class="p-4 text-right">จัดการ</th></thead>
@@ -3281,7 +3363,7 @@
                 new Chart(ctx.getContext('2d'), { 
                     type: 'doughnut', 
                     data: { 
-                        labels: ['รอตรวจสอบ', 'ชำระเงแอดมแอดมินแล้ว', 'กำลังผลิต', 'พร้อมรับ'], 
+                        labels: ['รอตรวจสอบ', 'ชำระเงินแล้ว', 'กำลังผลิต', 'พร้อมรับ'], 
                         datasets: [{ 
                             data: [
                                 oD.filter(o=>o.status===1).length, 
