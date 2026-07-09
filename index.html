@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
@@ -1237,7 +1237,7 @@
                             bH = `<button disabled class="w-full py-4 rounded-2xl font-bold flex justify-center items-center gap-2 bg-white/50 text-slate-400 cursor-not-allowed border border-white shadow-sm"><i class="ph-bold ph-lock-key"></i> ปิดรับสมัคร</button>`;
                         }
 
-                        h += `<div class="glass hover-lift rounded-[32px] flex flex-col p-7"><div class="flex justify-between items-start mb-5 gap-4"><h3 class="text-xl font-bold leading-snug">${e.title}</h3><span class="${sC} border text-[10px] font-bold px-3 py-1.5 rounded-full whitespace-nowrap">${sT}</span></div><div class="space-y-3 mt-auto mb-8 text-sm text-slate-600 font-medium"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-orange-100/50 flex items-center justify-center text-primary"><i class="ph-fill ph-calendar-blank"></i></div> ${e.date}</div><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-orange-100/50 flex items-center justify-center text-primary"><i class="ph-fill ph-map-pin"></i></div> <span class="truncate">${e.location}</span></div></div><div class="mt-4 mb-6 px-5 py-4 bg-white/50 rounded-2xl border border-white flex justify-between items-center"><span class="text-xs font-bold text-slate-500 uppercase">ผู้ลงทะเบียน</span><span class="text-base font-black text-primary">${e.joined} <span class="text-xs font-bold text-slate-400">คน</span></span></div>${bH}</div>`; 
+                        h += `<div class="glass hover-lift rounded-[32px] flex flex-col p-7"><div class="flex justify-between items-start mb-5 gap-4"><h3 class="text-xl font-bold leading-snug">${e.title}</h3><span class="${sC} border text-[10px] font-bold px-3 py-1.5 rounded-full whitespace-nowrap">${sT}</span></div><div class="space-y-3 mt-auto mb-8 text-sm text-slate-600 font-medium"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-orange-100/50 flex items-center justify-center text-primary"><i class="ph-fill ph-calendar-blank"></i></div> ${e.date}</div><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-orange-100/50 flex items-center justify-center text-primary"><i class="ph-fill ph-map-pin"></i></div> <span class="truncate">${e.location}</span></div></div><div class="mt-4 mb-6 px-5 py-4 bg-white/50 rounded-2xl border border-white flex justify-between items-center"><span class="text-xs font-bold text-slate-500 uppercase">ผู้ลงทะเบียน</span><span class="text-4xl font-black text-primary tracking-tight">${e.joined} <span class="text-sm font-bold text-slate-400">คน</span></span></div>${bH}</div>`; 
                     }); 
                 }
                 h += `</div></div>`; 
@@ -1555,7 +1555,7 @@
                 </div>
                 `;
 
-                h += `<div class="fade-in"><h2 class="text-xl font-bold mb-5 flex items-center gap-2"><i class="ph-fill ph-list-dashes text-primary"></i> ประวัติ�การเข้าร่วมกิจกรรม</h2><div class="glass rounded-[24px] overflow-hidden border border-white/50"><table class="w-full text-left border-collapse"><thead class="bg-white/50 text-slate-500 text-xs uppercase border-b border-white"><th class="p-5 w-1/2">ชื่อกิจกรรม</th><th class="p-5 text-center">วันที่จัด</th><th class="p-5 text-center">สถานะ / แต้ม</th></thead><tbody class="text-sm bg-white/60">`;
+                h += `<div class="fade-in"><h2 class="text-xl font-bold mb-5 flex items-center gap-2"><i class="ph-fill ph-list-dashes text-primary"></i> ประวัติการเข้าร่วมกิจกรรม</h2><div class="glass rounded-[24px] overflow-hidden border border-white/50"><table class="w-full text-left border-collapse"><thead class="bg-white/50 text-slate-500 text-xs uppercase border-b border-white"><th class="p-5 w-1/2">ชื่อกิจกรรม</th><th class="p-5 text-center">วันที่จัด</th><th class="p-5 text-center">สถานะ / แต้ม</th></thead><tbody class="text-sm bg-white/60">`;
                 if (hD.length > 0) { hD.forEach(x => { h += `<tr class="border-b border-white/50"><td class="p-5 font-bold">${x.eventName}</td><td class="p-5 text-center text-slate-600">${x.date}</td><td class="p-5 text-center"><span class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-bold border border-emerald-100 inline-flex items-center gap-1.5"><i class="ph-fill ph-check-circle"></i> ผ่าน <span class="bg-emerald-200/50 text-emerald-800 px-1.5 rounded-md ml-1">+10 แต้ม</span></span></td></tr>`; }); } else { h += `<tr><td colspan="3" class="p-12 text-center text-slate-500 font-medium"><div class="flex flex-col items-center justify-center"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" class="w-16 h-16 object-contain mb-3 drop-shadow-sm"><span>ไม่พบประวัติ</span></div></td></tr>`; }
                 h += `</tbody></table></div></div>`;
 
@@ -1579,7 +1579,7 @@
                     });
                     h += `</div>`;
                 } else {
-                    h += `<div class="glass rounded-[32px] border border-white shadow-sm py-12 text-center"><div class="flex flex-col items-center justify-center"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" class="w-16 h-16 object-contain mb-3 drop-shadow-sm"></div><p class="text-slate-600 font-black text-lg">ยังไม่มีใบประกาศนียบัตรที่ดาวน์โหลดได้</p><p class="text-sm font-medium text-slate-500 mt-2">ต้องผ่าน�การประเมินกิจกรรมที่เปิดรับใบประกาศ</p></div>`;
+                    h += `<div class="glass rounded-[32px] border border-white shadow-sm py-12 text-center"><div class="flex flex-col items-center justify-center"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" class="w-16 h-16 object-contain mb-3 drop-shadow-sm"></div><p class="text-slate-600 font-black text-lg">ยังไม่มีใบประกาศนียบัตรที่ดาวน์โหลดได้</p><p class="text-sm font-medium text-slate-500 mt-2">ต้องผ่านการประเมินกิจกรรมที่เปิดรับใบประกาศ</p></div>`;
                 }
                 h += `</div>`;
             }
@@ -1664,7 +1664,7 @@
                 <div class="fade-in max-w-4xl mx-auto pb-10">
                     <div class="mb-8 text-center sm:text-left">
                         <h1 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">ดาวน์โหลดวุฒิบัตร</h1>
-                        <p class="text-base text-slate-500 mt-2 font-medium">เฉพาะกิจกรรมที่คุณเข้าร่วมและ <span class="font-bold text-primary">ผ่าน�การประเมินผลแล้ว</span> เท่านั้น</p>
+                        <p class="text-base text-slate-500 mt-2 font-medium">เฉพาะกิจกรรมที่คุณเข้าร่วมและ <span class="font-bold text-primary">ผ่านการประเมินผลแล้ว</span> เท่านั้น</p>
                     </div>
                     <div class="glass rounded-[32px] shadow-sm border border-white/60 p-8 sm:p-10 mb-8">
                         <label class="block text-sm font-bold text-slate-700 mb-3">รหัสนักศึกษา หรือ หมายเลขบัตรประชาชน</label>
@@ -1699,7 +1699,7 @@
                         </div>`; 
                     }); 
                 } else { 
-                    h += `<div class="col-span-full py-16 text-center glass rounded-[32px] border border-white shadow-sm"><div class="flex flex-col items-center justify-center"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" class="w-20 h-20 object-contain mb-3 drop-shadow-sm"></div><p class="text-slate-600 font-black text-xl">ยังไม่มีใบประกาศนียบัตร</p><p class="text-sm font-medium text-slate-500 mt-2">� รุณาเข้าร่วมกิจกรรม� ละทำ�แบบประเมินให้เสร็จสิ้น� ่อนนะครับ</p></div>`; 
+                    h += `<div class="col-span-full py-16 text-center glass rounded-[32px] border border-white shadow-sm"><div class="flex flex-col items-center justify-center"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" class="w-20 h-20 object-contain mb-3 drop-shadow-sm"></div><p class="text-slate-600 font-black text-xl">ยังไม่มีใบประกาศนียบัตร</p><p class="text-sm font-medium text-slate-500 mt-2">กรุณาเข้าร่วมกิจกรรม ละทำแบบประเมินให้เสร็จสิ้น ก่อนนะครับ</p></div>`; 
                 }
                 h += `</div></div>`;
             }
@@ -1806,11 +1806,11 @@
                     <img src="${bgUrl}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:fill;z-index:1;">
                     <div style="position:relative;z-index:10;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;box-sizing:border-box;padding:230px 0px 0px 0px;">
                         <p style="font-size:30px;font-weight:600;color:#1e3a5f;margin:0 0 0px 0;letter-spacing:0.2px;">คณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย</p>
-                        <p style="font-size:20px;font-weight:400;color:#94a3b8;margin:0 0 18px 0;">ขอมอบวุฒิบัตรฉบับนี้ให้ไว้เพื่อ�แสดงว่า</p>
+                        <p style="font-size:20px;font-weight:400;color:#94a3b8;margin:0 0 18px 0;">ขอมอบวุฒิบัตรฉบับนี้ให้ไว้เพื่อแสดงว่า</p>
                         <h2 style="font-size:38px;font-weight:400;color:#0f172a;margin:100 0 200px 0;line-height:1.2;letter-spacing:0.8px;">${d.sName}</h2>
                         <div style="width:400px;height:0px;background:linear-gradient(90deg,transparent 0%,#d97706 30%,#f59e0b 50%,#d97706 70%,transparent 100%);margin:0 0 40px 0;"></div>
-                        <p style="font-size:20px;font-weight:450;color:#475569;margin:0 0 10px 0;">ได้ผ่าน�การ� ึ� อบรมเชิงป� ิบัติ�การ</p>
-                        <h3 style="font-size:22px;font-weight:400;color:#b45309;margin:0 0 10px 0;max-width:78%;line-height:1.4;">“${d.eName}� </h3>
+                        <p style="font-size:20px;font-weight:450;color:#475569;margin:0 0 10px 0;">ได้ผ่านการฝึกอบรมเชิงปฏิบัติการ</p>
+                        <h3 style="font-size:22px;font-weight:400;color:#b45309;margin:0 0 10px 0;max-width:78%;line-height:1.4;">${d.eName} </h3>
                         <p style="font-size:16px;font-weight:400;color:#475569;margin:0 0 0px 0;">ขอให้ประสบความสุขสวัสดิ์ ความเจริญ และรักษาคุณความดีไว้ตลอดไป</p>
                         <p style="font-size:16px;font-weight:500;color:#1e3a5f;margin:0 0 0 0;">ให้ไว้ ณ วันที่ ${d.eDate}</p>
                     </div>
@@ -1861,7 +1861,7 @@
                     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
                     window.showToast('ดาวน์โหลดเกียรติบัตรสำเร็จแล้ว!', 'success');
                 }, 'image/jpeg', 1.0);
-            } catch (err) { window.showToast('เกิดข้อผิดพลาดใน�การสร้างไฟล์รูปภาพ', 'error'); }
+            } catch (err) { window.showToast('เกิดข้อผิดพลาดในการสร้างไฟล์รูปภาพ', 'error'); }
         };
 
         window.exportEventCertificates = async function(eId) {
@@ -3351,3 +3351,4 @@
 </script>
 </body>
 </html>
+
