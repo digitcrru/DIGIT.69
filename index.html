@@ -886,8 +886,10 @@
             
             items.forEach(i => { 
                 const act = i.id === currentView;
-                dH += `<button onclick="window.navigate('${i.id}')" class="px-5 py-2 rounded-xl transition-all flex items-center gap-2 ${act ? `${pC} font-bold` : `text-slate-600 font-medium ${hC}`} text-sm"><i class="ph ${act?'ph-fill':'ph'} ${i.icon} text-lg"></i> ${i.label}</button>`; 
-                tH += `<button onclick="window.navigate('${i.id}')" class="flex-1 flex flex-col items-center justify-center py-1.5 gap-1 transition-all ${act ? `${tAC} font-bold` : 'text-slate-500 font-medium'}"><i class="${act?'ph-fill':'ph'} ${i.icon} text-2xl ${act?'scale-110 -translate-y-0.5':''}"></i><span class="text-[10px]">${i.tabLabel}</span></button>`; 
+                const badgeDesktop = i.badge ? `<span class="absolute top-1 right-2 w-3 h-3 bg-red-500 rounded-full border border-white"></span>` : '';
+                const badgeMobile = i.badge ? `<span class="absolute top-1 right-3.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full border border-white flex items-center justify-center">${i.badge}</span>` : '';
+                dH += `<button onclick="window.navigate('${i.id}')" class="relative px-5 py-2 rounded-xl transition-all flex items-center gap-2 ${act ? `${pC} font-bold` : `text-slate-600 font-medium ${hC}`} text-sm"><i class="ph ${act?'ph-fill':'ph'} ${i.icon} text-lg"></i> ${i.label}${badgeDesktop}</button>`; 
+                tH += `<button onclick="window.navigate('${i.id}')" class="relative flex-1 flex flex-col items-center justify-center py-1.5 gap-1 transition-all ${act ? `${tAC} font-bold` : 'text-slate-500 font-medium'}"><i class="${act?'ph-fill':'ph'} ${i.icon} text-2xl ${act?'scale-110 -translate-y-0.5':''}"></i><span class="text-[10px]">${i.tabLabel}</span>${badgeMobile}</button>`; 
             });
             if(dc) dc.innerHTML = dH; if(tc) tc.innerHTML = tH;
         };
@@ -1007,7 +1009,7 @@
             if (!dS || String(dS).trim() === '-' || String(dS).trim() === '') return dS;
             let d = new Date(String(dS).replace(/GMT.*/ig, '').replace(/\(.*?\)/g, '').trim()); 
             if (isNaN(d.getTime())) return dS; 
-            const tM = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.']; 
+            const tM = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม']; 
             let y = d.getFullYear(); if (y < 2500) y += 543;
             let r = `${d.getDate()} ${tM[d.getMonth()]} ${y}`; 
             if (incT) r += ` ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} น.`; 
@@ -1213,6 +1215,165 @@
             window.showToast('ยกเลิกการตั้งเวลาแล้ว', 'success');
         };
 
+        window.renderAttendance = function(c) {
+            let userStr = localStorage.getItem('CRRU_StudentInfo');
+            if(!userStr) {
+                // Mock login for now
+                localStorage.setItem('CRRU_StudentInfo', JSON.stringify({ id: '65123456', name: 'à¸™à¸²à¸¢à¹€à¸ˆà¸™à¸“à¸£à¸‡à¸„à¹Œ à¸¢à¸¨à¸¡à¸¹à¸¥', dept: 'à¸„à¸“à¸°à¹€à¸—à¸„à¹‚à¸™à¹‚à¸¥à¸¢à¸µà¸”à¸´à¸ˆà¸´à¸—à¸±à¸¥' }));
+                userStr = localStorage.getItem('CRRU_StudentInfo');
+            }
+            const user = JSON.parse(userStr);
+            
+            // Check current status
+            const timeIn = localStorage.getItem('attendance_timeIn');
+            const timeOut = localStorage.getItem('attendance_timeOut');
+            
+            let html = `
+            <div class="fade-in pb-24 h-full overflow-y-auto bg-slate-50 relative">
+                <!-- Header -->
+                <div class="sticky top-0 z-10 bg-white shadow-sm px-4 py-3 flex items-center justify-between">
+                    <button onclick="navigate('events')" class="w-10 h-10 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors">
+                        <i class="ph-bold ph-caret-left text-lg"></i>
+                    </button>
+                    <h1 class="font-bold text-slate-800 flex-1 text-center pr-10">à¸¥à¸‡à¹€à¸§à¸¥à¸²à¸­à¸­à¸™à¹„à¸¥à¸™à¹Œ</h1>
+                </div>
+
+                <div class="p-4 space-y-4">
+                    <!-- Profile Card -->
+                    <div class="bg-gradient-to-br from-emerald-600 to-teal-800 rounded-3xl p-5 text-white shadow-lg shadow-emerald-900/20 relative overflow-hidden">
+                        <div class="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+                        <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-emerald-400/20 rounded-full blur-xl"></div>
+                        
+                        <div class="flex items-center gap-4 relative z-10">
+                            <div class="w-16 h-16 rounded-2xl bg-white p-1 shadow-sm shrink-0">
+                                <img src="https://ui-avatars.com/api/?name=Jennarong&background=random" alt="Profile" class="w-full h-full rounded-xl object-cover">
+                            </div>
+                            <div>
+                                <div class="inline-flex items-center gap-1.5 bg-white/20 px-2.5 py-1 rounded-full text-[10px] font-medium mb-1 backdrop-blur-sm border border-white/10">
+                                    <i class="ph-fill ph-fingerprint"></i> ${timeIn ? (timeOut ? 'à¸¥à¸‡à¹€à¸§à¸¥à¸²à¸­à¸­à¸à¹à¸¥à¹‰à¸§' : 'à¸¥à¸‡à¹€à¸§à¸¥à¸²à¹€à¸‚à¹‰à¸²à¸‡à¸²à¸™à¹à¸¥à¹‰à¸§') : 'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¹„à¸”à¹‰à¸¥à¸‡à¹€à¸§à¸¥à¸²'}
+                                </div>
+                                <h2 class="font-bold text-lg leading-tight">${user.name}</h2>
+                                <p class="text-emerald-100 text-xs mt-0.5">${user.dept}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Time Cards -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <!-- Time In -->
+                        <div class="${timeIn ? 'bg-emerald-50 border-emerald-100/50' : 'bg-white border-slate-100'} rounded-2xl p-4 border shadow-sm relative overflow-hidden">
+                            <div class="flex items-center gap-1.5 ${timeIn ? 'text-emerald-600' : 'text-slate-400'} mb-2">
+                                <div class="w-6 h-6 rounded-full ${timeIn ? 'bg-emerald-100' : 'bg-slate-100'} flex items-center justify-center shrink-0">
+                                    <i class="ph-fill ph-clock"></i>
+                                </div>
+                                <span class="text-xs font-semibold">à¹€à¸§à¸¥à¸²à¹€à¸‚à¹‰à¸²à¸‡à¸²à¸™</span>
+                            </div>
+                            ${timeIn ? 
+                                `<div class="text-2xl font-black text-emerald-700 tracking-tight mb-1">${timeIn}</div>
+                                 <div class="flex items-center gap-1 text-[10px] text-emerald-600 font-medium">
+                                     <i class="ph-bold ph-check"></i> à¸¥à¸‡à¹€à¸§à¸¥à¸²à¹à¸¥à¹‰à¸§
+                                 </div>` : 
+                                `<div class="text-sm font-medium text-slate-400 mt-3">à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¹„à¸”à¹‰à¸¥à¸‡à¹€à¸§à¸¥à¸²</div>`
+                            }
+                        </div>
+                        
+                        <!-- Time Out -->
+                        <div class="${timeOut ? 'bg-orange-50 border-orange-100/50' : 'bg-white border-slate-100'} rounded-2xl p-4 border shadow-sm">
+                            <div class="flex items-center gap-1.5 ${timeOut ? 'text-orange-600' : 'text-slate-400'} mb-2">
+                                <div class="w-6 h-6 rounded-full ${timeOut ? 'bg-orange-100' : 'bg-slate-100'} flex items-center justify-center shrink-0">
+                                    <i class="ph-fill ph-clock"></i>
+                                </div>
+                                <span class="text-xs font-semibold">à¹€à¸§à¸¥à¸²à¸­à¸­à¸à¸‡à¸²à¸™</span>
+                            </div>
+                            ${timeOut ? 
+                                `<div class="text-2xl font-black text-orange-700 tracking-tight mb-1">${timeOut}</div>
+                                 <div class="flex items-center gap-1 text-[10px] text-orange-600 font-medium">
+                                     <i class="ph-bold ph-check"></i> à¸¥à¸‡à¹€à¸§à¸¥à¸²à¹à¸¥à¹‰à¸§
+                                 </div>` : 
+                                `<div class="text-sm font-medium text-slate-400 mt-3">à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¹„à¸”à¹‰à¸¥à¸‡à¹€à¸§à¸¥à¸²</div>`
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Success Banner -->
+                    ${timeIn ? `
+                    <div class="bg-blue-50 text-blue-700 rounded-2xl p-3.5 flex items-center gap-3 border border-blue-100/50 shadow-sm">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                            <i class="ph-bold ph-check"></i>
+                        </div>
+                        <span class="text-sm font-semibold">à¸§à¸±à¸™à¸™à¸µà¹‰à¸„à¸¸à¸“à¸¥à¸‡à¹€à¸§à¸¥à¸²${timeOut ? 'à¸­à¸­à¸' : 'à¹€à¸‚à¹‰à¸²'}à¸‡à¸²à¸™à¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢à¹à¸¥à¹‰à¸§</span>
+                    </div>` : ''}
+
+                    <!-- Action Button -->
+                    ${!timeIn || !timeOut ? `
+                    <button onclick="handleAttendanceClick()" class="w-full py-4 ${!timeIn ? 'bg-slate-800 hover:bg-slate-700' : 'bg-orange-500 hover:bg-orange-600'} text-white rounded-2xl font-bold shadow-lg ${!timeIn ? 'shadow-slate-900/20' : 'shadow-orange-900/20'} flex items-center justify-center gap-2 transition-colors hover-lift" id="btn-attendance-action">
+                        <i class="ph-bold ph-map-pin"></i> à¸šà¸±à¸™à¸—à¸¶à¸à¹€à¸§à¸¥à¸²${!timeIn ? 'à¹€à¸‚à¹‰à¸²' : 'à¸­à¸­à¸'}à¸‡à¸²à¸™ (GPS)
+                    </button>` : ''}
+
+                    <!-- History -->
+                    <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 mt-2">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-slate-800">à¸›à¸£à¸°à¸§à¸±à¸•à¸´à¸à¸²à¸£à¸¥à¸‡à¹€à¸§à¸¥à¸²</h3>
+                            <span class="text-xs text-slate-400 font-medium">1 à¸£à¸²à¸¢à¸à¸²à¸£</span>
+                        </div>
+                        
+                        <div class="relative mb-5">
+                            <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" placeholder="à¸„à¹‰à¸™à¸«à¸²..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/20 focus:bg-white transition-all outline-none text-slate-700">
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="border border-slate-100 rounded-2xl p-4">
+                                <div class="flex justify-between items-center mb-3">
+                                    <span class="text-xs text-slate-500">à¸§à¸±à¸™à¸—à¸µà¹ˆ</span>
+                                    <span class="text-sm font-bold text-slate-800">09 à¸.à¸„. 2569</span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 mb-3">
+                                    <div>
+                                        <span class="block text-[10px] text-slate-400 mb-0.5">à¹€à¸‚à¹‰à¸²</span>
+                                        <span class="text-sm font-semibold text-slate-700">${timeIn || '-'}</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="block text-[10px] text-slate-400 mb-0.5">à¸­à¸­à¸</span>
+                                        <span class="text-sm font-semibold text-slate-700">${timeOut || '-'}</span>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center pt-3 border-t border-slate-50">
+                                    <span class="text-xs text-slate-500">à¸ªà¸–à¸²à¸™à¸°:</span>
+                                    <span class="text-[10px] font-bold ${!timeOut ? 'bg-orange-50 text-orange-600' : 'bg-emerald-50 text-emerald-600'} px-2.5 py-1 rounded-lg">${!timeOut ? 'à¹„à¸¡à¹ˆà¸¥à¸‡à¸­à¸­à¸' : 'à¸›à¸à¸•à¸´'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `;
+            c.innerHTML = html;
+        };
+        
+        window.handleAttendanceClick = function() {
+            const btn = document.getElementById('btn-attendance-action');
+            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> à¸à¸³à¸¥à¸±à¸‡à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸žà¸´à¸à¸±à¸” GPS...';
+            btn.disabled = true;
+            
+            // Mock GPS request delay
+            setTimeout(() => {
+                const timeIn = localStorage.getItem('attendance_timeIn');
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('th-TH');
+                
+                if(!timeIn) {
+                    localStorage.setItem('attendance_timeIn', timeStr);
+                    window.showToast('à¸¥à¸‡à¹€à¸§à¸¥à¸²à¹€à¸‚à¹‰à¸²à¸‡à¸²à¸™à¸ªà¸³à¹€à¸£à¹‡à¸ˆ!', 'success');
+                } else {
+                    localStorage.setItem('attendance_timeOut', timeStr);
+                    window.showToast('à¸¥à¸‡à¹€à¸§à¸¥à¸²à¸­à¸­à¸à¸‡à¸²à¸™à¸ªà¸³à¹€à¸£à¹‡à¸ˆ!', 'success');
+                }
+                
+                // Re-render
+                window.renderAttendance(document.getElementById('app-content'));
+            }, 1500);
+        };
         window.renderEvents = function(c) {
             if (!appCache.activities || appCache.activities.length === 0) { c.innerHTML = window.getGokuLoader('โปรดรอสักครู่'); }
             window.fetchActivitiesData().then(acts => {
@@ -1259,7 +1420,9 @@
                     <div class="relative w-full"><div class="absolute inset-y-0 left-0 flex items-center pl-5 pointer-events-none"><i class="ph-fill ph-identification-card text-slate-400 text-xl"></i></div><input type="text" id="search-student-id" class="w-full pl-12 pr-4 py-4 rounded-2xl border border-white bg-white/80 font-bold shadow-sm outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-primary transition-all" placeholder="กรอกรหัส หรือ บัตรปชช." onkeypress="if(event.key === 'Enter') fetchStudentData()"></div>
                     <button onclick="fetchStudentData()" id="btn-fetch-student" class="w-full px-8 py-4 bg-slate-800 text-white text-base font-bold rounded-2xl hover:bg-black transition-colors shadow-lg shadow-slate-800/20 flex items-center justify-center gap-2 shrink-0"><i class="ph-bold ph-magnifying-glass text-lg"></i> ค้นหา</button>
                 </div>
-                <p id="search-feedback" class="text-sm font-bold text-orange-600 hidden bg-orange-50 p-4 rounded-xl border border-orange-200 mt-3"></p></div><form id="step-form" class="space-y-6 hidden" onsubmit="handleRegistrationSubmit(event, '${id}')"><input type="hidden" id="reg-hidden-student-id"><input type="hidden" id="reg-hidden-citizen-id"><div class="space-y-5 bg-white/80 p-6 rounded-[24px] shadow-sm border border-white"><div><label class="block text-xs font-bold text-slate-500 mb-2">รหัสนักศึกษา/บัตรประชาชน</label><input type="text" id="reg-student-id" required readonly class="w-full px-5 py-3.5 rounded-xl border-none bg-slate-100/50 text-slate-500 text-sm font-bold shadow-inner"></div><div><label class="block text-xs font-bold text-slate-500 mb-2">ชื่อ-นามสกุล *</label><input type="text" id="reg-name" required class="w-full px-5 py-3.5 rounded-xl border border-slate-200 font-bold text-sm bg-white focus:border-primary focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-5"><div><label class="block text-xs font-bold text-slate-500 mb-2">คณะ *</label><input type="text" id="reg-faculty" required class="w-full px-5 py-3.5 rounded-xl border border-slate-200 font-bold text-sm bg-white focus:border-primary focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"></div><div><label class="block text-xs font-bold text-slate-500 mb-2">สาขาวิชา *</label><input type="text" id="reg-major" required class="w-full px-5 py-3.5 rounded-xl border border-slate-200 font-bold text-sm bg-white focus:border-primary focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"></div></div><div><label class="block text-xs font-bold text-slate-500 mb-2">เลขบัตรประชาชน</label><input type="text" id="reg-citizen-id" class="w-full px-5 py-3.5 rounded-xl border border-slate-200 font-bold text-sm bg-white focus:border-primary focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"></div></div><p id="reg-error-message" class="text-sm font-bold text-orange-600 hidden bg-orange-50 p-4 rounded-xl border border-orange-200"></p><div class="flex gap-3 justify-end mt-4"><button type="button" onclick="resetSearchForm()" class="px-6 py-4 rounded-2xl font-bold text-slate-600 border border-white bg-white/50 hover:bg-white transition-colors">ค้นหาใหม่</button><button type="submit" class="px-8 py-4 rounded-2xl font-bold text-white btn-gradient shadow-lg">ยืนยันลงทะเบียน</button></div></form></div></div></div>
+                <p id="search-feedback" class="text-sm font-bold text-orange-600 hidden bg-orange-50 p-4 rounded-xl border border-orange-200 mt-3"></p></div><form id="step-form" class="space-y-6 hidden" onsubmit="handleRegistrationSubmit(event, '${id}')">
+<div class="bg-gradient-to-br from-emerald-600 to-teal-800 rounded-3xl p-5 text-white shadow-lg shadow-emerald-900/20 relative overflow-hidden"><div class="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div><div class="absolute -bottom-10 -left-10 w-32 h-32 bg-emerald-400/20 rounded-full blur-xl"></div><div class="flex items-center gap-4 relative z-10"><div class="w-16 h-16 rounded-2xl bg-white p-1 shadow-sm shrink-0"><img src="https://ui-avatars.com/api/?name=Student&background=random" id="gps-profile-img" alt="Profile" class="w-full h-full rounded-xl object-cover"></div><div><div class="inline-flex items-center gap-1.5 bg-white/20 px-2.5 py-1 rounded-full text-[10px] font-medium mb-1 backdrop-blur-sm border border-white/10"><i class="ph-fill ph-fingerprint"></i> ยืนยันตัวบุคคล</div><h2 class="font-bold text-lg leading-tight truncate w-48" id="gps-profile-name">-</h2><p class="text-emerald-100 text-xs mt-0.5 truncate w-48" id="gps-profile-dept">-</p></div></div></div>
+<input type="hidden" id="reg-hidden-student-id"><input type="hidden" id="reg-hidden-citizen-id"><div class="space-y-5 bg-white/80 p-6 rounded-[24px] shadow-sm border border-white"><div><label class="block text-xs font-bold text-slate-500 mb-2">รหัสนักศึกษา/บัตรประชาชน</label><input type="text" id="reg-student-id" required readonly class="w-full px-5 py-3.5 rounded-xl border-none bg-slate-100/50 text-slate-500 text-sm font-bold shadow-inner"></div><div><label class="block text-xs font-bold text-slate-500 mb-2">ชื่อ-นามสกุล *</label><input type="text" id="reg-name" required class="w-full px-5 py-3.5 rounded-xl border border-slate-200 font-bold text-sm bg-white focus:border-primary focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-5"><div><label class="block text-xs font-bold text-slate-500 mb-2">คณะ *</label><input type="text" id="reg-faculty" required class="w-full px-5 py-3.5 rounded-xl border border-slate-200 font-bold text-sm bg-white focus:border-primary focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"></div><div><label class="block text-xs font-bold text-slate-500 mb-2">สาขาวิชา *</label><input type="text" id="reg-major" required class="w-full px-5 py-3.5 rounded-xl border border-slate-200 font-bold text-sm bg-white focus:border-primary focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"></div></div><div><label class="block text-xs font-bold text-slate-500 mb-2">เลขบัตรประชาชน</label><input type="text" id="reg-citizen-id" class="w-full px-5 py-3.5 rounded-xl border border-slate-200 font-bold text-sm bg-white focus:border-primary focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"></div></div><p id="reg-error-message" class="text-sm font-bold text-orange-600 hidden bg-orange-50 p-4 rounded-xl border border-orange-200"></p><div class="flex flex-col gap-3 mt-4"><button type="submit" class="w-full py-4 bg-slate-800 text-white rounded-2xl font-bold shadow-lg shadow-slate-900/20 flex items-center justify-center gap-2 hover:bg-slate-700 transition-colors hover-lift" id="btn-attendance-action"><i class="ph-bold ph-map-pin"></i> บันทึกเข้าร่วมกิจกรรม (GPS)</button><button type="button" onclick="resetSearchForm()" class="w-full py-3 rounded-2xl font-bold text-slate-500 bg-transparent hover:bg-slate-100 transition-colors">ยกเลิก / ค้นหาใหม่</button></div></form></div></div></div>
             `;
         };
 
@@ -1293,6 +1456,14 @@
                 if (el) { el.readOnly = false; el.classList.remove('bg-slate-100/50', 'text-slate-500', 'shadow-inner', 'cursor-not-allowed'); el.classList.add('bg-white'); } 
             }); 
             document.getElementById('step-search').classList.add('hidden'); 
+            
+            const pName = document.getElementById('gps-profile-name');
+            const pDept = document.getElementById('gps-profile-dept');
+            const pImg = document.getElementById('gps-profile-img');
+            if(pName) pName.innerText = d.name || sId;
+            if(pDept) pDept.innerText = (d.faculty || '') + (d.major ? ' - ' + d.major : '');
+            if(pImg) pImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(d.name || sId)}&background=random`;
+            
             document.getElementById('step-form').classList.remove('hidden'); 
             window.showToast('ดึงข้อมูลสำเร็จ', 'success'); 
         };
@@ -1417,7 +1588,7 @@
                     b.innerHTML = 'สำเร็จ!'; window.showToast('ลงทะเบียนสำเร็จ!', 'success', { actionLabel: 'ดูประวัติ', actionFn: () => navigate('history') }); 
                     setTimeout(() => { window.navigate('survey', { eventId: evId, eventTitle: evN, studentId: fSid || fCid }); }, 1200); 
                 } else { 
-                    const dupMsg = (pR.error && (pR.error.includes('DUPLICATE') || pR.error.includes('duplicate') || pR.code === 'DUPLICATE'));
+                    const dupMsg = (pR.code === 'DUPLICATE' || (pR.message && pR.message.includes('DUPLICATE')) || (pR.error && pR.error.includes('DUPLICATE')));
                     if (dupMsg) { 
                         if (err) { err.innerHTML = 'ลงทะเบียนเรียบร้อยแล้ว ไม่สามารถลงทะเบียนซ้ำได้'; err.classList.remove('hidden'); } 
                         window.showToast('ข้อมูลซ้ำ — ลงทะเบียนแล้ว', 'error'); 
