@@ -1,28 +1,11 @@
-$htmlPath = 'C:\Users\Jenn1817\.gemini\antigravity\scratch\digit_crru\index.html'
-$html = Get-Content -Path $htmlPath -Raw -Encoding UTF8
+$file = 'C:\Users\Jenn1817\Downloads\digit_crru_frontend\index.html'
+$text = [System.IO.File]::ReadAllText($file, [System.Text.Encoding]::UTF8)
 
-# Fix modal.innerHTML syntax
-$html = $html -replace 'modal\.innerHTML =\s*<div class="bg-white rounded-3xl p-8 max-w-sm', 'modal.innerHTML = `<div class="bg-white rounded-3xl p-8 max-w-sm'
-$html = $html -replace '</div>\s*;\s*document\.body\.appendChild\(modal\);', '</div>`; document.body.appendChild(modal);'
+$b64Replacement = "ICAgIHdpbmRvdy5zdWJtaXRTZXR0aW5ncyA9IGZ1bmN0aW9uKGUpIHsgCiAgICAgICAgaWYoZSkgZS5wcmV2ZW50RGVmYXVsdCgpOyBsZXQgYnRuID0gbnVsbCwgdHh0ID0gJyc7IGlmKGUgJiYgZS50YXJnZXQpIHsgYnRuID0gZS50YXJnZXQucXVlcnlTZWxlY3RvcignYnV0dG9uW3R5cGU9InN1Ym1pdCJdJyk7IGlmKGJ0bikgeyB0eHQgPSBidG4uaW5uZXJIVE1MOyBidG4uaW5uZXJIVE1MID0gJzxpIGNsYXNzPSJwaC1ib2xkIHBoLXNwaW5uZXIgYW5pbWF0ZS1zcGluIj48L2k+IOKiaOC4seC4meC4l+C4tuC4gS4uLic7IGJ0bi5kaXNhYmxlZCA9IHRydWU7IH0gfQogICAgICAgIGxvY2FsU3RvcmFnZS5zZXRJdGVtKCdDUlJVX0FkbWluVXNlcnMnLCBKU09OLnN0cmluZ2lmeShhZG1pblVzZXJzKSk7CiAgICAgICAgc2Vzc2lvblN0b3JhZ2UucmVtb3ZlSXRlbSgnaG9tZVBvcHVwU2hvd24nKTsgCiAgICAgICAgd2luZG93LmFwaUNhbGwoJ1BPU1QnLCB7IGFjdGlvbjogJ3NhdmVTZXR0aW5ncycsIGlzU2hpcnRTaG9wT3BlbjogaXNTaGlydFNob3BPcGVuLCBhZG1pblVzZXJzOiBhZG1pblVzZXJzIH0pLnRoZW4oKCkgPT4geyBpZihlKSB3aW5kb3cuc2hvd1RvYXN0KCLguJrguLHguJnguJfguLbguIHguKrguLPguYDguKPguYfguIciLCAnc3VjY2VzcycpOyBpZihidG4pIHsgYnRuLmlubmVySFRNTCA9IHR4dDsgYnRuLmRpc2FibGVkID0gZmFsc2U7IH0gfSkuY2F0Y2goKCkgPT4geyBpZihlKSB3aW5kb3cuc2hvd1RvYXN0KCLguJrguLHguJnguJfguLbguIHguKrguLPguYDguKPguYfguIcgKE9mZmxpbmUpIiwgJ3dhcm5pbmcnKTsgaWYoYnRuKSB7IGJ0bi5pbm5lckhUTUwgPSB0eHQ7IGJ0bi5kaXNhYmxlZCA9IGZhbHNlOyB9IH0pOyAKICAgIH07"
 
-# Fix Mojibake strings
-$html = $html -replace 'à¸ªà¸³à¸«à¸£à¸±à¸šà¹€à¸Šà¹‡à¸„à¸Šà¸·à¹ˆà¸­', 'สำหรับเช็คชื่อ'
-$html = $html -replace 'à¹ƒà¸«à¹‰à¸™à¸±à¸ à¸¨à¸¶à¸ à¸©à¸²à¸ªà¹ à¸ à¸™à¸”à¹‰à¸§à¸¢à¸ à¸¥à¹‰à¸­à¸‡à¸¡à¸·à¸­à¸–à¸·à¸­<br>à¹€à¸žà¸·à¹ˆà¸­à¹€à¸‚à¹‰à¸²à¸ªà¸¹à¹ˆà¸«à¸™à¹‰à¸²à¹€à¸Šà¹‡à¸„à¸Šà¸·à¹ˆà¸­à¸ à¸´à¸ˆà¸ à¸£à¸£à¸¡à¸™à¸µà¹‰à¹‚à¸”à¸¢à¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´', 'ให้นักศึกษาสแกนด้วยกล้องมือถือ<br>เพื่อเข้าสู่หน้าเช็คชื่อกิจกรรมนี้โดยอัตโนมัติ'
-$html = $html -replace 'à¹€à¸›à¸´à¸”à¸£à¸¹à¸›à¸ à¸²à¸žà¹€à¸•à¹‡à¸¡', 'เปิดรูปภาพเต็ม'
+$replacement = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($b64Replacement))
+$pattern = "(?s)    window\.submitSettings = function\(e\) \{.*?    \};"
+$text = [regex]::Replace($text, $pattern, $replacement, [System.Text.RegularExpressions.RegexOptions]::Multiline)
 
-# Fix the act.title and qrUrl concatenation
-$html = $html -replace '<p class="text-sm font-bold text-slate-500 mb-6 truncate px-4"> \+ act\.title \+ </p>', '<p class="text-sm font-bold text-slate-500 mb-6 truncate px-4">${act.title}</p>'
-$html = $html -replace '<img src=" \+ qrUrl \+ " class="w-48 h-48 rounded-xl object-contain">', '<img src="${qrUrl}" class="w-48 h-48 rounded-xl object-contain">'
-$html = $html -replace 'window\.open\('' \+ qrUrl \+ '', ''_blank''\)', 'window.open(`${qrUrl}`, `_blank`)'
-
-# Add the QR button
-$btnSearch = "`<div class=`"flex justify-end gap-2`">"
-$btnReplace = "`<div class=`"flex justify-end gap-2`">`n<button onclick=`"showQRCode('`${e.id}')`" title=`"QR Code`" class=`"w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center hover:bg-indigo-500 hover:text-white transition-colors hover-lift`"><i class=`"ph-bold ph-qr-code`"></i></button>"
-
-if ($html -notmatch "showQRCode\('\`\$\{e\.id\}'\)") {
-    $html = $html.Replace($btnSearch, $btnReplace)
-}
-
-$utf8NoBom = New-Object System.Text.UTF8Encoding $false
-[System.IO.File]::WriteAllText($htmlPath, $html, $utf8NoBom)
-Write-Host "Fix applied."
+[System.IO.File]::WriteAllText($file, $text, (New-Object System.Text.UTF8Encoding($false)))
+Write-Host "Fixed submitSettings syntax error!"

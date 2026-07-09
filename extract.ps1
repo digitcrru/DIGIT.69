@@ -1,5 +1,9 @@
-$line = Get-Content 'C:\Users\Jenn1817\.gemini\antigravity\brain\5bfc2a01-1949-4bc1-905f-ba767ed379aa\.system_generated\logs\transcript_full.jsonl' -TotalCount 1
-$json = $line | ConvertFrom-Json
-$content = $json.content
-[System.IO.File]::WriteAllText('C:\Users\Jenn1817\.gemini\antigravity\scratch\original_prompt.txt', $content, [System.Text.Encoding]::UTF8)
-Write-Host "Length is $($content.Length)"
+$html = Get-Content 'C:\Users\Jenn1817\Downloads\digit_crru_frontend\index.html' -Raw
+$matches = [regex]::Matches($html, '(?si)<script>(.*?)</script>')
+if ($matches.Count -gt 0) {
+    $script = $matches[0].Groups[1].Value
+    Set-Content 'C:\Users\Jenn1817\.gemini\antigravity\scratch\test.js' $script -Encoding UTF8
+    Write-Host "Extracted script"
+} else {
+    Write-Host "No script found"
+}
