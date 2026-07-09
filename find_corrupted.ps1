@@ -1,8 +1,10 @@
-$c = Get-Content 'C:\Users\Jenn1817\Downloads\digit_crru_frontend\app.js' -Encoding UTF8
-$out = @()
-for ($i = 0; $i -lt $c.Length; $i++) {
-    if ($c[$i] -match '\uFFFD|\?|[\x80-\x9F]') {
-        $out += "Line $($i+1): $($c[$i])"
+$file = 'C:\Users\Jenn1817\Downloads\digit_crru_frontend\index.html'
+$lines = Get-Content $file -Encoding UTF8
+$corruptedLines = @()
+for ($i=0; $i -lt $lines.Length; $i++) {
+    if ($lines[$i].Contains([char]0xFFFD)) {
+        $corruptedLines += "$($i+1): $($lines[$i].Trim())"
     }
 }
-[System.IO.File]::WriteAllLines('C:\Users\Jenn1817\.gemini\antigravity\scratch\corrupted.txt', $out, [System.Text.Encoding]::UTF8)
+Write-Host "Corrupted lines:"
+$corruptedLines | ForEach-Object { Write-Host $_ }

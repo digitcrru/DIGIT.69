@@ -1,0 +1,13 @@
+$file = 'C:\Users\Jenn1817\Downloads\digit_crru_frontend\index.html'
+$text = [System.IO.File]::ReadAllText($file, [System.Text.Encoding]::UTF8)
+
+$b64Target = "ICAgICAgICAgICAgICAgICAgICAgICAgY29uc3QgZGlzdCA9IHdpbmRvdy5nZXREaXN0YW5jZUZyb21MYXRMb25Jbk1ldGVycygKICAgICAgICAgICAgICAgICAgICAgICAgICAgIHBhcnNlRmxvYXQoZXZPLmxhdCksIHBhcnNlRmxvYXQoZXZPLmxuZyksCiAgICAgICAgICAgICAgICAgICAgICAgICAgICBwb3NpdGlvbi5jb29yZHMubGF0aXR1ZGUsIHBvc2l0aW9uLmNvb3Jkcy5sb25naXR1ZGUKICAgICAgICAgICAgICAgICAgICAgICAgKTsKICAgICAgICAgICAgICAgICAgICAgICAgaWYgKGRpc3QgPiAxNTApIHs="
+$b64Replacement = "ICAgICAgICAgICAgICAgICAgICAgICAgY29uc3QgZGlzdCA9IHdpbmRvdy5nZXREaXN0YW5jZUZyb21MYXRMb25Jbk1ldGVycygKICAgICAgICAgICAgICAgICAgICAgICAgICAgIHBhcnNlRmxvYXQoZXZPLmxhdCksIHBhcnNlRmxvYXQoZXZPLmxuZyksCiAgICAgICAgICAgICAgICAgICAgICAgICAgICBwb3NpdGlvbi5jb29yZHMubGF0aXR1ZGUsIHBvc2l0aW9uLmNvb3Jkcy5sb25naXR1ZGUKICAgICAgICAgICAgICAgICAgICAgICAgKTsKICAgICAgICAgICAgICAgICAgICAgICAgY29uc3QgcmFkaXVzID0gZXZPLnJhZGl1cyA/IHBhcnNlSW50KGV2Ty5yYWRpdXMsIDEwKSA6IDE1MDsKICAgICAgICAgICAgICAgICAgICAgICAgaWYgKGRpc3QgPiByYWRpdXMpIHs="
+
+$target = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($b64Target))
+$replacement = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($b64Replacement))
+
+$text = $text.Replace($target, $replacement)
+
+[System.IO.File]::WriteAllText($file, $text, (New-Object System.Text.UTF8Encoding($false)))
+Write-Host "Updated distance check successfully!"

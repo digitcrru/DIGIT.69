@@ -1,0 +1,11 @@
+﻿                const r = await window.apiCall('GET', { action: 'search', id: encodeURIComponent(searchId) }); 
+                if (r.success && r.data) { appCache.students[searchId] = r.data; proceedToStep2(r.data); } 
+                else { feedback.innerHTML = 'ไม่พบข้อมูลสิทธิ์นักศึกษา กรุณาตรวจสอบรหัส หรือเลือกกรอกข้อมูลเอกสารกสารกสารง'; feedback.classList.remove('hidden'); } 
+            } catch (err) { window.skipOrderSearch(searchId); } 
+            finally { b.innerHTML = t; b.disabled = false; }
+        };
+
+        window.skipOrderSearch = function(pid = '') { 
+            const searchId = document.getElementById('search-order-id').value.trim() || pid; 
+            document.getElementById('order-student-id').value = searchId; document.getElementById('order-student-name').value = ''; document.getElementById('order-faculty').value = ''; document.getElementById('order-major').value = ''; 
+            ['order-student-id', 'order-student-name', 'order-faculty', 'order-major'].forEach(id => { const x = document.getElementById(id); x.readOnly = false; x.classList.replace('bg-white/60', 'bg-white/80'); }); 

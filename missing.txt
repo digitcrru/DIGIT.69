@@ -1,0 +1,24 @@
+                    window.applyTheme();
+
+                    if(isShirtShopOpen) { 
+                        if(!NAV_STUDENT.find(n => n.id === 'shirt')) { 
+                            NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
+                            NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
+                            if(currentRole === 'student') window.renderNav(); 
+                        } 
+                    } else { 
+                        const idx = NAV_STUDENT.findIndex(n => n.id === 'shirt'); 
+                        if(idx > -1) NAV_STUDENT.splice(idx, 2); 
+                        if(currentRole === 'student') window.renderNav(); 
+                    }
+                    
+                    // Update CheckIns
+                    appCache.checkIns = (r.data.checkIns || []).map(c => Array.isArray(c) ? c : Object.values(c));
+                    const ct = {};
+                    const seenS = new Set(), seenC = new Set();
+                    appCache.checkIns.forEach(row => { 
+                        if(row && row.length > 3) { 
+                            const e = String(row[1]).trim(), sId = String(row[2]).trim(), cId = String(row[3]).trim(); 
+                            if (!e) return;
+                            const kS = (sId && sId !== '-') ? (e + '|S|' + sId) : null;
+                            const kC = (cId && cId !== '-') ? (e + '|C|' + cId) : null;

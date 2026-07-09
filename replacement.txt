@@ -1,0 +1,4 @@
+ดำเนินการต่อ</button>
+                                    <div class="text-center mt-3">
+                                        <button type="button" onclick="window.skipOrderSearch()" class="text-sm text-slate-500 hover:text-primary font-bold underline transition-colors">ไม่มีข้อมูลในระบบ? กรอกข้อมูลเอง</button>
+                                    </div>

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
@@ -335,9 +335,10 @@
                 <div><label class="block text-sm font-bold text-slate-700 mb-2">ชื่อกิจกรรม</label><input type="text" id="edit-event-title" required class="w-full px-5 py-3.5 rounded-2xl border bg-slate-50 focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"></div>
                 <div><label class="block text-sm font-bold mb-2">วันที่จัด</label><input type="date" id="edit-event-date" required class="w-full px-5 py-3.5 rounded-2xl border bg-slate-50 focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"></div>
                 <div><label class="block text-sm font-bold mb-2">สถานที่</label><input type="text" id="edit-event-location" required class="w-full px-5 py-3.5 rounded-2xl border bg-slate-50 focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none" onchange="fetchLocationCoordinates(this.value, 'edit-event-lat', 'edit-event-lng')"></div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5"><i class="ph-fill ph-map-pin text-red-500"></i> ละติจูด (Lat)</label><input type="text" id="edit-event-lat" class="w-full px-5 py-3.5 rounded-2xl border bg-slate-50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all outline-none text-sm"></div>
-                    <div><label class="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5"><i class="ph-fill ph-map-pin text-red-500"></i> ลองจิจูด (Lng)</label><input type="text" id="edit-event-lng" class="w-full px-5 py-3.5 rounded-2xl border bg-slate-50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all outline-none text-sm"></div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div><label class="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5"><i class="ph-fill ph-map-pin text-red-500"></i> ละติจูด</label><input type="text" id="edit-event-lat" class="w-full px-5 py-3.5 rounded-2xl border bg-slate-50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all outline-none text-sm"></div>
+                    <div><label class="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5"><i class="ph-fill ph-map-pin text-red-500"></i> ลองจิจูด</label><input type="text" id="edit-event-lng" class="w-full px-5 py-3.5 rounded-2xl border bg-slate-50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all outline-none text-sm"></div>
+                    <div><label class="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5"><i class="ph-fill ph-circle-dashed text-red-500"></i> รัศมี (ม.)</label><input type="number" id="edit-event-radius" placeholder="150" class="w-full px-5 py-3.5 rounded-2xl border bg-slate-50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all outline-none text-sm"></div>
                 </div>
                 <button type="button" onclick="getCurrentLocation('edit-event-lat', 'edit-event-lng')" class="w-full py-3 mb-2 bg-red-50 text-red-600 font-bold rounded-2xl border border-red-100 hover:bg-red-100 transition-colors flex items-center justify-center gap-2 text-sm"><i class="ph-bold ph-crosshair"></i> ดึงพิกัดปัจจุบัน</button>
                 <button type="submit" class="w-full py-4 mt-4 rounded-2xl font-bold text-white btn-gradient flex items-center justify-center gap-2">บันทึกข้อมูล</button>
@@ -472,42 +473,25 @@
             { id: 'history', label: 'ประวัติ', tabLabel: 'ประวัติ', icon: 'ph-clock-counter-clockwise' }
         ];
         if (isShirtShopOpen) {
-            NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
-            NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
-        }
-        const NAV_ADMIN = [ 
+                                    NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
+                        NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
+}
+                const NAV_ADMIN = [ 
             { id: 'admin-dash', label: 'ภาพรวม', tabLabel: 'ภาพรวม', icon: 'ph-chart-pie-slice', roles: ['superadmin', 'activity', 'shop'] }, 
             { id: 'admin-orders', label: 'จองเสื้อ', tabLabel: 'จองเสื้อ', icon: 'ph-t-shirt', roles: ['superadmin', 'shop'] }, 
             { id: 'admin-events', label: 'กิจกรรม', tabLabel: 'กิจกรรม', icon: 'ph-calendar-plus', roles: ['superadmin', 'activity'] }, 
             { id: 'admin-certificates', label: 'ใบประกาศ', tabLabel: 'ใบประกาศ', icon: 'ph-certificate', roles: ['superadmin', 'activity'] }, 
             { id: 'admin-spss', label: 'SPSS', tabLabel: 'SPSS', icon: 'ph-chart-bar', roles: ['superadmin', 'activity'] }, 
-            { id: 'admin-settings', label: 'ตั้งค่า', tabLabel: 'ตั้งค่า', icon: 'ph-gear', roles: ['superadmin'] } 
+            { id: 'admin-settings', label: 'ตั้งค่ข', tabLabel: 'ตั้งค่ข', icon: 'ph-gear', roles: ['superadmin'] } 
         ];
         
         const STATUS_MAP = { 
             1: { text: 'รอตรวจสอบ', color: 'bg-amber-100 text-amber-700', icon: 'ph-hourglass-high' }, 
-            2: { text: 'ชำระเงแอดมแอดมินแล้ว', color: 'bg-emerald-100 text-emerald-700', icon: 'ph-check-circle' }, 
+            2: { text: 'ชำระเงินแล้ว', color: 'bg-emerald-100 text-emerald-700', icon: 'ph-check-circle' }, 
             3: { text: 'กำลังผลิต', color: 'bg-purple-100 text-purple-700', icon: 'ph-scissors' }, 
             4: { text: 'พร้อมรับ', color: 'bg-blue-100 text-blue-700', icon: 'ph-package' } 
         };
-        const ROLE_MAP = { 'superadmin': 'ผู้ดูแลระบบสูงสุด', 'activity': 'ผู้จัดการกิจกรรม', 'shop': 'ผู้จัดการร้านค้า' };
-        const SIZE_LIST = ['XS','S','M','L','XL','2XL','3XL','4XL','5XL','6XL','ไม่รับ'];
-
-        // Apply Theme on load
-        window.applyTheme = function() {
-            if (appSettings.appBgImage) {
-                document.body.style.backgroundImage = `linear-gradient(rgba(248, 250, 252, 0.82), rgba(241, 245, 249, 0.88)), url('${appSettings.appBgImage}')`;
-            } else {
-                document.body.style.backgroundImage = `linear-gradient(rgba(248, 250, 252, 0.82), rgba(241, 245, 249, 0.88))`;
-            }
-            if (localStorage.getItem('themeMode') === 'dark') { document.documentElement.classList.add('dark'); document.getElementById('icon-dark-mode').className = 'ph-bold ph-sun text-xl text-amber-500'; }
-            const sc = document.getElementById('sizeChartImgModal'); if(sc) sc.src = appSettings.sizeChartImage;
-            const pi = document.getElementById('poloImgModal'); if(pi) pi.src = appSettings.shirtPoloImage;
-            const ai = document.getElementById('actImgModal'); if(ai) ai.src = appSettings.shirtActImage;
-            
-            // Clear cert background cache so it reloads if changed
-            if (window._certBgCache) window._certBgCache = null; 
-        };
+        const ROLE_MAP = { 'superadmin': 'ผู้ดูแลระบบสูงสุด', 'activity': 'ฟู้จัดการกิจกรรฒ', 'shop': 'ฟู้จัดการร้านค้ข' };
 
         window.fetchInitialData = async function() {
             try {
@@ -524,14 +508,13 @@
                     localStorage.setItem('CRRU_PopupSettings', JSON.stringify(popupSettings)); 
                     localStorage.setItem('CRRU_AppSettings', JSON.stringify(appSettings)); 
                     localStorage.setItem('CRRU_AdminUsers', JSON.stringify(adminUsers));
-                    
                     window.applyTheme();
 
                     if(isShirtShopOpen) { 
                         if(!NAV_STUDENT.find(n => n.id === 'shirt')) { 
-                            NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
-                            NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
-                            if(currentRole === 'student') window.renderNav(); 
+                                                    NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
+                        NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
+if(currentRole === 'student') window.renderNav(); 
                         } 
                     } else { 
                         const idx = NAV_STUDENT.findIndex(n => n.id === 'shirt'); 
@@ -549,6 +532,7 @@
                             if (!e) return;
                             const kS = (sId && sId !== '-') ? (e + '|S|' + sId) : null;
                             const kC = (cId && cId !== '-') ? (e + '|C|' + cId) : null;
+                    
                             if ((kS && seenS.has(kS)) || (kC && seenC.has(kC))) return;
                             ct[e] = (ct[e] || 0) + 1;
                             if (kS) seenS.add(kS);
@@ -693,6 +677,30 @@
                     localStorage.setItem('CRRU_PopupSettings', JSON.stringify(popupSettings)); 
                     localStorage.setItem('CRRU_AppSettings', JSON.stringify(appSettings)); 
                     localStorage.setItem('CRRU_AdminUsers', JSON.stringify(adminUsers));
+                    window.applyTheme();
+
+                    if(isShirtShopOpen) { 
+                        if(!NAV_STUDENT.find(n => n.id === 'shirt')) { 
+                                                    NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
+                        NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
+if(currentRole === 'student') window.renderNav(); 
+                        } 
+                    } else { 
+                        const idx = NAV_STUDENT.findIndex(n => n.id === 'shirt'); 
+                        if(idx > -1) NAV_STUDENT.splice(idx, 2); 
+                        if(currentRole === 'student') window.renderNav(); 
+                    }
+                    
+                    // Update CheckIns
+                    appCache.checkIns = (r.data.checkIns || []).map(c => Array.isArray(c) ? c : Object.values(c));
+                    const ct = {};
+                    const seenS = new Set(), seenC = new Set();
+                    appCache.checkIns.forEach(row => { 
+                        if(row && row.length > 3) { 
+                            const e = String(row[1]).trim(), sId = String(row[2]).trim(), cId = String(row[3]).trim(); 
+                            if (!e) return;
+                            const kS = (sId && sId !== '-') ? (e + '|S|' + sId) : null;
+                            const kC = (cId && cId !== '-') ? (e + '|C|' + cId) : null;
                     
                     if (needsUpgrade) {
                         window.apiCall('POST', { action: 'saveSettings', isShirtShopOpen: isShirtShopOpen, adminUsers: adminUsers }).catch(e => console.log('Upgrade failed'));
@@ -702,9 +710,9 @@
 
                     if(isShirtShopOpen) { 
                         if(!NAV_STUDENT.find(n => n.id === 'shirt')) { 
-                            NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
-                            NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
-                            if(currentRole === 'student') window.renderNav(); 
+                                                    NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
+                        NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
+if(currentRole === 'student') window.renderNav(); 
                         } 
                     } else { 
                         const idx = NAV_STUDENT.findIndex(n => n.id === 'shirt'); 
@@ -2777,7 +2785,7 @@
             if (!e) return;
             e.status = nS;
             const certState = e.certEnabled === true ? 'true' : 'false';
-            const finalStatus = `${nS}|${e.openTime||''}|${e.closeTime||''}|${certState}|${e.lat||''}|${e.lng||''}`;
+            const finalStatus = `${nS}|${e.openTime||''}|${e.closeTime||''}|${certState}|${e.lat||''}|${e.lng||''}|${e.radius||''}`;
             window.renderAdminEvents(document.getElementById('app-content')); 
             window.showToast(`อัปเดตสถานะเรียบร้อย`, 'success'); 
             window.apiCall('POST', { action: 'toggleActivity', id: String(id), status: finalStatus }).catch(()=>null);
@@ -3177,9 +3185,9 @@
         
         if (isShirtShopOpen) {
             if(!NAV_STUDENT.find(n => n.id === 'shirt')) { 
-                NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
-                NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
-            }
+                                        NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
+                        NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
+}
         } else {
             const idx = NAV_STUDENT.findIndex(n => n.id === 'shirt'); 
             if(idx > -1) NAV_STUDENT.splice(idx, 2); 
@@ -3328,7 +3336,31 @@
     
     window.submitSettings = function(e) { 
         if(e) e.preventDefault(); let btn = null, txt = ''; if(e && e.target) { btn = e.target.querySelector('button[type="submit"]'); if(btn) { txt = btn.innerHTML; btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> บันทึก...'; btn.disabled = true; } }
-        localStorage.setItem('CRRU_AdminUsers', JSON.stringify(adminUsers)); sessionStorage.removeItem('homePopupShown'); 
+        localStorage.setItem('CRRU_AdminUsers', JSON.stringify(adminUsers));
+                    window.applyTheme();
+
+                    if(isShirtShopOpen) { 
+                        if(!NAV_STUDENT.find(n => n.id === 'shirt')) { 
+                                                    NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
+                        NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
+if(currentRole === 'student') window.renderNav(); 
+                        } 
+                    } else { 
+                        const idx = NAV_STUDENT.findIndex(n => n.id === 'shirt'); 
+                        if(idx > -1) NAV_STUDENT.splice(idx, 2); 
+                        if(currentRole === 'student') window.renderNav(); 
+                    }
+                    
+                    // Update CheckIns
+                    appCache.checkIns = (r.data.checkIns || []).map(c => Array.isArray(c) ? c : Object.values(c));
+                    const ct = {};
+                    const seenS = new Set(), seenC = new Set();
+                    appCache.checkIns.forEach(row => { 
+                        if(row && row.length > 3) { 
+                            const e = String(row[1]).trim(), sId = String(row[2]).trim(), cId = String(row[3]).trim(); 
+                            if (!e) return;
+                            const kS = (sId && sId !== '-') ? (e + '|S|' + sId) : null;
+                            const kC = (cId && cId !== '-') ? (e + '|C|' + cId) : null; sessionStorage.removeItem('homePopupShown'); 
         window.apiCall('POST', { action: 'saveSettings', isShirtShopOpen: isShirtShopOpen, adminUsers: adminUsers }).then(() => { if(e) window.showToast('บันทึกสำเร็จ', 'success'); if(btn) { btn.innerHTML = txt; btn.disabled = false; } }).catch(() => { if(e) window.showToast('บันทึกสำเร็จ (Offline)', 'warning'); if(btn) { btn.innerHTML = txt; btn.disabled = false; } }); 
     };
 
