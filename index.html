@@ -445,7 +445,7 @@
         let currentRole = 'student', currentAdminRole = 'superadmin', currentView = 'events', currentModalOrderId = null, currentCheckoutOrder = null;
         let adminEventsPage = 1, adminEventsSearch = '', dashEventsPage = 1, adminOrdersPage = 1, adminOrdersSearch = '';
         const adminEventsPerPage = 5, dashEventsPerPage = 5, adminOrdersPerPage = 10;
-        const appCache = { activities: [], checkIns: [], orders: [], evaluations: [], students: {} };
+        const appCache = { activities: JSON.parse(localStorage.getItem('CRRU_CachedActivities') || '[]'), checkIns: [], orders: [], evaluations: [], students: {} };
         
         let isShirtShopOpen = localStorage.getItem('CRRU_ShopOpen') !== 'false'; 
         let isCertSystemOpen = localStorage.getItem('CRRU_CertOpen') !== 'false';
@@ -779,6 +779,7 @@
                         else if (isNaN(dateB.getTime())) return -1;
                         return dateB.getTime() - dateA.getTime();
                     }); 
+                    localStorage.setItem('CRRU_CachedActivities', JSON.stringify(appCache.activities));
                 } 
                 return appCache.activities; 
             } catch (e) { return appCache.activities || []; } 
@@ -922,7 +923,7 @@
         };
 
         window.getGokuLoader = function(t = 'กำลังโหลด...') { 
-            return `<div class="fade-in py-24 flex flex-col items-center text-center"><div class="relative w-28 h-28 mb-8 flex items-center justify-center"><div class="absolute inset-0 bg-orange-400/20 rounded-full blur-2xl animate-pulse"></div><div class="absolute inset-2 border-[3px] border-white/60 rounded-full shadow-inner"></div><div class="absolute inset-2 border-[3px] border-orange-500 border-t-transparent rounded-full animate-spin"></div><div class="relative flex items-center justify-center bg-white/90 backdrop-blur-sm w-16 h-16 rounded-full shadow-lg"><i class="ph-fill ph-student text-3xl text-orange-500 animate-pulse"></i></div></div><h3 class="text-xl font-bold text-slate-800 mb-2">${t}</h3></div>`; 
+            return `<div class="fade-in py-24 flex flex-col items-center justify-center text-center text-slate-500"><i class="ph-bold ph-spinner animate-spin text-4xl mb-4 text-primary"></i><h3 class="text-sm font-bold">${t}</h3></div>`; 
         };
 
         window.getDistanceFromLatLonInMeters = function(lat1, lon1, lat2, lon2) {
@@ -1114,6 +1115,14 @@
             } else { 
                 document.getElementById('admin-login-error').classList.remove('hidden'); 
             } 
+        };
+
+        window.adminLogout = function() {
+            sessionStorage.removeItem('_adm_auth');
+            sessionStorage.removeItem('currentAdminRole');
+            currentAdminRole = null;
+            window.showToast('ออกจากระบบสำเร็จ', 'success');
+            window.switchRole('student');
         };
         
         window.openSlipModal = function(id) { 
@@ -1375,8 +1384,7 @@
             }, 1500);
         };
         window.renderEvents = function(c) {
-            if (!appCache.activities || appCache.activities.length === 0) { c.innerHTML = window.getGokuLoader('โปรดรอสักครู่'); }
-            window.fetchActivitiesData().then(acts => {
+            const renderHTML = (acts) => {
                 const now = new Date();
                 const oA = acts.filter(e => e.status !== 'closed' || e.openTime || e.closeTime); 
                 
@@ -1398,12 +1406,22 @@
                             bH = `<button disabled class="w-full py-4 rounded-2xl font-bold flex justify-center items-center gap-2 bg-white/50 text-slate-400 cursor-not-allowed border border-white shadow-sm"><i class="ph-bold ph-lock-key"></i> ปิดรับสมัคร</button>`;
                         }
 
-                        h += `<div class="glass hover-lift rounded-[32px] flex flex-col p-7"><div class="flex justify-between items-start mb-5 gap-4"><h3 class="text-xl font-bold leading-snug">${e.title}</h3><span class="${sC} border text-[10px] font-bold px-3 py-1.5 rounded-full whitespace-nowrap">${sT}</span></div><div class="space-y-3 mt-auto mb-8 text-sm text-slate-600 font-medium"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-orange-100/50 flex items-center justify-center text-primary"><i class="ph-fill ph-calendar-blank"></i></div> ${e.date}</div><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-orange-100/50 flex items-center justify-center text-primary"><i class="ph-fill ph-map-pin"></i></div> <span class="truncate">${e.location}</span></div></div><div class="mt-4 mb-6 px-5 py-4 bg-white/50 rounded-2xl border border-white flex justify-between items-center"><span class="text-xs font-bold text-slate-500 uppercase">ผู้ลงทะเบียน</span><span class="text-4xl font-black text-primary tracking-tight">${e.joined} <span class="text-sm font-bold text-slate-400">คน</span></span></div>${bH}</div>`; 
+                        h += `<div class="glass hover-lift rounded-[32px] flex flex-col p-7"><div class="mb-5"><h3 class="text-[17px] sm:text-[19px] font-black text-slate-800 leading-[1.4] line-clamp-3">${e.title}</h3></div><div class="space-y-3 mt-auto mb-5 text-sm text-slate-600 font-medium"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-orange-100/50 flex items-center justify-center text-primary shrink-0"><i class="ph-fill ph-calendar-blank"></i></div> ${e.date}</div><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-orange-100/50 flex items-center justify-center text-primary shrink-0"><i class="ph-fill ph-map-pin"></i></div> <span class="line-clamp-2 leading-relaxed">${e.location}</span></div></div><div class="mb-5"><span class="${sC} border text-xs font-bold px-3 py-2 rounded-xl inline-block w-fit shadow-sm">${sT}</span></div><div class="mt-auto mb-6 px-5 py-4 bg-white/50 rounded-2xl border border-white flex justify-between items-center"><span class="text-xs font-bold text-slate-500 uppercase">ผู้ลงทะเบียน</span><span class="text-4xl font-black text-primary tracking-tight">${e.joined} <span class="text-sm font-bold text-slate-400">คน</span></span></div>${bH}</div>`; 
                     }); 
                 }
                 h += `</div></div>`; 
                 if(c.innerHTML !== h) c.innerHTML = h; 
-            });
+            };
+
+            if (!appCache.activities || appCache.activities.length === 0) { 
+                c.innerHTML = window.getGokuLoader('โปรดรอสักครู่'); 
+            } else {
+                renderHTML(appCache.activities);
+            }
+            
+            window._bgFetchAct().then(acts => {
+                if (acts && acts.length > 0) renderHTML(acts);
+            }).catch(e => {});
         };
 
         window.renderRegistration = function(c, id) {
@@ -3094,7 +3112,7 @@
         }
 
         let h = `<div class="fade-in pb-32 sm:pb-10">
-            <div class="mb-8"><h1 class="text-3xl font-black text-slate-800">ภาพรวมระบบ</h1></div>
+            <div class="mb-8 flex justify-between items-center"><h1 class="text-3xl font-black text-slate-800">ภาพรวมระบบ</h1><button onclick="window.adminLogout()" class="px-4 py-2 bg-rose-50 text-rose-600 rounded-xl font-bold flex items-center gap-2 hover:bg-rose-100 transition-colors shadow-sm text-sm"><i class="ph-bold ph-sign-out text-lg"></i> ออกจากระบบ</button></div>
             <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
                 <div class="glass p-5 xl:p-6 rounded-[24px] border border-white shadow-sm flex flex-col xl:flex-row gap-3 xl:gap-4"><div class="bg-white/80 text-purple-500 p-3 xl:p-4 rounded-2xl border border-white shrink-0 self-start xl:self-center"><i class="ph-fill ph-globe-hemisphere-west text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500 tracking-tight leading-tight">เข้าชมระบบ</p><p class="text-xl xl:text-2xl font-black">${visitorCount}</p></div></div>
                 <div class="glass p-5 xl:p-6 rounded-[24px] border border-white shadow-sm flex flex-col xl:flex-row gap-3 xl:gap-4"><div class="bg-white/80 text-orange-500 p-3 xl:p-4 rounded-2xl border border-white shrink-0 self-start xl:self-center"><i class="ph-fill ph-flag-banner text-2xl"></i></div><div><p class="text-xs font-bold text-slate-500 tracking-tight leading-tight">กิจกรรมทั้งหมด</p><p class="text-xl xl:text-2xl font-black">${aD.length}</p></div></div>
