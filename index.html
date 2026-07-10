@@ -1517,7 +1517,7 @@
 
                         if (e.openTime && now < new Date(e.openTime)) {
                             sT = '🥲 ยังไม่ถึงเวลา อย่าเพิ่งรีบ... เดี๋ยวระบบตกใจ'; sC = 'bg-orange-50 text-orange-600 border-orange-200/50';
-                            bH = `<button disabled class="w-full py-4 rounded-2xl font-bold flex justify-center items-center gap-2 bg-red-50 text-red-500 cursor-not-allowed border border-red-200 shadow-sm"><i class="ph-bold ph-clock text-lg"></i> เปิด: ${window.formatThaiDate(e.openTime, true)}</button>`;
+                            bH = `<button disabled class="countdown-btn w-full py-4 rounded-2xl font-bold flex flex-col justify-center items-center gap-1 bg-red-50 text-red-500 cursor-not-allowed border border-red-200 shadow-sm transition-all" data-target="${e.openTime}" data-orig-text="เปิด: ${window.formatThaiDate(e.openTime, true)}"><div class="flex items-center gap-2"><i class="ph-bold ph-clock text-lg"></i> <span>เปิด: ${window.formatThaiDate(e.openTime, true)}</span></div><span class="countdown-text text-xs opacity-80 font-medium"></span></button>`;
                         } else if (e.closeTime && now > new Date(e.closeTime)) {
                             sT = 'หมดเวลา'; sC = 'bg-rose-50 text-rose-600 border-rose-200/50';
                             bH = `<button disabled class="w-full py-4 rounded-2xl font-bold flex justify-center items-center gap-2 bg-white/50 text-slate-400 cursor-not-allowed border border-white shadow-sm"><i class="ph-bold ph-x-circle"></i> ปิดรับสมัครแล้ว</button>`;
@@ -1552,6 +1552,39 @@
                 if (acts && acts.length > 0) renderHTML(acts);
             }).catch(e => {});
         };
+
+        // Global Event Countdown Timer
+        setInterval(() => {
+            const btns = document.querySelectorAll('.countdown-btn');
+            if (btns.length === 0) return;
+            const now = new Date().getTime();
+            let needRefresh = false;
+            btns.forEach(btn => {
+                const targetStr = btn.getAttribute('data-target');
+                if (!targetStr) return;
+                const targetTime = new Date(targetStr).getTime();
+                const diff = targetTime - now;
+                if (diff <= 0) {
+                    needRefresh = true;
+                } else {
+                    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const s = Math.floor((diff % (1000 * 60)) / 1000);
+                    let timeStr = '(เหลือเวลาอีก ';
+                    if (d > 0) timeStr += `${d} วัน `;
+                    timeStr += `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')} ชม.)`;
+                    const span = btn.querySelector('.countdown-text');
+                    if (span && span.innerText !== timeStr) span.innerText = timeStr;
+                }
+            });
+            if (needRefresh) {
+                btns.forEach(b => b.classList.remove('countdown-btn'));
+                if(window.currentView === 'register-events' || window.currentView === 'events') {
+                    window.navigate(window.currentView);
+                }
+            }
+        }, 1000);
 
         window.renderRegistration = function(c, id) {
             const e = appCache.activities.find(x => String(x.id) === String(id)) || { title: 'กิจกรรม', id: id }; 
