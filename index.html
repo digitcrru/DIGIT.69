@@ -1513,11 +1513,11 @@
                     h += `<div class="col-span-full text-center py-20 glass rounded-[32px]"><i class="ph-fill ph-calendar-x text-5xl text-orange-300"></i><p class="text-slate-600 font-bold text-xl mt-4">${emptyText}</p></div>`; 
                 } else { 
                     oA.forEach(e => { 
-                        let sT = evType === 'register' ? 'เปิดรับสมัคร' : 'เปิดให้เช็คชื่อ', sC = 'bg-emerald-50 text-emerald-600 border-emerald-200/50', bH = `<button onclick="navigate('register', '${e.id}')" class="w-full py-4 rounded-2xl font-bold flex justify-center items-center gap-2 btn-gradient text-white shadow-lg">${evType === 'register' ? 'สมัครเข้าร่วม <i class="ph-bold ph-note-pencil"></i>' : 'เช็คชื่อ <i class="ph-bold ph-map-pin"></i>'}</button>`;
+                        let sT = evType === 'register' ? 'เปิดรับสมัคร' : '😎 มาเช็คชื่อกันครับ เพราะความหล่อความสวย นับเป็นเวลาเรียนไม่ได้', sC = 'bg-emerald-50 text-emerald-600 border-emerald-200/50', bH = `<button onclick="navigate('register', '${e.id}')" class="w-full py-4 rounded-2xl font-bold flex justify-center items-center gap-2 btn-gradient text-white shadow-lg">${evType === 'register' ? 'สมัครเข้าร่วม <i class="ph-bold ph-note-pencil"></i>' : 'เช็คชื่อ <i class="ph-bold ph-map-pin"></i>'}</button>`;
 
                         if (e.openTime && now < new Date(e.openTime)) {
                             sT = '🥲 ยังไม่ถึงเวลา อย่าเพิ่งรีบ... เดี๋ยวระบบตกใจ'; sC = 'bg-orange-50 text-orange-600 border-orange-200/50';
-                            bH = `<button disabled class="w-full py-4 rounded-2xl font-bold flex justify-center items-center gap-2 bg-white/50 text-slate-400 cursor-not-allowed border border-white shadow-sm"><i class="ph-bold ph-clock"></i> เปิด: ${window.formatThaiDate(e.openTime, true)}</button>`;
+                            bH = `<button disabled class="w-full py-4 rounded-2xl font-bold flex justify-center items-center gap-2 bg-red-50 text-red-500 cursor-not-allowed border border-red-200 shadow-sm"><i class="ph-bold ph-clock text-lg"></i> เปิด: ${window.formatThaiDate(e.openTime, true)}</button>`;
                         } else if (e.closeTime && now > new Date(e.closeTime)) {
                             sT = 'หมดเวลา'; sC = 'bg-rose-50 text-rose-600 border-rose-200/50';
                             bH = `<button disabled class="w-full py-4 rounded-2xl font-bold flex justify-center items-center gap-2 bg-white/50 text-slate-400 cursor-not-allowed border border-white shadow-sm"><i class="ph-bold ph-x-circle"></i> ปิดรับสมัครแล้ว</button>`;
@@ -3216,7 +3216,7 @@
         };
         window.renderAdminEvents = async function(c, evType = 'checkin') {
             window.currentAdminEvType = evType;
-            const titleText = evType === 'register' ? 'จัดการกิจกรรม (รับสมัครล่วงหน้า)' : 'จัดการกิจกรรม (เช็คชื่อหน้างาน)';
+            const titleText = evType === 'register' ? '(รับสมัครล่วงหน้า)' : '(กิจกรรม)';
             c.innerHTML = window.getGokuLoader('กำลังโหลด...'); await window.fetchActivitiesData(); 
             c.innerHTML = `
                 <div class="fade-in max-w-7xl mx-auto pb-32 sm:pb-10">
@@ -3719,7 +3719,7 @@
         }
         if(currentRole === 'student') window.renderNav();
 
-        window.apiCall('POST', { action: 'saveSettings', isShirtShopOpen: isShirtShopOpen, adminUsers: adminUsers }).then(d => { if(d.success) window.showToast('อัปเดตเรียบร้อย', 'success'); else window.showToast('เกิดข้อผิดพลาด', 'error'); }).catch(() => window.showToast('บันทึกแบบ Offline', 'warning'));
+        window.apiCall('POST', { action: 'saveSettings', isShirtShopOpen: isShirtShopOpen, adminUsers: adminUsers, popupSettings: popupSettings }).then(d => { if(d.success) window.showToast('อัปเดตเรียบร้อย', 'success'); else window.showToast('เกิดข้อผิดพลาด', 'error'); }).catch(() => window.showToast('บันทึกแบบ Offline', 'warning'));
     };
 
     window.renderAdminSettings = function(c) {
@@ -3861,8 +3861,16 @@
     
     window.submitSettings = function(e) { 
         if(e) e.preventDefault(); let btn = null, txt = ''; if(e && e.target) { btn = e.target.querySelector('button[type="submit"]'); if(btn) { txt = btn.innerHTML; btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> บันทึก...'; btn.disabled = true; } }
+        
+        // Ensure popup settings are captured before saving
+        popupSettings.title = document.getElementById('setting-popup-title') ? document.getElementById('setting-popup-title').value : popupSettings.title;
+        popupSettings.description = window.getPopupDescArray ? window.getPopupDescArray() : popupSettings.description;
+        popupSettings.imageUrl = window.getPopupImageArray ? window.getPopupImageArray() : popupSettings.imageUrl;
+        const pt = document.getElementById('setting-popup-toggle'); if (pt) popupSettings.enabled = pt.checked;
+        localStorage.setItem('CRRU_PopupSettings', JSON.stringify(popupSettings));
+
         localStorage.setItem('CRRU_AdminUsers', JSON.stringify(adminUsers)); sessionStorage.removeItem('homePopupShown'); 
-        window.apiCall('POST', { action: 'saveSettings', isShirtShopOpen: isShirtShopOpen, adminUsers: adminUsers }).then(() => { if(e) window.showToast('บันทึกสำเร็จ', 'success'); if(btn) { btn.innerHTML = txt; btn.disabled = false; } }).catch(() => { if(e) window.showToast('บันทึกสำเร็จ (Offline)', 'warning'); if(btn) { btn.innerHTML = txt; btn.disabled = false; } }); 
+        window.apiCall('POST', { action: 'saveSettings', isShirtShopOpen: isShirtShopOpen, adminUsers: adminUsers, popupSettings: popupSettings }).then(d => { if(e) window.showToast(d.success ? 'บันทึกสำเร็จ' : 'เกิดข้อผิดพลาด', d.success ? 'success' : 'error'); if(btn) { btn.innerHTML = txt; btn.disabled = false; } }).catch(() => { if(e) window.showToast('บันทึกสำเร็จ (Offline)', 'warning'); if(btn) { btn.innerHTML = txt; btn.disabled = false; } }); 
     };
 
     // Tracker System (Real Hits counter API)
