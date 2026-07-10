@@ -1028,6 +1028,37 @@
             if (incT) r += ` ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} น.`; 
             return r;
         };
+
+        window.parseSortDate = function(dS) {
+            if (!dS || String(dS).trim() === '' || String(dS).trim() === '-') return 0;
+            let str = String(dS).trim();
+
+            const tM = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+            const parts = str.split(/\s+/);
+            if (parts.length >= 3) {
+                let day = parseInt(parts[0]);
+                let mIdx = tM.indexOf(parts[1]);
+                let year = parseInt(parts[2]);
+                if (year > 2500) year -= 543;
+                if (!isNaN(day) && mIdx !== -1 && !isNaN(year)) {
+                    return new Date(year, mIdx, day).getTime();
+                }
+            }
+            
+            let dmMatch = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+            if (dmMatch) {
+                let day = parseInt(dmMatch[1]);
+                let month = parseInt(dmMatch[2]) - 1;
+                let year = parseInt(dmMatch[3]);
+                if (year > 2500) year -= 543;
+                return new Date(year, month, day).getTime();
+            }
+
+            let d = new Date(str.replace(/GMT.*/ig, '').replace(/\(.*?\)/g, '').trim());
+            if (!isNaN(d.getTime())) return d.getTime();
+            
+            return 0;
+        };
         
         window.getCurrentAdminLocation = function(latId, lngId) {
             if (navigator.geolocation) {
@@ -1406,7 +1437,7 @@
         window.renderEvents = function(c, evType = 'checkin') {
             const renderHTML = (acts) => {
                 const now = new Date();
-                const oA = acts.filter(e => (e.status !== 'closed' || e.openTime || e.closeTime) && (evType === 'register' ? e.type === 'register' : e.type !== 'register')); 
+                const oA = acts.filter(e => (e.status !== 'closed' || e.openTime || e.closeTime) && (evType === 'register' ? e.type === 'register' : e.type !== 'register')).sort((a, b) => window.parseSortDate(a.date || a.rawDate) - window.parseSortDate(b.date || b.rawDate)); 
                 
                 const titleText = evType === 'register' ? 'เปิดรับสมัครเข้าร่วมกิจกรรม' : 'เช็คชื่อเข้าร่วมกิจกรรม';
                 const emptyText = evType === 'register' ? 'ยังไม่มีกิจกรรมที่เปิดรับสมัคร' : 'ยังไม่มีกิจกรรมที่เปิดเช็คชื่อ';
@@ -3188,7 +3219,7 @@
         
         window.updateAdminEventsTable = function() {
             const tb = document.getElementById('admin-events-tbody'), pg = document.getElementById('admin-events-pagination'); if (!tb || !pg) return;
-            let acts = (appCache.activities || []).filter(e => (e.type || 'checkin') === window.currentAdminEvType);
+            let acts = (appCache.activities || []).filter(e => (e.type || 'checkin') === window.currentAdminEvType).sort((a, b) => window.parseSortDate(a.date || a.rawDate) - window.parseSortDate(b.date || b.rawDate));
             if (adminEventsSearch) { const s = adminEventsSearch.toLowerCase(); acts = acts.filter(e => (e.title && e.title.toLowerCase().includes(s)) || (e.location && e.location.toLowerCase().includes(s)) || (e.date && e.date.toLowerCase().includes(s)) ); }
             const tI = acts.length, tP = Math.ceil(tI / adminEventsPerPage) || 1; if (adminEventsPage > tP) adminEventsPage = tP; if (adminEventsPage < 1) adminEventsPage = 1;
             const pA = acts.slice((adminEventsPage - 1) * adminEventsPerPage, adminEventsPage * adminEventsPerPage);
