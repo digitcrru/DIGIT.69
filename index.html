@@ -485,11 +485,11 @@
         const NAV_STUDENT = [ 
             { id: 'register-events', label: 'สมัครเข้าร่วมกิจกรรม', tabLabel: 'สมัคร', icon: 'ph-note-pencil' }, 
             { id: 'events', label: 'เช็คชื่อเข้าร่วมกิจกรรม', tabLabel: 'เช็คชื่อ', icon: 'ph-map-pin' }, 
-            { id: 'history', label: 'ประวัติ', tabLabel: 'ประวัติ', icon: 'ph-clock-counter-clockwise' }
+            { id: 'history', label: 'ประวัติ', tabLabel: 'ประวัติ', icon: 'ph-clock-counter-clockwise' },
+            { id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }
         ];
         if (isShirtShopOpen) {
             NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
-            NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
         }
         const NAV_ADMIN = [ 
             { id: 'admin-dash', label: 'ภาพรวมระบบ', tabLabel: 'ภาพรวม', icon: 'ph-chart-pie-slice', roles: ['superadmin', 'activity', 'shop'] }, 
@@ -547,12 +547,11 @@
                     if(isShirtShopOpen) { 
                         if(!NAV_STUDENT.find(n => n.id === 'shirt')) { 
                             NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
-                            NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
                             if(currentRole === 'student') window.renderNav(); 
                         } 
                     } else { 
                         const idx = NAV_STUDENT.findIndex(n => n.id === 'shirt'); 
-                        if(idx > -1) NAV_STUDENT.splice(idx, 2); 
+                        if(idx > -1) NAV_STUDENT.splice(idx, 1); 
                         if(currentRole === 'student') window.renderNav(); 
                     }
                     
@@ -722,12 +721,11 @@
                     if(isShirtShopOpen) { 
                         if(!NAV_STUDENT.find(n => n.id === 'shirt')) { 
                             NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
-                            NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
                             if(currentRole === 'student') window.renderNav(); 
                         } 
                     } else { 
                         const idx = NAV_STUDENT.findIndex(n => n.id === 'shirt'); 
-                        if(idx > -1) NAV_STUDENT.splice(idx, 2); 
+                        if(idx > -1) NAV_STUDENT.splice(idx, 1); 
                         if(currentRole === 'student') window.renderNav(); 
                     }
                 }
@@ -2749,7 +2747,6 @@
         };
 
         window.renderTracking = async function(c) {
-            if (!isShirtShopOpen) { c.innerHTML = `<div class="fade-in max-w-4xl mx-auto px-4 py-10"><div class="glass rounded-[32px] p-12 text-center"><i class="ph-fill ph-lock-key text-5xl text-red-500 mb-4 block"></i><h2 class="text-3xl font-black mb-3">ปิดให้บริการชั่วคราว</h2><button onclick="navigate('events')" class="px-8 py-4 bg-slate-800 text-white font-bold rounded-2xl mt-6 mx-auto"><i class="ph-bold ph-arrow-left"></i> กลกลกลกลับไปหน้ากิจกรรม</button></div></div>`; return; }
             c.innerHTML = `
                 <div class="fade-in max-w-4xl mx-auto pb-10">
                     <div class="mb-8 text-center sm:text-left"><h1 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">ติดตามสถานะการจอง</h1></div>
@@ -3746,11 +3743,10 @@
         if (isShirtShopOpen) {
             if(!NAV_STUDENT.find(n => n.id === 'shirt')) { 
                 NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
-                NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
             }
         } else {
             const idx = NAV_STUDENT.findIndex(n => n.id === 'shirt'); 
-            if(idx > -1) NAV_STUDENT.splice(idx, 2); 
+            if(idx > -1) NAV_STUDENT.splice(idx, 1); 
         }
         if(currentRole === 'student') window.renderNav();
 
@@ -3927,5 +3923,7 @@
 </script>
 </body>
 </html>
+
+
 
 
