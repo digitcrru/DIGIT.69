@@ -470,7 +470,7 @@
                 } 
             } 
         }
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznRfs4BfOgNUxFQN7asVzzltHo6xE_sDa-hU8-Wh_kGMr3yKy7L3BuNo7TBklHJzPH/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5LGJRfvbwlnmH-ZH-RK9nW5tAEq-CeUv3FkEgFqHbsf29GlHIdYaArnyFDWqVF3jZ/exec';
         
         window.popupSlideIndex = 0; window.popupSlideInterval = null; window.currentPopupDescList = [];
         window.startPopupSlideshow = function() { clearInterval(window.popupSlideInterval); const c = document.getElementById('popup-banner-container'); if (!c || c.children.length <= 1) return; window.popupSlideInterval = setInterval(() => window.nextPopupSlide(), 4000); };
@@ -614,7 +614,8 @@
                         i.rawDate = i.date; 
                         i.date = window.formatThaiDate(i.date); 
                         i.timestamp = window.formatThaiDate(i.timestamp, true); 
-                        i.joined = ct[i.title.trim()] !== undefined ? ct[i.title.trim()] : (i.joined || 0); 
+                        const safeTitle = String(i.title || '').trim();
+                        i.joined = ct[safeTitle] !== undefined ? ct[safeTitle] : (i.joined || 0); 
                         let stParts = String(i.status || 'open').split('|');
                         i.status = stParts[0] === 'closed' ? 'closed' : 'open';
                         i.openTime = stParts[1] || ''; i.closeTime = stParts[2] || '';
