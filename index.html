@@ -305,42 +305,6 @@
     </div>
 
     <!-- Modals -->
-    
-    <!-- Home Popup Modal -->
-    <div id="homePopupModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[300] flex items-center justify-center p-4 fade-in" onclick="if(event.target === this) this.classList.add('hidden')">
-        <div class="bg-white rounded-[32px] w-full max-w-lg overflow-hidden shadow-2xl relative">
-            <button onclick="document.getElementById('homePopupModal').classList.add('hidden')" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/20 text-white backdrop-blur-sm flex items-center justify-center z-50 hover:bg-black/40 hover:scale-110 transition-all"><i class="ph-bold ph-x text-xl"></i></button>
-            
-            <div class="w-full h-48 md:h-64 relative group overflow-hidden">
-                <div id="popup-banner-container" class="w-full h-full flex overflow-x-auto snap-x snap-mandatory scrollbar-hide" style="scroll-behavior: smooth;">
-                </div>
-                
-                <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 z-20" id="popup-slide-indicators">
-                </div>
-                
-                <button onclick="prevPopupSlide()" class="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/20 text-white backdrop-blur-sm flex items-center justify-center z-20 opacity-0 group-hover:opacity-100 hover:bg-black/40 transition-all"><i class="ph-bold ph-caret-left text-xl"></i></button>
-                <button onclick="nextPopupSlide()" class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/20 text-white backdrop-blur-sm flex items-center justify-center z-20 opacity-0 group-hover:opacity-100 hover:bg-black/40 transition-all"><i class="ph-bold ph-caret-right text-xl"></i></button>
-                
-                <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent pointer-events-none z-10"></div>
-            </div>
-            
-            <div class="p-6 sm:p-8 bg-white relative z-20 -mt-6 rounded-t-[32px]">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-12 h-12 rounded-2xl bg-orange-100 text-orange-500 flex items-center justify-center shrink-0">
-                        <i class="ph-fill ph-bell-ringing text-2xl animate-pulse"></i>
-                    </div>
-                    <h2 id="popup-title" class="text-2xl font-black text-slate-800 tracking-tight leading-tight whitespace-pre-line">ประกาศจากระบบ</h2>
-                </div>
-                
-                <div id="popup-desc" class="mt-4">
-                </div>
-                
-                <button onclick="document.getElementById('homePopupModal').classList.add('hidden')" class="w-full mt-6 py-4 bg-slate-800 hover:bg-black text-white font-bold rounded-2xl shadow-md transition-colors flex items-center justify-center gap-2 text-base">
-                    รับทราบ <i class="ph-bold ph-check"></i>
-                </button>
-            </div>
-        </div>
-    </div>
     <div id="adminLoginModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[200] flex items-center justify-center p-4 fade-in">
         <div class="bg-white rounded-[32px] p-8 max-w-sm w-full relative">
             <button onclick="document.getElementById('adminLoginModal').classList.add('hidden')" class="absolute top-5 right-5 w-10 h-10 rounded-full bg-slate-50 text-slate-400 hover:text-red-500"><i class="ph-bold ph-x"></i></button>
@@ -470,7 +434,7 @@
                 } 
             } 
         }
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxpEwYLVW2AsOFKkzF813nQVRwXEgX0t_lR2HF69iWTgv2sXkyL70G8inNksY1oQRF1/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCPFTT76JLJLo3cNjTDNXQPbofR3AmVEPxCOD9yzdW_73yFy92d-Q0OHAu26DgsA7x/exec';
         
         window.popupSlideIndex = 0; window.popupSlideInterval = null; window.currentPopupDescList = [];
         window.startPopupSlideshow = function() { clearInterval(window.popupSlideInterval); const c = document.getElementById('popup-banner-container'); if (!c || c.children.length <= 1) return; window.popupSlideInterval = setInterval(() => window.nextPopupSlide(), 4000); };
@@ -614,8 +578,7 @@
                         i.rawDate = i.date; 
                         i.date = window.formatThaiDate(i.date); 
                         i.timestamp = window.formatThaiDate(i.timestamp, true); 
-                        const safeTitle = String(i.title || '').trim();
-                        i.joined = ct[safeTitle] !== undefined ? ct[safeTitle] : (i.joined || 0); 
+                        i.joined = ct[i.title.trim()] !== undefined ? ct[i.title.trim()] : (i.joined || 0); 
                         let stParts = String(i.status || 'open').split('|');
                         i.status = stParts[0] === 'closed' ? 'closed' : 'open';
                         i.openTime = stParts[1] || ''; i.closeTime = stParts[2] || '';
@@ -650,39 +613,9 @@
                     // Update Evaluations
                     appCache.evaluations = (r.data.evaluations || []).map(e => Array.isArray(e) ? e : Object.values(e));
                     appCache.evaluations.sort((a,b) => new Date(b[0]) - new Date(a[0]));
-                    if (r.data.settings) {
-                        const s = r.data.settings;
-                        isShirtShopOpen = (s.isShirtShopOpen === true || String(s.isShirtShopOpen).toLowerCase() === 'true');
-                        if (s.popupSettings) popupSettings = s.popupSettings;
-                        if (s.appSettings) appSettings = { ...appSettings, ...s.appSettings };
-                        if (s.adminUsers && Array.isArray(s.adminUsers)) adminUsers = s.adminUsers;
-                        
-                        localStorage.setItem('CRRU_ShopOpen', isShirtShopOpen ? 'true' : 'false'); 
-                        localStorage.setItem('CRRU_PopupSettings', JSON.stringify(popupSettings)); 
-                        localStorage.setItem('CRRU_AppSettings', JSON.stringify(appSettings)); 
-                        localStorage.setItem('CRRU_AdminUsers', JSON.stringify(adminUsers));
-                        window.applyTheme();
-                    }
-
+                    
                     // Render current view again to reflect populated data
-                    if (currentRole === 'student' && currentView === 'events') {
-                        window.renderEvents(document.getElementById('app-content'), 'checkin');
-                        
-                        // Show Home Popup if enabled
-                        if (popupSettings && popupSettings.enabled && sessionStorage.getItem('homePopupShown') !== 'true') {
-                            setTimeout(() => {
-                                let iL = Array.isArray(popupSettings.imageUrl) ? popupSettings.imageUrl : [popupSettings.imageUrl || ''];
-                                if (iL.length === 0 || !iL[0]) iL = ['https://placehold.co/800x400'];
-                                document.getElementById('popup-banner-container').innerHTML = iL.map(u => `<img src="${u}" class="w-full h-full object-cover shrink-0 snap-center">`).join('');
-                                window.renderPopupIndicators(iL.length);
-                                document.getElementById('popup-title').innerHTML = (popupSettings.title || 'ประกาศจากระบบ').replace(/\n/g, '<br>');
-                                window.currentPopupDescList = Array.isArray(popupSettings.description) ? popupSettings.description : [popupSettings.description || ''];
-                                window.popupSlideIndex = 0; window.syncPopupText(0); window.startPopupSlideshow();
-                                document.getElementById('homePopupModal').classList.remove('hidden');
-                                sessionStorage.setItem('homePopupShown', 'true');
-                            }, 500);
-                        }
-                    }
+                    if (currentRole === 'student' && currentView === 'events') window.renderStudentEvents(document.getElementById('app-content'));
                     if (currentRole === 'admin') window.switchAdminTab(currentView.replace('admin-',''));
                 }
             } catch(e) {
@@ -820,24 +753,8 @@
                 const ct = {}; 
                 const seenS = new Set(), seenC = new Set();
                 if (c.success && c.data) { 
-                    let checkInData = c.data || [];
-                    if (checkInData.length > 0 && !Array.isArray(checkInData[0])) {
-                        checkInData = checkInData.map(e => [
-                            e.timestamp || e['เวลาเช็คอิน'] || e['เวลา'] || Object.values(e)[0] || '',
-                            e.eventName || e['Event Name'] || e['ชื่อกิจกรรม'] || Object.values(e)[1] || '',
-                            e.studentId || e['Student ID'] || e['รหัสนักศึกษา'] || Object.values(e)[2] || '',
-                            e.citizenId || e['Citizen ID'] || e['เลขบัตรประชาชน'] || Object.values(e)[3] || '',
-                            e.name || e['ชื่อ-นามสกุล'] || e['ชื่อ'] || Object.values(e)[4] || '',
-                            e.faculty || e['คณะ'] || Object.values(e)[5] || '',
-                            e.major || e['สาขาวิชา'] || Object.values(e)[6] || '',
-                            e.status || e['สถานะ'] || Object.values(e)[7] || '3'
-                        ]);
-                    } else {
-                        checkInData = checkInData.map(item => Array.isArray(item) ? item : Object.values(item));
-                    }
-                    
-                    checkInData.forEach(r => { 
-                        if(r && r.length >= 3) { 
+                    c.data.forEach(r => { 
+                        if(r && r.length > 3) { 
                             const e = String(r[1]).trim(), sId = String(r[2]).trim(), cId = String(r[3]).trim(); 
                             if (!e) return;
                             const kS = (sId && sId !== '-') ? (e + '|S|' + sId) : null;
@@ -848,7 +765,7 @@
                             if (kC) seenC.add(kC);
                         } 
                     });
-                    appCache.checkIns = checkInData; 
+                    appCache.checkIns = c.data; 
                 } 
                 if (a.success && a.data) { 
                     a.data.forEach(i => { 
@@ -923,7 +840,17 @@
                 if(r.success) { 
                     let rawOrders = r.data || [];
                     rawOrders.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-                    appCache.orders = rawOrders;
+                    let seenO = new Set();
+                    appCache.orders = [];
+                    for(let o of rawOrders) {
+                        const sid = String(o.studentId).trim();
+                        if (sid && !seenO.has(sid)) {
+                            seenO.add(sid);
+                            appCache.orders.push(o);
+                        } else if (!sid) {
+                            appCache.orders.push(o);
+                        }
+                    }
                 } 
                 return appCache.orders; 
             } 
@@ -1872,9 +1799,8 @@
             try { 
                 const r = await window.apiCall('GET', { action: 'getAllCheckIns' }); 
                 if (r.success && r.data) { 
-                    const checkInData = r.data.map(item => Array.isArray(item) ? item : Object.values(item));
-                    appCache.checkIns = checkInData; 
-                    if (isDup(checkInData)) { 
+                    appCache.checkIns = r.data; 
+                    if (isDup(r.data)) { 
                         if (err) { err.innerHTML = 'ระบบตรวจพบว่าคุณลงทะเบียนแล้ว!'; err.classList.remove('hidden'); } 
                         window.showToast('ระบบพบข้อมูลซ้ำซ้อน!', 'error'); 
                         b.innerHTML = oH; b.disabled = false; 
