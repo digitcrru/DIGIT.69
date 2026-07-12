@@ -13,101 +13,7 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800;900&display=swap');
-        
-        body {
-            font-family: 'Prompt', sans-serif;
-            background-color: #f8fafc;
-            min-height: 100vh;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        /* Professional Clean Cards (Overrides AI Glassmorphism) */
-        .glass {
-            background: #ffffff !important;
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
-            border: 1px solid #e2e8f0 !important;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1) !important;
-        }
-        .glass-nav {
-            background: rgba(255, 255, 255, 0.98) !important;
-            backdrop-filter: blur(8px) !important;
-            -webkit-backdrop-filter: blur(8px) !important;
-            border-bottom: 1px solid #e2e8f0 !important;
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
-        }
-        
-        /* Mobile Responsiveness Overrides */
-        @media (max-width: 640px) {
-            .p-8, .p-10 { padding: 1.25rem !important; }
-            .p-6 { padding: 1rem !important; }
-            .text-2xl { font-size: 1.25rem !important; line-height: 1.75rem !important; }
-            .text-3xl { font-size: 1.5rem !important; line-height: 2rem !important; }
-        }
-        
-        /* Responsive Tables */
-        .glass:has(table) {
-            overflow-x: auto !important;
-            -webkit-overflow-scrolling: touch;
-        }
-        table {
-            min-width: 600px; /* Prevent columns from crushing on small screens */
-            width: 100%;
-        }
-
-        /* Override aggressive rounded corners */
-        .rounded-\[32px\], .rounded-\[24px\] { border-radius: 12px !important; }
-        
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
-        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .hover-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-        .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05); }
-        
-        .btn-gradient { 
-            background: #2563eb; 
-            transition: all 0.2s ease; 
-        }
-        .btn-gradient:hover { 
-            background: #1d4ed8; 
-            transform: translateY(-1px); 
-            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2); 
-        }
-        
-        #spss-report-content * { font-size: 16px !important; line-height: 1.6 !important; }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        @media print { body { background: white !important; } .print\:hidden { display: none !important; } }
-        
-        /* Connection Status Bar */
-        #conn-status-bar {
-            position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
-            transform: translateY(-100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        #conn-status-bar.show { transform: translateY(0); }
-        #conn-status-bar .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-        #conn-status-bar .status-dot.online { background: #10b981; box-shadow: 0 0 6px rgba(16,185,129,0.5); }
-        #conn-status-bar .status-dot.offline { background: #ef4444; box-shadow: 0 0 6px rgba(239,68,68,0.5); animation: pulse-dot 2s infinite; }
-        @keyframes pulse-dot { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
-
-        /* Dark Mode Overrides */
-        html.dark body { background-image: linear-gradient(rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.98)) !important; background-color: #0f172a !important; color: #f8fafc !important; }
-        html.dark .glass, html.dark .bg-white, html.dark .bg-white\/80, html.dark .bg-white\/50, html.dark .bg-white\/90 { background-color: rgba(30, 41, 59, 0.6) !important; border-color: rgba(255, 255, 255, 0.05) !important; color: #f1f5f9 !important; }
-        html.dark .text-slate-800, html.dark .text-slate-700, html.dark .text-slate-900 { color: #f8fafc !important; }
-        html.dark .text-slate-600, html.dark .text-slate-500 { color: #cbd5e1 !important; }
-        html.dark .bg-slate-50, html.dark .bg-slate-100, html.dark .bg-slate-200 { background-color: #1e293b !important; border-color: #334155 !important; color: #e2e8f0 !important; }
-        html.dark input, html.dark select, html.dark textarea { background-color: #0f172a !important; border-color: #334155 !important; color: #f8fafc !important; }
-        html.dark th, html.dark td, html.dark tr { border-color: #334155 !important; }
-        html.dark thead { background-color: rgba(30, 41, 59, 0.8) !important; color: #94a3b8 !important; }
-        html.dark .shadow-sm, html.dark .shadow-md, html.dark .shadow-lg, html.dark .shadow-xl { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3) !important; }
-        html.dark .border-slate-100, html.dark .border-slate-200 { border-color: rgba(255, 255, 255, 0.1) !important; }
-    </style>
+    
     
     <script>
         tailwind.config = { 
@@ -124,30 +30,32 @@
             } 
         }
     </script>
-<style>
+
+    <style>
         @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800;900&display=swap');
         
         body {
             font-family: 'Prompt', sans-serif;
-            background-color: #f8fafc;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #bae6fd 100%);
+            background-attachment: fixed;
             min-height: 100vh;
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Professional Clean Cards (Overrides AI Glassmorphism) */
+        /* Modern Glassmorphism Premium UI */
         .glass {
-            background: #ffffff !important;
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
-            border: 1px solid #e2e8f0 !important;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1) !important;
+            background: rgba(255, 255, 255, 0.75) !important;
+            backdrop-filter: blur(16px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07) !important;
         }
         .glass-nav {
-            background: rgba(255, 255, 255, 0.98) !important;
-            backdrop-filter: blur(8px) !important;
-            -webkit-backdrop-filter: blur(8px) !important;
-            border-bottom: 1px solid #e2e8f0 !important;
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+            background: rgba(255, 255, 255, 0.85) !important;
+            backdrop-filter: blur(20px) saturate(200%) !important;
+            -webkit-backdrop-filter: blur(20px) saturate(200%) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5) !important;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05) !important;
         }
         
         /* Mobile Responsiveness Overrides */
@@ -164,32 +72,37 @@
             -webkit-overflow-scrolling: touch;
         }
         table {
-            min-width: 600px; /* Prevent columns from crushing on small screens */
+            min-width: 600px;
             width: 100%;
         }
 
-        /* Override aggressive rounded corners */
-        .rounded-\[32px\], .rounded-\[24px\] { border-radius: 12px !important; }
-        
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        ::-webkit-scrollbar-thumb { background: rgba(37, 99, 235, 0.3); border-radius: 6px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(37, 99, 235, 0.6); }
         
-        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         
-        .hover-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-        .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05); }
+        .hover-lift { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease; }
+        .hover-lift:hover { transform: translateY(-4px) scale(1.01); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); }
         
         .btn-gradient { 
-            background: #2563eb; 
-            transition: all 0.2s ease; 
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); 
+            transition: all 0.3s ease; 
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         .btn-gradient:hover { 
-            background: #1d4ed8; 
-            transform: translateY(-1px); 
-            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2); 
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); 
+            transform: translateY(-2px); 
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3), 0 4px 6px -4px rgba(37, 99, 235, 0.2); 
+        }
+
+        .brand-text-gradient {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
         #spss-report-content * { font-size: 16px !important; line-height: 1.6 !important; }
@@ -208,18 +121,16 @@
         @keyframes pulse-dot { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
 
         /* Dark Mode Overrides */
-        html.dark body { background-image: linear-gradient(rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.98)) !important; background-color: #0f172a !important; color: #f8fafc !important; }
-        html.dark .glass, html.dark .bg-white, html.dark .bg-white\/80, html.dark .bg-white\/50, html.dark .bg-white\/90 { background-color: rgba(30, 41, 59, 0.6) !important; border-color: rgba(255, 255, 255, 0.05) !important; color: #f1f5f9 !important; }
+        html.dark body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important; color: #f8fafc !important; }
+        html.dark .glass, html.dark .glass-nav { background: rgba(15, 23, 42, 0.75) !important; border-color: rgba(255, 255, 255, 0.05) !important; color: #f1f5f9 !important; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important; }
         html.dark .text-slate-800, html.dark .text-slate-700, html.dark .text-slate-900 { color: #f8fafc !important; }
         html.dark .text-slate-600, html.dark .text-slate-500 { color: #cbd5e1 !important; }
-        html.dark .bg-slate-50, html.dark .bg-slate-100, html.dark .bg-slate-200 { background-color: #1e293b !important; border-color: #334155 !important; color: #e2e8f0 !important; }
-        html.dark input, html.dark select, html.dark textarea { background-color: #0f172a !important; border-color: #334155 !important; color: #f8fafc !important; }
-        html.dark th, html.dark td, html.dark tr { border-color: #334155 !important; }
-        html.dark thead { background-color: rgba(30, 41, 59, 0.8) !important; color: #94a3b8 !important; }
-        html.dark .shadow-sm, html.dark .shadow-md, html.dark .shadow-lg, html.dark .shadow-xl { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3) !important; }
-        html.dark .border-slate-100, html.dark .border-slate-200 { border-color: rgba(255, 255, 255, 0.1) !important; }
-
-</style>
+        html.dark .bg-slate-50, html.dark .bg-slate-100, html.dark .bg-slate-200 { background-color: rgba(30, 41, 59, 0.8) !important; border-color: rgba(255,255,255,0.05) !important; color: #e2e8f0 !important; }
+        html.dark input, html.dark select, html.dark textarea { background-color: rgba(15, 23, 42, 0.8) !important; border-color: rgba(255,255,255,0.1) !important; color: #f8fafc !important; }
+        html.dark th, html.dark td, html.dark tr { border-color: rgba(255,255,255,0.05) !important; }
+        html.dark thead { background-color: rgba(30, 41, 59, 0.5) !important; color: #94a3b8 !important; }
+        html.dark .brand-text-gradient { background: linear-gradient(135deg, #60a5fa 0%, #bfdbfe 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    </style>
 </head>
 <body class="text-slate-800 antialiased flex flex-col">
 
@@ -256,7 +167,7 @@
                     <div class="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center mr-3">
                         <i class="ph-fill ph-student text-primary text-2xl" id="brand-icon"></i>
                     </div>
-                    <span class="font-bold text-xl tracking-tight" id="brand-text">DIGIT.<span class="text-primary">CRRU</span></span>
+                    <span class="font-bold text-xl tracking-tight" id="brand-text" class="brand-text-gradient">DIGIT.CRRU</span>
                 </div>
                 <div class="hidden md:flex space-x-2 items-center flex-grow justify-center" id="desktop-menu"></div>
                 <div class="flex items-center">
@@ -420,8 +331,9 @@
     <div id="toast-container" class="fixed bottom-24 md:bottom-8 right-4 md:right-8 z-[160] flex flex-col gap-3 w-auto max-w-[90%] pointer-events-none"></div>
 
     <!-- MAIN SCRIPT -->
-<script>
-        tailwind.config = { 
+
+    <script>
+tailwind.config = { 
             theme: { 
                 extend: { 
                     colors: { 
@@ -488,7 +400,6 @@
         let adminUsers = Array.isArray(parsedAdminUsers) ? parsedAdminUsers : [{ id: '1', user: 'D.crru', pass: '9999', role: 'superadmin' }];
         
         const NAV_STUDENT = [ 
-            { id: 'register-events', label: 'สมัครเข้าร่วมกิจกรรม', tabLabel: 'สมัคร', icon: 'ph-note-pencil' }, 
             { id: 'events', label: 'เช็คชื่อเข้าร่วมกิจกรรม', tabLabel: 'เช็คชื่อ', icon: 'ph-map-pin' }, 
             { id: 'history', label: 'ประวัติ', tabLabel: 'ประวัติ', icon: 'ph-clock-counter-clockwise' },
             { id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }
@@ -588,7 +499,7 @@
                         i.status = stParts[0] === 'closed' ? 'closed' : 'open';
                         i.openTime = stParts[1] || ''; i.closeTime = stParts[2] || '';
                         if (stParts.length > 3) { i.certEnabled = stParts[3] === 'true'; } else if (i.certEnabled !== undefined && i.certEnabled !== null && i.certEnabled !== "") { i.certEnabled = (i.certEnabled === true || String(i.certEnabled).toLowerCase() === 'true'); } else { i.certEnabled = certEventStatus[i.id] === true; }
-                        i.lat = stParts.length > 4 ? stParts[4] : ''; i.lng = stParts.length > 5 ? stParts[5] : '';
+                        i.lat = stParts.length > 4 ? stParts[4] : ''; i.lng = stParts.length > 5 ? stParts[5] : ''; i.type = stParts.length > 7 ? stParts[7] : 'checkin';
                         certEventStatus[i.id] = i.certEnabled;
                     });
                     localStorage.setItem('CRRU_CertEventStatus', JSON.stringify(certEventStatus));
@@ -598,7 +509,27 @@
                         else if (isNaN(dateA.getTime())) return 1;
                         else if (isNaN(dateB.getTime())) return -1;
                         return dateB.getTime() - dateA.getTime();
-                    }); 
+                    });                    
+                    const _now = new Date();
+                    const hasOpenRegEvent = appCache.activities.some(e => {
+                        if (e.type !== 'register') return false;
+                        if (e.status === 'closed') return false;
+                        if (e.closeTime && _now > new Date(e.closeTime)) return false;
+                        return true;
+                    });
+                    
+                    if (hasOpenRegEvent) {
+                        if (!NAV_STUDENT.find(n => n.id === 'register-events')) {
+                            NAV_STUDENT.unshift({ id: 'register-events', label: '\u0e2a\u0e21\u0e31\u0e04\u0e23\u0e40\u0e02\u0e49\u0e32\u0e23\u0e48\u0e27\u0e21\u0e01\u0e34\u0e08\u0e01\u0e23\u0e23\u0e21', tabLabel: '\u0e2a\u0e21\u0e31\u0e04\u0e23', icon: 'ph-note-pencil' });
+                            if (currentRole === 'student') window.renderNav();
+                        }
+                    } else {
+                        const idx = NAV_STUDENT.findIndex(n => n.id === 'register-events');
+                        if (idx > -1) {
+                            NAV_STUDENT.splice(idx, 1);
+                            if (currentRole === 'student') window.renderNav();
+                        }
+                    } 
                     
                     // Update Orders
                     let rawOrders = r.data.orders || [];
@@ -802,7 +733,27 @@
                         else if (isNaN(dateA.getTime())) return 1;
                         else if (isNaN(dateB.getTime())) return -1;
                         return dateB.getTime() - dateA.getTime();
-                    }); 
+                    });                    
+                    const _now = new Date();
+                    const hasOpenRegEvent = appCache.activities.some(e => {
+                        if (e.type !== 'register') return false;
+                        if (e.status === 'closed') return false;
+                        if (e.closeTime && _now > new Date(e.closeTime)) return false;
+                        return true;
+                    });
+                    
+                    if (hasOpenRegEvent) {
+                        if (!NAV_STUDENT.find(n => n.id === 'register-events')) {
+                            NAV_STUDENT.unshift({ id: 'register-events', label: '\u0e2a\u0e21\u0e31\u0e04\u0e23\u0e40\u0e02\u0e49\u0e32\u0e23\u0e48\u0e27\u0e21\u0e01\u0e34\u0e08\u0e01\u0e23\u0e23\u0e21', tabLabel: '\u0e2a\u0e21\u0e31\u0e04\u0e23', icon: 'ph-note-pencil' });
+                            if (currentRole === 'student') window.renderNav();
+                        }
+                    } else {
+                        const idx = NAV_STUDENT.findIndex(n => n.id === 'register-events');
+                        if (idx > -1) {
+                            NAV_STUDENT.splice(idx, 1);
+                            if (currentRole === 'student') window.renderNav();
+                        }
+                    } 
                     localStorage.setItem('CRRU_CachedActivities', JSON.stringify(appCache.activities));
                 } 
                 return appCache.activities; 
@@ -974,6 +925,7 @@
         };
         
         window.navigate = function(vId, p = null) {
+            if (window.stopGPSWatch) window.stopGPSWatch();
             currentView = vId; window.renderNav(); const c = document.getElementById('app-content'); window.scrollTo(0, 0);
             
             const sidebar = document.getElementById('admin-sidebar');
@@ -1007,6 +959,93 @@
 
         window.getGokuLoader = function(t = 'กำลังโหลด...') { 
             return `<div class="fade-in py-24 flex flex-col items-center justify-center text-center text-slate-500"><i class="ph-bold ph-spinner animate-spin text-4xl mb-4 text-primary"></i><h3 class="text-sm font-bold">${t}</h3></div>`; 
+        };
+
+        window.gpsWatchId = null;
+        window.currentGpsValid = false;
+        window.currentGpsCoords = null;
+        window.stopGPSWatch = function() {
+            if (window.gpsWatchId !== null) {
+                navigator.geolocation.clearWatch(window.gpsWatchId);
+                window.gpsWatchId = null;
+            }
+        };
+        window.initGPSWatch = function(id) {
+            window.stopGPSWatch();
+            const e = appCache.activities.find(x => String(x.id) === String(id));
+            if (!e || e.type === 'register') return;
+
+            const card = document.getElementById('gps-status-card');
+            const statusText = document.getElementById('gps-status-text');
+            const dot = document.getElementById('gps-dot');
+            const warningBox = document.getElementById('gps-warning-box');
+            const distPill = document.getElementById('gps-distance-pill');
+            const btnSubmit = document.getElementById('btn-attendance-action');
+            const btnCalc = document.getElementById('btn-calc-gps');
+            const accuracyPill = document.getElementById('gps-accuracy-pill');
+            const resultContainer = document.getElementById('gps-result-container');
+
+            if (!card) return;
+            card.classList.remove('hidden');
+            card.classList.add('flex');
+            
+            if (btnCalc) btnCalc.classList.add('hidden');
+            if (accuracyPill) { accuracyPill.classList.remove('hidden'); accuracyPill.classList.add('flex'); }
+            if (resultContainer) resultContainer.classList.remove('hidden');
+
+            if (btnSubmit) btnSubmit.disabled = true;
+            statusText.innerText = 'กำลังค้นหาสัญญาณ GPS...';
+            dot.className = 'w-2 h-2 rounded-full bg-slate-300 animate-pulse';
+            warningBox.classList.add('hidden');
+            distPill.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-1"></i> กำลังคำนวณ...';
+            distPill.className = 'px-3 py-1.5 rounded-lg bg-slate-100 text-slate-500 text-xs font-bold transition-colors';
+
+            window.gpsWatchId = navigator.geolocation.watchPosition(
+                (pos) => {
+                    const acc = Math.round(pos.coords.accuracy);
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    
+                    if (acc > 50) {
+                        statusText.innerText = 'ความแม่นยำ \u00b1' + acc + ' เมตร';
+                        dot.className = 'w-2 h-2 rounded-full bg-orange-400';
+                        warningBox.classList.remove('hidden');
+                    } else {
+                        statusText.innerText = 'GPS พร้อม — ความแม่นยำ \u00b1' + acc + ' เมตร';
+                        dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+                        warningBox.classList.add('hidden');
+                    }
+
+                    const dist = window.getDistanceFromLatLonInMeters(
+                        parseFloat(e.lat), parseFloat(e.lng), lat, lng
+                    );
+                    const dRound = Math.round(dist);
+
+                    if (dRound <= 150) {
+                        distPill.innerHTML = 'อยู่ในระยะ (' + dRound + ' ม.)';
+                        distPill.className = 'px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-600 text-xs font-bold transition-colors';
+                        window.currentGpsValid = true;
+                        window.currentGpsCoords = { lat, lng };
+                        if (btnSubmit && document.getElementById('reg-student-id') && document.getElementById('reg-student-id').value.trim() !== '') btnSubmit.disabled = false;
+                    } else {
+                        let text = dRound >= 1000 ? (dRound/1000).toFixed(2) + ' กม.' : dRound + ' ม.';
+                        distPill.innerHTML = '<i class="ph-bold ph-map-pin mr-1"></i>ห่าง ' + text;
+                        distPill.className = 'px-3 py-1.5 rounded-lg bg-rose-100 text-rose-600 text-xs font-bold transition-colors';
+                        window.currentGpsValid = false;
+                        window.currentGpsCoords = null;
+                        if (btnSubmit) btnSubmit.disabled = true;
+                    }
+                },
+                (err) => {
+                    statusText.innerText = 'ไม่สามารถดึงพิกัดได้';
+                    dot.className = 'w-2 h-2 rounded-full bg-rose-400';
+                    distPill.innerHTML = 'เกิดข้อผิดพลาด';
+                    distPill.className = 'px-3 py-1.5 rounded-lg bg-rose-100 text-rose-600 text-xs font-bold';
+                    window.currentGpsValid = false;
+                    if (btnSubmit) btnSubmit.disabled = true;
+                },
+                { enableHighAccuracy: true, maximumAge: 0 }
+            );
         };
 
         window.getDistanceFromLatLonInMeters = function(lat1, lon1, lat2, lon2) {
@@ -1592,6 +1631,7 @@
         }, 1000);
 
         window.renderRegistration = function(c, id) {
+            window.currentActivityId = id;
             const e = appCache.activities.find(x => String(x.id) === String(id)) || { title: 'กิจกรรม', id: id }; 
             
             const now = new Date();
@@ -1609,16 +1649,112 @@
             }
 
             c.innerHTML = `
-                <div class="fade-in max-w-2xl mx-auto"><button onclick="navigate('events')" class="flex items-center gap-2 text-slate-600 hover:text-primary mb-6 font-bold text-sm bg-white/50 border border-white px-4 py-2 rounded-xl shadow-sm hover-lift"><i class="ph-bold ph-arrow-left text-lg"></i> กลกลกลกลับไปหน้ากิจกรรม</button><div class="glass rounded-[32px] shadow-xl overflow-hidden">${coverHTML}<div class="bg-gradient-to-br from-orange-50 to-transparent p-8 sm:p-10 ${!textDescHTML ? 'border-b border-white/50' : ''}"><div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-primary text-3xl mb-5"><i class="ph-fill ph-calendar-check"></i></div><h2 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">${e.type === 'register' ? 'สมัครเข้าร่วมกิจกรรม' : 'ลงทะเบียนกิจกรรม'}</h2><p class="text-primary font-bold mt-2 leading-snug">${e.title}</p></div>${textDescHTML}<div class="p-8 sm:p-10 bg-white/20"><div id="step-search" class="mb-2"><label class="block text-sm font-bold text-slate-700 mb-3">ระบุรหัสนักศึกษา หรือ หมายเลขบัตรประชาชน</label>
+                <div class="fade-in max-w-2xl mx-auto"><button onclick="navigate('events')" class="flex items-center gap-2 text-slate-600 hover:text-primary mb-6 font-bold text-sm bg-white/50 border border-white px-4 py-2 rounded-xl shadow-sm hover-lift"><i class="ph-bold ph-arrow-left text-lg"></i> กลกลกลกลับไปหน้ากิจกรรม</button><div class="glass rounded-[32px] shadow-xl overflow-hidden">${coverHTML}<div class="bg-gradient-to-br from-orange-50 to-transparent p-8 sm:p-10 ${!textDescHTML ? 'border-b border-white/50' : ''}"><div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-primary text-3xl mb-5"><i class="ph-fill ph-calendar-check"></i></div><h2 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">${e.type === 'register' ? 'สมัครเข้าร่วมกิจกรรม' : 'ลงทะเบียนกิจกรรม'}</h2><p class="text-primary font-bold mt-2 leading-snug">${e.title}</p></div>${textDescHTML}<div class="p-8 sm:p-10 bg-white/20">
+
+<div id="step-search" class="mb-2"><label class="block text-sm font-bold text-slate-700 mb-3">ระบุรหัสนักศึกษา หรือ หมายเลขบัตรประชาชน</label>
                 <div class="flex flex-col gap-4">
                     <div class="relative w-full"><div class="absolute inset-y-0 left-0 flex items-center pl-5 pointer-events-none"><i class="ph-fill ph-identification-card text-slate-400 text-xl"></i></div><input type="text" id="search-student-id" class="w-full pl-12 pr-4 py-4 rounded-2xl border border-white bg-white/80 font-bold shadow-sm outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-primary transition-all" placeholder="กรอกรหัส หรือ บัตรปชช." onkeypress="if(event.key === 'Enter') fetchStudentData()"></div>
                     <button onclick="fetchStudentData()" id="btn-fetch-student" class="w-full px-8 py-4 bg-slate-800 text-white text-base font-bold rounded-2xl hover:bg-black transition-colors shadow-lg shadow-slate-800/20 flex items-center justify-center gap-2 shrink-0"><i class="ph-bold ph-magnifying-glass text-lg"></i> ค้นหา</button>
                 </div>
                 <p id="search-feedback" class="text-sm font-bold text-orange-600 hidden bg-orange-50 p-4 rounded-xl border border-orange-200 mt-3"></p></div><form id="step-form" class="space-y-6 hidden" onsubmit="handleRegistrationSubmit(event, '${id}')">
-<div class="bg-gradient-to-br from-emerald-600 to-teal-800 rounded-3xl p-5 text-white shadow-lg shadow-emerald-900/20 relative overflow-hidden"><div class="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div><div class="absolute -bottom-10 -left-10 w-32 h-32 bg-emerald-400/20 rounded-full blur-xl"></div><div class="flex items-center gap-4 relative z-10"><div class="w-16 h-16 rounded-2xl bg-white p-1 shadow-sm shrink-0"><img src="https://ui-avatars.com/api/?name=Student&background=random" id="gps-profile-img" alt="Profile" class="w-full h-full rounded-xl object-cover"></div><div><div class="inline-flex items-center gap-1.5 bg-white/20 px-2.5 py-1 rounded-full text-[10px] font-medium mb-1 backdrop-blur-sm border border-white/10"><i class="ph-fill ph-fingerprint"></i> ยืนยันตัวบุคคล</div><h2 class="font-bold text-lg leading-tight truncate w-48" id="gps-profile-name">-</h2><p class="text-emerald-100 text-xs mt-0.5 truncate w-48" id="gps-profile-dept">-</p></div></div></div>
-<input type="hidden" id="reg-hidden-student-id"><input type="hidden" id="reg-hidden-citizen-id"><div class="space-y-5 bg-white/80 p-6 rounded-[24px] shadow-sm border border-white"><div><label class="block text-xs font-bold text-slate-500 mb-2">รหัสนักศึกษา/บัตรประชาชน</label><input type="text" id="reg-student-id" required readonly class="w-full px-5 py-3.5 rounded-xl border-none bg-slate-100/50 text-slate-500 text-sm font-bold shadow-inner"></div><div><label class="block text-xs font-bold text-slate-500 mb-2">ชื่อ-นามสกุล *</label><input type="text" id="reg-name" required class="w-full px-5 py-3.5 rounded-xl border border-slate-200 font-bold text-sm bg-white focus:border-primary focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-5"><div><label class="block text-xs font-bold text-slate-500 mb-2">คณะ *</label><input type="text" id="reg-faculty" required class="w-full px-5 py-3.5 rounded-xl border border-slate-200 font-bold text-sm bg-white focus:border-primary focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"></div><div><label class="block text-xs font-bold text-slate-500 mb-2">สาขาวิชา *</label><input type="text" id="reg-major" required class="w-full px-5 py-3.5 rounded-xl border border-slate-200 font-bold text-sm bg-white focus:border-primary focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"></div></div><div><label class="block text-xs font-bold text-slate-500 mb-2">เลขบัตรประชาชน</label><input type="text" id="reg-citizen-id" class="w-full px-5 py-3.5 rounded-xl border border-slate-200 font-bold text-sm bg-white focus:border-primary focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"></div></div><p id="reg-error-message" class="text-sm font-bold text-orange-600 hidden bg-orange-50 p-4 rounded-xl border border-orange-200"></p><div class="flex flex-col gap-3 mt-4">
-<button type="submit" class="w-full py-4 ${e.type === 'register' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-800 hover:bg-slate-700'} text-white rounded-2xl font-bold shadow-lg shadow-slate-900/20 flex items-center justify-center gap-2 transition-colors hover-lift" id="btn-attendance-action"><i class="ph-bold ${e.type === 'register' ? 'ph-note-pencil' : 'ph-map-pin'}"></i> ${e.type === 'register' ? 'ยืนยันการสมัครเข้าร่วมกิจกรรม' : 'บันทึกเข้าร่วมกิจกรรม (GPS)'}</button><button type="button" onclick="resetSearchForm()" class="w-full py-3 rounded-2xl font-bold text-slate-500 bg-transparent hover:bg-slate-100 transition-colors">ยกเลิก / ค้นหาใหม่</button></div></form></div></div></div>
+${e.type === 'register' ? '' : `
+<div id="gps-status-card" class="mb-6 bg-white/95 backdrop-blur-xl rounded-[28px] p-7 shadow-xl shadow-slate-200/40 border border-white/60 hidden flex-col gap-5 relative overflow-hidden group">
+    <div class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-50 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
+    <div class="flex items-start justify-between relative z-10">
+        <div>
+            <h3 class="text-[16px] font-black text-slate-800 flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600"><i class="ph-fill ph-map-pin text-lg"></i></div> ตรวจสอบพื้นที่กิจกรรม
+            </h3>
+            <p class="text-[13px] font-medium text-slate-500 mt-1.5 ml-[42px]">กรุณาตรวจสอบว่าคุณอยู่ในพื้นที่ที่กำหนด</p>
+        </div>
+    </div>
+    
+    <button type="button" onclick="initGPSWatch('${id}')" class="w-full py-4 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white rounded-2xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 hover:-translate-y-0.5 text-[15px] relative z-10" id="btn-calc-gps">
+        <i class="ph-bold ph-crosshair text-xl animate-pulse"></i> คำนวณระยะรัศมีเพื่อเข้าร่วมกิจกรรม
+    </button>
+    
+    <div id="gps-accuracy-pill" class="items-center gap-2.5 px-5 py-3 rounded-2xl bg-slate-50 border border-slate-200/60 text-[13px] font-bold text-slate-700 w-fit hidden relative z-10">
+        <div class="w-2.5 h-2.5 rounded-full bg-slate-300" id="gps-dot"></div>
+        <span id="gps-status-text">รอการตรวจสอบ...</span>
+    </div>
+
+    <div id="gps-warning-box" class="hidden p-4 bg-rose-50 border border-rose-200 rounded-2xl text-[13px] font-bold text-rose-700 flex items-start gap-3 shadow-inner relative z-10">
+        <i class="ph-fill ph-warning text-rose-500 text-xl shrink-0 mt-0.5"></i>
+        <span class="leading-relaxed">ความแม่นยำ GPS ต่ำมาก — กรุณาเปิดพิกัดแบบแม่นยำสูง หรือลองเดินออกไปในที่โล่ง</span>
+    </div>
+
+    <div class="pt-5 mt-2 border-t border-slate-200/50 hidden relative z-10" id="gps-result-container">
+        <p class="text-[11px] font-black text-slate-400 uppercase tracking-wider mb-3 ml-1">📍 จุดที่สามารถลงเวลา</p>
+        <div class="w-full p-4 rounded-2xl bg-white border border-slate-200/80 text-[14px] font-bold text-slate-700 flex items-center justify-between shadow-sm">
+            <span class="truncate pr-2 flex items-center"><i class="ph-bold ph-map-pin-line text-slate-400 mr-2.5 text-lg"></i>${e.title}</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-2.5 mt-4">
+            <div id="gps-distance-pill" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-500 text-[13px] font-bold transition-all border border-slate-200/50">
+                -
+            </div>
+            <div class="px-4 py-2.5 rounded-xl bg-indigo-50 text-indigo-600 text-[13px] font-bold border border-indigo-100">
+                ไม่เกิน 150 เมตร
+            </div>
+        </div>
+    </div>
+</div>
+`}
+<div class="bg-slate-900 rounded-[28px] p-6 text-white shadow-xl shadow-slate-900/20 relative overflow-hidden border border-slate-800">
+    <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-transparent pointer-events-none"></div>
+    <div class="absolute -right-12 -top-12 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="flex items-center gap-5 relative z-10">
+        <div class="w-16 h-16 rounded-[18px] bg-slate-800 p-1 shadow-inner shrink-0 border border-slate-700">
+            <img src="https://ui-avatars.com/api/?name=Student&background=random" id="gps-profile-img" alt="Profile" class="w-full h-full rounded-2xl object-cover">
+        </div>
+        <div>
+            <div class="inline-flex items-center gap-1.5 bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full text-[11px] font-bold mb-1.5 border border-indigo-500/20">
+                <i class="ph-fill ph-fingerprint text-sm"></i> ยืนยันตัวบุคคล
+            </div>
+            <h2 class="font-black text-[19px] leading-tight truncate w-48 sm:w-64 text-slate-100" id="gps-profile-name">-</h2>
+            <p class="text-slate-400 text-[13px] font-medium mt-1 truncate w-48 sm:w-64" id="gps-profile-dept">-</p>
+        </div>
+    </div>
+</div>
+<input type="hidden" id="reg-hidden-student-id"><input type="hidden" id="reg-hidden-citizen-id">
+<div class="space-y-6 bg-white/95 p-7 rounded-[28px] shadow-xl shadow-slate-200/40 border border-white/60 relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-orange-50 to-transparent opacity-50 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="relative z-10 space-y-5">
+        <div>
+            <label class="block text-[13px] font-bold text-slate-500 mb-2.5">รหัสนักศึกษา/บัตรประชาชน</label>
+            <input type="text" id="reg-student-id" required readonly class="w-full px-5 py-4 rounded-2xl border-none bg-slate-50 text-slate-400 text-sm font-bold shadow-inner focus:outline-none">
+        </div>
+        <div>
+            <label class="block text-[13px] font-bold text-slate-500 mb-2.5">ชื่อ-นามสกุล <span class="text-rose-500">*</span></label>
+            <input type="text" id="reg-name" required class="w-full px-5 py-4 rounded-2xl border border-slate-200/80 font-bold text-[14px] text-slate-700 bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm">
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+                <label class="block text-[13px] font-bold text-slate-500 mb-2.5">คณะ <span class="text-rose-500">*</span></label>
+                <input type="text" id="reg-faculty" required class="w-full px-5 py-4 rounded-2xl border border-slate-200/80 font-bold text-[14px] text-slate-700 bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm">
+            </div>
+            <div>
+                <label class="block text-[13px] font-bold text-slate-500 mb-2.5">สาขาวิชา <span class="text-rose-500">*</span></label>
+                <input type="text" id="reg-major" required class="w-full px-5 py-4 rounded-2xl border border-slate-200/80 font-bold text-[14px] text-slate-700 bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm">
+            </div>
+        </div>
+        <div>
+            <label class="block text-[13px] font-bold text-slate-500 mb-2.5">เลขบัตรประชาชน</label>
+            <input type="text" id="reg-citizen-id" class="w-full px-5 py-4 rounded-2xl border border-slate-200/80 font-bold text-[14px] text-slate-700 bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm">
+        </div>
+    </div>
+</div>
+<p id="reg-error-message" class="text-[13px] font-bold text-rose-600 hidden bg-rose-50 p-4 rounded-2xl border border-rose-200"></p>
+<div class="flex flex-col gap-3 mt-6">
+    <button type="submit" ${e.type !== 'register' ? 'disabled' : ''} class="w-full py-4.5 ${e.type === 'register' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-emerald-500/25 text-white' : 'bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 shadow-orange-500/25 text-white disabled:bg-none disabled:bg-slate-100 disabled:text-slate-400 disabled:border disabled:border-slate-200 disabled:shadow-none disabled:cursor-not-allowed'} rounded-2xl font-black shadow-xl flex items-center justify-center gap-2.5 transition-all hover:-translate-y-0.5 text-[15px]" id="btn-attendance-action">
+        <i class="ph-bold ${e.type === 'register' ? 'ph-note-pencil' : 'ph-map-pin'} text-lg"></i> ${e.type === 'register' ? 'ยืนยันการสมัครเข้าร่วมกิจกรรม' : 'บันทึกเข้าร่วมกิจกรรม (GPS)'}
+    </button>
+    <button type="button" onclick="resetSearchForm()" class="w-full py-3.5 rounded-2xl font-bold text-slate-500 bg-transparent hover:bg-slate-100 hover:text-slate-700 transition-colors text-[14px]">
+        ยกเลิก / ค้นหาใหม่
+    </button>
+</div>
+</form></div></div></div>
             `;
+
         };
 
         window.fetchStudentData = async function() {
@@ -1660,6 +1796,12 @@
             if(pImg) pImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(d.name || sId)}&background=random`;
             
             document.getElementById('step-form').classList.remove('hidden'); 
+            const gpsCard = document.getElementById('gps-status-card');
+            if (gpsCard) { gpsCard.classList.remove('hidden'); gpsCard.classList.add('flex'); }
+            if (window.currentGpsValid) {
+                const btnSubmit = document.getElementById('btn-attendance-action');
+                if (btnSubmit) btnSubmit.disabled = false;
+            }
             window.showToast('ดึงข้อมูลสำเร็จ', 'success'); 
         };
 
@@ -1672,9 +1814,27 @@
             if (sId.length === 13 && !isNaN(sId)) document.getElementById('reg-citizen-id').value = sId; else document.getElementById('reg-student-id').value = sId; 
             document.getElementById('step-search').classList.add('hidden'); 
             document.getElementById('step-form').classList.remove('hidden'); 
+            const gpsCard = document.getElementById('gps-status-card');
+            if (gpsCard) { gpsCard.classList.remove('hidden'); gpsCard.classList.add('flex'); }
+            if (window.currentGpsValid) {
+                const btnSubmit = document.getElementById('btn-attendance-action');
+                if (btnSubmit) btnSubmit.disabled = false;
+            }
         };
 
         window.resetSearchForm = function() { 
+            if (window.stopGPSWatch) window.stopGPSWatch();
+            const btnCalc = document.getElementById('btn-calc-gps');
+            const accuracyPill = document.getElementById('gps-accuracy-pill');
+            const resultContainer = document.getElementById('gps-result-container');
+            if (btnCalc) btnCalc.classList.remove('hidden');
+            if (accuracyPill) { accuracyPill.classList.add('hidden'); accuracyPill.classList.remove('flex'); }
+            if (resultContainer) resultContainer.classList.add('hidden');
+            const btnSubmit = document.getElementById('btn-attendance-action');
+            if (btnSubmit && window.currentActivityId) {
+                const ev = appCache.activities.find(x => String(x.id) === String(window.currentActivityId));
+                if (ev && ev.type !== 'register') btnSubmit.disabled = true;
+            }
             document.getElementById('step-form').classList.add('hidden'); 
             document.getElementById('step-search').classList.remove('hidden'); 
             document.getElementById('search-feedback').classList.add('hidden'); 
@@ -1728,27 +1888,10 @@
                     }
                 }
                 
-                if (evO.lat && evO.lng) {
-                    if (!navigator.geolocation) {
-                        window.showToast('เบราว์เซอร์ไม่รองรับ GPS ไม่สามารถเช็คชื่อได้', 'error');
-                        return;
-                    }
-                    try {
-                        const position = await new Promise((resolve, reject) => {
-                            navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 });
-                        });
-                        const dist = window.getDistanceFromLatLonInMeters(
-                            parseFloat(evO.lat), parseFloat(evO.lng),
-                            position.coords.latitude, position.coords.longitude
-                        );
-                        if (dist > 150) { 
-                            if (err) { err.innerHTML = '📵 อยู่นอกพื้นที่ให้บริการ...แต่ยังอยู่ในใจเธอ'; err.classList.remove('hidden'); }
-                            window.showToast('📵 อยู่นอกพื้นที่ให้บริการ...แต่ยังอยู่ในใจเธอ', 'error');
-                            b.innerHTML = oH; b.disabled = false; return;
-                        }
-                    } catch(geoErr) {
-                        if (err) { err.innerHTML = '📵 อยู่นอกพื้นที่ให้บริการ...แต่ยังอยู่ในใจเธอ'; err.classList.remove('hidden'); }
-                        window.showToast('📵 อยู่นอกพื้นที่ให้บริการ...แต่ยังอยู่ในใจเธอ', 'error');
+                if (evO.lat && evO.lng && evO.type !== 'register') {
+                    if (!window.currentGpsValid) {
+                        if (err) { err.innerHTML = 'กรุณารอให้ระบบคำนวณระยะห่างให้สำเร็จก่อนกดเช็คชื่อ หรือคุณอยู่นอกระยะ 150 เมตร'; err.classList.remove('hidden'); }
+                        window.showToast('กรุณารอให้ระบบคำนวณระยะห่างให้สำเร็จ', 'error');
                         b.innerHTML = oH; b.disabled = false; return;
                     }
                 }
@@ -1792,6 +1935,11 @@
             b.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-xl"></i> บันทึก...'; b.disabled = true;
             
             const pL = { action: 'checkIn', eventId: evId, eventName: evN, studentId: fSid, citizenId: fCid, name: fN, faculty: fF, major: fM, timestamp: new Date().toLocaleString('th-TH') };
+            if (window.currentGpsCoords && evO && evO.type !== 'register') {
+                pL.gpsLat = window.currentGpsCoords.lat;
+                pL.gpsLng = window.currentGpsCoords.lng;
+                pL.distance = Math.round(window.getDistanceFromLatLonInMeters(parseFloat(evO.lat), parseFloat(evO.lng), pL.gpsLat, pL.gpsLng));
+            }
             
             try { 
                 const r = await window.apiCall('GET', { action: 'getAllCheckIns' }); 
@@ -3919,15 +4067,15 @@
     });
 
 
-
-
-
-
-
-
 </script>
 </body>
 </html>
+
+
+
+
+
+
 
 
 
