@@ -450,7 +450,7 @@
                 } 
             } 
         }
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx3YGsS2lrJ1Z9RTiS511dIt4ht0PtHhH-Yx1Jk038Ym_RBH6CrVgfCooCTTX-NicSe/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzvyUJEJylFVjWsFEHXBUG6zrx56RftC6G5tEsvUkqDqauyGBeifWX-L5dr8HJNnPE/exec';
         
         window.popupSlideIndex = 0; window.popupSlideInterval = null; window.currentPopupDescList = [];
         
@@ -870,17 +870,7 @@
                 if(r.success) { 
                     let rawOrders = r.data || [];
                     rawOrders.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-                    let seenO = new Set();
-                    appCache.orders = [];
-                    for(let o of rawOrders) {
-                        const sid = String(o.studentId).trim();
-                        if (sid && !seenO.has(sid)) {
-                            seenO.add(sid);
-                            appCache.orders.push(o);
-                        } else if (!sid) {
-                            appCache.orders.push(o);
-                        }
-                    }
+                    appCache.orders = rawOrders;
                 } 
                 return appCache.orders; 
             } 
@@ -3191,7 +3181,7 @@
             const pO = ods.slice((adminOrdersPage - 1) * adminOrdersPerPage, adminOrdersPage * adminOrdersPerPage);
             let h = '';
             if (pO.length === 0) { h = `<tr><td colspan="7" class="p-12 text-center text-slate-400">ไม่มีรายการ</td></tr>`; } 
-            else { pO.forEach(o => { const s = STATUS_MAP[o.status], pB = `<span class="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg text-[10px] font-bold border border-amber-200 inline-flex mx-auto">เงินสด</span>`; let op = ''; for(let i=1; i<=4; i++) op += `<option value="${i}" ${o.status===i?'selected':''}>${STATUS_MAP[i].text}</option>`; h += `<tr class="border-b border-white/50 hover:bg-white/80 transition-colors"><td class="p-5 pl-6"><input type="checkbox" class="admin-order-checkbox w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer" value="${o.id}" onchange="updateBatchUI()"></td><td class="p-5"><p class="font-bold font-mono">${o.id}</p><p class="text-[10px] text-slate-400">${o.timestamp}</p></td><td class="p-5"><p class="font-bold">${o.name}</p><p class="text-xs text-slate-500">${o.studentId}</p></td><td class="p-5"><p class="font-bold bg-white/60 border border-white shadow-sm px-2 py-1 rounded inline-block mb-1">${o.type}</p><p class="text-xs">${o.size}</p></td><td class="p-5 font-bold text-primary text-base">฿${Number(o.total || 0).toLocaleString('th-TH')}</td><td class="p-5"><span class="${s.color} px-4 py-2 rounded-xl text-xs font-bold border border-white/50 shadow-sm inline-flex items-center gap-1.5"><i class="ph-bold ${s.icon}"></i> ${s.text}</span></td><td class="p-5 text-center"><div class="flex flex-col items-center gap-2">${pB}<select onchange="updateOrderStatus('${o.id}', this.value)" class="text-xs font-bold border border-slate-200 rounded-xl px-3 py-2.5 cursor-pointer outline-none focus:border-primary">${op}</select></div></td></tr>`; }); }
+            else { pO.forEach(o => { const s = STATUS_MAP[o.status] || STATUS_MAP[1]; const pB = `<span class="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg text-[10px] font-bold border border-amber-200 inline-flex mx-auto">เงินสด</span>`; let op = ''; for(let i=1; i<=4; i++) op += `<option value="${i}" ${(o.status||1)==i?'selected':''}>${STATUS_MAP[i].text}</option>`; h += `<tr class="border-b border-white/50 hover:bg-white/80 transition-colors"><td class="p-5 pl-6"><input type="checkbox" class="admin-order-checkbox w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer" value="${o.id}" onchange="updateBatchUI()"></td><td class="p-5"><p class="font-bold font-mono">${o.id}</p><p class="text-[10px] text-slate-400">${o.timestamp}</p></td><td class="p-5"><p class="font-bold">${o.name}</p><p class="text-xs text-slate-500">${o.studentId}</p></td><td class="p-5"><p class="font-bold bg-white/60 border border-white shadow-sm px-2 py-1 rounded inline-block mb-1">${o.type}</p><p class="text-xs">${o.size}</p></td><td class="p-5 font-bold text-primary text-base">฿${Number(o.total || 0).toLocaleString('th-TH')}</td><td class="p-5"><span class="${s.color} px-4 py-2 rounded-xl text-xs font-bold border border-white/50 shadow-sm inline-flex items-center gap-1.5"><i class="ph-bold ${s.icon}"></i> ${s.text}</span></td><td class="p-5 text-center"><div class="flex flex-col items-center gap-2">${pB}<select onchange="updateOrderStatus('${o.id}', this.value)" class="text-xs font-bold border border-slate-200 rounded-xl px-3 py-2.5 cursor-pointer outline-none focus:border-primary">${op}</select></div></td></tr>`; }); }
             tb.innerHTML = h; const sD = tI === 0 ? 0 : ((adminOrdersPage - 1) * adminOrdersPerPage) + 1, eD = Math.min(adminOrdersPage * adminOrdersPerPage, tI);
             pg.innerHTML = `<span class="text-sm font-medium bg-white px-4 py-2 rounded-xl border border-white shadow-sm">แสดง <b>${sD}-${eD}</b> จาก <b>${tI}</b></span><div class="flex gap-2"><button onclick="changeAdminOrdersPage(${adminOrdersPage - 1})" ${adminOrdersPage <= 1 ? 'disabled' : ''} class="w-10 h-10 flex justify-center items-center rounded-xl border border-white shadow-sm bg-white disabled:opacity-40 hover-lift"><i class="ph-bold ph-caret-left"></i></button><button onclick="changeAdminOrdersPage(${adminOrdersPage + 1})" ${adminOrdersPage >= tP ? 'disabled' : ''} class="w-10 h-10 flex justify-center items-center rounded-xl border border-white shadow-sm bg-white disabled:opacity-40 hover-lift"><i class="ph-bold ph-caret-right"></i></button></div>`;
         };
