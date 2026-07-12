@@ -462,7 +462,7 @@
         const adminEventsPerPage = 5, dashEventsPerPage = 5, adminOrdersPerPage = 10;
         const appCache = { activities: JSON.parse(localStorage.getItem('CRRU_CachedActivities') || '[]'), checkIns: [], orders: [], evaluations: [], students: {} };
         
-        let isShirtShopOpen = localStorage.getItem('CRRU_ShopOpen') === 'true'; 
+        let isShirtShopOpen = localStorage.getItem('CRRU_ShopOpen') !== 'false'; 
         let isCertSystemOpen = localStorage.getItem('CRRU_CertOpen') !== 'false';
         let certEventStatus = JSON.parse(localStorage.getItem('CRRU_CertEventStatus') || '{}');
         let adminCertPage = 1, adminCertSearch = '';
@@ -482,14 +482,14 @@
         let parsedAdminUsers = null; try { parsedAdminUsers = JSON.parse(localStorage.getItem('CRRU_AdminUsers')); } catch(e) {}
         let adminUsers = Array.isArray(parsedAdminUsers) ? parsedAdminUsers : [{ id: '1', user: 'D.crru', pass: '9999', role: 'superadmin' }];
         
-        let NAV_STUDENT = [ 
+        const NAV_STUDENT = [ 
             { id: 'register-events', label: 'สมัครเข้าร่วมกิจกรรม', tabLabel: 'สมัคร', icon: 'ph-note-pencil' }, 
             { id: 'events', label: 'เช็คชื่อเข้าร่วมกิจกรรม', tabLabel: 'เช็คชื่อ', icon: 'ph-map-pin' }, 
-            { id: 'history', label: 'ประวัติ', tabLabel: 'ประวัติ', icon: 'ph-clock-counter-clockwise' },
-            { id: 'tracking', label: 'ติดตามสถานะเสื้อ', tabLabel: 'ติดตาม', icon: 'ph-truck' }
+            { id: 'history', label: 'ประวัติ', tabLabel: 'ประวัติ', icon: 'ph-clock-counter-clockwise' }
         ];
         if (isShirtShopOpen) {
             NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
+            NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
         }
         const NAV_ADMIN = [ 
             { id: 'admin-dash', label: 'ภาพรวมระบบ', tabLabel: 'ภาพรวม', icon: 'ph-chart-pie-slice', roles: ['superadmin', 'activity', 'shop'] }, 
@@ -498,8 +498,7 @@
             { id: 'admin-events', label: 'จัดการกิจกรรม (เช็คชื่อ)', tabLabel: 'เช็คชื่อ', icon: 'ph-map-pin', roles: ['superadmin', 'activity'] }, 
             { id: 'admin-certificates', label: 'ใบประกาศนียบัตร', tabLabel: 'ใบประกาศ', icon: 'ph-certificate', roles: ['superadmin', 'activity'] }, 
             { id: 'admin-spss', label: 'ส่งออก SPSS', tabLabel: 'SPSS', icon: 'ph-chart-bar', roles: ['superadmin', 'activity'] }, 
-            { id: 'admin-settings', label: 'ตั้งค่าระบบ', tabLabel: 'ตั้งค่า', icon: 'ph-gear', roles: ['superadmin'] },
-            { id: 'logout', label: 'ออกจากระบบ', tabLabel: 'ออกระบบ', icon: 'ph-sign-out', roles: ['superadmin', 'activity', 'shop'] }
+            { id: 'admin-settings', label: 'ตั้งค่าระบบ', tabLabel: 'ตั้งค่า', icon: 'ph-gear', roles: ['superadmin'] } 
         ];
         
         const STATUS_MAP = { 
@@ -548,10 +547,12 @@
                     if(isShirtShopOpen) { 
                         if(!NAV_STUDENT.find(n => n.id === 'shirt')) { 
                             NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
+                            NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
                             if(currentRole === 'student') window.renderNav(); 
                         } 
                     } else { 
-                        NAV_STUDENT = NAV_STUDENT.filter(n => n.id !== 'shirt');
+                        const idx = NAV_STUDENT.findIndex(n => n.id === 'shirt'); 
+                        if(idx > -1) NAV_STUDENT.splice(idx, 2); 
                         if(currentRole === 'student') window.renderNav(); 
                     }
                     
@@ -671,6 +672,8 @@
 
         window.apiCall = async function(m, p = {}) {
             try {
+                const tk = sessionStorage.getItem('_adm_auth');
+                if (tk) p.token = tk;
                 let u = GOOGLE_SCRIPT_URL, o = { redirect: 'follow' };
                 if (m.toUpperCase() === 'GET') { 
                     const pm = new URLSearchParams(p); 
@@ -719,10 +722,12 @@
                     if(isShirtShopOpen) { 
                         if(!NAV_STUDENT.find(n => n.id === 'shirt')) { 
                             NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
+                            NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
                             if(currentRole === 'student') window.renderNav(); 
                         } 
                     } else { 
-                        NAV_STUDENT = NAV_STUDENT.filter(n => n.id !== 'shirt');
+                        const idx = NAV_STUDENT.findIndex(n => n.id === 'shirt'); 
+                        if(idx > -1) NAV_STUDENT.splice(idx, 2); 
                         if(currentRole === 'student') window.renderNav(); 
                     }
                 }
@@ -934,9 +939,7 @@
                     dH += `<button onclick="window.navigate('${i.id}')" class="relative px-5 py-2 rounded-xl transition-all flex items-center gap-2 ${act ? `${pC} font-bold` : `text-slate-600 font-medium ${hC}`} text-sm"><i class="ph ${act?'ph-fill':'ph'} ${i.icon} text-lg"></i> ${i.label}${badgeDesktop}</button>`; 
                     tH += `<button onclick="window.navigate('${i.id}')" class="relative flex-1 flex flex-col items-center justify-center py-1.5 gap-1 transition-all ${act ? `${tAC} font-bold` : 'text-slate-500 font-medium'}"><i class="${act?'ph-fill':'ph'} ${i.icon} text-2xl ${act?'scale-110 -translate-y-0.5':''}"></i><span class="text-[10px]">${i.tabLabel}</span>${badgeMobile}</button>`; 
                 } else {
-                    let btnClass = act ? 'bg-admin text-white shadow-md font-bold' : 'text-slate-600 font-medium hover:bg-admin/10 hover:text-admin';
-                    if (i.id === 'logout') btnClass = 'text-rose-500 font-bold hover:bg-rose-50 mt-4 border border-rose-100/50';
-                    sH += `<button onclick="window.navigate('${i.id}')" class="relative px-5 py-3.5 rounded-xl transition-all flex items-center gap-3 ${btnClass} text-[15px]"><i class="ph ${act?'ph-fill':'ph'} ${i.icon} text-xl"></i> <span class="flex-grow text-left">${i.label}</span>${badgeSide}</button>`;
+                    sH += `<button onclick="window.navigate('${i.id}')" class="relative px-5 py-3.5 rounded-xl transition-all flex items-center gap-3 ${act ? 'bg-admin text-white shadow-md font-bold' : 'text-slate-600 font-medium hover:bg-admin/10 hover:text-admin'} text-[15px]"><i class="ph ${act?'ph-fill':'ph'} ${i.icon} text-xl"></i> <span class="flex-grow text-left">${i.label}</span>${badgeSide}</button>`;
                 }
             });
 
@@ -968,7 +971,6 @@
         };
         
         window.navigate = function(vId, p = null) {
-            if (vId === 'logout') return window.adminLogout();
             currentView = vId; window.renderNav(); const c = document.getElementById('app-content'); window.scrollTo(0, 0);
             
             const sidebar = document.getElementById('admin-sidebar');
@@ -1562,9 +1564,7 @@
             btns.forEach(btn => {
                 const targetStr = btn.getAttribute('data-target');
                 if (!targetStr) return;
-                const dObj = new Date(String(targetStr).replace(/GMT.*/ig, '').replace(/\(.*?\)/g, '').trim());
-                if (isNaN(dObj.getTime())) return;
-                const targetTime = dObj.getTime();
+                const targetTime = new Date(targetStr).getTime();
                 const diff = targetTime - now;
                 if (diff <= 0) {
                     needRefresh = true;
@@ -1573,13 +1573,9 @@
                     const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                     const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                     const s = Math.floor((diff % (1000 * 60)) / 1000);
-                    
                     let timeStr = '(เหลือเวลาอีก ';
-                    if (d > 0) {
-                        timeStr += `${d} วัน ${h} ชั่วโมง ${m} นาที)`;
-                    } else {
-                        timeStr += `${h} ชั่วโมง ${m} นาที ${s} วินาที)`;
-                    }
+                    if (d > 0) timeStr += `${d} วัน `;
+                    timeStr += `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')} ชม.)`;
                     const span = btn.querySelector('.countdown-text');
                     if (span && span.innerText !== timeStr) span.innerText = timeStr;
                 }
@@ -1770,15 +1766,6 @@
                 }
             }
 
-            const deviceCheckKey = 'CRRU_DeviceCheck_' + evId;
-            const currentUser = fSid || fCid;
-            const previousUser = localStorage.getItem(deviceCheckKey);
-            if (previousUser && previousUser !== currentUser) {
-                if (err) { err.innerHTML = '🚫 อุปกรณ์นี้ถูกใช้เช็คชื่อในกิจกรรมนี้ไปแล้ว (จำกัด 1 เครื่อง / 1 สิทธิ์)'; err.classList.remove('hidden'); }
-                window.showToast('อุปกรณ์นี้ถูกใช้เช็คชื่อไปแล้ว!', 'error');
-                return;
-            }
-
             const isDup = (cD) => { 
                 if (!Array.isArray(cD)) return false; 
                 const tE = String(evN).trim(), tS = String(fSid).trim(), tC = String(fCid).trim(); 
@@ -1816,7 +1803,6 @@
                 } 
                 const pR = await window.apiCall('POST', pL);
                 if(pR.success) { 
-                    localStorage.setItem('CRRU_DeviceCheck_' + evId, currentUser);
                     appCache.checkIns.push([pL.timestamp, pL.eventName, pL.studentId, pL.citizenId, pL.name, pL.faculty, pL.major, 3]); 
                     if (evO) evO.joined = (parseInt(evO.joined) || 0) + 1; 
                     b.innerHTML = 'สำเร็จ!'; window.showToast('ลงทะเบียนสำเร็จ!', 'success', { actionLabel: 'ดูประวัติ', actionFn: () => navigate('history') }); 
@@ -1934,50 +1920,36 @@
             
             if (isS) {
                 const pts = hD.length * 10;
-                let badge = { icon: '🥉', name: 'พลทหาร', color: 'from-orange-400 to-red-500', shadow: 'shadow-red-500/40', text: 'text-orange-700' };
-                if (pts >= 100) badge = { icon: '🥇', name: 'นายร้อย', color: 'from-yellow-300 to-amber-500', shadow: 'shadow-amber-500/40', text: 'text-yellow-700' };
-                else if (pts >= 50) badge = { icon: '🥈', name: 'นายสิบ', color: 'from-slate-200 to-slate-400', shadow: 'shadow-slate-400/40', text: 'text-slate-700' };
-
-                const pokeList = [1, 4, 7, 25, 54, 94, 133, 143, 150, 151, 175, 258, 393, 448, 6, 9, 39, 149, 158, 255];
-                let charSum = 0; for(let i=0; i<sId.length; i++) charSum += sId.charCodeAt(i);
-                const iconPoke = pokeList[charSum % pokeList.length];
-                const runnerPoke = pokeList[(charSum + 7) % pokeList.length];
+                let badge = { icon: '🥉', name: 'พลทหาร', color: 'from-amber-600 to-amber-800', text: 'text-amber-800' };
+                if (pts >= 100) badge = { icon: '🥇', name: 'นายร้อย', color: 'from-yellow-400 to-orange-500', text: 'text-yellow-700' };
+                else if (pts >= 50) badge = { icon: '🥈', name: 'นายสิบ', color: 'from-slate-300 to-slate-500', text: 'text-slate-700' };
 
                 h += `
                 <div class="fade-in mb-8">
                     <div class="glass rounded-[32px] overflow-hidden border border-white/60 shadow-lg relative bg-white/40">
                         <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br ${badge.color} opacity-20 rounded-full blur-3xl -mr-20 -mt-20"></div>
                         <div class="p-8 sm:p-10 flex flex-col md:flex-row items-center gap-8 relative z-10">
-                            <div class="w-40 h-40 sm:w-48 sm:h-48 rounded-[40px] bg-gradient-to-br ${badge.color} shadow-2xl flex items-center justify-center text-7xl sm:text-8xl transform -rotate-3 hover:rotate-0 transition-transform duration-500 ${badge.shadow} border-4 border-white/70">
+                            <div class="w-32 h-32 rounded-[32px] bg-gradient-to-br ${badge.color} shadow-lg flex items-center justify-center text-6xl transform -rotate-3 hover:rotate-0 transition-transform duration-300 shadow-${badge.color.split(' ')[1]}/30 border-2 border-white/50">
                                 ${badge.icon}
                             </div>
                             <div class="flex-1 text-center md:text-left">
-                                <p class="text-sm font-bold text-slate-500 mb-2 uppercase tracking-widest">ข้อมูลนักศึกษา</p>
-                                <h2 class="text-4xl sm:text-5xl font-black text-slate-800 mb-4 tracking-tighter drop-shadow-sm">${sId}</h2>
-                                <div class="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/80 border border-white shadow-md mb-6">
-                                    <span class="w-5 h-5 rounded-full bg-gradient-to-br ${badge.color} shadow-inner"></span>
-                                    <span class="font-black text-2xl ${badge.text} tracking-tight">${badge.name}</span>
+                                <p class="text-sm font-bold text-slate-500 mb-1 uppercase tracking-widest">ข้อมูลนักศึกษา</p>
+                                <h2 class="text-3xl font-black text-slate-800 mb-3">${sId}</h2>
+                                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-white shadow-sm mb-4">
+                                    <span class="w-3 h-3 rounded-full bg-gradient-to-br ${badge.color}"></span>
+                                    <span class="font-bold ${badge.text}">${badge.name}</span>
                                 </div>
-                                <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-2">
-                                    <div class="bg-white/80 rounded-[28px] p-5 sm:px-8 sm:py-6 border border-white shadow-sm flex flex-col items-center justify-center min-w-[140px] hover:-translate-y-1 transition-transform duration-300">
-                                        <p class="text-[11px] sm:text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">เข้าร่วมกิจกรรม</p>
-                                        <div class="text-6xl sm:text-7xl font-black text-slate-800 tracking-tighter leading-none drop-shadow-sm">${hD.length} <span class="text-xl font-bold text-slate-400 -ml-1">ครั้ง</span></div>
-                                    </div>
-                                    <div class="bg-white/80 rounded-[28px] p-5 sm:px-8 sm:py-6 border border-white shadow-sm flex flex-col items-center justify-center min-w-[140px] hover:-translate-y-1 transition-transform duration-300">
-                                        <p class="text-[11px] sm:text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">แต้มสะสม</p>
-                                        <div class="text-6xl sm:text-7xl font-black bg-gradient-to-br from-blue-600 to-indigo-600 text-transparent bg-clip-text tracking-tighter leading-none drop-shadow-sm">${pts} <span class="text-xl font-bold text-slate-400 -ml-1">แต้ม</span></div>
-                                    </div>
-                                </div>
+                                <p class="text-slate-600 font-medium">คุณเข้าร่วมกิจกรรมทั้งหมด <b class="text-primary text-2xl mx-1">${hD.length}</b> ครั้ง รวมเป็น <b class="text-primary text-2xl mx-1">${pts}</b> แต้ม</p>
                             </div>
                         </div>
                         <div class="px-8 pb-8 sm:px-10 sm:pb-10 relative z-10">
                             <div class="flex justify-between items-center text-sm font-bold text-slate-500 mb-2">
-                                <span class="flex items-center gap-2"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${iconPoke}.gif" class="w-7 h-7 object-contain" alt="pokemon">ความคืบหน้าสู่ระดับถัดไป</span>
-                                <span>${pts >= 100 ? 'ระดับสูงสุด' : pts + ' / ' + (pts >= 50 ? 100 : 50)}</span>
+                                <span class="flex items-center gap-2"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/133.gif" class="w-7 h-7 object-contain" alt="eevee">ความคืบหน้าสู่ระดกลกลกลับถัดไป</span>
+                                <span>${pts >= 100 ? 'ระดกลกลกลับสูงสุด' : pts + ' / ' + (pts >= 50 ? 100 : 50)}</span>
                             </div>
                             <div class="relative mt-10">
                                 <div class="absolute -top-10 transition-all duration-1000 z-10" style="left: calc(${pts >= 100 ? 100 : (pts >= 50 ? (pts-50)/50*100 : pts/50*100)}% - 24px);">
-                                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${runnerPoke}.gif" alt="runner" class="w-12 h-12 object-contain drop-shadow-md" style="transform: scaleX(-1);">
+                                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" alt="runner" class="w-12 h-12 object-contain drop-shadow-md" style="transform: scaleX(-1);">
                                 </div>
                                 <div class="w-full bg-white/60 rounded-full h-4 border border-white overflow-hidden shadow-inner relative z-0">
                                     <div class="bg-gradient-to-r ${badge.color} h-4 rounded-full transition-all duration-1000" style="width: ${pts >= 100 ? 100 : (pts >= 50 ? (pts-50)/50*100 : pts/50*100)}%"></div>
@@ -1989,7 +1961,7 @@
                 `;
 
                 h += `<div class="fade-in"><h2 class="text-xl font-bold mb-5 flex items-center gap-2"><i class="ph-fill ph-list-dashes text-primary"></i> ประวัติการเข้าร่วมกิจกรรม</h2><div class="glass rounded-[24px] overflow-hidden border border-white/50"><table class="w-full text-left border-collapse"><thead class="bg-white/50 text-slate-500 text-xs uppercase border-b border-white"><th class="p-5 w-1/2">ชื่อกิจกรรม</th><th class="p-5 text-center">วันที่จัด</th><th class="p-5 text-center">สถานะ / แต้ม</th></thead><tbody class="text-sm bg-white/60">`;
-                if (hD.length > 0) { hD.forEach(x => { h += `<tr class="border-b border-white/50"><td class="p-5 font-bold">${x.eventName}</td><td class="p-5 text-center text-slate-600">${x.date}</td><td class="p-5 text-center"><span class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-bold border border-emerald-100 inline-flex items-center gap-1.5"><i class="ph-fill ph-check-circle"></i> ผ่าน <span class="bg-emerald-200/50 text-emerald-800 px-1.5 rounded-md ml-1">+10 แต้ม</span></span></td></tr>`; }); } else { h += `<tr><td colspan="3" class="p-12 text-center text-slate-500 font-medium"><div class="flex flex-col items-center justify-center"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/54.gif" class="w-16 h-16 object-contain mb-3 drop-shadow-sm"><span>ไม่พบประวัติ</span></div></td></tr>`; }
+                if (hD.length > 0) { hD.forEach(x => { h += `<tr class="border-b border-white/50"><td class="p-5 font-bold">${x.eventName}</td><td class="p-5 text-center text-slate-600">${x.date}</td><td class="p-5 text-center"><span class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-bold border border-emerald-100 inline-flex items-center gap-1.5"><i class="ph-fill ph-check-circle"></i> ผ่าน <span class="bg-emerald-200/50 text-emerald-800 px-1.5 rounded-md ml-1">+10 แต้ม</span></span></td></tr>`; }); } else { h += `<tr><td colspan="3" class="p-12 text-center text-slate-500 font-medium"><div class="flex flex-col items-center justify-center"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" class="w-16 h-16 object-contain mb-3 drop-shadow-sm"><span>ไม่พบประวัติ</span></div></td></tr>`; }
                 h += `</tbody></table></div></div>`;
 
                 h += `<div class="fade-in mt-10"><h2 class="text-xl font-bold mb-5 flex items-center gap-2"><i class="ph-fill ph-certificate text-amber-500"></i> ใบประกาศนียบัตร</h2>`;
@@ -2537,9 +2509,8 @@
         };
 
         window.renderShirtShop = async function(c) {
-            c.innerHTML = window.getGokuLoader('กำลังเชื่อมต่อระบบ...');
-            await window.fetchSettingsData().catch(e=>console.log(e)); 
-            if (!isShirtShopOpen) { c.innerHTML = `<div class="fade-in max-w-4xl mx-auto px-4 py-10"><div class="glass rounded-[32px] p-12 text-center"><div class="w-24 h-24 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-8"><i class="ph-fill ph-lock-key text-5xl"></i></div><h2 class="text-3xl font-black text-slate-800 mb-3">ปิดให้บริการชั่วคราว</h2><button onclick="navigate('events')" class="mt-8 px-8 py-4 bg-slate-800 text-white font-bold rounded-2xl mx-auto flex items-center gap-2"><i class="ph-bold ph-arrow-left"></i> กลับไปหน้ากิจกรรม</button></div></div>`; return; }
+            window.fetchSettingsData().catch(e=>console.log(e)); // fetch in background
+            if (!isShirtShopOpen) { c.innerHTML = `<div class="fade-in max-w-4xl mx-auto px-4 py-10"><div class="glass rounded-[32px] p-12 text-center"><div class="w-24 h-24 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-8"><i class="ph-fill ph-lock-key text-5xl"></i></div><h2 class="text-3xl font-black text-slate-800 mb-3">ปิดให้บริการชั่วคราว</h2><button onclick="navigate('events')" class="mt-8 px-8 py-4 bg-slate-800 text-white font-bold rounded-2xl mx-auto flex items-center gap-2"><i class="ph-bold ph-arrow-left"></i> กลกลกลกลับไปหน้ากิจกรรม</button></div></div>`; return; }
             c.innerHTML = `
                 <div class="fade-in max-w-4xl mx-auto pb-24 sm:pb-10">
                     <div id="order-step-search" class="animate-fadeIn block">
@@ -2778,7 +2749,7 @@
         };
 
         window.renderTracking = async function(c) {
-
+            if (!isShirtShopOpen) { c.innerHTML = `<div class="fade-in max-w-4xl mx-auto px-4 py-10"><div class="glass rounded-[32px] p-12 text-center"><i class="ph-fill ph-lock-key text-5xl text-red-500 mb-4 block"></i><h2 class="text-3xl font-black mb-3">ปิดให้บริการชั่วคราว</h2><button onclick="navigate('events')" class="px-8 py-4 bg-slate-800 text-white font-bold rounded-2xl mt-6 mx-auto"><i class="ph-bold ph-arrow-left"></i> กลกลกลกลับไปหน้ากิจกรรม</button></div></div>`; return; }
             c.innerHTML = `
                 <div class="fade-in max-w-4xl mx-auto pb-10">
                     <div class="mb-8 text-center sm:text-left"><h1 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">ติดตามสถานะการจอง</h1></div>
@@ -3775,9 +3746,11 @@
         if (isShirtShopOpen) {
             if(!NAV_STUDENT.find(n => n.id === 'shirt')) { 
                 NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
+                NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
             }
         } else {
-            NAV_STUDENT = NAV_STUDENT.filter(n => n.id !== 'shirt');
+            const idx = NAV_STUDENT.findIndex(n => n.id === 'shirt'); 
+            if(idx > -1) NAV_STUDENT.splice(idx, 2); 
         }
         if(currentRole === 'student') window.renderNav();
 
@@ -3954,4 +3927,5 @@
 </script>
 </body>
 </html>
+
 
