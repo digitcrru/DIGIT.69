@@ -470,7 +470,7 @@
                 } 
             } 
         }
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5LGJRfvbwlnmH-ZH-RK9nW5tAEq-CeUv3FkEgFqHbsf29GlHIdYaArnyFDWqVF3jZ/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxpEwYLVW2AsOFKkzF813nQVRwXEgX0t_lR2HF69iWTgv2sXkyL70G8inNksY1oQRF1/exec';
         
         window.popupSlideIndex = 0; window.popupSlideInterval = null; window.currentPopupDescList = [];
         window.startPopupSlideshow = function() { clearInterval(window.popupSlideInterval); const c = document.getElementById('popup-banner-container'); if (!c || c.children.length <= 1) return; window.popupSlideInterval = setInterval(() => window.nextPopupSlide(), 4000); };
@@ -820,8 +820,24 @@
                 const ct = {}; 
                 const seenS = new Set(), seenC = new Set();
                 if (c.success && c.data) { 
-                    c.data.forEach(r => { 
-                        if(r && r.length > 3) { 
+                    let checkInData = c.data || [];
+                    if (checkInData.length > 0 && !Array.isArray(checkInData[0])) {
+                        checkInData = checkInData.map(e => [
+                            e.timestamp || e['เวลาเช็คอิน'] || e['เวลา'] || Object.values(e)[0] || '',
+                            e.eventName || e['Event Name'] || e['ชื่อกิจกรรม'] || Object.values(e)[1] || '',
+                            e.studentId || e['Student ID'] || e['รหัสนักศึกษา'] || Object.values(e)[2] || '',
+                            e.citizenId || e['Citizen ID'] || e['เลขบัตรประชาชน'] || Object.values(e)[3] || '',
+                            e.name || e['ชื่อ-นามสกุล'] || e['ชื่อ'] || Object.values(e)[4] || '',
+                            e.faculty || e['คณะ'] || Object.values(e)[5] || '',
+                            e.major || e['สาขาวิชา'] || Object.values(e)[6] || '',
+                            e.status || e['สถานะ'] || Object.values(e)[7] || '3'
+                        ]);
+                    } else {
+                        checkInData = checkInData.map(item => Array.isArray(item) ? item : Object.values(item));
+                    }
+                    
+                    checkInData.forEach(r => { 
+                        if(r && r.length >= 3) { 
                             const e = String(r[1]).trim(), sId = String(r[2]).trim(), cId = String(r[3]).trim(); 
                             if (!e) return;
                             const kS = (sId && sId !== '-') ? (e + '|S|' + sId) : null;
@@ -832,7 +848,7 @@
                             if (kC) seenC.add(kC);
                         } 
                     });
-                    appCache.checkIns = c.data; 
+                    appCache.checkIns = checkInData; 
                 } 
                 if (a.success && a.data) { 
                     a.data.forEach(i => { 
@@ -907,17 +923,7 @@
                 if(r.success) { 
                     let rawOrders = r.data || [];
                     rawOrders.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-                    let seenO = new Set();
-                    appCache.orders = [];
-                    for(let o of rawOrders) {
-                        const sid = String(o.studentId).trim();
-                        if (sid && !seenO.has(sid)) {
-                            seenO.add(sid);
-                            appCache.orders.push(o);
-                        } else if (!sid) {
-                            appCache.orders.push(o);
-                        }
-                    }
+                    appCache.orders = rawOrders;
                 } 
                 return appCache.orders; 
             } 
@@ -1866,8 +1872,9 @@
             try { 
                 const r = await window.apiCall('GET', { action: 'getAllCheckIns' }); 
                 if (r.success && r.data) { 
-                    appCache.checkIns = r.data; 
-                    if (isDup(r.data)) { 
+                    const checkInData = r.data.map(item => Array.isArray(item) ? item : Object.values(item));
+                    appCache.checkIns = checkInData; 
+                    if (isDup(checkInData)) { 
                         if (err) { err.innerHTML = 'ระบบตรวจพบว่าคุณลงทะเบียนแล้ว!'; err.classList.remove('hidden'); } 
                         window.showToast('ระบบพบข้อมูลซ้ำซ้อน!', 'error'); 
                         b.innerHTML = oH; b.disabled = false; 
