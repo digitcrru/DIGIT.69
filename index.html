@@ -416,22 +416,6 @@
         </div>
     </div>
 
-    <!-- Home Popup Modal -->
-    <div id="homePopupModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4 fade-in">
-        <div class="bg-white rounded-[32px] p-6 max-w-md w-full relative">
-            <button onclick="document.getElementById('homePopupModal').classList.add('hidden')" class="absolute -top-3 -right-3 w-10 h-10 bg-white rounded-full text-slate-400 hover:text-red-500 shadow-md border border-slate-100 z-10"><i class="ph-bold ph-x"></i></button>
-            <div class="relative rounded-2xl overflow-hidden mb-4 group">
-                <div id="popup-banner-container" class="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide" onscroll="window.updatePopupSlideIndicators()"></div>
-                <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10" id="popup-slide-indicators"></div>
-                <button onclick="window.prevPopupSlide()" class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/50 backdrop-blur hover:bg-white text-slate-800 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-sm"><i class="ph-bold ph-caret-left"></i></button>
-                <button onclick="window.nextPopupSlide()" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/50 backdrop-blur hover:bg-white text-slate-800 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-sm"><i class="ph-bold ph-caret-right"></i></button>
-            </div>
-            <h3 id="popup-title" class="text-xl font-black text-slate-800 text-center px-4 leading-tight"></h3>
-            <div id="popup-desc" class="mt-4 max-h-[30vh] overflow-y-auto px-2"></div>
-            <button onclick="document.getElementById('homePopupModal').classList.add('hidden')" class="w-full mt-6 py-4 font-bold text-white btn-gradient rounded-2xl shadow-lg shadow-blue-500/30 text-lg">รับทราบ</button>
-        </div>
-    </div>
-
     <!-- Toast Container -->
     <div id="toast-container" class="fixed bottom-24 md:bottom-8 right-4 md:right-8 z-[160] flex flex-col gap-3 w-auto max-w-[90%] pointer-events-none"></div>
 
@@ -450,30 +434,9 @@
                 } 
             } 
         }
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzvyUJEJylFVjWsFEHXBUG6zrx56RftC6G5tEsvUkqDqauyGBeifWX-L5dr8HJNnPE/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCPFTT76JLJLo3cNjTDNXQPbofR3AmVEPxCOD9yzdW_73yFy92d-Q0OHAu26DgsA7x/exec';
         
         window.popupSlideIndex = 0; window.popupSlideInterval = null; window.currentPopupDescList = [];
-        
-        window.checkAndShowPopup = function() {
-            if (popupSettings && popupSettings.enabled && currentRole === 'student' && !sessionStorage.getItem('homePopupShown')) {
-                const modal = document.getElementById('homePopupModal');
-                if (modal) {
-                    let iL = Array.isArray(popupSettings.imageUrl) ? popupSettings.imageUrl : [popupSettings.imageUrl || ''];
-                    if (iL.length === 0 || !iL[0]) iL = ['https://placehold.co/800x400/e2e8f0/64748b?text=Announcement'];
-                    document.getElementById('popup-banner-container').innerHTML = iL.map(u => `<img src="${u}" class="w-full h-auto object-cover flex-shrink-0 snap-center rounded-2xl" onerror="this.src='https://placehold.co/800x400/e2e8f0/64748b?text=Image'">`).join('');
-                    window.renderPopupIndicators(iL.length);
-                    document.getElementById('popup-title').innerHTML = popupSettings.title || '';
-                    let dV = Array.isArray(popupSettings.description) ? popupSettings.description : [popupSettings.description || ''];
-                    window.currentPopupDescList = dV;
-                    window.popupSlideIndex = 0;
-                    window.syncPopupText(0);
-                    window.startPopupSlideshow();
-                    modal.classList.remove('hidden');
-                    sessionStorage.setItem('homePopupShown', 'true');
-                }
-            }
-        };
-
         window.startPopupSlideshow = function() { clearInterval(window.popupSlideInterval); const c = document.getElementById('popup-banner-container'); if (!c || c.children.length <= 1) return; window.popupSlideInterval = setInterval(() => window.nextPopupSlide(), 4000); };
         window.nextPopupSlide = function() { const c = document.getElementById('popup-banner-container'); if (!c || c.children.length <= 1) return; window.popupSlideIndex = (window.popupSlideIndex + 1) % c.children.length; c.scrollTo({ left: c.children[window.popupSlideIndex].offsetLeft, behavior: 'smooth' }); };
         window.prevPopupSlide = function() { const c = document.getElementById('popup-banner-container'); if (!c || c.children.length <= 1) return; window.popupSlideIndex = (window.popupSlideIndex - 1 + c.children.length) % c.children.length; c.scrollTo({ left: c.children[window.popupSlideIndex].offsetLeft, behavior: 'smooth' }); };
@@ -499,7 +462,7 @@
         const adminEventsPerPage = 5, dashEventsPerPage = 5, adminOrdersPerPage = 10;
         const appCache = { activities: JSON.parse(localStorage.getItem('CRRU_CachedActivities') || '[]'), checkIns: [], orders: [], evaluations: [], students: {} };
         
-        let isShirtShopOpen = localStorage.getItem('CRRU_ShopOpen') === 'true'; 
+        let isShirtShopOpen = localStorage.getItem('CRRU_ShopOpen') !== 'false'; 
         let isCertSystemOpen = localStorage.getItem('CRRU_CertOpen') !== 'false';
         let certEventStatus = JSON.parse(localStorage.getItem('CRRU_CertEventStatus') || '{}');
         let adminCertPage = 1, adminCertSearch = '';
@@ -519,14 +482,14 @@
         let parsedAdminUsers = null; try { parsedAdminUsers = JSON.parse(localStorage.getItem('CRRU_AdminUsers')); } catch(e) {}
         let adminUsers = Array.isArray(parsedAdminUsers) ? parsedAdminUsers : [{ id: '1', user: 'D.crru', pass: '9999', role: 'superadmin' }];
         
-        let NAV_STUDENT = [ 
+        const NAV_STUDENT = [ 
             { id: 'register-events', label: 'สมัครเข้าร่วมกิจกรรม', tabLabel: 'สมัคร', icon: 'ph-note-pencil' }, 
             { id: 'events', label: 'เช็คชื่อเข้าร่วมกิจกรรม', tabLabel: 'เช็คชื่อ', icon: 'ph-map-pin' }, 
-            { id: 'history', label: 'ประวัติ', tabLabel: 'ประวัติ', icon: 'ph-clock-counter-clockwise' },
-            { id: 'tracking', label: 'ติดตามสถานะเสื้อ', tabLabel: 'ติดตาม', icon: 'ph-truck' }
+            { id: 'history', label: 'ประวัติ', tabLabel: 'ประวัติ', icon: 'ph-clock-counter-clockwise' }
         ];
         if (isShirtShopOpen) {
             NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
+            NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
         }
         const NAV_ADMIN = [ 
             { id: 'admin-dash', label: 'ภาพรวมระบบ', tabLabel: 'ภาพรวม', icon: 'ph-chart-pie-slice', roles: ['superadmin', 'activity', 'shop'] }, 
@@ -535,8 +498,7 @@
             { id: 'admin-events', label: 'จัดการกิจกรรม (เช็คชื่อ)', tabLabel: 'เช็คชื่อ', icon: 'ph-map-pin', roles: ['superadmin', 'activity'] }, 
             { id: 'admin-certificates', label: 'ใบประกาศนียบัตร', tabLabel: 'ใบประกาศ', icon: 'ph-certificate', roles: ['superadmin', 'activity'] }, 
             { id: 'admin-spss', label: 'ส่งออก SPSS', tabLabel: 'SPSS', icon: 'ph-chart-bar', roles: ['superadmin', 'activity'] }, 
-            { id: 'admin-settings', label: 'ตั้งค่าระบบ', tabLabel: 'ตั้งค่า', icon: 'ph-gear', roles: ['superadmin'] },
-            { id: 'logout', label: 'ออกจากระบบ', tabLabel: 'ออกระบบ', icon: 'ph-sign-out', roles: ['superadmin', 'activity', 'shop'] }
+            { id: 'admin-settings', label: 'ตั้งค่าระบบ', tabLabel: 'ตั้งค่า', icon: 'ph-gear', roles: ['superadmin'] } 
         ];
         
         const STATUS_MAP = { 
@@ -585,10 +547,12 @@
                     if(isShirtShopOpen) { 
                         if(!NAV_STUDENT.find(n => n.id === 'shirt')) { 
                             NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
+                            NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
                             if(currentRole === 'student') window.renderNav(); 
                         } 
                     } else { 
-                        NAV_STUDENT = NAV_STUDENT.filter(n => n.id !== 'shirt');
+                        const idx = NAV_STUDENT.findIndex(n => n.id === 'shirt'); 
+                        if(idx > -1) NAV_STUDENT.splice(idx, 2); 
                         if(currentRole === 'student') window.renderNav(); 
                     }
                     
@@ -652,11 +616,8 @@
                     appCache.evaluations.sort((a,b) => new Date(b[0]) - new Date(a[0]));
                     
                     // Render current view again to reflect populated data
-                    if (currentRole === 'student' && currentView === 'events') window.renderEvents(document.getElementById('app-content'), 'checkin');
+                    if (currentRole === 'student' && currentView === 'events') window.renderStudentEvents(document.getElementById('app-content'));
                     if (currentRole === 'admin') window.switchAdminTab(currentView.replace('admin-',''));
-                    
-                    // Show Popup if enabled and not already shown in this session
-                    if (window.checkAndShowPopup) window.checkAndShowPopup();
                 }
             } catch(e) {
                 console.error(e);
@@ -759,10 +720,12 @@
                     if(isShirtShopOpen) { 
                         if(!NAV_STUDENT.find(n => n.id === 'shirt')) { 
                             NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
+                            NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
                             if(currentRole === 'student') window.renderNav(); 
                         } 
                     } else { 
-                        NAV_STUDENT = NAV_STUDENT.filter(n => n.id !== 'shirt');
+                        const idx = NAV_STUDENT.findIndex(n => n.id === 'shirt'); 
+                        if(idx > -1) NAV_STUDENT.splice(idx, 2); 
                         if(currentRole === 'student') window.renderNav(); 
                     }
                 }
@@ -870,7 +833,17 @@
                 if(r.success) { 
                     let rawOrders = r.data || [];
                     rawOrders.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-                    appCache.orders = rawOrders;
+                    let seenO = new Set();
+                    appCache.orders = [];
+                    for(let o of rawOrders) {
+                        const sid = String(o.studentId).trim();
+                        if (sid && !seenO.has(sid)) {
+                            seenO.add(sid);
+                            appCache.orders.push(o);
+                        } else if (!sid) {
+                            appCache.orders.push(o);
+                        }
+                    }
                 } 
                 return appCache.orders; 
             } 
@@ -934,9 +907,6 @@
                 if(mobileTabBarContainer) mobileTabBarContainer.classList.remove('hidden');
 
                 window.navigate('events'); 
-                
-                // Show Popup if we switch back to student mode and it hasn't been shown
-                if (window.checkAndShowPopup) setTimeout(() => window.checkAndShowPopup(), 300);
             } else { 
                 if(ba) ba.className = aC; if(bs) bs.className = iC; if(bam) bam.className = 'flex-1 py-3 text-sm font-bold rounded-xl bg-orange-100 text-primary shadow-sm'; if(bsm) bsm.className = 'flex-1 py-3 text-sm font-semibold rounded-xl text-slate-500 bg-transparent'; 
                 if(bi) bi.className = 'ph-fill ph-shield-check text-admin text-2xl'; if(bt) bt.innerHTML = 'Admin<span class="text-admin font-normal">Panel</span>'; 
@@ -967,9 +937,7 @@
                     dH += `<button onclick="window.navigate('${i.id}')" class="relative px-5 py-2 rounded-xl transition-all flex items-center gap-2 ${act ? `${pC} font-bold` : `text-slate-600 font-medium ${hC}`} text-sm"><i class="ph ${act?'ph-fill':'ph'} ${i.icon} text-lg"></i> ${i.label}${badgeDesktop}</button>`; 
                     tH += `<button onclick="window.navigate('${i.id}')" class="relative flex-1 flex flex-col items-center justify-center py-1.5 gap-1 transition-all ${act ? `${tAC} font-bold` : 'text-slate-500 font-medium'}"><i class="${act?'ph-fill':'ph'} ${i.icon} text-2xl ${act?'scale-110 -translate-y-0.5':''}"></i><span class="text-[10px]">${i.tabLabel}</span>${badgeMobile}</button>`; 
                 } else {
-                    let btnClass = act ? 'bg-admin text-white shadow-md font-bold' : 'text-slate-600 font-medium hover:bg-admin/10 hover:text-admin';
-                    if (i.id === 'logout') btnClass = 'text-rose-500 font-bold hover:bg-rose-50 mt-4 border border-rose-100/50';
-                    sH += `<button onclick="window.navigate('${i.id}')" class="relative px-5 py-3.5 rounded-xl transition-all flex items-center gap-3 ${btnClass} text-[15px]"><i class="ph ${act?'ph-fill':'ph'} ${i.icon} text-xl"></i> <span class="flex-grow text-left">${i.label}</span>${badgeSide}</button>`;
+                    sH += `<button onclick="window.navigate('${i.id}')" class="relative px-5 py-3.5 rounded-xl transition-all flex items-center gap-3 ${act ? 'bg-admin text-white shadow-md font-bold' : 'text-slate-600 font-medium hover:bg-admin/10 hover:text-admin'} text-[15px]"><i class="ph ${act?'ph-fill':'ph'} ${i.icon} text-xl"></i> <span class="flex-grow text-left">${i.label}</span>${badgeSide}</button>`;
                 }
             });
 
@@ -1001,7 +969,6 @@
         };
         
         window.navigate = function(vId, p = null) {
-            if (vId === 'logout') return window.adminLogout();
             currentView = vId; window.renderNav(); const c = document.getElementById('app-content'); window.scrollTo(0, 0);
             
             const sidebar = document.getElementById('admin-sidebar');
@@ -1595,9 +1562,7 @@
             btns.forEach(btn => {
                 const targetStr = btn.getAttribute('data-target');
                 if (!targetStr) return;
-                const dObj = new Date(String(targetStr).replace(/GMT.*/ig, '').replace(/\(.*?\)/g, '').trim());
-                if (isNaN(dObj.getTime())) return;
-                const targetTime = dObj.getTime();
+                const targetTime = new Date(targetStr).getTime();
                 const diff = targetTime - now;
                 if (diff <= 0) {
                     needRefresh = true;
@@ -1606,13 +1571,9 @@
                     const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                     const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                     const s = Math.floor((diff % (1000 * 60)) / 1000);
-                    
                     let timeStr = '(เหลือเวลาอีก ';
-                    if (d > 0) {
-                        timeStr += `${d} วัน ${h} ชั่วโมง ${m} นาที)`;
-                    } else {
-                        timeStr += `${h} ชั่วโมง ${m} นาที ${s} วินาที)`;
-                    }
+                    if (d > 0) timeStr += `${d} วัน `;
+                    timeStr += `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')} ชม.)`;
                     const span = btn.querySelector('.countdown-text');
                     if (span && span.innerText !== timeStr) span.innerText = timeStr;
                 }
@@ -1803,15 +1764,6 @@
                 }
             }
 
-            const deviceCheckKey = 'CRRU_DeviceCheck_' + evId;
-            const currentUser = fSid || fCid;
-            const previousUser = localStorage.getItem(deviceCheckKey);
-            if (previousUser && previousUser !== currentUser) {
-                if (err) { err.innerHTML = '🚫 อุปกรณ์นี้ถูกใช้เช็คชื่อในกิจกรรมนี้ไปแล้ว (จำกัด 1 เครื่อง / 1 สิทธิ์)'; err.classList.remove('hidden'); }
-                window.showToast('อุปกรณ์นี้ถูกใช้เช็คชื่อไปแล้ว!', 'error');
-                return;
-            }
-
             const isDup = (cD) => { 
                 if (!Array.isArray(cD)) return false; 
                 const tE = String(evN).trim(), tS = String(fSid).trim(), tC = String(fCid).trim(); 
@@ -1849,7 +1801,6 @@
                 } 
                 const pR = await window.apiCall('POST', pL);
                 if(pR.success) { 
-                    localStorage.setItem('CRRU_DeviceCheck_' + evId, currentUser);
                     appCache.checkIns.push([pL.timestamp, pL.eventName, pL.studentId, pL.citizenId, pL.name, pL.faculty, pL.major, 3]); 
                     if (evO) evO.joined = (parseInt(evO.joined) || 0) + 1; 
                     b.innerHTML = 'สำเร็จ!'; window.showToast('ลงทะเบียนสำเร็จ!', 'success', { actionLabel: 'ดูประวัติ', actionFn: () => navigate('history') }); 
@@ -1967,50 +1918,36 @@
             
             if (isS) {
                 const pts = hD.length * 10;
-                let badge = { icon: '🥉', name: 'พลทหาร', color: 'from-orange-400 to-red-500', shadow: 'shadow-red-500/40', text: 'text-orange-700' };
-                if (pts >= 100) badge = { icon: '🥇', name: 'นายร้อย', color: 'from-yellow-300 to-amber-500', shadow: 'shadow-amber-500/40', text: 'text-yellow-700' };
-                else if (pts >= 50) badge = { icon: '🥈', name: 'นายสิบ', color: 'from-slate-200 to-slate-400', shadow: 'shadow-slate-400/40', text: 'text-slate-700' };
-
-                const pokeList = [1, 4, 7, 25, 54, 94, 133, 143, 150, 151, 175, 258, 393, 448, 6, 9, 39, 149, 158, 255];
-                let charSum = 0; for(let i=0; i<sId.length; i++) charSum += sId.charCodeAt(i);
-                const iconPoke = pokeList[charSum % pokeList.length];
-                const runnerPoke = pokeList[(charSum + 7) % pokeList.length];
+                let badge = { icon: '🥉', name: 'พลทหาร', color: 'from-amber-600 to-amber-800', text: 'text-amber-800' };
+                if (pts >= 100) badge = { icon: '🥇', name: 'นายร้อย', color: 'from-yellow-400 to-orange-500', text: 'text-yellow-700' };
+                else if (pts >= 50) badge = { icon: '🥈', name: 'นายสิบ', color: 'from-slate-300 to-slate-500', text: 'text-slate-700' };
 
                 h += `
                 <div class="fade-in mb-8">
                     <div class="glass rounded-[32px] overflow-hidden border border-white/60 shadow-lg relative bg-white/40">
                         <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br ${badge.color} opacity-20 rounded-full blur-3xl -mr-20 -mt-20"></div>
                         <div class="p-8 sm:p-10 flex flex-col md:flex-row items-center gap-8 relative z-10">
-                            <div class="w-40 h-40 sm:w-48 sm:h-48 rounded-[40px] bg-gradient-to-br ${badge.color} shadow-2xl flex items-center justify-center text-7xl sm:text-8xl transform -rotate-3 hover:rotate-0 transition-transform duration-500 ${badge.shadow} border-4 border-white/70">
+                            <div class="w-32 h-32 rounded-[32px] bg-gradient-to-br ${badge.color} shadow-lg flex items-center justify-center text-6xl transform -rotate-3 hover:rotate-0 transition-transform duration-300 shadow-${badge.color.split(' ')[1]}/30 border-2 border-white/50">
                                 ${badge.icon}
                             </div>
                             <div class="flex-1 text-center md:text-left">
-                                <p class="text-sm font-bold text-slate-500 mb-2 uppercase tracking-widest">ข้อมูลนักศึกษา</p>
-                                <h2 class="text-4xl sm:text-5xl font-black text-slate-800 mb-4 tracking-tighter drop-shadow-sm">${sId}</h2>
-                                <div class="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/80 border border-white shadow-md mb-6">
-                                    <span class="w-5 h-5 rounded-full bg-gradient-to-br ${badge.color} shadow-inner"></span>
-                                    <span class="font-black text-2xl ${badge.text} tracking-tight">${badge.name}</span>
+                                <p class="text-sm font-bold text-slate-500 mb-1 uppercase tracking-widest">ข้อมูลนักศึกษา</p>
+                                <h2 class="text-3xl font-black text-slate-800 mb-3">${sId}</h2>
+                                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-white shadow-sm mb-4">
+                                    <span class="w-3 h-3 rounded-full bg-gradient-to-br ${badge.color}"></span>
+                                    <span class="font-bold ${badge.text}">${badge.name}</span>
                                 </div>
-                                <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-2">
-                                    <div class="bg-white/80 rounded-[28px] p-5 sm:px-8 sm:py-6 border border-white shadow-sm flex flex-col items-center justify-center min-w-[140px] hover:-translate-y-1 transition-transform duration-300">
-                                        <p class="text-[11px] sm:text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">เข้าร่วมกิจกรรม</p>
-                                        <div class="text-6xl sm:text-7xl font-black text-slate-800 tracking-tighter leading-none drop-shadow-sm">${hD.length} <span class="text-xl font-bold text-slate-400 -ml-1">ครั้ง</span></div>
-                                    </div>
-                                    <div class="bg-white/80 rounded-[28px] p-5 sm:px-8 sm:py-6 border border-white shadow-sm flex flex-col items-center justify-center min-w-[140px] hover:-translate-y-1 transition-transform duration-300">
-                                        <p class="text-[11px] sm:text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">แต้มสะสม</p>
-                                        <div class="text-6xl sm:text-7xl font-black bg-gradient-to-br from-blue-600 to-indigo-600 text-transparent bg-clip-text tracking-tighter leading-none drop-shadow-sm">${pts} <span class="text-xl font-bold text-slate-400 -ml-1">แต้ม</span></div>
-                                    </div>
-                                </div>
+                                <p class="text-slate-600 font-medium">คุณเข้าร่วมกิจกรรมทั้งหมด <b class="text-primary text-2xl mx-1">${hD.length}</b> ครั้ง รวมเป็น <b class="text-primary text-2xl mx-1">${pts}</b> แต้ม</p>
                             </div>
                         </div>
                         <div class="px-8 pb-8 sm:px-10 sm:pb-10 relative z-10">
                             <div class="flex justify-between items-center text-sm font-bold text-slate-500 mb-2">
-                                <span class="flex items-center gap-2"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${iconPoke}.gif" class="w-7 h-7 object-contain" alt="pokemon">ความคืบหน้าสู่ระดับถัดไป</span>
-                                <span>${pts >= 100 ? 'ระดับสูงสุด' : pts + ' / ' + (pts >= 50 ? 100 : 50)}</span>
+                                <span class="flex items-center gap-2"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/133.gif" class="w-7 h-7 object-contain" alt="eevee">ความคืบหน้าสู่ระดกลกลกลับถัดไป</span>
+                                <span>${pts >= 100 ? 'ระดกลกลกลับสูงสุด' : pts + ' / ' + (pts >= 50 ? 100 : 50)}</span>
                             </div>
                             <div class="relative mt-10">
                                 <div class="absolute -top-10 transition-all duration-1000 z-10" style="left: calc(${pts >= 100 ? 100 : (pts >= 50 ? (pts-50)/50*100 : pts/50*100)}% - 24px);">
-                                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${runnerPoke}.gif" alt="runner" class="w-12 h-12 object-contain drop-shadow-md" style="transform: scaleX(-1);">
+                                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" alt="runner" class="w-12 h-12 object-contain drop-shadow-md" style="transform: scaleX(-1);">
                                 </div>
                                 <div class="w-full bg-white/60 rounded-full h-4 border border-white overflow-hidden shadow-inner relative z-0">
                                     <div class="bg-gradient-to-r ${badge.color} h-4 rounded-full transition-all duration-1000" style="width: ${pts >= 100 ? 100 : (pts >= 50 ? (pts-50)/50*100 : pts/50*100)}%"></div>
@@ -2022,7 +1959,7 @@
                 `;
 
                 h += `<div class="fade-in"><h2 class="text-xl font-bold mb-5 flex items-center gap-2"><i class="ph-fill ph-list-dashes text-primary"></i> ประวัติการเข้าร่วมกิจกรรม</h2><div class="glass rounded-[24px] overflow-hidden border border-white/50"><table class="w-full text-left border-collapse"><thead class="bg-white/50 text-slate-500 text-xs uppercase border-b border-white"><th class="p-5 w-1/2">ชื่อกิจกรรม</th><th class="p-5 text-center">วันที่จัด</th><th class="p-5 text-center">สถานะ / แต้ม</th></thead><tbody class="text-sm bg-white/60">`;
-                if (hD.length > 0) { hD.forEach(x => { h += `<tr class="border-b border-white/50"><td class="p-5 font-bold">${x.eventName}</td><td class="p-5 text-center text-slate-600">${x.date}</td><td class="p-5 text-center"><span class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-bold border border-emerald-100 inline-flex items-center gap-1.5"><i class="ph-fill ph-check-circle"></i> ผ่าน <span class="bg-emerald-200/50 text-emerald-800 px-1.5 rounded-md ml-1">+10 แต้ม</span></span></td></tr>`; }); } else { h += `<tr><td colspan="3" class="p-12 text-center text-slate-500 font-medium"><div class="flex flex-col items-center justify-center"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/54.gif" class="w-16 h-16 object-contain mb-3 drop-shadow-sm"><span>ไม่พบประวัติ</span></div></td></tr>`; }
+                if (hD.length > 0) { hD.forEach(x => { h += `<tr class="border-b border-white/50"><td class="p-5 font-bold">${x.eventName}</td><td class="p-5 text-center text-slate-600">${x.date}</td><td class="p-5 text-center"><span class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-bold border border-emerald-100 inline-flex items-center gap-1.5"><i class="ph-fill ph-check-circle"></i> ผ่าน <span class="bg-emerald-200/50 text-emerald-800 px-1.5 rounded-md ml-1">+10 แต้ม</span></span></td></tr>`; }); } else { h += `<tr><td colspan="3" class="p-12 text-center text-slate-500 font-medium"><div class="flex flex-col items-center justify-center"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" class="w-16 h-16 object-contain mb-3 drop-shadow-sm"><span>ไม่พบประวัติ</span></div></td></tr>`; }
                 h += `</tbody></table></div></div>`;
 
                 h += `<div class="fade-in mt-10"><h2 class="text-xl font-bold mb-5 flex items-center gap-2"><i class="ph-fill ph-certificate text-amber-500"></i> ใบประกาศนียบัตร</h2>`;
@@ -2570,9 +2507,8 @@
         };
 
         window.renderShirtShop = async function(c) {
-            c.innerHTML = window.getGokuLoader('กำลังเชื่อมต่อระบบ...');
-            await window.fetchSettingsData().catch(e=>console.log(e)); 
-            if (!isShirtShopOpen) { c.innerHTML = `<div class="fade-in max-w-4xl mx-auto px-4 py-10"><div class="glass rounded-[32px] p-12 text-center"><div class="w-24 h-24 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-8"><i class="ph-fill ph-lock-key text-5xl"></i></div><h2 class="text-3xl font-black text-slate-800 mb-3">ปิดให้บริการชั่วคราว</h2><button onclick="navigate('events')" class="mt-8 px-8 py-4 bg-slate-800 text-white font-bold rounded-2xl mx-auto flex items-center gap-2"><i class="ph-bold ph-arrow-left"></i> กลับไปหน้ากิจกรรม</button></div></div>`; return; }
+            window.fetchSettingsData().catch(e=>console.log(e)); // fetch in background
+            if (!isShirtShopOpen) { c.innerHTML = `<div class="fade-in max-w-4xl mx-auto px-4 py-10"><div class="glass rounded-[32px] p-12 text-center"><div class="w-24 h-24 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-8"><i class="ph-fill ph-lock-key text-5xl"></i></div><h2 class="text-3xl font-black text-slate-800 mb-3">ปิดให้บริการชั่วคราว</h2><button onclick="navigate('events')" class="mt-8 px-8 py-4 bg-slate-800 text-white font-bold rounded-2xl mx-auto flex items-center gap-2"><i class="ph-bold ph-arrow-left"></i> กลกลกลกลับไปหน้ากิจกรรม</button></div></div>`; return; }
             c.innerHTML = `
                 <div class="fade-in max-w-4xl mx-auto pb-24 sm:pb-10">
                     <div id="order-step-search" class="animate-fadeIn block">
@@ -2811,7 +2747,7 @@
         };
 
         window.renderTracking = async function(c) {
-
+            if (!isShirtShopOpen) { c.innerHTML = `<div class="fade-in max-w-4xl mx-auto px-4 py-10"><div class="glass rounded-[32px] p-12 text-center"><i class="ph-fill ph-lock-key text-5xl text-red-500 mb-4 block"></i><h2 class="text-3xl font-black mb-3">ปิดให้บริการชั่วคราว</h2><button onclick="navigate('events')" class="px-8 py-4 bg-slate-800 text-white font-bold rounded-2xl mt-6 mx-auto"><i class="ph-bold ph-arrow-left"></i> กลกลกลกลับไปหน้ากิจกรรม</button></div></div>`; return; }
             c.innerHTML = `
                 <div class="fade-in max-w-4xl mx-auto pb-10">
                     <div class="mb-8 text-center sm:text-left"><h1 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">ติดตามสถานะการจอง</h1></div>
@@ -3181,7 +3117,7 @@
             const pO = ods.slice((adminOrdersPage - 1) * adminOrdersPerPage, adminOrdersPage * adminOrdersPerPage);
             let h = '';
             if (pO.length === 0) { h = `<tr><td colspan="7" class="p-12 text-center text-slate-400">ไม่มีรายการ</td></tr>`; } 
-            else { pO.forEach(o => { const s = STATUS_MAP[o.status] || STATUS_MAP[1]; const pB = `<span class="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg text-[10px] font-bold border border-amber-200 inline-flex mx-auto">เงินสด</span>`; let op = ''; for(let i=1; i<=4; i++) op += `<option value="${i}" ${(o.status||1)==i?'selected':''}>${STATUS_MAP[i].text}</option>`; h += `<tr class="border-b border-white/50 hover:bg-white/80 transition-colors"><td class="p-5 pl-6"><input type="checkbox" class="admin-order-checkbox w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer" value="${o.id}" onchange="updateBatchUI()"></td><td class="p-5"><p class="font-bold font-mono">${o.id}</p><p class="text-[10px] text-slate-400">${o.timestamp}</p></td><td class="p-5"><p class="font-bold">${o.name}</p><p class="text-xs text-slate-500">${o.studentId}</p></td><td class="p-5"><p class="font-bold bg-white/60 border border-white shadow-sm px-2 py-1 rounded inline-block mb-1">${o.type}</p><p class="text-xs">${o.size}</p></td><td class="p-5 font-bold text-primary text-base">฿${Number(o.total || 0).toLocaleString('th-TH')}</td><td class="p-5"><span class="${s.color} px-4 py-2 rounded-xl text-xs font-bold border border-white/50 shadow-sm inline-flex items-center gap-1.5"><i class="ph-bold ${s.icon}"></i> ${s.text}</span></td><td class="p-5 text-center"><div class="flex flex-col items-center gap-2">${pB}<select onchange="updateOrderStatus('${o.id}', this.value)" class="text-xs font-bold border border-slate-200 rounded-xl px-3 py-2.5 cursor-pointer outline-none focus:border-primary">${op}</select></div></td></tr>`; }); }
+            else { pO.forEach(o => { const s = STATUS_MAP[o.status], pB = `<span class="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg text-[10px] font-bold border border-amber-200 inline-flex mx-auto">เงินสด</span>`; let op = ''; for(let i=1; i<=4; i++) op += `<option value="${i}" ${o.status===i?'selected':''}>${STATUS_MAP[i].text}</option>`; h += `<tr class="border-b border-white/50 hover:bg-white/80 transition-colors"><td class="p-5 pl-6"><input type="checkbox" class="admin-order-checkbox w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer" value="${o.id}" onchange="updateBatchUI()"></td><td class="p-5"><p class="font-bold font-mono">${o.id}</p><p class="text-[10px] text-slate-400">${o.timestamp}</p></td><td class="p-5"><p class="font-bold">${o.name}</p><p class="text-xs text-slate-500">${o.studentId}</p></td><td class="p-5"><p class="font-bold bg-white/60 border border-white shadow-sm px-2 py-1 rounded inline-block mb-1">${o.type}</p><p class="text-xs">${o.size}</p></td><td class="p-5 font-bold text-primary text-base">฿${Number(o.total || 0).toLocaleString('th-TH')}</td><td class="p-5"><span class="${s.color} px-4 py-2 rounded-xl text-xs font-bold border border-white/50 shadow-sm inline-flex items-center gap-1.5"><i class="ph-bold ${s.icon}"></i> ${s.text}</span></td><td class="p-5 text-center"><div class="flex flex-col items-center gap-2">${pB}<select onchange="updateOrderStatus('${o.id}', this.value)" class="text-xs font-bold border border-slate-200 rounded-xl px-3 py-2.5 cursor-pointer outline-none focus:border-primary">${op}</select></div></td></tr>`; }); }
             tb.innerHTML = h; const sD = tI === 0 ? 0 : ((adminOrdersPage - 1) * adminOrdersPerPage) + 1, eD = Math.min(adminOrdersPage * adminOrdersPerPage, tI);
             pg.innerHTML = `<span class="text-sm font-medium bg-white px-4 py-2 rounded-xl border border-white shadow-sm">แสดง <b>${sD}-${eD}</b> จาก <b>${tI}</b></span><div class="flex gap-2"><button onclick="changeAdminOrdersPage(${adminOrdersPage - 1})" ${adminOrdersPage <= 1 ? 'disabled' : ''} class="w-10 h-10 flex justify-center items-center rounded-xl border border-white shadow-sm bg-white disabled:opacity-40 hover-lift"><i class="ph-bold ph-caret-left"></i></button><button onclick="changeAdminOrdersPage(${adminOrdersPage + 1})" ${adminOrdersPage >= tP ? 'disabled' : ''} class="w-10 h-10 flex justify-center items-center rounded-xl border border-white shadow-sm bg-white disabled:opacity-40 hover-lift"><i class="ph-bold ph-caret-right"></i></button></div>`;
         };
@@ -3808,9 +3744,11 @@
         if (isShirtShopOpen) {
             if(!NAV_STUDENT.find(n => n.id === 'shirt')) { 
                 NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
+                NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
             }
         } else {
-            NAV_STUDENT = NAV_STUDENT.filter(n => n.id !== 'shirt');
+            const idx = NAV_STUDENT.findIndex(n => n.id === 'shirt'); 
+            if(idx > -1) NAV_STUDENT.splice(idx, 2); 
         }
         if(currentRole === 'student') window.renderNav();
 
@@ -3818,7 +3756,7 @@
     };
 
     window.renderAdminSettings = function(c) {
-        c.innerHTML = `<div class="fade-in max-w-4xl mx-auto pb-10"><div class="mb-6"><h1 class="text-3xl font-bold">ตั้งค่าระบบ</h1></div><div class="glass rounded-[32px] p-8 border border-white shadow-sm mb-6"><h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-toggle-left text-primary text-2xl"></i> เปิด-ปิด ระบบจองเสื้อ</h2><div class="flex justify-between items-center p-5 bg-white/80 rounded-2xl border border-white shadow-sm"><div><p class="font-bold text-slate-800">ระบบสั่งจองและติดตามสถานะ</p></div><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="setting-shirt-toggle" class="sr-only peer" ${isShirtShopOpen ? 'checked' : ''} onchange="toggleMasterControl(this.checked)"><div class="w-14 h-7 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500"></div><span id="shirt-toggle-text" class="ml-3 text-sm font-bold ${isShirtShopOpen ? 'text-emerald-500' : 'text-slate-400'}">${isShirtShopOpen ? 'เปิด' : 'ปิด'}</span></label></div></div><form onsubmit="submitSettings(event)" class="space-y-6"><div class="glass rounded-[32px] p-8 border border-white shadow-sm"><h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-users-three text-admin text-2xl"></i> บัญชีผู้ดูแล</h2><div class="bg-white/80 p-5 rounded-2xl border border-white shadow-sm mb-5"><div id="admin-users-list"></div><div class="mt-4 pt-5 border-t border-white"><p class="text-sm font-bold mb-3">เพิ่มบัญชีผู้ดูแลใหม่</p><div class="grid grid-cols-1 sm:grid-cols-4 gap-3"><input type="text" id="new-admin-user" placeholder="Username" class="px-4 py-3 rounded-xl border border-white bg-white/80 shadow-sm font-medium text-sm outline-none focus:border-primary"><input type="text" id="new-admin-pass" placeholder="Password" class="px-4 py-3 rounded-xl border border-white bg-white/80 shadow-sm font-medium text-sm outline-none focus:border-primary"><select id="new-admin-role" class="px-4 py-3 rounded-xl border border-white bg-white/80 shadow-sm font-medium text-sm cursor-pointer outline-none focus:border-primary"><option value="activity">ผู้จัดการกิจกรรม</option><option value="shop">ผู้จัดการร้านค้า</option><option value="superadmin">ผู้ดูแลระบบสูงสุด</option></select><button type="button" onclick="addAdminUser()" class="px-4 py-3 bg-admin text-white rounded-xl font-bold text-sm hover:bg-admin_hover flex justify-center items-center gap-2 hover-lift shadow-sm"><i class="ph-bold ph-plus"></i> เพิ่ม</button></div></div></div></div><div class="glass rounded-[32px] p-8 border border-white shadow-sm"><h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-app-window text-primary text-2xl"></i> ตั้งค่าประกาศ (Popup)</h2><div class="space-y-5"><div class="flex justify-between items-center p-5 bg-orange-50/50 rounded-2xl border border-orange-100 shadow-sm"><div><p class="font-bold text-orange-900">เปิดใช้งาน Popup แจ้งเตือน</p></div><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="setting-popup-toggle" class="sr-only peer" ${popupSettings.enabled ? 'checked' : ''} onchange="document.getElementById('popup-toggle-text').innerText = this.checked ? 'เปิด' : 'ปิด'; document.getElementById('popup-toggle-text').className = this.checked ? 'ml-3 text-sm font-bold text-primary w-8' : 'ml-3 text-sm font-bold text-slate-400 w-8'"><div class="w-14 h-7 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary"></div><span id="popup-toggle-text" class="ml-3 text-sm font-bold ${popupSettings.enabled ? 'text-primary' : 'text-slate-400'}">${popupSettings.enabled ? 'เปิด' : 'ปิด'}</span></label></div><div><label class="block text-xs font-bold mb-2">หัวข้อประกาศ</label><textarea id="setting-popup-title" rows="2" class="w-full px-5 py-4 rounded-2xl border border-white shadow-sm font-bold text-sm bg-white/80 outline-none focus:border-primary">${popupSettings.title}</textarea></div><div><label class="block text-xs font-bold mb-2">รายละเอียดเนื้อหา (ข้อความประกาศ)</label><div id="popup-desc-container" class="space-y-3"></div><button type="button" onclick="addPopupDescField()" class="mt-3 px-4 py-2 bg-slate-100 text-slate-600 font-bold text-xs rounded-xl hover:bg-slate-200 transition-colors flex items-center gap-2 shadow-sm"><i class="ph-bold ph-plus"></i> เพิ่มข้อความ</button></div><div><label class="block text-xs font-bold mb-2">ลิงก์รูปภาพ (URL Image)</label><div id="popup-image-container" class="space-y-3"></div><button type="button" onclick="addPopupImageField()" class="mt-3 px-4 py-2 bg-slate-100 text-slate-600 font-bold text-xs rounded-xl hover:bg-slate-200 transition-colors flex items-center gap-2 shadow-sm"><i class="ph-bold ph-plus"></i> เพิ่มรูปภาพ</button><div class="w-full h-48 rounded-2xl bg-slate-100 border border-white shadow-inner overflow-hidden mt-4 relative"><div id="setting-popup-preview-container" class="w-full h-full flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"></div></div></div></div></div><div class="flex justify-end gap-4 pt-4"><button type="button" onclick="previewCurrentPopup()" class="px-8 py-4 rounded-2xl font-bold bg-white/80 border border-white shadow-sm hover-lift flex items-center gap-2"><i class="ph-bold ph-eye text-xl"></i> ตัวอย่าง</button><button type="submit" class="px-10 py-4 rounded-2xl font-bold text-white btn-gradient flex items-center gap-2 shadow-lg"><i class="ph-bold ph-floppy-disk text-xl"></i> บันทึกตั้งค่า</button></div></form></div>`;
+        c.innerHTML = `<div class="fade-in max-w-4xl mx-auto pb-10"><div class="mb-6"><h1 class="text-3xl font-bold">ตั้งค่าระบบ</h1></div><div class="glass rounded-[32px] p-8 border border-white shadow-sm mb-6"><h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-toggle-left text-primary text-2xl"></i> เปิด-ปิด ระบบจองเสื้อ</h2><div class="flex justify-between items-center p-5 bg-white/80 rounded-2xl border border-white shadow-sm"><div><p class="font-bold text-slate-800">ระบบสั่งจองและติดตามสถานะ</p></div><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="setting-shirt-toggle" class="sr-only peer" ${isShirtShopOpen ? 'checked' : ''} onchange="toggleMasterControl(this.checked)"><div class="w-14 h-7 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500"></div><span id="shirt-toggle-text" class="ml-3 text-sm font-bold ${isShirtShopOpen ? 'text-emerald-500' : 'text-slate-400'}">${isShirtShopOpen ? 'เปิด' : 'ปิด'}</span></label></div></div><form onsubmit="submitSettings(event)" class="space-y-6"><div class="glass rounded-[32px] p-8 border border-white shadow-sm"><h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-users-three text-admin text-2xl"></i> บัญชีผู้ดูแล</h2><div class="bg-white/80 p-5 rounded-2xl border border-white shadow-sm mb-5"><div id="admin-users-list"></div><div class="mt-4 pt-5 border-t border-white"><p class="text-sm font-bold mb-3">เพิ่มบัญชีผู้ดูแลใหม่</p><div class="grid grid-cols-1 sm:grid-cols-4 gap-3"><input type="text" id="new-admin-user" placeholder="Username" class="px-4 py-3 rounded-xl border border-white bg-white/80 shadow-sm font-medium text-sm outline-none focus:border-primary"><input type="text" id="new-admin-pass" placeholder="Password" class="px-4 py-3 rounded-xl border border-white bg-white/80 shadow-sm font-medium text-sm outline-none focus:border-primary"><select id="new-admin-role" class="px-4 py-3 rounded-xl border border-white bg-white/80 shadow-sm font-medium text-sm cursor-pointer outline-none focus:border-primary"><option value="activity">ผู้จัดการกิจกรรม</option><option value="shop">ผู้จัดการร้านค้า</option><option value="superadmin">ผู้ดูแลระบบสูงสุด</option></select><button type="button" onclick="addAdminUser()" class="px-4 py-3 bg-admin text-white rounded-xl font-bold text-sm hover:bg-admin_hover flex justify-center items-center gap-2 hover-lift shadow-sm"><i class="ph-bold ph-plus"></i> เพิ่ม</button></div></div></div></div><div class="glass rounded-[32px] p-8 border border-white shadow-sm"><h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-app-window text-primary text-2xl"></i> ตั้งค่าประกาศ (Popup)</h2><div class="space-y-5"><div class="flex justify-between items-center p-5 bg-orange-50/50 rounded-2xl border border-orange-100 shadow-sm"><div><p class="font-bold text-orange-900">เปิดใช้งาน Popup แจ้งเตือน</p></div><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="setting-popup-toggle" class="sr-only peer" ${popupSettings.enabled ? 'checked' : ''} onchange="document.getElementById('popup-toggle-text').innerText = this.checked ? 'เปิด' : 'ปิด'; document.getElementById('popup-toggle-text').className = this.checked ? 'ml-3 text-sm font-bold text-primary w-8' : 'ml-3 text-sm font-bold text-slate-400 w-8'"><div class="w-14 h-7 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary"></div><span id="popup-toggle-text" class="ml-3 text-sm font-bold ${popupSettings.enabled ? 'text-primary' : 'text-slate-400'}">${popupSettings.enabled ? 'เปิด' : 'ปิด'}</span></label></div><div><label class="block text-xs font-bold mb-2">หัวข้อประกาศ</label><textarea id="setting-popup-title" rows="2" class="w-full px-5 py-4 rounded-2xl border border-white shadow-sm font-bold text-sm bg-white/80 outline-none focus:border-primary">${popupSettings.title}</textarea></div><div><label class="block text-xs font-bold mb-2">รายละเอกสารกสารกสารียดเนื้อหา (ข้อความประกาศ)</label><div id="popup-desc-container" class="space-y-3"></div><button type="button" onclick="addPopupDescField()" class="mt-3 px-4 py-2 bg-slate-100 text-slate-600 font-bold text-xs rounded-xl hover:bg-slate-200 transition-colors flex items-center gap-2 shadow-sm"><i class="ph-bold ph-plus"></i> เพิ่มข้อความ</button></div><div><label class="block text-xs font-bold mb-2">ลิงก์รูปภาพ (URL Image)</label><div id="popup-image-container" class="space-y-3"></div><button type="button" onclick="addPopupImageField()" class="mt-3 px-4 py-2 bg-slate-100 text-slate-600 font-bold text-xs rounded-xl hover:bg-slate-200 transition-colors flex items-center gap-2 shadow-sm"><i class="ph-bold ph-plus"></i> เพิ่มรูปภาพ</button><div class="w-full h-48 rounded-2xl bg-slate-100 border border-white shadow-inner overflow-hidden mt-4 relative"><div id="setting-popup-preview-container" class="w-full h-full flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"></div></div></div></div></div><div class="flex justify-end gap-4 pt-4"><button type="button" onclick="previewCurrentPopup()" class="px-8 py-4 rounded-2xl font-bold bg-white/80 border border-white shadow-sm hover-lift flex items-center gap-2"><i class="ph-bold ph-eye text-xl"></i> ตัวอย่าง</button><button type="submit" class="px-10 py-4 rounded-2xl font-bold text-white btn-gradient flex items-center gap-2 shadow-lg"><i class="ph-bold ph-floppy-disk text-xl"></i> บันทึกตั้งค่า</button></div></form></div>`;
         window.updateAdminUsersList();
         window.renderPopupDescFields();
         window.renderPopupImageFields();
@@ -3830,7 +3768,7 @@
         let imgList = Array.isArray(popupSettings.imageUrl) ? popupSettings.imageUrl : [popupSettings.imageUrl || ''];
         if (imgList.length === 0) imgList = [''];
         container.innerHTML = '';
-        imgList.forEach((url, idx) => { container.insertAdjacentHTML('beforeend', window.createPopupImageHTML(url, idx)); });
+        imgList.forEach(url => { container.insertAdjacentHTML('beforeend', window.createPopupImageHTML(url)); });
         window.updatePopupImagePreview();
     };
 
