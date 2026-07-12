@@ -435,6 +435,11 @@
             } 
         }
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCPFTT76JLJLo3cNjTDNXQPbofR3AmVEPxCOD9yzdW_73yFy92d-Q0OHAu26DgsA7x/exec';
+        window.getRandomMon = function() {
+            const mons = [1,4,7,25,39,52,54,94,133,143,151,152,155,158,175,258];
+            return mons[Math.floor(Math.random() * mons.length)];
+        };
+
         
         window.popupSlideIndex = 0; window.popupSlideInterval = null; window.currentPopupDescList = [];
         window.startPopupSlideshow = function() { clearInterval(window.popupSlideInterval); const c = document.getElementById('popup-banner-container'); if (!c || c.children.length <= 1) return; window.popupSlideInterval = setInterval(() => window.nextPopupSlide(), 4000); };
@@ -1942,12 +1947,12 @@
                         </div>
                         <div class="px-8 pb-8 sm:px-10 sm:pb-10 relative z-10">
                             <div class="flex justify-between items-center text-sm font-bold text-slate-500 mb-2">
-                                <span class="flex items-center gap-2"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/133.gif" class="w-7 h-7 object-contain" alt="eevee">ความคืบหน้าสู่ระดกลกลกลับถัดไป</span>
+                                <span class="flex items-center gap-2"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${window.getRandomMon()}.gif" class="w-7 h-7 object-contain" alt="eevee">ความคืบหน้าสู่ระดกลกลกลับถัดไป</span>
                                 <span>${pts >= 100 ? 'ระดกลกลกลับสูงสุด' : pts + ' / ' + (pts >= 50 ? 100 : 50)}</span>
                             </div>
                             <div class="relative mt-10">
                                 <div class="absolute -top-10 transition-all duration-1000 z-10" style="left: calc(${pts >= 100 ? 100 : (pts >= 50 ? (pts-50)/50*100 : pts/50*100)}% - 24px);">
-                                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" alt="runner" class="w-12 h-12 object-contain drop-shadow-md" style="transform: scaleX(-1);">
+                                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${window.getRandomMon()}.gif" alt="runner" class="w-12 h-12 object-contain drop-shadow-md" style="transform: scaleX(-1);">
                                 </div>
                                 <div class="w-full bg-white/60 rounded-full h-4 border border-white overflow-hidden shadow-inner relative z-0">
                                     <div class="bg-gradient-to-r ${badge.color} h-4 rounded-full transition-all duration-1000" style="width: ${pts >= 100 ? 100 : (pts >= 50 ? (pts-50)/50*100 : pts/50*100)}%"></div>
@@ -1959,7 +1964,7 @@
                 `;
 
                 h += `<div class="fade-in"><h2 class="text-xl font-bold mb-5 flex items-center gap-2"><i class="ph-fill ph-list-dashes text-primary"></i> ประวัติการเข้าร่วมกิจกรรม</h2><div class="glass rounded-[24px] overflow-hidden border border-white/50"><table class="w-full text-left border-collapse"><thead class="bg-white/50 text-slate-500 text-xs uppercase border-b border-white"><th class="p-5 w-1/2">ชื่อกิจกรรม</th><th class="p-5 text-center">วันที่จัด</th><th class="p-5 text-center">สถานะ / แต้ม</th></thead><tbody class="text-sm bg-white/60">`;
-                if (hD.length > 0) { hD.forEach(x => { h += `<tr class="border-b border-white/50"><td class="p-5 font-bold">${x.eventName}</td><td class="p-5 text-center text-slate-600">${x.date}</td><td class="p-5 text-center"><span class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-bold border border-emerald-100 inline-flex items-center gap-1.5"><i class="ph-fill ph-check-circle"></i> ผ่าน <span class="bg-emerald-200/50 text-emerald-800 px-1.5 rounded-md ml-1">+10 แต้ม</span></span></td></tr>`; }); } else { h += `<tr><td colspan="3" class="p-12 text-center text-slate-500 font-medium"><div class="flex flex-col items-center justify-center"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" class="w-16 h-16 object-contain mb-3 drop-shadow-sm"><span>ไม่พบประวัติ</span></div></td></tr>`; }
+                if (hD.length > 0) { hD.forEach(x => { h += `<tr class="border-b border-white/50"><td class="p-5 font-bold">${x.eventName}</td><td class="p-5 text-center text-slate-600">${x.date}</td><td class="p-5 text-center"><span class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-bold border border-emerald-100 inline-flex items-center gap-1.5"><i class="ph-fill ph-check-circle"></i> ผ่าน <span class="bg-emerald-200/50 text-emerald-800 px-1.5 rounded-md ml-1">+10 แต้ม</span></span></td></tr>`; }); } else { h += `<tr><td colspan="3" class="p-12 text-center text-slate-500 font-medium"><div class="flex flex-col items-center justify-center"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${window.getRandomMon()}.gif" class="w-16 h-16 object-contain mb-3 drop-shadow-sm"><span>ไม่พบประวัติ</span></div></td></tr>`; }
                 h += `</tbody></table></div></div>`;
 
                 h += `<div class="fade-in mt-10"><h2 class="text-xl font-bold mb-5 flex items-center gap-2"><i class="ph-fill ph-certificate text-amber-500"></i> ใบประกาศนียบัตร</h2>`;
@@ -1982,7 +1987,7 @@
                     });
                     h += `</div>`;
                 } else {
-                    h += `<div class="glass rounded-[32px] border border-white shadow-sm py-12 text-center"><div class="flex flex-col items-center justify-center"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" class="w-16 h-16 object-contain mb-3 drop-shadow-sm"></div><p class="text-slate-600 font-black text-lg">ยังไม่มีใบประกาศนียบัตรที่ดาวน์โหลดได้</p><p class="text-sm font-medium text-slate-500 mt-2">ต้องผ่านการประเมินกิจกรรมที่เปิดรับใบประกาศ</p></div>`;
+                    h += `<div class="glass rounded-[32px] border border-white shadow-sm py-12 text-center"><div class="flex flex-col items-center justify-center"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${window.getRandomMon()}.gif" class="w-16 h-16 object-contain mb-3 drop-shadow-sm"></div><p class="text-slate-600 font-black text-lg">ยังไม่มีใบประกาศนียบัตรที่ดาวน์โหลดได้</p><p class="text-sm font-medium text-slate-500 mt-2">ต้องผ่านการประเมินกิจกรรมที่เปิดรับใบประกาศ</p></div>`;
                 }
                 h += `</div>`;
             }
@@ -2102,7 +2107,7 @@
                         </div>`; 
                     }); 
                 } else { 
-                    h += `<div class="col-span-full py-16 text-center glass rounded-[32px] border border-white shadow-sm"><div class="flex flex-col items-center justify-center"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" class="w-20 h-20 object-contain mb-3 drop-shadow-sm"></div><p class="text-slate-600 font-black text-xl">ยังไม่มีใบประกาศนียบัตร</p><p class="text-sm font-medium text-slate-500 mt-2">กรุณาเข้าร่วมกิจกรรม ละทำแบบประเมินให้เสร็จสิ้น ก่อนนะครับ</p></div>`; 
+                    h += `<div class="col-span-full py-16 text-center glass rounded-[32px] border border-white shadow-sm"><div class="flex flex-col items-center justify-center"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${window.getRandomMon()}.gif" class="w-20 h-20 object-contain mb-3 drop-shadow-sm"></div><p class="text-slate-600 font-black text-xl">ยังไม่มีใบประกาศนียบัตร</p><p class="text-sm font-medium text-slate-500 mt-2">กรุณาเข้าร่วมกิจกรรม ละทำแบบประเมินให้เสร็จสิ้น ก่อนนะครับ</p></div>`; 
                 }
                 h += `</div></div>`;
             }
@@ -2439,7 +2444,7 @@
                     </div>
                     <div class="glass rounded-[32px] border border-white shadow-sm overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left min-w-[760px]"><thead class="bg-white/40 border-b border-white/80 text-slate-500 text-xs uppercase"><tr><th class="p-4 pl-6 w-16 text-center">#</th><th class="p-4">ชื่อกิจกรรม</th><th class="p-4 w-32 text-center hidden sm:table-cell">วันที่จัด</th><th class="p-4 w-24 text-center hidden md:table-cell">ผู้ผ่าน</th><th class="p-4 w-40 text-center">เปิด/ปิด รับ</th><th class="p-4 pr-6 w-32 text-center">จัดการ</th></tr></thead><tbody class="text-sm">`;
 
-            if (pageItems.length === 0) { h += `<tr><td colspan="6" class="p-12 text-center text-slate-500 font-medium"><div class="flex flex-col items-center justify-center"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" class="w-16 h-16 object-contain mb-3 drop-shadow-sm"><span>ไม่พบกิจกรรมที่ค้นหา</span></div></td></tr>`; } else {
+            if (pageItems.length === 0) { h += `<tr><td colspan="6" class="p-12 text-center text-slate-500 font-medium"><div class="flex flex-col items-center justify-center"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${window.getRandomMon()}.gif" class="w-16 h-16 object-contain mb-3 drop-shadow-sm"><span>ไม่พบกิจกรรมที่ค้นหา</span></div></td></tr>`; } else {
                 pageItems.forEach((act, idx) => {
                     const evKey = String(act.id).trim(); const count = evalByEvent[evKey]?.students?.length || 0; const isOpen = window.isCertEventOpen(evKey); const num = startIdx + idx + 1;
                     h += `
@@ -3923,6 +3928,7 @@
 </script>
 </body>
 </html>
+
 
 
 
