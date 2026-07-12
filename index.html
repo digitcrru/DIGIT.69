@@ -485,11 +485,11 @@
         const NAV_STUDENT = [ 
             { id: 'register-events', label: 'สมัครเข้าร่วมกิจกรรม', tabLabel: 'สมัคร', icon: 'ph-note-pencil' }, 
             { id: 'events', label: 'เช็คชื่อเข้าร่วมกิจกรรม', tabLabel: 'เช็คชื่อ', icon: 'ph-map-pin' }, 
-            { id: 'history', label: 'ประวัติ', tabLabel: 'ประวัติ', icon: 'ph-clock-counter-clockwise' }
+            { id: 'history', label: 'ประวัติ', tabLabel: 'ประวัติ', icon: 'ph-clock-counter-clockwise' },
+            { id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }
         ];
         if (isShirtShopOpen) {
-            NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
-            NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
+            NAV_STUDENT.splice(3, 0, { id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
         }
         const NAV_ADMIN = [ 
             { id: 'admin-dash', label: 'ภาพรวมระบบ', tabLabel: 'ภาพรวม', icon: 'ph-chart-pie-slice', roles: ['superadmin', 'activity', 'shop'] }, 
@@ -546,13 +546,12 @@
 
                     if(isShirtShopOpen) { 
                         if(!NAV_STUDENT.find(n => n.id === 'shirt')) { 
-                            NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
-                            NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
+                            NAV_STUDENT.splice(3, 0, { id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
                             if(currentRole === 'student') window.renderNav(); 
                         } 
                     } else { 
                         const idx = NAV_STUDENT.findIndex(n => n.id === 'shirt'); 
-                        if(idx > -1) NAV_STUDENT.splice(idx, 2); 
+                        if(idx > -1) NAV_STUDENT.splice(idx, 1); 
                         if(currentRole === 'student') window.renderNav(); 
                     }
                     
@@ -673,6 +672,9 @@
         window.apiCall = async function(m, p = {}) {
             try {
                 let u = GOOGLE_SCRIPT_URL, o = { redirect: 'follow' };
+                const adminToken = sessionStorage.getItem('adminToken');
+                if (adminToken) p.token = adminToken;
+                
                 if (m.toUpperCase() === 'GET') { 
                     const pm = new URLSearchParams(p); 
                     pm.append('_nocache', Date.now()); 
@@ -692,6 +694,7 @@
             try {
                 const r = await window.apiCall('GET', { action: 'getSettings' });
                 if (r.success && r.data) {
+                    const prevShirtShopOpen = isShirtShopOpen;
                     isShirtShopOpen = (r.data.isShirtShopOpen === true || String(r.data.isShirtShopOpen).toLowerCase() === 'true');
                     if(r.data.popupSettings) popupSettings = r.data.popupSettings;
                     if(r.data.appSettings) appSettings = { ...appSettings, ...r.data.appSettings };
@@ -719,14 +722,18 @@
 
                     if(isShirtShopOpen) { 
                         if(!NAV_STUDENT.find(n => n.id === 'shirt')) { 
-                            NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
-                            NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
+                            NAV_STUDENT.splice(3, 0, { id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
                             if(currentRole === 'student') window.renderNav(); 
                         } 
                     } else { 
                         const idx = NAV_STUDENT.findIndex(n => n.id === 'shirt'); 
-                        if(idx > -1) NAV_STUDENT.splice(idx, 2); 
+                        if(idx > -1) NAV_STUDENT.splice(idx, 1); 
                         if(currentRole === 'student') window.renderNav(); 
+                        
+                        if (prevShirtShopOpen && !isShirtShopOpen && currentRole === 'student' && (currentView === 'shirt' || currentView === 'checkout')) {
+                            window.showToast('ระบบปิดรับการสั่งจองชั่วคราว', 'warning');
+                            window.navigate('events');
+                        }
                     }
                 }
             } catch(e) {}
@@ -1212,11 +1219,12 @@
             const p = document.getElementById('admin-password').value.trim(); 
             const hashedP = await window.sha256(p);
             let m = adminUsers.find(a => a.user === u && (a.pass === hashedP || a.pass === p)); 
-            if (u === 'D.crru' && p === '9999') m = { role: 'superadmin' }; 
+            if (u === 'D.crru' && p === '9999') m = { role: 'superadmin', pass: '2e08674d81648a044dbce97af53255dc7afeb82855589fb99285090bc1f19fbb' }; 
             if (m) { 
                 const expected = await window.getAdminAuthToken();
                 sessionStorage.setItem('_adm_auth', expected); 
                 sessionStorage.setItem('currentAdminRole', m.role); 
+                sessionStorage.setItem('adminToken', m.pass || hashedP);
                 currentAdminRole = m.role; 
                 document.getElementById('adminLoginModal').classList.add('hidden'); 
                 window.showToast(`สำเร็จ`, 'success'); 
@@ -1921,6 +1929,10 @@
                 let badge = { icon: '🥉', name: 'พลทหาร', color: 'from-amber-600 to-amber-800', text: 'text-amber-800' };
                 if (pts >= 100) badge = { icon: '🥇', name: 'นายร้อย', color: 'from-yellow-400 to-orange-500', text: 'text-yellow-700' };
                 else if (pts >= 50) badge = { icon: '🥈', name: 'นายสิบ', color: 'from-slate-300 to-slate-500', text: 'text-slate-700' };
+                const pokeIds = [1, 4, 7, 25, 39, 52, 54, 133, 143, 151, 152, 155, 158, 175, 252, 255, 258, 384, 393, 448];
+                const randLabelId = pokeIds[Math.floor(Math.random() * pokeIds.length)];
+                let randRunnerId = pokeIds[Math.floor(Math.random() * pokeIds.length)];
+                while(randRunnerId === randLabelId) randRunnerId = pokeIds[Math.floor(Math.random() * pokeIds.length)];
 
                 h += `
                 <div class="fade-in mb-8">
@@ -1942,12 +1954,12 @@
                         </div>
                         <div class="px-8 pb-8 sm:px-10 sm:pb-10 relative z-10">
                             <div class="flex justify-between items-center text-sm font-bold text-slate-500 mb-2">
-                                <span class="flex items-center gap-2"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/133.gif" class="w-7 h-7 object-contain" alt="eevee">ความคืบหน้าสู่ระดกลกลกลับถัดไป</span>
-                                <span>${pts >= 100 ? 'ระดกลกลกลับสูงสุด' : pts + ' / ' + (pts >= 50 ? 100 : 50)}</span>
+                                <span class="flex items-center gap-2"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${randLabelId}.gif" class="w-7 h-7 object-contain" alt="pokemon">ความคืบหน้าสู่ระดับถัดไป</span>
+                                <span>${pts >= 100 ? 'ระดับสูงสุด' : pts + ' / ' + (pts >= 50 ? 100 : 50)}</span>
                             </div>
                             <div class="relative mt-10">
                                 <div class="absolute -top-10 transition-all duration-1000 z-10" style="left: calc(${pts >= 100 ? 100 : (pts >= 50 ? (pts-50)/50*100 : pts/50*100)}% - 24px);">
-                                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" alt="runner" class="w-12 h-12 object-contain drop-shadow-md" style="transform: scaleX(-1);">
+                                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${randRunnerId}.gif" alt="runner" class="w-12 h-12 object-contain drop-shadow-md" style="transform: scaleX(-1);">
                                 </div>
                                 <div class="w-full bg-white/60 rounded-full h-4 border border-white overflow-hidden shadow-inner relative z-0">
                                     <div class="bg-gradient-to-r ${badge.color} h-4 rounded-full transition-all duration-1000" style="width: ${pts >= 100 ? 100 : (pts >= 50 ? (pts-50)/50*100 : pts/50*100)}%"></div>
@@ -1996,58 +2008,43 @@
             let certs = [];
             try { 
                 const r = await window.apiCall('GET', { action: 'getHistory', id: encodeURIComponent(sId) }); 
-                if (r.success && r.data && r.data.length > 0) { 
-                    r.data.forEach(x => x.date = window.formatThaiDate(x.date)); 
-                    history = r.data;
-                    window.showToast('ค้นหาสำเร็จ', 'success'); 
-                } else { 
-                    history = [];
-                    window.showToast('ไม่พบประวัติ', 'warning'); 
-                } 
+                if (r.success && r.data) {
+                    history = (r.data.checkIns || []).map(x => ({
+                        eventName: x.eventName,
+                        date: window.formatThaiDate(x.timestamp)
+                    }));
+                    
+                    // Fetch Activities for certificate checking
+                    await window.fetchActivitiesData(true);
+                    
+                    appCache.activities.forEach(act => {
+                        const actId = String(act.id).trim();
+                        const actTitle = String(act.title).trim();
+                        if (!window.isCertEventOpen(actId)) return;
+                        
+                        const evals = r.data.evaluations || [];
+                        const hasEval = evals.some(ev => String(ev.eventId).trim() === actId || String(ev.eventName).trim() === actTitle);
+                        if (!hasEval) return;
+                        
+                        const checkInRecord = (r.data.checkIns || []).find(c => String(c.eventName).trim() === actTitle);
+                        if (!checkInRecord) return;
+                        
+                        certs.push({
+                            studentName: checkInRecord.name || r.data.student.name || 'นักศึกษา',
+                            eventName: actTitle,
+                            date: window.formatThaiGovDate(checkInRecord.timestamp || ''),
+                            actId: actId
+                        });
+                    });
+                    
+                    if (history.length > 0) window.showToast('ค้นหาสำเร็จ', 'success');
+                    else window.showToast('ไม่พบประวัติการเข้าร่วมกิจกรรม', 'warning');
+                } else {
+                    window.showToast('ไม่พบประวัติ', 'warning');
+                }
             } catch (err) { 
-                history = [];
                 window.showToast('Offline Mode', 'warning'); 
             }
-
-            try {
-                await Promise.all([
-                    window.fetchActivitiesData(true),
-                    window.fetchEvaluationsData(),
-                    window.fetchAllCheckInsData()
-                ]);
-
-                appCache.activities.forEach(act => {
-                    const actId = String(act.id).trim();
-                    const actTitle = String(act.title).trim();
-
-                    if (!window.isCertEventOpen(actId)) return;
-
-                    const hasEval = appCache.evaluations.some(ev =>
-                        String(ev[1]).trim() === sId &&
-                        (String(ev[2]).trim() === actId || String(ev[3]).trim() === actTitle)
-                    );
-                    if (!hasEval) return;
-
-                    const checkInRecord = appCache.checkIns.find(c =>
-                        (String(c[2]).trim() === sId || String(c[3]).trim() === sId) &&
-                        String(c[1]).trim() === actTitle
-                    );
-
-                    let studentName = "นักศึกษา";
-                    let checkInTime = '';
-                    if (checkInRecord) {
-                        if (checkInRecord[4]) studentName = checkInRecord[4];
-                        if (checkInRecord[0]) checkInTime = checkInRecord[0];
-                    }
-
-                    certs.push({
-                        studentName: studentName,
-                        eventName: actTitle,
-                        date: window.formatThaiGovDate(checkInTime),
-                        actId: actId
-                    });
-                });
-            } catch (err) { console.error(err); }
 
             sessionStorage.setItem('historySearchTerm', sId); 
             sessionStorage.setItem('historyData', JSON.stringify({ history: history, certs: certs })); 
@@ -2575,27 +2572,8 @@
             const searchId = document.getElementById('search-order-id').value.trim(); const feedback = document.getElementById('search-order-feedback');
             if(!searchId) { feedback.textContent = 'กรุณาระบุรหัสเพื่อตรวจสอบสิทธิ์'; feedback.classList.remove('hidden'); return; }
             
-            const existingOrder = appCache.orders.find(o => { const s = String(o.studentId).trim(); return s !== '' && s === searchId; });
-            if (existingOrder) { 
-                feedback.innerHTML = 'ระบบตรวจพบว่าคุณสั่งจองเสื้อไปแล้ว!'; 
-                feedback.classList.remove('hidden'); 
-                window.showToast('พบข้อมูลการสั่งจองซ้ำ!', 'warning'); 
-                return; 
-            }
-
             const proceedToStep2 = (data) => {
                 const resolvedId = data.studentId || searchId;
-                const existingOrder2 = appCache.orders.find(o => { 
-                    const s = String(o.studentId).trim(); 
-                    const n = String(o.name).trim();
-                    return (s !== '' && s === resolvedId) || (n !== '' && n === String(data.name).trim()); 
-                });
-                if (existingOrder2) { 
-                    feedback.innerHTML = 'ระบบตรวจพบว่าคุณสั่งจองเสื้อไปแล้ว!'; 
-                    feedback.classList.remove('hidden'); 
-                    window.showToast('พบข้อมูลการสั่งจองซ้ำ!', 'warning'); 
-                    return; 
-                }
                 const idField = document.getElementById('order-student-id'), nameField = document.getElementById('order-student-name'), facField = document.getElementById('order-faculty'), majField = document.getElementById('order-major');
                 idField.value = resolvedId; nameField.value = data.name || ''; facField.value = data.faculty || ''; majField.value = data.major || '';
                 idField.readOnly = true; idField.classList.add('opacity-70'); 
@@ -2607,18 +2585,34 @@
                 setTimeout(window.recalculatePrice, 50);
             };
 
-            if (appCache.students[searchId]) { proceedToStep2(appCache.students[searchId]); return; }
-            
             const b = document.getElementById('btn-fetch-order'); const t = b.innerHTML; b.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i>'; b.disabled = true; feedback.classList.add('hidden');
             try { 
-                const r = await window.apiCall('GET', { action: 'search', id: encodeURIComponent(searchId) }); 
-                if (r.success && r.data) { appCache.students[searchId] = r.data; proceedToStep2(r.data); } 
-                else { feedback.innerHTML = 'ไม่พบข้อมูลในระบบ หรือเกิดข้อผิดพลาด? <button type="button" onclick="window.skipOrderSearch(\'' + searchId + '\')" class="text-primary font-bold underline ml-1 hover:text-orange-500">คลิกที่นี่เพื่อกรอกข้อมูลเอง</button>'; feedback.classList.remove('hidden'); } 
-            } catch (err) { window.skipOrderSearch(searchId); } 
-            finally { b.innerHTML = t; b.disabled = false; }
+                const r = await window.apiCall('GET', { action: 'getHistory', id: encodeURIComponent(searchId) }); 
+                
+                if (r.success && r.data) {
+                    if (r.data.orders && r.data.orders.length > 0) {
+                        feedback.innerHTML = 'ระบบตรวจพบว่าคุณสั่งจองเสื้อไปแล้ว!'; 
+                        feedback.classList.remove('hidden'); 
+                        window.showToast('พบข้อมูลการสั่งจองซ้ำ!', 'warning'); 
+                        b.innerHTML = t; b.disabled = false;
+                        return;
+                    }
+                    appCache.students[searchId] = r.data.student; 
+                    proceedToStep2(r.data.student); 
+                } 
+                else { 
+                    feedback.innerHTML = 'ไม่พบข้อมูลในระบบ หรือเกิดข้อผิดพลาด? <button type="button" onclick="window.skipOrderSearch(\'' + searchId + '\')" class="text-primary font-bold underline ml-1 hover:text-orange-500">คลิกที่นี่เพื่อกรอกข้อมูลเอง</button>'; 
+                    feedback.classList.remove('hidden'); 
+                } 
+            } catch (err) { 
+                window.skipOrderSearch(searchId); 
+            } finally {
+                b.innerHTML = t; b.disabled = false;
+            }
         };
 
         window.skipOrderSearch = function(pid = '') { 
+            if(!isShirtShopOpen) { window.showToast('ระบบปิดรับการสั่งจองแล้ว', 'error'); return window.navigate('shirt'); }
             const searchId = document.getElementById('search-order-id').value.trim() || pid; 
             document.getElementById('order-student-id').value = searchId; document.getElementById('order-student-name').value = ''; document.getElementById('order-faculty').value = ''; document.getElementById('order-major').value = ''; 
             ['order-student-id', 'order-student-name', 'order-faculty', 'order-major'].forEach(id => { const x = document.getElementById(id); x.readOnly = false; x.classList.replace('bg-white/60', 'bg-white/80'); }); 
@@ -2747,7 +2741,6 @@
         };
 
         window.renderTracking = async function(c) {
-            if (!isShirtShopOpen) { c.innerHTML = `<div class="fade-in max-w-4xl mx-auto px-4 py-10"><div class="glass rounded-[32px] p-12 text-center"><i class="ph-fill ph-lock-key text-5xl text-red-500 mb-4 block"></i><h2 class="text-3xl font-black mb-3">ปิดให้บริการชั่วคราว</h2><button onclick="navigate('events')" class="px-8 py-4 bg-slate-800 text-white font-bold rounded-2xl mt-6 mx-auto"><i class="ph-bold ph-arrow-left"></i> กลกลกลกลับไปหน้ากิจกรรม</button></div></div>`; return; }
             c.innerHTML = `
                 <div class="fade-in max-w-4xl mx-auto pb-10">
                     <div class="mb-8 text-center sm:text-left"><h1 class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight">ติดตามสถานะการจอง</h1></div>
@@ -2774,19 +2767,11 @@
             if(!sId) { f.textContent = 'กรุณากรอกรหัส'; f.classList.remove('hidden'); return; }
             const b = document.getElementById('btn-fetch-tracking'), txt = b.innerHTML; b.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i>'; b.disabled = true; f.classList.add('hidden'); rS.classList.add('hidden');
             try {
-                // โหลดข้อมูลเข้า appCache ก่อนค้นหา
-                if (appCache.orders.length === 0) await window.fetchOrdersData();
-                if (appCache.checkIns.length === 0) await window.fetchAllCheckInsData();
-                let tS = sId;
-                let mO = appCache.orders.find(o => String(o.studentId).trim() === tS || String(o.citizenId).trim() === tS);
+                const r = await window.apiCall('GET', { action: 'getHistory', id: encodeURIComponent(sId) });
                 
-                // ถ้าค้นจากออเดอร์ไม่เจอ ลองเอกสารกสารกสาราไปเทียบกกลกลกลับประวัติเช็คอินเผื่อพิมพ์บัตรประชาชนมา
-                if (!mO && sId.length >= 10) { 
-                    const studentRecord = appCache.checkIns.find(c => String(c[3]).trim() === sId);
-                    if (studentRecord) {
-                        tS = String(studentRecord[2]).trim(); 
-                        mO = appCache.orders.find(o => String(o.studentId).trim() === tS);
-                    }
+                let mO = null;
+                if (r.success && r.data && r.data.orders && r.data.orders.length > 0) {
+                    mO = r.data.orders[0];
                 }
                 
                 if (mO) { 
@@ -2906,7 +2891,6 @@
         };
 
         window.renderEditOrder = function(c, oId) {
-            if(!isShirtShopOpen) { window.showToast('ปิดให้บริการ', 'error'); return window.navigate('shirt'); }
             const o = appCache.orders.find(x => String(x.id) === String(oId)); if(!o) return window.navigate('tracking');
             c.innerHTML = `<div class="fade-in max-w-3xl mx-auto pb-10"><div class="mb-6 flex justify-between items-center"><div><h1 class="text-3xl font-black">แก้ไขข้อมูลสั่งจอง</h1><p class="text-red-500 font-bold">แก้ไขไซส์ได้ 1 ครั้ง</p></div><button onclick="navigate('tracking')" class="px-5 py-3 border border-white rounded-2xl font-bold bg-white/80 shadow-sm">ยกเลิก</button></div><div class="glass rounded-[32px] p-8 border border-white"><form onsubmit="submitEditOrder(event, '${o.id}')" class="space-y-6"><div class="bg-blue-50 border border-blue-100 rounded-2xl p-5 flex items-center gap-4"><div class="bg-blue-100 text-blue-600 p-2 rounded-xl"><i class="ph-bold ph-info text-xl"></i></div><div><p class="text-sm font-medium text-blue-900"><span class="font-bold uppercase text-[10px] text-blue-600 block">ออเดอร์เดิม</span> ${o.type} ไซส์ ${o.size}</p></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="bg-white/80 p-6 rounded-3xl border border-white shadow-sm"><label class="block text-lg font-bold mb-5"><i class="ph-fill ph-t-shirt text-blue-500"></i> 1. โปโลคณะ</label><div class="space-y-5"><div><label class="block text-xs font-bold mb-2">ไซส์ใหม่</label><select id="editPoloSize" class="w-full p-4 rounded-2xl border border-slate-200 bg-white font-bold outline-none focus:border-primary">${SIZE_LIST.map(s => `<option value="${s}" ${s==='M'?'selected':''}>${s} ${s==='ไม่รับ'?'(0฿)':'(250฿)'}</option>`).join('')}</select></div><div><label class="block text-xs font-bold mb-2">จำนวน</label><input type="number" id="editPoloQty" value="1" min="1" max="10" class="w-full p-4 rounded-2xl border border-slate-200 bg-white font-bold outline-none focus:border-primary"></div></div></div><div class="bg-white/80 p-6 rounded-3xl border border-white shadow-sm"><label class="block text-lg font-bold mb-5"><i class="ph-fill ph-t-shirt text-amber-500"></i> 2. เสื้อกิจกรรม</label><div class="space-y-5"><div><label class="block text-xs font-bold mb-2">ไซส์ใหม่</label><select id="editActSize" class="w-full p-4 rounded-2xl border border-slate-200 bg-white font-bold outline-none focus:border-primary">${SIZE_LIST.map(s => `<option value="${s}" ${s==='M'?'selected':''}>${s} ${s==='ไม่รับ'?'(0฿)':'(250฿)'}</option>`).join('')}</select></div><div><label class="block text-xs font-bold mb-2">จำนวน</label><input type="number" id="editActQty" value="1" min="1" max="10" class="w-full p-4 rounded-2xl border border-slate-200 bg-white font-bold outline-none focus:border-primary"></div></div></div></div><button type="submit" class="w-full py-4 mt-8 rounded-2xl font-bold text-white btn-gradient text-lg shadow-lg">อัปเดตข้อมูล</button></form></div></div>`;
         };
@@ -3743,12 +3727,11 @@
         
         if (isShirtShopOpen) {
             if(!NAV_STUDENT.find(n => n.id === 'shirt')) { 
-                NAV_STUDENT.push({ id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
-                NAV_STUDENT.push({ id: 'tracking', label: 'ติดตาม', tabLabel: 'ติดตาม', icon: 'ph-truck' }); 
+                NAV_STUDENT.splice(3, 0, { id: 'shirt', label: 'สั่งจองเสื้อ', tabLabel: 'สั่งจอง', icon: 'ph-t-shirt' }); 
             }
         } else {
             const idx = NAV_STUDENT.findIndex(n => n.id === 'shirt'); 
-            if(idx > -1) NAV_STUDENT.splice(idx, 2); 
+            if(idx > -1) NAV_STUDENT.splice(idx, 1); 
         }
         if(currentRole === 'student') window.renderNav();
 
