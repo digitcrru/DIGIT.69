@@ -671,6 +671,9 @@
 
         window.apiCall = async function(m, p = {}) {
             try {
+                const tk = sessionStorage.getItem('_adm_auth');
+                if (tk) p.token = tk;
+
                 let u = GOOGLE_SCRIPT_URL, o = { redirect: 'follow' };
                 if (m.toUpperCase() === 'GET') { 
                     const pm = new URLSearchParams(p); 
@@ -856,7 +859,7 @@
                 const r = await window.apiCall('GET', { action: 'getEvaluations' }); 
                 if(r.success) {
                     // เก็บรักษารายการ Evaluation ทดสอบที่เราเพิ่งกดส่งไป (เพื่อไม่ให้หายตอนดึงข้อมูลใหม่)
-                    const serverData = r.data || [];
+                    const serverData = (r.data || []).map(e => Array.isArray(e) ? e : Object.values(e));
                     const localMocks = (appCache.evaluations || []).filter(local => 
                         !serverData.some(server => server[1] === local[1] && server[2] === local[2])
                     );
@@ -2026,20 +2029,30 @@
             let certs = [];
             try { 
                 const r = await window.apiCall('GET', { action: 'getHistory', id: encodeURIComponent(sId) }); 
-                if (r.success && r.data && r.data.length > 0) { 
-                    r.data.forEach(x => x.date = window.formatThaiDate(x.date)); 
-                    history = r.data;
+                
+                let checkIns = [];
+                let studentEvals = [];
+                if (r.success && r.data) {
+                    if (Array.isArray(r.data)) {
+                        checkIns = r.data;
+                    } else {
+                        checkIns = r.data.checkIns || [];
+                        studentEvals = r.data.evaluations || [];
+                    }
+                }
+                
+                if (checkIns.length > 0) { 
+                    checkIns.forEach(x => {
+                        x.eventName = x.eventName || x.title || x['Event Name'] || x['ชื่อกิจกรรม'] || 'ไม่ระบุชื่อกิจกรรม';
+                        x.date = window.formatThaiDate(x.timestamp || x.date || x['เวลาเช็คอิน']);
+                    }); 
+                    history = checkIns;
                     window.showToast('ค้นหาสำเร็จ', 'success'); 
                 } else { 
                     history = [];
                     window.showToast('ไม่พบประวัติ', 'warning'); 
                 } 
-            } catch (err) { 
-                history = [];
-                window.showToast('Offline Mode', 'warning'); 
-            }
 
-            try {
                 await Promise.all([
                     window.fetchActivitiesData(true),
                     window.fetchEvaluationsData(),
@@ -2052,22 +2065,34 @@
 
                     if (!window.isCertEventOpen(actId)) return;
 
-                    const hasEval = appCache.evaluations.some(ev =>
-                        String(ev[1]).trim() === sId &&
-                        (String(ev[2]).trim() === actId || String(ev[3]).trim() === actTitle)
-                    );
+                    const evalsToUse = studentEvals.length > 0 ? studentEvals : appCache.evaluations;
+                    const hasEval = evalsToUse.some(ev => {
+                        if (ev.eventId || ev.eventName) {
+                            return String(ev.eventId).trim() === actId || String(ev.eventName).trim() === actTitle;
+                        } else {
+                            return String(ev[1] || ev.studentId).trim() === sId && (String(ev[2] || ev.eventId).trim() === actId || String(ev[3] || ev.eventName).trim() === actTitle);
+                        }
+                    });
                     if (!hasEval) return;
 
-                    const checkInRecord = appCache.checkIns.find(c =>
-                        (String(c[2]).trim() === sId || String(c[3]).trim() === sId) &&
-                        String(c[1]).trim() === actTitle
-                    );
+                    let checkInRecord = null;
+                    if (Array.isArray(appCache.checkIns)) {
+                        checkInRecord = appCache.checkIns.find(c => 
+                            (String(c[2]).trim() === sId || String(c[3]).trim() === sId) && String(c[1]).trim() === actTitle
+                        );
+                    }
+                    if (!checkInRecord) {
+                        checkInRecord = checkIns.find(c => String(c.eventName).trim() === actTitle);
+                    }
 
                     let studentName = "นักศึกษา";
                     let checkInTime = '';
                     if (checkInRecord) {
-                        if (checkInRecord[4]) studentName = checkInRecord[4];
-                        if (checkInRecord[0]) checkInTime = checkInRecord[0];
+                        if (checkInRecord.name) studentName = checkInRecord.name;
+                        else if (checkInRecord[4]) studentName = checkInRecord[4];
+                        
+                        if (checkInRecord.timestamp) checkInTime = checkInRecord.timestamp;
+                        else if (checkInRecord[0]) checkInTime = checkInRecord[0];
                     }
 
                     certs.push({
