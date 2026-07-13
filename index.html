@@ -16,18 +16,20 @@
     
     
     <script>
-        tailwind.config = { 
-            theme: { 
-                extend: { 
-                    colors: { 
-                        primary: '#2563eb', /* Modern Tech Blue */
-                        primary_hover: '#1d4ed8', 
-                        secondary: '#475569', 
-                        admin: '#0f172a', 
-                        admin_hover: '#1e293b' 
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = { 
+                theme: { 
+                    extend: { 
+                        colors: { 
+                            primary: '#2563eb', /* Modern Tech Blue */
+                            primary_hover: '#1d4ed8', 
+                            secondary: '#475569', 
+                            admin: '#0f172a', 
+                            admin_hover: '#1e293b' 
+                        } 
                     } 
                 } 
-            } 
+            }
         }
     </script>
 
@@ -333,19 +335,21 @@
     <!-- MAIN SCRIPT -->
 
     <script>
-tailwind.config = { 
-            theme: { 
-                extend: { 
-                    colors: { 
-                        primary: '#2563eb', /* Modern Tech Blue */
-                        primary_hover: '#1d4ed8', 
-                        secondary: '#475569', 
-                        admin: '#0f172a', 
-                        admin_hover: '#1e293b' 
-                    } 
+if (typeof tailwind !== 'undefined') {
+    tailwind.config = { 
+        theme: { 
+            extend: { 
+                colors: { 
+                    primary: '#2563eb', /* Modern Tech Blue */
+                    primary_hover: '#1d4ed8', 
+                    secondary: '#475569', 
+                    admin: '#0f172a', 
+                    admin_hover: '#1e293b' 
                 } 
             } 
-        }
+        } 
+    };
+}
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCPFTT76JLJLo3cNjTDNXQPbofR3AmVEPxCOD9yzdW_73yFy92d-Q0OHAu26DgsA7x/exec';
         window.getRandomMon = function() {
             const mons = [1,4,7,25,39,52,54,94,133,143,151,152,155,158,175,258];
@@ -377,27 +381,47 @@ tailwind.config = {
         let currentRole = 'student', currentAdminRole = 'superadmin', currentView = 'events', currentModalOrderId = null, currentCheckoutOrder = null;
         let adminEventsPage = 1, adminEventsSearch = '', dashEventsPage = 1, adminOrdersPage = 1, adminOrdersSearch = '';
         const adminEventsPerPage = 5, dashEventsPerPage = 5, adminOrdersPerPage = 10;
-        const appCache = { activities: JSON.parse(localStorage.getItem('CRRU_CachedActivities') || '[]'), checkIns: [], orders: [], evaluations: [], students: {} };
+        // Failsafe to dismiss loader if script crashes or hangs
+        setTimeout(() => {
+            const loader = document.getElementById('global-app-loader');
+            if (loader && loader.style.opacity !== '0') {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.remove(), 500);
+                const tc = document.getElementById('toast-container');
+                if(tc) {
+                    const t = document.createElement('div');
+                    t.className = 'bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-2xl shadow-lg flex items-center gap-3 text-sm font-bold';
+                    t.innerHTML = '<i class="ph-fill ph-warning-circle text-xl"></i> อุปกรณ์ของคุณไม่สามารถโหลดข้อมูลได้สมบูรณ์ (เข้าสู่โหมดปลอดภัย)';
+                    tc.appendChild(t);
+                    setTimeout(() => t.remove(), 8000);
+                }
+            }
+        }, 15000);
+
+        function safeGet(k) { try { return localStorage.getItem(k); } catch(e) { return null; } }
+        function safeParse(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e) { return d; } }
+
+        const appCache = { activities: safeParse('CRRU_CachedActivities', []), checkIns: [], orders: [], evaluations: [], students: {} };
         
-        let isShirtShopOpen = localStorage.getItem('CRRU_ShopOpen') !== 'false'; 
-        let isCertSystemOpen = localStorage.getItem('CRRU_CertOpen') !== 'false';
-        let certEventStatus = JSON.parse(localStorage.getItem('CRRU_CertEventStatus') || '{}');
+        let isShirtShopOpen = safeGet('CRRU_ShopOpen') !== 'false'; 
+        let isCertSystemOpen = safeGet('CRRU_CertOpen') !== 'false';
+        let certEventStatus = safeParse('CRRU_CertEventStatus', {});
         let adminCertPage = 1, adminCertSearch = '';
         const adminCertPerPage = 5;
         
         // --- CUSTOMIZATION SETTINGS ---
-        let appSettings = JSON.parse(localStorage.getItem('CRRU_AppSettings')) || { 
+        let appSettings = safeParse('CRRU_AppSettings', { 
             appBgImage: '', 
             certBgImage: 'https://img1.pic.in.th/images/-268cba603e7a1b86a.png',
             sizeChartImage: 'https://img1.pic.in.th/images/S__269672452.jpg',
             shirtPoloImage: 'https://img1.pic.in.th/images/66814.jpg',
             shirtActImage: 'https://img1.pic.in.th/images/66813.jpg'
-        };
+        });
         
-        let popupSettings = JSON.parse(localStorage.getItem('CRRU_PopupSettings')) || { enabled: true, title: 'แจ้งเตือนนักศึกษาใหม่\nรหัส 69 ทุกคน!', description: ['ขอให้นักศึกษาชั้นปีที่ 1 ทุกคน สั่งจองชุดเสื้อคณะให้เรียบร้อย', 'กรุณาตรวจสอบความถูกต้องของข้อมูลก่อนยืนยัน'], imageUrl: ['https://images.unsplash.com/photo-1523580494112-071d16940a1c?auto=format&fit=crop&q=80&w=800'] };
-        let promptPaySettings = JSON.parse(localStorage.getItem('CRRU_PromptPaySettings')) || { accountName: 'ฝ่ายกิจการนักศึกษา', accountNumber: '012-3-45678-9', bankName: 'ธ.กรุงไทย' };
-        let parsedAdminUsers = null; try { parsedAdminUsers = JSON.parse(localStorage.getItem('CRRU_AdminUsers')); } catch(e) {}
-        let adminUsers = Array.isArray(parsedAdminUsers) ? parsedAdminUsers : [{ id: '1', user: 'D.crru', pass: '9999', role: 'superadmin' }];
+        let popupSettings = safeParse('CRRU_PopupSettings', { enabled: true, title: 'แจ้งเตือนนักศึกษาใหม่\nรหัส 69 ทุกคน!', description: ['ขอให้นักศึกษาชั้นปีที่ 1 ทุกคน สั่งจองชุดเสื้อคณะให้เรียบร้อย', 'กรุณาตรวจสอบความถูกต้องของข้อมูลก่อนยืนยัน'], imageUrl: ['https://images.unsplash.com/photo-1523580494112-071d16940a1c?auto=format&fit=crop&q=80&w=800'] });
+        let promptPaySettings = safeParse('CRRU_PromptPaySettings', { accountName: 'ฝ่ายกิจการนักศึกษา', accountNumber: '012-3-45678-9', bankName: 'ธ.กรุงไทย' });
+        let adminUsers = safeParse('CRRU_AdminUsers', [{ id: '1', user: 'D.crru', pass: '9999', role: 'superadmin' }]);
+        if(!Array.isArray(adminUsers) || adminUsers.length === 0) adminUsers = [{ id: '1', user: 'D.crru', pass: '9999', role: 'superadmin' }];
         
         const NAV_STUDENT = [ 
             { id: 'events', label: 'เช็คชื่อเข้าร่วมกิจกรรม', tabLabel: 'เช็คชื่อ', icon: 'ph-map-pin' }, 
@@ -433,7 +457,7 @@ tailwind.config = {
             } else {
                 document.body.style.backgroundImage = `linear-gradient(rgba(248, 250, 252, 0.82), rgba(241, 245, 249, 0.88))`;
             }
-            if (localStorage.getItem('themeMode') === 'dark') { document.documentElement.classList.add('dark'); document.getElementById('icon-dark-mode').className = 'ph-bold ph-sun text-xl text-amber-500'; }
+            if (safeGet('themeMode') === 'dark') { document.documentElement.classList.add('dark'); const idm = document.getElementById('icon-dark-mode'); if(idm) idm.className = 'ph-bold ph-sun text-xl text-amber-500'; }
             const sc = document.getElementById('sizeChartImgModal'); if(sc) sc.src = appSettings.sizeChartImage;
             const pi = document.getElementById('poloImgModal'); if(pi) pi.src = appSettings.shirtPoloImage;
             const ai = document.getElementById('actImgModal'); if(ai) ai.src = appSettings.shirtActImage;
@@ -999,6 +1023,23 @@ tailwind.config = {
             warningBox.classList.add('hidden');
             distPill.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-1"></i> กำลังคำนวณ...';
             distPill.className = 'px-3 py-1.5 rounded-lg bg-slate-100 text-slate-500 text-xs font-bold transition-colors';
+
+            const targetLat = parseFloat(e.lat);
+            const targetLng = parseFloat(e.lng);
+            
+            if (isNaN(targetLat) || isNaN(targetLng)) {
+                if (btnCalc) btnCalc.classList.add('hidden');
+                if (resultContainer) resultContainer.classList.remove('hidden');
+                statusText.innerText = 'กิจกรรมไม่กำหนดพิกัด';
+                dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400';
+                warningBox.classList.add('hidden');
+                distPill.innerHTML = '<i class="ph-bold ph-check-circle mr-1.5"></i> สามารถบันทึกได้ทันที';
+                distPill.className = 'px-4 py-2.5 rounded-xl bg-emerald-50 text-emerald-600 text-[13px] font-bold transition-all border border-emerald-200 shadow-sm';
+                window.currentGpsValid = true;
+                window.currentGpsCoords = null; // No GPS needed
+                if (btnSubmit && document.getElementById('reg-student-id') && document.getElementById('reg-student-id').value.trim() !== '') btnSubmit.disabled = false;
+                return;
+            }
 
             window.gpsWatchId = navigator.geolocation.watchPosition(
                 (pos) => {
@@ -1649,7 +1690,7 @@ tailwind.config = {
             }
 
             c.innerHTML = `
-                <div class="fade-in max-w-2xl mx-auto"><button onclick="navigate('events')" class="flex items-center gap-2 text-slate-600 hover:text-primary mb-6 font-bold text-sm bg-white/50 border border-white px-4 py-2 rounded-xl shadow-sm hover-lift"><i class="ph-bold ph-arrow-left text-lg"></i> กลกลกลกลับไปหน้ากิจกรรม</button><div class="glass rounded-[32px] shadow-xl overflow-hidden">${coverHTML}<div class="bg-gradient-to-br from-orange-50 to-transparent p-8 sm:p-10 ${!textDescHTML ? 'border-b border-white/50' : ''}"><div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-primary text-3xl mb-5"><i class="ph-fill ph-calendar-check"></i></div><h2 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">${e.type === 'register' ? 'สมัครเข้าร่วมกิจกรรม' : 'ลงทะเบียนกิจกรรม'}</h2><p class="text-primary font-bold mt-2 leading-snug">${e.title}</p></div>${textDescHTML}<div class="p-8 sm:p-10 bg-white/20">
+                <div class="fade-in max-w-2xl mx-auto"><button onclick="navigate('events')" class="flex items-center gap-2 text-slate-600 hover:text-primary mb-6 font-bold text-sm bg-white/50 border border-white px-4 py-2 rounded-xl shadow-sm hover-lift"><i class="ph-bold ph-arrow-left text-lg"></i> กลับไปหน้ากิจกรรม</button><div class="glass rounded-[32px] shadow-xl overflow-hidden">${coverHTML}<div class="bg-gradient-to-br from-orange-50 to-transparent p-8 sm:p-10 ${!textDescHTML ? 'border-b border-white/50' : ''}"><div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-primary text-3xl mb-5"><i class="ph-fill ph-calendar-check"></i></div><h2 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">${e.type === 'register' ? 'สมัครเข้าร่วมกิจกรรม' : 'ลงทะเบียนกิจกรรม'}</h2><p class="text-primary font-bold mt-2 leading-snug">${e.title}</p><div class="flex items-center gap-2 mt-3.5 text-slate-600 font-medium text-[15px]"><i class="ph-bold ph-calendar-blank text-slate-400 text-lg"></i> <span>${window.formatThaiDate(e.date || e.rawDate)}</span></div></div>${textDescHTML}<div class="p-8 sm:p-10 bg-white/20">
 
 <div id="step-search" class="mb-2"><label class="block text-sm font-bold text-slate-700 mb-3">ระบุรหัสนักศึกษา หรือ หมายเลขบัตรประชาชน</label>
                 <div class="flex flex-col gap-4">
@@ -1657,6 +1698,23 @@ tailwind.config = {
                     <button onclick="fetchStudentData()" id="btn-fetch-student" class="w-full px-8 py-4 bg-slate-800 text-white text-base font-bold rounded-2xl hover:bg-black transition-colors shadow-lg shadow-slate-800/20 flex items-center justify-center gap-2 shrink-0"><i class="ph-bold ph-magnifying-glass text-lg"></i> ค้นหา</button>
                 </div>
                 <p id="search-feedback" class="text-sm font-bold text-orange-600 hidden bg-orange-50 p-4 rounded-xl border border-orange-200 mt-3"></p></div><form id="step-form" class="space-y-6 hidden" onsubmit="handleRegistrationSubmit(event, '${id}')">
+<div class="bg-slate-900 rounded-[28px] p-6 text-white shadow-xl shadow-slate-900/20 relative overflow-hidden border border-slate-800 mb-6">
+    <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-transparent pointer-events-none"></div>
+    <div class="absolute -right-12 -top-12 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="flex items-center gap-5 relative z-10">
+        <div class="w-16 h-16 rounded-[18px] bg-slate-800 p-1 shadow-inner shrink-0 border border-slate-700">
+            <img src="https://ui-avatars.com/api/?name=Student&background=random" id="gps-profile-img" alt="Profile" class="w-full h-full rounded-2xl object-cover">
+        </div>
+        <div>
+            <div class="inline-flex items-center gap-1.5 bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full text-[11px] font-bold mb-1.5 border border-indigo-500/20">
+                <i class="ph-fill ph-fingerprint text-sm"></i> ยืนยันตัวบุคคล
+            </div>
+            <h2 class="font-black text-[19px] leading-tight truncate w-48 sm:w-64 text-slate-100" id="gps-profile-name">-</h2>
+            <p class="text-slate-400 text-[13px] font-medium mt-1 truncate w-48 sm:w-64" id="gps-profile-dept">-</p>
+        </div>
+    </div>
+</div>
+
 ${e.type === 'register' ? '' : `
 <div id="gps-status-card" class="mb-6 bg-white/95 backdrop-blur-xl rounded-[28px] p-7 shadow-xl shadow-slate-200/40 border border-white/60 hidden flex-col gap-5 relative overflow-hidden group">
     <div class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-50 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
@@ -1699,45 +1757,29 @@ ${e.type === 'register' ? '' : `
     </div>
 </div>
 `}
-<div class="bg-slate-900 rounded-[28px] p-6 text-white shadow-xl shadow-slate-900/20 relative overflow-hidden border border-slate-800">
-    <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-transparent pointer-events-none"></div>
-    <div class="absolute -right-12 -top-12 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="flex items-center gap-5 relative z-10">
-        <div class="w-16 h-16 rounded-[18px] bg-slate-800 p-1 shadow-inner shrink-0 border border-slate-700">
-            <img src="https://ui-avatars.com/api/?name=Student&background=random" id="gps-profile-img" alt="Profile" class="w-full h-full rounded-2xl object-cover">
-        </div>
-        <div>
-            <div class="inline-flex items-center gap-1.5 bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full text-[11px] font-bold mb-1.5 border border-indigo-500/20">
-                <i class="ph-fill ph-fingerprint text-sm"></i> ยืนยันตัวบุคคล
-            </div>
-            <h2 class="font-black text-[19px] leading-tight truncate w-48 sm:w-64 text-slate-100" id="gps-profile-name">-</h2>
-            <p class="text-slate-400 text-[13px] font-medium mt-1 truncate w-48 sm:w-64" id="gps-profile-dept">-</p>
-        </div>
-    </div>
-</div>
-<input type="hidden" id="reg-hidden-student-id"><input type="hidden" id="reg-hidden-citizen-id">
-<div class="space-y-6 bg-white/95 p-7 rounded-[28px] shadow-xl shadow-slate-200/40 border border-white/60 relative overflow-hidden">
+<input type="hidden" id="reg-hidden-student-id"><input type="hidden" id="reg-hidden-citizen-id"><input type="hidden" id="reg-hidden-name">
+<div id="manual-form-fields" class="space-y-6 bg-white/95 p-7 rounded-[28px] shadow-xl shadow-slate-200/40 border border-white/60 relative overflow-hidden hidden">
     <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-orange-50 to-transparent opacity-50 rounded-full blur-3xl pointer-events-none"></div>
     <div class="relative z-10 space-y-5">
         <div>
             <label class="block text-[13px] font-bold text-slate-500 mb-2.5">รหัสนักศึกษา/บัตรประชาชน</label>
-            <input type="text" id="reg-student-id" required readonly class="w-full px-5 py-4 rounded-2xl border-none bg-slate-50 text-slate-400 text-sm font-bold shadow-inner focus:outline-none">
+            <input type="text" id="reg-student-id" readonly class="w-full px-5 py-4 rounded-2xl border-none bg-slate-50 text-slate-400 text-sm font-bold shadow-inner focus:outline-none">
         </div>
-        <div>
-            <label class="block text-[13px] font-bold text-slate-500 mb-2.5">ชื่อ-นามสกุล <span class="text-rose-500">*</span></label>
-            <input type="text" id="reg-name" required class="w-full px-5 py-4 rounded-2xl border border-slate-200/80 font-bold text-[14px] text-slate-700 bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm">
+        <div class="hidden">
+            <label class="block text-[13px] font-bold text-slate-500 mb-2.5">ชื่อ-นามสกุล</label>
+            <input type="text" id="reg-name" class="w-full px-5 py-4 rounded-2xl border border-slate-200/80 font-bold text-[14px] text-slate-700 bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm">
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-                <label class="block text-[13px] font-bold text-slate-500 mb-2.5">คณะ <span class="text-rose-500">*</span></label>
-                <input type="text" id="reg-faculty" required class="w-full px-5 py-4 rounded-2xl border border-slate-200/80 font-bold text-[14px] text-slate-700 bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm">
+                <label class="block text-[13px] font-bold text-slate-500 mb-2.5">คณะ</label>
+                <input type="text" id="reg-faculty" class="w-full px-5 py-4 rounded-2xl border border-slate-200/80 font-bold text-[14px] text-slate-700 bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm">
             </div>
             <div>
-                <label class="block text-[13px] font-bold text-slate-500 mb-2.5">สาขาวิชา <span class="text-rose-500">*</span></label>
-                <input type="text" id="reg-major" required class="w-full px-5 py-4 rounded-2xl border border-slate-200/80 font-bold text-[14px] text-slate-700 bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm">
+                <label class="block text-[13px] font-bold text-slate-500 mb-2.5">สาขาวิชา</label>
+                <input type="text" id="reg-major" class="w-full px-5 py-4 rounded-2xl border border-slate-200/80 font-bold text-[14px] text-slate-700 bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm">
             </div>
         </div>
-        <div>
+        <div class="hidden">
             <label class="block text-[13px] font-bold text-slate-500 mb-2.5">เลขบัตรประชาชน</label>
             <input type="text" id="reg-citizen-id" class="w-full px-5 py-4 rounded-2xl border border-slate-200/80 font-bold text-[14px] text-slate-700 bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm">
         </div>
@@ -1772,12 +1814,31 @@ ${e.type === 'register' ? '' : `
             finally { b.innerHTML = oH; b.disabled = false; }
         };
 
+        window.maskNamePDPA = function(fullName) {
+            if (!fullName) return '';
+            let parts = fullName.trim().split(/\s+/);
+            if (parts.length === 1) {
+                const w = parts[0];
+                if (w.length <= 2) return w;
+                return w.substring(0, Math.ceil(w.length/2)) + '*'.repeat(Math.floor(w.length/2));
+            }
+            const firstPart = parts[0];
+            const lastParts = parts.slice(1).join(' ');
+            if (lastParts.length <= 1) return firstPart + ' ' + lastParts;
+            const maskedLast = lastParts.charAt(0) + '*'.repeat(6);
+            return `${firstPart} ${maskedLast}`;
+        };
+
         window.fillStudentForm = function(d, sId) { 
             document.getElementById('reg-student-id').value = d.studentId || sId; 
             document.getElementById('reg-citizen-id').value = d.citizenId || ''; 
             document.getElementById('reg-hidden-student-id').value = d.studentId || ''; 
             document.getElementById('reg-hidden-citizen-id').value = d.citizenId || ''; 
-            document.getElementById('reg-name').value = d.name || ''; 
+            
+            const realName = d.name || '';
+            const hn = document.getElementById('reg-hidden-name');
+            if (hn) hn.value = realName;
+            document.getElementById('reg-name').value = window.maskNamePDPA(realName); 
             document.getElementById('reg-faculty').value = d.faculty || ''; 
             document.getElementById('reg-major').value = d.major || ''; 
             document.getElementById('reg-student-id').readOnly = true; 
@@ -1812,8 +1873,11 @@ ${e.type === 'register' ? '' : `
                 if (el) { el.readOnly = false; el.classList.remove('bg-slate-100/50', 'text-slate-500', 'shadow-inner', 'cursor-not-allowed'); el.classList.add('bg-white'); } 
             }); 
             if (sId.length === 13 && !isNaN(sId)) document.getElementById('reg-citizen-id').value = sId; else document.getElementById('reg-student-id').value = sId; 
+            const hn = document.getElementById('reg-hidden-name'); if(hn) hn.value = '';
             document.getElementById('step-search').classList.add('hidden'); 
             document.getElementById('step-form').classList.remove('hidden'); 
+            const manualFields = document.getElementById('manual-form-fields');
+            if (manualFields) manualFields.classList.remove('hidden');
             const gpsCard = document.getElementById('gps-status-card');
             if (gpsCard) { gpsCard.classList.remove('hidden'); gpsCard.classList.add('flex'); }
             if (window.currentGpsValid) {
@@ -1839,8 +1903,11 @@ ${e.type === 'register' ? '' : `
             document.getElementById('step-search').classList.remove('hidden'); 
             document.getElementById('search-feedback').classList.add('hidden'); 
             document.getElementById('step-form').reset(); 
+            const manualFields = document.getElementById('manual-form-fields');
+            if (manualFields) manualFields.classList.add('hidden');
             document.getElementById('reg-hidden-student-id').value = ''; 
             document.getElementById('reg-hidden-citizen-id').value = ''; 
+            const hn = document.getElementById('reg-hidden-name'); if(hn) hn.value = '';
             const err = document.getElementById('reg-error-message'); 
             if (err) err.classList.add('hidden'); 
             ['reg-name', 'reg-faculty', 'reg-major', 'reg-student-id', 'reg-citizen-id'].forEach(id => { 
@@ -1853,7 +1920,11 @@ ${e.type === 'register' ? '' : `
             e.preventDefault(); 
             const fSid = document.getElementById('reg-hidden-student-id').value.trim() || document.getElementById('reg-student-id').value.trim(); 
             const fCid = document.getElementById('reg-hidden-citizen-id').value.trim() || document.getElementById('reg-citizen-id').value.trim(); 
-            const fN = document.getElementById('reg-name').value, fF = document.getElementById('reg-faculty').value, fM = document.getElementById('reg-major').value; 
+            const rawName = document.getElementById('reg-name').value.trim();
+            const hn = document.getElementById('reg-hidden-name');
+            const hiddenName = hn ? hn.value.trim() : '';
+            const fN = (hiddenName && rawName === window.maskNamePDPA(hiddenName)) ? hiddenName : rawName;
+            const fF = document.getElementById('reg-faculty').value.trim(), fM = document.getElementById('reg-major').value.trim(); 
             const evO = appCache.activities.find(x => String(x.id) === String(evId)), evN = evO?.title || 'กิจกรรม'; 
             const err = document.getElementById('reg-error-message'); 
             if (err) err.classList.add('hidden');
@@ -1892,7 +1963,7 @@ ${e.type === 'register' ? '' : `
                     if (!window.currentGpsValid) {
                         if (err) { err.innerHTML = 'กรุณารอให้ระบบคำนวณระยะห่างให้สำเร็จก่อนกดเช็คชื่อ หรือคุณอยู่นอกระยะ 150 เมตร'; err.classList.remove('hidden'); }
                         window.showToast('กรุณารอให้ระบบคำนวณระยะห่างให้สำเร็จ', 'error');
-                        b.innerHTML = oH; b.disabled = false; return;
+                        return;
                     }
                 }
                 const now = new Date();
@@ -2661,7 +2732,7 @@ ${e.type === 'register' ? '' : `
 
         window.renderShirtShop = async function(c) {
             window.fetchSettingsData().catch(e=>console.log(e)); // fetch in background
-            if (!isShirtShopOpen) { c.innerHTML = `<div class="fade-in max-w-4xl mx-auto px-4 py-10"><div class="glass rounded-[32px] p-12 text-center"><div class="w-24 h-24 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-8"><i class="ph-fill ph-lock-key text-5xl"></i></div><h2 class="text-3xl font-black text-slate-800 mb-3">ปิดให้บริการชั่วคราว</h2><button onclick="navigate('events')" class="mt-8 px-8 py-4 bg-slate-800 text-white font-bold rounded-2xl mx-auto flex items-center gap-2"><i class="ph-bold ph-arrow-left"></i> กลกลกลกลับไปหน้ากิจกรรม</button></div></div>`; return; }
+            if (!isShirtShopOpen) { c.innerHTML = `<div class="fade-in max-w-4xl mx-auto px-4 py-10"><div class="glass rounded-[32px] p-12 text-center"><div class="w-24 h-24 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-8"><i class="ph-fill ph-lock-key text-5xl"></i></div><h2 class="text-3xl font-black text-slate-800 mb-3">ปิดให้บริการชั่วคราว</h2><button onclick="navigate('events')" class="mt-8 px-8 py-4 bg-slate-800 text-white font-bold rounded-2xl mx-auto flex items-center gap-2"><i class="ph-bold ph-arrow-left"></i> กลับไปหน้ากิจกรรม</button></div></div>`; return; }
             c.innerHTML = `
                 <div class="fade-in max-w-4xl mx-auto pb-24 sm:pb-10">
                     <div id="order-step-search" class="animate-fadeIn block">
