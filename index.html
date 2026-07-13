@@ -1727,8 +1727,10 @@ ${e.type === 'register' ? '' : `
         </div>
     </div>
     
-    <button type="button" onclick="initGPSWatch('${id}')" class="w-full py-4 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white rounded-2xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 hover:-translate-y-0.5 text-[15px] relative z-10" id="btn-calc-gps">
-        <i class="ph-bold ph-crosshair text-xl animate-pulse"></i> คำนวณระยะรัศมีเพื่อเข้าร่วมกิจกรรม
+    <button type="button" onclick="initGPSWatch('${id}')" class="group w-full py-4.5 bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white rounded-2xl font-black transition-all duration-300 flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] ring-indigo-500/50 focus:ring-4 focus:outline-none text-[15px] sm:text-[16px] tracking-wide relative overflow-hidden z-10" id="btn-calc-gps">
+        <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+        <i class="ph-bold ph-crosshair text-2xl animate-pulse group-hover:scale-110 group-hover:rotate-90 transition-transform duration-500 relative z-10"></i> 
+        <span class="relative z-10 leading-snug text-center">คำนวณระยะรัศมี<br class="sm:hidden">เพื่อเข้าร่วมกิจกรรม</span>
     </button>
     
     <div id="gps-accuracy-pill" class="items-center gap-2.5 px-5 py-3 rounded-2xl bg-slate-50 border border-slate-200/60 text-[13px] font-bold text-slate-700 w-fit hidden relative z-10">
@@ -1736,9 +1738,14 @@ ${e.type === 'register' ? '' : `
         <span id="gps-status-text">รอการตรวจสอบ...</span>
     </div>
 
-    <div id="gps-warning-box" class="hidden p-4 bg-rose-50 border border-rose-200 rounded-2xl text-[13px] font-bold text-rose-700 flex items-start gap-3 shadow-inner relative z-10">
-        <i class="ph-fill ph-warning text-rose-500 text-xl shrink-0 mt-0.5"></i>
-        <span class="leading-relaxed">ความแม่นยำ GPS ต่ำมาก — กรุณาเปิดพิกัดแบบแม่นยำสูง หรือลองเดินออกไปในที่โล่ง</span>
+    <div id="gps-warning-box" class="hidden p-4 sm:p-5 bg-gradient-to-r from-rose-50 to-red-50 border border-rose-200/80 rounded-2xl shadow-sm relative z-10 flex items-center gap-4 animate-fadeIn">
+        <div class="w-10 h-10 rounded-full bg-rose-200/50 flex items-center justify-center shrink-0">
+            <i class="ph-fill ph-warning text-rose-600 text-xl animate-pulse"></i>
+        </div>
+        <div class="flex flex-col">
+            <span class="text-[14px] font-black text-rose-700 tracking-wide">ความแม่นยำ GPS ต่ำมาก</span>
+            <span class="text-[12.5px] text-rose-600/80 font-bold leading-tight mt-0.5">กรุณาเปิดพิกัดแบบแม่นยำสูง หรือลองเดินออกไปในที่โล่ง</span>
+        </div>
     </div>
 
     <div class="pt-5 mt-2 border-t border-slate-200/50 hidden relative z-10" id="gps-result-container">
@@ -1787,8 +1794,10 @@ ${e.type === 'register' ? '' : `
 </div>
 <p id="reg-error-message" class="text-[13px] font-bold text-rose-600 hidden bg-rose-50 p-4 rounded-2xl border border-rose-200"></p>
 <div class="flex flex-col gap-3 mt-6">
-    <button type="submit" ${e.type !== 'register' ? 'disabled' : ''} class="w-full py-4.5 ${e.type === 'register' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-emerald-500/25 text-white' : 'bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 shadow-orange-500/25 text-white disabled:bg-none disabled:bg-slate-100 disabled:text-slate-400 disabled:border disabled:border-slate-200 disabled:shadow-none disabled:cursor-not-allowed'} rounded-2xl font-black shadow-xl flex items-center justify-center gap-2.5 transition-all hover:-translate-y-0.5 text-[15px]" id="btn-attendance-action">
-        <i class="ph-bold ${e.type === 'register' ? 'ph-note-pencil' : 'ph-map-pin'} text-lg"></i> ${e.type === 'register' ? 'ยืนยันการสมัครเข้าร่วมกิจกรรม' : 'บันทึกเข้าร่วมกิจกรรม (GPS)'}
+    <button type="submit" ${e.type !== 'register' ? 'disabled' : ''} class="group w-full py-5 ${e.type === 'register' ? 'bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-500 hover:to-teal-600 shadow-emerald-500/30 ring-emerald-500/50 text-white' : 'bg-gradient-to-r from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 shadow-orange-500/30 ring-rose-500/50 text-white disabled:bg-none disabled:bg-slate-100 disabled:text-slate-400 disabled:border disabled:border-slate-200 disabled:shadow-none disabled:ring-0 disabled:cursor-not-allowed'} rounded-2xl font-black shadow-xl hover:shadow-2xl flex items-center justify-center gap-3 transition-all duration-300 hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] focus:ring-4 focus:outline-none text-[16px] tracking-wide relative overflow-hidden" id="btn-attendance-action">
+        <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+        <i class="ph-bold ${e.type === 'register' ? 'ph-note-pencil group-hover:rotate-12 group-hover:scale-110' : 'ph-map-pin group-hover:-translate-y-1 group-hover:scale-110'} text-xl transition-transform duration-300 relative z-10"></i> 
+        <span class="relative z-10">${e.type === 'register' ? 'ยืนยันการสมัครเข้าร่วมกิจกรรม' : 'บันทึกเข้าร่วมกิจกรรม (GPS)'}</span>
     </button>
     <button type="button" onclick="resetSearchForm()" class="w-full py-3.5 rounded-2xl font-bold text-slate-500 bg-transparent hover:bg-slate-100 hover:text-slate-700 transition-colors text-[14px]">
         ยกเลิก / ค้นหาใหม่
@@ -2034,7 +2043,7 @@ ${e.type === 'register' ? '' : `
                         setTimeout(() => { window.navigate('survey', { eventId: evId, eventTitle: evN, studentId: fSid || fCid }); }, 1200); 
                     }
                 } else { 
-                    if (pR.code === 'BLACKLISTED' || pR.code === 'RESTRICTED') {
+                    if (pR.code === 'BLACKLISTED' || pR.code === 'RESTRICTED' || pR.code === 'GPS_REQUIRED' || pR.code === 'GPS_OUT_OF_RANGE') {
                         if (err) { err.innerHTML = pR.message || 'ไม่สามารถลงทะเบียนได้'; err.classList.remove('hidden'); }
                         window.showToast(pR.message || 'การลงทะเบียนถูกปฏิเสธ', 'error');
                         b.innerHTML = oH; b.disabled = false;
