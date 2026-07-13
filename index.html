@@ -995,10 +995,10 @@ tailwind.config = {
 
             if (btnSubmit) btnSubmit.disabled = true;
             statusText.innerText = 'กำลังค้นหาสัญญาณ GPS...';
-            dot.className = 'w-2.5 h-2.5 rounded-full bg-slate-300 animate-pulse';
+            dot.className = 'w-2 h-2 rounded-full bg-slate-300 animate-pulse';
             warningBox.classList.add('hidden');
-            distPill.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-1.5"></i> กำลังคำนวณ...';
-            distPill.className = 'px-4 py-2.5 rounded-xl bg-slate-100 text-slate-500 text-[13px] font-bold transition-all border border-slate-200/50';
+            distPill.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-1"></i> กำลังคำนวณ...';
+            distPill.className = 'px-3 py-1.5 rounded-lg bg-slate-100 text-slate-500 text-xs font-bold transition-colors';
 
             window.gpsWatchId = navigator.geolocation.watchPosition(
                 (pos) => {
@@ -1008,11 +1008,11 @@ tailwind.config = {
                     
                     if (acc > 50) {
                         statusText.innerText = 'ความแม่นยำ \u00b1' + acc + ' เมตร';
-                        dot.className = 'w-2.5 h-2.5 rounded-full bg-orange-400';
+                        dot.className = 'w-2 h-2 rounded-full bg-orange-400';
                         warningBox.classList.remove('hidden');
                     } else {
                         statusText.innerText = 'GPS พร้อม — ความแม่นยำ \u00b1' + acc + ' เมตร';
-                        dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400';
+                        dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
                         warningBox.classList.add('hidden');
                     }
 
@@ -1023,14 +1023,14 @@ tailwind.config = {
 
                     if (dRound <= 150) {
                         distPill.innerHTML = 'อยู่ในระยะ (' + dRound + ' ม.)';
-                        distPill.className = 'px-4 py-2.5 rounded-xl bg-emerald-50 text-emerald-600 text-[13px] font-bold transition-all border border-emerald-200 shadow-sm';
+                        distPill.className = 'px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-600 text-xs font-bold transition-colors';
                         window.currentGpsValid = true;
                         window.currentGpsCoords = { lat, lng };
                         if (btnSubmit && document.getElementById('reg-student-id') && document.getElementById('reg-student-id').value.trim() !== '') btnSubmit.disabled = false;
                     } else {
                         let text = dRound >= 1000 ? (dRound/1000).toFixed(2) + ' กม.' : dRound + ' ม.';
-                        distPill.innerHTML = '<i class="ph-bold ph-map-pin mr-1.5"></i>ห่าง ' + text;
-                        distPill.className = 'px-4 py-2.5 rounded-xl bg-rose-50 text-rose-600 text-[13px] font-bold transition-all border border-rose-200 shadow-sm';
+                        distPill.innerHTML = '<i class="ph-bold ph-map-pin mr-1"></i>ห่าง ' + text;
+                        distPill.className = 'px-3 py-1.5 rounded-lg bg-rose-100 text-rose-600 text-xs font-bold transition-colors';
                         window.currentGpsValid = false;
                         window.currentGpsCoords = null;
                         if (btnSubmit) btnSubmit.disabled = true;
@@ -1038,9 +1038,9 @@ tailwind.config = {
                 },
                 (err) => {
                     statusText.innerText = 'ไม่สามารถดึงพิกัดได้';
-                    dot.className = 'w-2.5 h-2.5 rounded-full bg-rose-400';
+                    dot.className = 'w-2 h-2 rounded-full bg-rose-400';
                     distPill.innerHTML = 'เกิดข้อผิดพลาด';
-                    distPill.className = 'px-4 py-2.5 rounded-xl bg-rose-50 text-rose-600 text-[13px] font-bold transition-all border border-rose-200 shadow-sm';
+                    distPill.className = 'px-3 py-1.5 rounded-lg bg-rose-100 text-rose-600 text-xs font-bold';
                     window.currentGpsValid = false;
                     if (btnSubmit) btnSubmit.disabled = true;
                 },
@@ -1649,7 +1649,7 @@ tailwind.config = {
             }
 
             c.innerHTML = `
-                <div class="fade-in max-w-2xl mx-auto"><button onclick="navigate('events')" class="flex items-center gap-2 text-slate-600 hover:text-indigo-600 mb-6 font-bold text-sm bg-white/50 border border-white px-5 py-2.5 rounded-xl shadow-sm hover-lift"><i class="ph-bold ph-arrow-left text-lg"></i> กลับไปหน้ากิจกรรม</button><div class="glass rounded-[32px] shadow-xl overflow-hidden">${coverHTML}<div class="bg-gradient-to-br from-indigo-50 via-white to-transparent p-8 sm:p-10 ${!textDescHTML ? 'border-b border-white/50' : ''}"><div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-indigo-600 text-3xl mb-5 border border-indigo-50"><i class="ph-fill ph-calendar-check"></i></div><h2 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">${e.type === 'register' ? 'สมัครเข้าร่วมกิจกรรม' : 'ลงทะเบียนกิจกรรม'}</h2><p class="text-indigo-600 font-bold mt-2.5 leading-snug text-lg">${e.title}</p></div>${textDescHTML}<div class="p-8 sm:p-10 bg-white/30 border-t border-white/40">
+                <div class="fade-in max-w-2xl mx-auto"><button onclick="navigate('events')" class="flex items-center gap-2 text-slate-600 hover:text-primary mb-6 font-bold text-sm bg-white/50 border border-white px-4 py-2 rounded-xl shadow-sm hover-lift"><i class="ph-bold ph-arrow-left text-lg"></i> กลกลกลกลับไปหน้ากิจกรรม</button><div class="glass rounded-[32px] shadow-xl overflow-hidden">${coverHTML}<div class="bg-gradient-to-br from-orange-50 to-transparent p-8 sm:p-10 ${!textDescHTML ? 'border-b border-white/50' : ''}"><div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-primary text-3xl mb-5"><i class="ph-fill ph-calendar-check"></i></div><h2 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">${e.type === 'register' ? 'สมัครเข้าร่วมกิจกรรม' : 'ลงทะเบียนกิจกรรม'}</h2><p class="text-primary font-bold mt-2 leading-snug">${e.title}</p></div>${textDescHTML}<div class="p-8 sm:p-10 bg-white/20">
 
 <div id="step-search" class="mb-2"><label class="block text-sm font-bold text-slate-700 mb-3">ระบุรหัสนักศึกษา หรือ หมายเลขบัตรประชาชน</label>
                 <div class="flex flex-col gap-4">
@@ -1657,30 +1657,8 @@ tailwind.config = {
                     <button onclick="fetchStudentData()" id="btn-fetch-student" class="w-full px-8 py-4 bg-slate-800 text-white text-base font-bold rounded-2xl hover:bg-black transition-colors shadow-lg shadow-slate-800/20 flex items-center justify-center gap-2 shrink-0"><i class="ph-bold ph-magnifying-glass text-lg"></i> ค้นหา</button>
                 </div>
                 <p id="search-feedback" class="text-sm font-bold text-orange-600 hidden bg-orange-50 p-4 rounded-xl border border-orange-200 mt-3"></p></div><form id="step-form" class="space-y-6 hidden" onsubmit="handleRegistrationSubmit(event, '${id}')">
-<div class="bg-slate-900 rounded-[28px] p-6 text-white shadow-xl shadow-slate-900/20 relative overflow-hidden border border-slate-800">
-    <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-transparent pointer-events-none"></div>
-    <div class="absolute -right-12 -top-12 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="flex items-center gap-5 relative z-10">
-        <div class="w-16 h-16 rounded-[18px] bg-slate-800 p-1 shadow-inner shrink-0 border border-slate-700">
-            <img src="https://ui-avatars.com/api/?name=Student&background=random" id="gps-profile-img" alt="Profile" class="w-full h-full rounded-2xl object-cover">
-        </div>
-        <div>
-            <div class="inline-flex items-center gap-1.5 bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full text-[11px] font-bold mb-1.5 border border-indigo-500/20">
-                <i class="ph-fill ph-fingerprint text-sm"></i> ยืนยันตัวบุคคล
-            </div>
-            <h2 class="font-black text-[19px] leading-tight truncate w-48 sm:w-64 text-slate-100 flex items-baseline gap-1.5">
-                <span id="gps-profile-rank" class="text-[15px] text-indigo-400 hidden"></span>
-                <span id="gps-profile-name">-</span>
-            </h2>
-            <div class="flex items-center gap-2 mt-1">
-                <span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[11px] font-bold border border-slate-700"><i class="ph-bold ph-identification-card mr-1"></i><span id="gps-profile-sid">-</span></span>
-            </div>
-            <p class="text-slate-400 text-[13px] font-medium mt-1.5 truncate w-48 sm:w-64" id="gps-profile-dept">-</p>
-        </div>
-    </div>
-</div>
 ${e.type === 'register' ? '' : `
-<div id="gps-status-card" class="bg-white/95 backdrop-blur-xl rounded-[28px] p-7 shadow-xl shadow-slate-200/40 border border-white/60 hidden flex-col gap-5 relative overflow-hidden group">
+<div id="gps-status-card" class="mb-6 bg-white/95 backdrop-blur-xl rounded-[28px] p-7 shadow-xl shadow-slate-200/40 border border-white/60 hidden flex-col gap-5 relative overflow-hidden group">
     <div class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-50 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
     <div class="flex items-start justify-between relative z-10">
         <div>
@@ -1706,7 +1684,7 @@ ${e.type === 'register' ? '' : `
     </div>
 
     <div class="pt-5 mt-2 border-t border-slate-200/50 hidden relative z-10" id="gps-result-container">
-        <p class="text-[11px] font-black text-slate-400 uppercase tracking-wider mb-3 ml-1">📍 สถานที่จัดงาน</p>
+        <p class="text-[11px] font-black text-slate-400 uppercase tracking-wider mb-3 ml-1">📍 จุดที่สามารถลงเวลา</p>
         <div class="w-full p-4 rounded-2xl bg-white border border-slate-200/80 text-[14px] font-bold text-slate-700 flex items-center justify-between shadow-sm">
             <span class="truncate pr-2 flex items-center"><i class="ph-bold ph-map-pin-line text-slate-400 mr-2.5 text-lg"></i>${e.title}</span>
         </div>
@@ -1721,32 +1699,42 @@ ${e.type === 'register' ? '' : `
     </div>
 </div>
 `}
+<div class="bg-slate-900 rounded-[28px] p-6 text-white shadow-xl shadow-slate-900/20 relative overflow-hidden border border-slate-800">
+    <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-transparent pointer-events-none"></div>
+    <div class="absolute -right-12 -top-12 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="flex items-center gap-5 relative z-10">
+        <div class="w-16 h-16 rounded-[18px] bg-slate-800 p-1 shadow-inner shrink-0 border border-slate-700">
+            <img src="https://ui-avatars.com/api/?name=Student&background=random" id="gps-profile-img" alt="Profile" class="w-full h-full rounded-2xl object-cover">
+        </div>
+        <div>
+            <div class="inline-flex items-center gap-1.5 bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full text-[11px] font-bold mb-1.5 border border-indigo-500/20">
+                <i class="ph-fill ph-fingerprint text-sm"></i> ยืนยันตัวบุคคล
+            </div>
+            <h2 class="font-black text-[19px] leading-tight truncate w-48 sm:w-64 text-slate-100" id="gps-profile-name">-</h2>
+            <p class="text-slate-400 text-[13px] font-medium mt-1 truncate w-48 sm:w-64" id="gps-profile-dept">-</p>
+        </div>
+    </div>
+</div>
 <input type="hidden" id="reg-hidden-student-id"><input type="hidden" id="reg-hidden-citizen-id">
-<div id="reg-basic-info-container" class="hidden space-y-6 bg-white/95 p-7 rounded-[28px] shadow-xl shadow-slate-200/40 border border-white/60 relative overflow-hidden">
+<div class="space-y-6 bg-white/95 p-7 rounded-[28px] shadow-xl shadow-slate-200/40 border border-white/60 relative overflow-hidden">
     <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-orange-50 to-transparent opacity-50 rounded-full blur-3xl pointer-events-none"></div>
     <div class="relative z-10 space-y-5">
         <div>
             <label class="block text-[13px] font-bold text-slate-500 mb-2.5">รหัสนักศึกษา/บัตรประชาชน</label>
-            <input type="text" id="reg-student-id" readonly class="w-full px-5 py-4 rounded-2xl border-none bg-slate-50 text-slate-400 text-sm font-bold shadow-inner focus:outline-none">
+            <input type="text" id="reg-student-id" required readonly class="w-full px-5 py-4 rounded-2xl border-none bg-slate-50 text-slate-400 text-sm font-bold shadow-inner focus:outline-none">
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-                <label class="block text-[13px] font-bold text-slate-500 mb-2.5">ยศ/คำนำหน้า</label>
-                <input type="text" id="reg-rank" placeholder="เช่น พลทหาร, นาย, นางสาว" class="w-full px-5 py-4 rounded-2xl border border-slate-200/80 font-bold text-[14px] text-slate-700 bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm">
-            </div>
-            <div>
-                <label class="block text-[13px] font-bold text-slate-500 mb-2.5">ชื่อ-นามสกุล <span class="text-rose-500">*</span></label>
-                <input type="text" id="reg-name" class="w-full px-5 py-4 rounded-2xl border border-slate-200/80 font-bold text-[14px] text-slate-700 bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm">
-            </div>
+        <div>
+            <label class="block text-[13px] font-bold text-slate-500 mb-2.5">ชื่อ-นามสกุล <span class="text-rose-500">*</span></label>
+            <input type="text" id="reg-name" required class="w-full px-5 py-4 rounded-2xl border border-slate-200/80 font-bold text-[14px] text-slate-700 bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm">
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
                 <label class="block text-[13px] font-bold text-slate-500 mb-2.5">คณะ <span class="text-rose-500">*</span></label>
-                <input type="text" id="reg-faculty" class="w-full px-5 py-4 rounded-2xl border border-slate-200/80 font-bold text-[14px] text-slate-700 bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm">
+                <input type="text" id="reg-faculty" required class="w-full px-5 py-4 rounded-2xl border border-slate-200/80 font-bold text-[14px] text-slate-700 bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm">
             </div>
             <div>
                 <label class="block text-[13px] font-bold text-slate-500 mb-2.5">สาขาวิชา <span class="text-rose-500">*</span></label>
-                <input type="text" id="reg-major" class="w-full px-5 py-4 rounded-2xl border border-slate-200/80 font-bold text-[14px] text-slate-700 bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm">
+                <input type="text" id="reg-major" required class="w-full px-5 py-4 rounded-2xl border border-slate-200/80 font-bold text-[14px] text-slate-700 bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm">
             </div>
         </div>
         <div>
@@ -1792,12 +1780,9 @@ ${e.type === 'register' ? '' : `
             document.getElementById('reg-name').value = d.name || ''; 
             document.getElementById('reg-faculty').value = d.faculty || ''; 
             document.getElementById('reg-major').value = d.major || ''; 
-            const rankVal = d.rank || d.title || d.position || d['ยศ'] || d['ตำแหน่ง'] || d['ตำแหน่งชั้นยศ'];
-            const regRank = document.getElementById('reg-rank');
-            if(regRank) regRank.value = rankVal || '';
             document.getElementById('reg-student-id').readOnly = true; 
             document.getElementById('reg-student-id').classList.add('bg-slate-100/50', 'text-slate-500', 'shadow-inner'); 
-            ['reg-name', 'reg-faculty', 'reg-major', 'reg-citizen-id', 'reg-rank'].forEach(id => { 
+            ['reg-name', 'reg-faculty', 'reg-major', 'reg-citizen-id'].forEach(id => { 
                 const el = document.getElementById(id); 
                 if (el) { el.readOnly = false; el.classList.remove('bg-slate-100/50', 'text-slate-500', 'shadow-inner', 'cursor-not-allowed'); el.classList.add('bg-white'); } 
             }); 
@@ -1806,22 +1791,9 @@ ${e.type === 'register' ? '' : `
             const pName = document.getElementById('gps-profile-name');
             const pDept = document.getElementById('gps-profile-dept');
             const pImg = document.getElementById('gps-profile-img');
-            const pSid = document.getElementById('gps-profile-sid');
-            const pRank = document.getElementById('gps-profile-rank');
-            
             if(pName) pName.innerText = d.name || sId;
             if(pDept) pDept.innerText = (d.faculty || '') + (d.major ? ' - ' + d.major : '');
             if(pImg) pImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(d.name || sId)}&background=random`;
-            if(pSid) pSid.innerText = d.studentId || d.citizenId || sId;
-            if(pRank) {
-                const rankVal = d.rank || d.title || d.position || d['ยศ'] || d['ตำแหน่ง'] || d['ตำแหน่งชั้นยศ'];
-                if(rankVal) {
-                    pRank.innerText = rankVal;
-                    pRank.classList.remove('hidden');
-                } else {
-                    pRank.classList.add('hidden');
-                }
-            }
             
             document.getElementById('step-form').classList.remove('hidden'); 
             const gpsCard = document.getElementById('gps-status-card');
@@ -1835,16 +1807,13 @@ ${e.type === 'register' ? '' : `
 
         window.showManualForm = function(pid = '') { 
             const sId = document.getElementById('search-student-id').value.trim() || pid; 
-            ['reg-name', 'reg-faculty', 'reg-major', 'reg-student-id', 'reg-citizen-id', 'reg-rank'].forEach(id => { 
+            ['reg-name', 'reg-faculty', 'reg-major', 'reg-student-id', 'reg-citizen-id'].forEach(id => { 
                 const el = document.getElementById(id); 
                 if (el) { el.readOnly = false; el.classList.remove('bg-slate-100/50', 'text-slate-500', 'shadow-inner', 'cursor-not-allowed'); el.classList.add('bg-white'); } 
             }); 
             if (sId.length === 13 && !isNaN(sId)) document.getElementById('reg-citizen-id').value = sId; else document.getElementById('reg-student-id').value = sId; 
-            const payload = { action: 'checkIn', eventId: evId, eventName: evN, studentId: fSid, citizenId: fCid, name: fN, faculty: fF, major: fM, rank: fR, title: fR, method: 'WEB', timestamp: new Date().toISOString() };
             document.getElementById('step-search').classList.add('hidden'); 
             document.getElementById('step-form').classList.remove('hidden'); 
-            const infoContainer = document.getElementById('reg-basic-info-container');
-            if (infoContainer) infoContainer.classList.remove('hidden');
             const gpsCard = document.getElementById('gps-status-card');
             if (gpsCard) { gpsCard.classList.remove('hidden'); gpsCard.classList.add('flex'); }
             if (window.currentGpsValid) {
@@ -1866,8 +1835,6 @@ ${e.type === 'register' ? '' : `
                 const ev = appCache.activities.find(x => String(x.id) === String(window.currentActivityId));
                 if (ev && ev.type !== 'register') btnSubmit.disabled = true;
             }
-            const infoContainer = document.getElementById('reg-basic-info-container');
-            if (infoContainer) infoContainer.classList.add('hidden');
             document.getElementById('step-form').classList.add('hidden'); 
             document.getElementById('step-search').classList.remove('hidden'); 
             document.getElementById('search-feedback').classList.add('hidden'); 
@@ -1876,7 +1843,7 @@ ${e.type === 'register' ? '' : `
             document.getElementById('reg-hidden-citizen-id').value = ''; 
             const err = document.getElementById('reg-error-message'); 
             if (err) err.classList.add('hidden'); 
-            ['reg-name', 'reg-faculty', 'reg-major', 'reg-student-id', 'reg-citizen-id', 'reg-rank'].forEach(id => { 
+            ['reg-name', 'reg-faculty', 'reg-major', 'reg-student-id', 'reg-citizen-id'].forEach(id => { 
                 const el = document.getElementById(id); 
                 if (el) { el.readOnly = false; el.classList.remove('bg-slate-100/50', 'text-slate-500', 'shadow-inner', 'cursor-not-allowed'); el.classList.add('bg-white'); } 
             }); 
@@ -1887,7 +1854,6 @@ ${e.type === 'register' ? '' : `
             const fSid = document.getElementById('reg-hidden-student-id').value.trim() || document.getElementById('reg-student-id').value.trim(); 
             const fCid = document.getElementById('reg-hidden-citizen-id').value.trim() || document.getElementById('reg-citizen-id').value.trim(); 
             const fN = document.getElementById('reg-name').value, fF = document.getElementById('reg-faculty').value, fM = document.getElementById('reg-major').value; 
-            const fR = document.getElementById('reg-rank') ? document.getElementById('reg-rank').value : '';
             const evO = appCache.activities.find(x => String(x.id) === String(evId)), evN = evO?.title || 'กิจกรรม'; 
             const err = document.getElementById('reg-error-message'); 
             if (err) err.classList.add('hidden');
